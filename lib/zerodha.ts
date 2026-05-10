@@ -1,6 +1,6 @@
 import { ZerodhaApiResponse, ZerodhaError } from "./types";
 
-const KITE_BASE_URL = "https://api.kite.trade";
+const KITE_BASE_URL = "https://kite.zerodha.com/oms";
 
 export async function makeKiteRequest<T>(
   token: string,
@@ -12,6 +12,7 @@ export async function makeKiteRequest<T>(
 
   const headers: Record<string, string> = {
     Authorization: `enctoken ${token}`,
+    Cookie: `enctoken=${token}`,
     "X-Kite-Version": "3",
     "Content-Type": "application/x-www-form-urlencoded",
   };

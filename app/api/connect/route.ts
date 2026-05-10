@@ -11,10 +11,11 @@ export async function POST(req: NextRequest) {
 
     const cleanToken = token.trim();
 
-    const kiteRes = await fetch("https://api.kite.trade/user/profile", {
+    const kiteRes = await fetch("https://kite.zerodha.com/oms/user/profile", {
       method: "GET",
       headers: {
         Authorization: `enctoken ${cleanToken}`,
+        Cookie: `enctoken=${cleanToken}`,
         "X-Kite-Version": "3",
       },
     });
