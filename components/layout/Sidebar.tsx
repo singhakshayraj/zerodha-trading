@@ -1,64 +1,74 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Briefcase, Zap, LogOut, TrendingUp } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Zap, Briefcase, Bot, LogOut } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const navItems = [
+  { href: "/connect", label: "Connect", icon: Zap },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
-  { href: "/trading", label: "Trading", icon: Zap },
+  { href: "/trading", label: "Auto Trade", icon: Bot },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { userProfile, sessionExpiry, clearSession } = useAppStore();
+  const router = useRouter();
+  const { userProfile, clearSession } = useAppStore();
+
+  function handleDisconnect() {
+    clearSession();
+    router.push("/connect");
+  }
 
   return (
-    <aside className="w-56 bg-[#111111] border-r border-[#1f1f1f] flex flex-col h-screen sticky top-0">
-      <div className="p-4 border-b border-[#1f1f1f]">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-[#3b82f6]" />
-          <span className="font-semibold text-[#f5f5f5]">ZT Dashboard</span>
+    <aside className="w-56 bg-[#111111] border-r border-[#1f1f1f] flex flex-col h-screen sticky top-0 shrink-0">
+      {/* Logo */}
+      <div className="p-5 border-b border-[#1f1f1f]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#3b82f6]/10 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-[#3b82f6]" fill="#3b82f6" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-[#f5f5f5]">Zerodha Trader</p>
+            <p className="text-[10px] text-[#444]">Autonomous Platform</p>
+          </div>
         </div>
-        {userProfile && (
-          <div className="mt-3">
-            <p className="text-xs text-[#f5f5f5] font-medium">{userProfile.name}</p>
-            <p className="text-xs text-[#666666]">{userProfile.user_id}</p>
-          </div>
-        )}
-        {sessionExpiry && (
-          <div className="mt-2 px-2 py-1 bg-[#1f1f1f] rounded text-xs text-[#666666]">
-            Expires {sessionExpiry}
-          </div>
-        )}
       </div>
 
-      <nav className="flex-1 p-3 space-y-1">
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
               pathname === href
-                ? "bg-[#1f1f1f] text-[#f5f5f5]"
-                : "text-[#666666] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]"
+                ? "bg-[#1f1f1f] text-[#f5f5f5] font-medium"
+                : "text-[#555] hover:text-[#f5f5f5] hover:bg-[#181818]"
             )}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-4 h-4 shrink-0" />
             {label}
           </Link>
         ))}
       </nav>
 
-      <div className="p-3 border-t border-[#1f1f1f]">
+      {/* User + disconnect */}
+      <div className="p-3 border-t border-[#1f1f1f] space-y-3">
+        {userProfile && (
+          <div className="px-3 py-2 bg-[#0d0d0d] rounded-lg">
+            <p className="text-xs font-medium text-[#f5f5f5] truncate">{userProfile.name}</p>
+            <p className="text-[10px] text-[#444] mt-0.5">{userProfile.broker}</p>
+          </div>
+        )}
         <button
-          onClick={clearSession}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-[#666666] hover:text-[#ef4444] hover:bg-[#1a1a1a] w-full transition-colors"
+          onClick={handleDisconnect}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#555] hover:text-[#ef4444] hover:bg-[#181818] w-full transition-colors"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4 shrink-0" />
           Disconnect
         </button>
       </div>
