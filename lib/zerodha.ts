@@ -12,11 +12,8 @@ export async function makeKiteRequest<T>(
 
   const headers: Record<string, string> = {
     Authorization: `enctoken ${token}`,
-    Cookie: `enctoken=${token}`,
     "X-Kite-Version": "3",
     "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    Accept: "application/json, text/plain, */*",
   };
 
   let body: string | undefined;

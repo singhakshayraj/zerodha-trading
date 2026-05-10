@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { token } = await req.json();
+    const body = await req.json();
+    const { token } = body;
 
     if (!token || typeof token !== "string" || !token.trim()) {
       return NextResponse.json({ success: false, error: "Token is required" }, { status: 400 });
@@ -14,30 +15,51 @@ export async function POST(req: NextRequest) {
       method: "GET",
       headers: {
         Authorization: `enctoken ${cleanToken}`,
-        Cookie: `enctoken=${cleanToken}`,
         "X-Kite-Version": "3",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "application/json, text/plain, */*",
       },
     });
 
-    const data = await kiteRes.json();
+    const kiteStatus = kiteRes.status;
+    let data: Record<string, unknown>;
 
-    if (!kiteRes.ok || data.status !== "success") {
-      return NextResponse.json(
-        { success: false, error: data.message || "Invalid token. Please check and try again." },
-        { status: kiteRes.status }
-      );
+    try {
+      data = await kiteRes.json();
+    } catch {
+      return NextResponse.json({
+        success: false,
+        error: "Zerodha returned non-JSON response",
+        debug: { kiteStatus },
+      }, { status: 502 });
     }
 
-    const { user_name, email, broker, user_id } = data.data;
+    if (!kiteRes.ok || data.status !== "success") {
+      return NextResponse.json({
+        success: false,
+        error: (data.message as string) || "Invalid token",
+        debug: {
+          kiteStatus,
+          kiteStatusText: kiteRes.statusText,
+          kiteBody: data,
+        },
+      }, { status: kiteStatus });
+    }
+
+    const profile = data.data as { user_name: string; email: string; broker: string; user_id: string };
 
     return NextResponse.json({
       success: true,
-      profile: { name: user_name, email, broker, user_id },
+      profile: {
+        name: profile.user_name,
+        email: profile.email,
+        broker: profile.broker,
+        user_id: profile.user_id,
+      },
     });
   } catch (err) {
-    console.error("Connect error:", err);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: "Internal server error",
+      debug: { message: String(err) },
+    }, { status: 500 });
   }
 }
