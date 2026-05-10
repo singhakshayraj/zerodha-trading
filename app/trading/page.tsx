@@ -8,9 +8,10 @@ import { Holding } from "@/lib/types";
 import { runTradingCycle } from "@/lib/tradingBrain";
 import api from "@/lib/api";
 import type { TradingSession, Trade } from "@/lib/db";
+import { BrainStatus } from "@/components/BrainStatus";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
-  Clock, Zap, ChevronDown, ChevronRight, Radio,
+  Clock, Zap, ChevronDown, ChevronRight,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
@@ -73,7 +74,7 @@ function fmtDate(iso: string) {
 
 export default function TradingPage() {
   const router = useRouter();
-  const { isConnected, hydrateFromStorage, session, startSession, stopSession, setDbSessionId, addBrainLog, resetSession } = useAppStore();
+  const { isConnected, hydrateFromStorage, session, startSession, stopSession, setDbSessionId, addBrainLog, resetSession, brainStatus } = useAppStore();
 
   const [config, setConfig] = useState<TradingConfig>({
     capital: 10000,
@@ -86,6 +87,7 @@ export default function TradingPage() {
 
   const [, setHoldings] = useState<Holding[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [elapsedTime, setElapsedTime] = useState("00:00");
   const [logPage, setLogPage] = useState(1);
   const LOGS_PER_PAGE = 20;
@@ -97,19 +99,10 @@ export default function TradingPage() {
   const [loadingTrades, setLoadingTrades] = useState<string | null>(null);
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
-  // Brain status
-  const [brainStatus, setBrainStatus] = useState<{
-    status: "ONLINE" | "RUNNING" | "OFFLINE" | "ERROR";
-    lastPing: string | null;
-    currentCycle: number | null;
-    message: string | null;
-    secondsSinceLastPing: number | null;
-  }>({ status: "OFFLINE", lastPing: null, currentCycle: null, message: null, secondsSinceLastPing: null });
-  const brainPollRef = useRef<NodeJS.Timeout | null>(null);
-
   const brainLogRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const contextIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const stopConfirmedRef = useRef(false);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -119,23 +112,6 @@ export default function TradingPage() {
     if (!isConnected) return;
     api.get("/portfolio/holdings").then((r) => setHoldings(r.data.holdings ?? [])).catch(() => {});
   }, [isConnected]);
-
-  // Brain status polling (every 5 seconds)
-  const fetchBrainStatus = useCallback(async () => {
-    try {
-      const r = await api.get("/brain/status");
-      setBrainStatus(r.data);
-    } catch {
-      setBrainStatus((prev) => ({ ...prev, status: "OFFLINE" }));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isConnected) return;
-    fetchBrainStatus();
-    brainPollRef.current = setInterval(fetchBrainStatus, 5000);
-    return () => { if (brainPollRef.current) clearInterval(brainPollRef.current); };
-  }, [isConnected, fetchBrainStatus]);
 
   // fetch past sessions
   const fetchPastSessions = useCallback(async () => {
@@ -230,7 +206,9 @@ export default function TradingPage() {
     }
   }
 
-  async function handleStop() {
+  async function confirmStop() {
+    setShowStopConfirm(false);
+    stopConfirmedRef.current = true;
     const dbSessionId = session.dbSessionId;
     stopSession("Manually stopped by user");
 
@@ -243,7 +221,6 @@ export default function TradingPage() {
       } catch {
         // non-fatal
       }
-      // Refresh past sessions list
       fetchPastSessions();
     }
   }
@@ -296,32 +273,7 @@ export default function TradingPage() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            {/* Brain status */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <Radio className={`w-3 h-3 ${
-                brainStatus.status === "RUNNING" ? "text-[#22c55e] animate-pulse" :
-                brainStatus.status === "ONLINE"  ? "text-[#22c55e]" :
-                "text-[#ef4444]"
-              }`} />
-              <span className={
-                brainStatus.status === "OFFLINE" ? "text-[#ef4444]" :
-                brainStatus.status === "RUNNING" ? "text-[#22c55e]" :
-                "text-[#888]"
-              }>
-                Brain {brainStatus.status}
-              </span>
-              {brainStatus.secondsSinceLastPing !== null && (
-                <span className="text-[#333]">
-                  · {brainStatus.secondsSinceLastPing < 60
-                      ? `${brainStatus.secondsSinceLastPing}s ago`
-                      : `${Math.floor(brainStatus.secondsSinceLastPing / 60)}m ago`}
-                </span>
-              )}
-              {brainStatus.status === "OFFLINE" && brainStatus.secondsSinceLastPing !== null && brainStatus.secondsSinceLastPing > 120 && (
-                <span className="text-[#f59e0b] text-[10px]">⚠ Check Railway</span>
-              )}
-            </div>
-
+            <BrainStatus />
             <div className="flex items-center gap-1.5 text-xs text-[#444]">
               <Clock className="w-3 h-3" />
               {isMarketOpen()
@@ -454,9 +406,7 @@ export default function TradingPage() {
               {session.status !== "running" ? (
                 <>
                   {(() => {
-                    const brainOnline = brainStatus.status === "ONLINE" || brainStatus.status === "RUNNING";
-                    const staleHeartbeat = brainStatus.secondsSinceLastPing !== null && brainStatus.secondsSinceLastPing > 120;
-                    const brainReady = brainOnline && !staleHeartbeat;
+                    const brainReady = brainStatus === "ONLINE" || brainStatus === "RUNNING";
                     return (
                       <div className="relative group">
                         <button
@@ -489,8 +439,8 @@ export default function TradingPage() {
                 </>
               ) : (
                 <button
-                  onClick={handleStop}
-                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#ef4444] hover:bg-[#dc2626] text-white transition-all flex items-center justify-center gap-2 animate-pulse"
+                  onClick={() => setShowStopConfirm(true)}
+                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#ef4444] hover:bg-[#dc2626] text-white transition-all flex items-center justify-center gap-2"
                 >
                   <Square className="w-4 h-4" fill="white" />
                   Stop Trading
@@ -823,6 +773,40 @@ export default function TradingPage() {
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Confirm & Start
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Stop confirm modal ─────────────────────────────── */}
+      {showStopConfirm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl w-full max-w-sm p-6 shadow-2xl">
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg bg-[#ef4444]/10 flex items-center justify-center shrink-0">
+                <Square className="w-5 h-5 text-[#ef4444]" fill="#ef4444" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[#f5f5f5]">Stop Trading?</h3>
+                <p className="text-xs text-[#555] mt-1">
+                  This will stop the brain and square off open positions. Are you sure?
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowStopConfirm(false)}
+                className="flex-1 py-2.5 rounded-lg text-sm text-[#555] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStop}
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-[#ef4444] hover:bg-[#dc2626] text-white transition-colors flex items-center justify-center gap-2"
+              >
+                <Square className="w-4 h-4" fill="white" />
+                Stop & Square Off
               </button>
             </div>
           </div>

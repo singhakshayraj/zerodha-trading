@@ -181,3 +181,24 @@ export class ZerodhaError extends Error {
     this.name = "ZerodhaError";
   }
 }
+
+export type BrainStatus = "OFFLINE" | "ONLINE" | "RUNNING" | "ERROR";
+
+export interface BrainHeartbeat {
+  status: BrainStatus;
+  lastPing: string | null;
+  message: string | null;
+  currentCycle: number | null;
+  isAlive: boolean;
+  secondsSinceLastPing: number | null;
+}
+
+export interface SessionConfig {
+  sessionId: string;
+  capitalDeployed: number;
+  maxTrades: number;
+  maxLossPercent: number;
+  maxProfitPercent: number;
+  tradeIntervalSeconds: number;
+  stockUniverse: string;
+}

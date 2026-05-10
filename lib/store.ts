@@ -61,6 +61,11 @@ interface AppState {
   userProfile: UserProfile | null;
   sessionExpiry: string | null;
 
+  // brain
+  brainStatus: "OFFLINE" | "ONLINE" | "RUNNING" | "ERROR";
+  brainMessage: string;
+  lastBrainPing: number | null;
+
   // trading session
   session: TradingSession;
 
@@ -69,6 +74,9 @@ interface AppState {
   setProfile: (profile: UserProfile) => void;
   clearSession: () => void;
   hydrateFromStorage: () => void;
+
+  // brain actions
+  setBrainStatus: (status: AppState["brainStatus"], message?: string) => void;
 
   // session actions
   startSession: (config: TradingConfig) => void;
@@ -97,6 +105,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   isConnected: false,
   userProfile: null,
   sessionExpiry: null,
+  brainStatus: "OFFLINE",
+  brainMessage: "",
+  lastBrainPing: null,
   session: defaultSession,
 
   setToken: (token) => {
@@ -140,6 +151,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         pnlHistory: [{ time: now.toLocaleTimeString(), pnl: 0 }],
       },
     }));
+  },
+
+  setBrainStatus: (status, message = "") => {
+    set({ brainStatus: status, brainMessage: message, lastBrainPing: Date.now() });
   },
 
   setDbSessionId: (id) => {

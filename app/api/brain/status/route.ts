@@ -12,28 +12,33 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         status: "OFFLINE",
         lastPing: null,
-        currentCycle: null,
+        isAlive: false,
         message: "No heartbeat received yet",
+        currentCycle: null,
         secondsSinceLastPing: null,
       });
     }
 
-    const secondsSinceLastPing = Math.floor(
-      (Date.now() - new Date(heartbeat.last_ping).getTime()) / 1000
-    );
+    const secondsSinceLastPing = heartbeat.last_ping
+      ? Math.floor((Date.now() - new Date(heartbeat.last_ping).getTime()) / 1000)
+      : null;
 
-    const effectiveStatus =
-      secondsSinceLastPing > 120 ? "OFFLINE" : heartbeat.status;
+    const isAlive = secondsSinceLastPing !== null && secondsSinceLastPing < 120;
+    const effectiveStatus = isAlive ? heartbeat.status : "OFFLINE";
 
     return NextResponse.json({
       status: effectiveStatus,
       lastPing: heartbeat.last_ping,
-      currentCycle: heartbeat.current_cycle,
+      isAlive,
       message: heartbeat.message,
+      currentCycle: heartbeat.current_cycle,
       secondsSinceLastPing,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: msg, status: "OFFLINE" }, { status: 500 });
+    return NextResponse.json(
+      { status: "OFFLINE", lastPing: null, isAlive: false, message: msg, currentCycle: null, secondsSinceLastPing: null },
+      { status: 500 }
+    );
   }
 }

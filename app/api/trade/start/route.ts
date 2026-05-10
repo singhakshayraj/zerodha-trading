@@ -38,11 +38,11 @@ export async function POST(req: NextRequest) {
       maxLossPercent: config?.maxLossPct ?? 5,
       maxProfitPercent: config?.maxProfitPct ?? 15,
       tradeIntervalSeconds: (config?.intervalMinutes ?? 5) * 60,
-      stockUniverse: topStocks.map((s) => s.symbol),
+      stockUniverse: config?.universe ?? "HOLDINGS",
     };
 
     await db.writeConfig("session_config", JSON.stringify(sessionConfig));
-    await db.writeConfig("brain_command", "START");
+    await db.writeConfig("brain_status", "START");
 
     return NextResponse.json({ sessionId: session.id, topStocks });
   } catch (err) {

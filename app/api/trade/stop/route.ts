@@ -9,8 +9,11 @@ export async function POST(req: NextRequest) {
     const { sessionId, endReason } = await req.json();
     if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
 
-    // Signal brain to stop before ending session
-    await db.writeConfig("brain_command", "STOP");
+    // Signal brain to stop
+    await db.writeConfig("brain_status", "STOP");
+
+    // Give brain 2 seconds to acknowledge before we close the session
+    await new Promise((r) => setTimeout(r, 2000));
 
     await db.endSession(sessionId, endReason ?? "Manually stopped");
 
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest) {
       total_pnl:      totalPnl,
     });
 
-    return NextResponse.json({ ok: true, stats: { trades: trades.length, winning, losing, totalPnl } });
+    return NextResponse.json({ success: true, stats: { trades: trades.length, winning, losing, totalPnl } });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });

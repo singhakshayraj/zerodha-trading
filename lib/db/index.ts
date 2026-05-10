@@ -233,8 +233,7 @@ export async function getBrainHeartbeat(): Promise<BrainHeartbeat | null> {
   const { data, error } = await supabaseServer
     .from("brain_heartbeat")
     .select("*")
-    .order("created_at", { ascending: false })
-    .limit(1)
+    .eq("id", 1)
     .single();
 
   if (error) return null;
