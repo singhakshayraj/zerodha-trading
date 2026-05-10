@@ -8,11 +8,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Token is required" }, { status: 400 });
     }
 
+    const cleanToken = token.trim();
+
     const kiteRes = await fetch("https://api.kite.trade/user/profile", {
       method: "GET",
       headers: {
-        Authorization: `enctoken ${token.trim()}`,
+        Authorization: `enctoken ${cleanToken}`,
+        Cookie: `enctoken=${cleanToken}`,
         "X-Kite-Version": "3",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "application/json, text/plain, */*",
       },
     });
 
@@ -20,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     if (!kiteRes.ok || data.status !== "success") {
       return NextResponse.json(
-        { success: false, error: data.message || "Invalid token" },
+        { success: false, error: data.message || "Invalid token. Please check and try again." },
         { status: kiteRes.status }
       );
     }
@@ -31,7 +36,8 @@ export async function POST(req: NextRequest) {
       success: true,
       profile: { name: user_name, email, broker, user_id },
     });
-  } catch {
+  } catch (err) {
+    console.error("Connect error:", err);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
