@@ -24,7 +24,7 @@ export function Sidebar() {
         </div>
         {userProfile && (
           <div className="mt-3">
-            <p className="text-xs text-[#f5f5f5] font-medium">{userProfile.user_name}</p>
+            <p className="text-xs text-[#f5f5f5] font-medium">{userProfile.name}</p>
             <p className="text-xs text-[#666666]">{userProfile.user_id}</p>
           </div>
         )}

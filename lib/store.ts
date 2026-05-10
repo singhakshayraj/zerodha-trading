@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { UserProfile } from "./types";
+
+interface UserProfile {
+  name: string;
+  email: string;
+  broker: string;
+  user_id?: string;
+}
 
 interface AppState {
   token: string | null;
@@ -21,16 +27,10 @@ export const useAppStore = create<AppState>((set) => ({
 
   setToken: (token: string) => {
     if (typeof window !== "undefined") {
+      localStorage.setItem("enc_token", token);
       sessionStorage.setItem("enc_token", token);
     }
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(6, 0, 0, 0);
-    set({
-      token,
-      isConnected: true,
-      sessionExpiry: "6:00 AM tomorrow",
-    });
+    set({ token, isConnected: true, sessionExpiry: "6:00 AM tomorrow" });
   },
 
   setProfile: (profile: UserProfile) => {
@@ -39,25 +39,18 @@ export const useAppStore = create<AppState>((set) => ({
 
   clearSession: () => {
     if (typeof window !== "undefined") {
+      localStorage.removeItem("enc_token");
       sessionStorage.removeItem("enc_token");
     }
-    set({
-      token: null,
-      isConnected: false,
-      userProfile: null,
-      sessionExpiry: null,
-    });
+    set({ token: null, isConnected: false, userProfile: null, sessionExpiry: null });
   },
 
   hydrateFromStorage: () => {
     if (typeof window !== "undefined") {
-      const token = sessionStorage.getItem("enc_token");
+      const token =
+        localStorage.getItem("enc_token") || sessionStorage.getItem("enc_token");
       if (token) {
-        set({
-          token,
-          isConnected: true,
-          sessionExpiry: "6:00 AM tomorrow",
-        });
+        set({ token, isConnected: true, sessionExpiry: "6:00 AM tomorrow" });
       }
     }
   },

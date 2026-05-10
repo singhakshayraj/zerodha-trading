@@ -3,15 +3,34 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
-import { TrendingUp, ExternalLink, Loader2, AlertCircle } from "lucide-react";
-import api from "@/lib/api";
+import {
+  Zap,
+  Eye,
+  EyeOff,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  X,
+  ExternalLink,
+  ShieldCheck,
+} from "lucide-react";
+
+const STATUS_STEPS = [
+  "Account Connected",
+  "Profile Fetched",
+  "Market Access Verified",
+];
 
 export default function ConnectPage() {
-  const [token, setToken] = useState("");
+  const router = useRouter();
+  const { setToken, setProfile, isConnected, hydrateFromStorage } = useAppStore();
+
+  const [token, setTokenInput] = useState("");
+  const [showToken, setShowToken] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
-  const { setToken: storeToken, setProfile, isConnected, hydrateFromStorage } = useAppStore();
+  const [successSteps, setSuccessSteps] = useState<number[]>([]);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -27,54 +46,90 @@ export default function ConnectPage() {
 
     setLoading(true);
     setError("");
+    setSuccessSteps([]);
 
     try {
-      storeToken(token.trim());
-      const res = await api.post("/connect", { token: token.trim() });
-      setProfile(res.data.profile);
+      const res = await fetch("/api/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setError(data.error || "Invalid token. Please check and try again.");
+        setLoading(false);
+        return;
+      }
+
+      setToken(token.trim());
+      setProfile(data.profile);
+
+      for (let i = 0; i < STATUS_STEPS.length; i++) {
+        await new Promise((r) => setTimeout(r, 500));
+        setSuccessSteps((prev) => [...prev, i]);
+      }
+
+      await new Promise((r) => setTimeout(r, 600));
       router.push("/portfolio");
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-        "Invalid token. Make sure you copied it correctly.";
-      setError(msg);
-      useAppStore.getState().clearSession();
-    } finally {
+    } catch {
+      setError("Connection failed. Check your network and try again.");
       setLoading(false);
     }
   }
 
+  const connected = successSteps.length === STATUS_STEPS.length;
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <TrendingUp className="w-8 h-8 text-[#3b82f6]" />
-            <span className="text-xl font-semibold text-[#f5f5f5]">Zerodha Trader</span>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#111111] border border-[#1f1f1f] mb-4">
+            <Zap className="w-6 h-6 text-[#3b82f6]" fill="#3b82f6" />
           </div>
-          <p className="text-[#666666] text-sm">
-            Enter your Zerodha enc_token to connect
-          </p>
+          <h1 className="text-2xl font-semibold text-[#f5f5f5] tracking-tight">
+            Zerodha Trader
+          </h1>
+          <p className="text-sm text-[#666666] mt-1">Autonomous Trading Platform</p>
         </div>
 
-        <div className="bg-[#111111] border border-[#1f1f1f] rounded-lg p-6">
+        {/* Card */}
+        <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6 shadow-2xl">
+          <h2 className="text-sm font-medium text-[#f5f5f5] mb-5">
+            Connect your account
+          </h2>
+
           <form onSubmit={handleConnect} className="space-y-4">
             <div>
               <label className="block text-xs text-[#666666] mb-2 uppercase tracking-wider">
-                enc_token
+                Access Token (enc_token)
               </label>
-              <textarea
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="Paste your enctoken here..."
-                rows={3}
-                className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-md px-3 py-2 text-sm text-[#f5f5f5] placeholder-[#444] resize-none focus:outline-none focus:border-[#3b82f6] transition-colors font-mono"
-              />
+              <div className="relative">
+                <input
+                  type={showToken ? "text" : "password"}
+                  value={token}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  placeholder="Paste your enc_token here"
+                  required
+                  disabled={loading}
+                  className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg px-4 py-3 pr-11 text-sm text-[#f5f5f5] placeholder-[#333] focus:outline-none focus:border-[#3b82f6] transition-colors font-mono disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888] transition-colors"
+                  tabIndex={-1}
+                >
+                  {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 text-[#ef4444] text-xs bg-[#ef4444]/10 border border-[#ef4444]/20 rounded-md p-3">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 text-[#ef4444] text-xs bg-[#ef4444]/10 border border-[#ef4444]/20 rounded-lg p-3">
+                <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
@@ -82,53 +137,142 @@ export default function ConnectPage() {
             <button
               type="submit"
               disabled={loading || !token.trim()}
-              className="w-full bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-3 text-sm font-medium transition-all flex items-center justify-center gap-2"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading ? "Connecting..." : "Connect"}
+              {loading && !connected && <Loader2 className="w-4 h-4 animate-spin" />}
+              {connected ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-[#22c55e]" />
+                  Connected — Redirecting...
+                </>
+              ) : loading ? (
+                "Verifying..."
+              ) : (
+                "Connect"
+              )}
             </button>
           </form>
+
+          {/* Animated status steps */}
+          {(loading || successSteps.length > 0) && (
+            <div className="mt-5 pt-5 border-t border-[#1f1f1f] space-y-2.5">
+              {STATUS_STEPS.map((step, i) => {
+                const done = successSteps.includes(i);
+                const pending = loading && !done && successSteps.length === i;
+                return (
+                  <div
+                    key={step}
+                    className={`flex items-center gap-3 text-sm transition-all duration-300 ${
+                      done ? "text-[#f5f5f5]" : pending ? "text-[#666666]" : "text-[#2a2a2a]"
+                    }`}
+                  >
+                    {done ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#22c55e] shrink-0" />
+                    ) : pending ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-[#3b82f6] shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-[#2a2a2a] shrink-0" />
+                    )}
+                    {step}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        <div className="mt-6 bg-[#111111] border border-[#1f1f1f] rounded-lg p-5">
-          <h3 className="text-xs font-medium text-[#f5f5f5] uppercase tracking-wider mb-3">
-            How to get your enc_token
-          </h3>
-          <ol className="space-y-2 text-xs text-[#666666]">
-            <li className="flex gap-2">
-              <span className="text-[#3b82f6] shrink-0">1.</span>
-              Log in to Zerodha Kite at kite.zerodha.com
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[#3b82f6] shrink-0">2.</span>
-              Open browser DevTools → Application → Cookies
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[#3b82f6] shrink-0">3.</span>
-              Find the cookie named <code className="bg-[#1f1f1f] px-1 rounded">enctoken</code>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[#3b82f6] shrink-0">4.</span>
-              Copy the value and paste it above
-            </li>
-          </ol>
-          <div className="mt-3 flex items-center gap-1 text-xs text-[#666666]">
-            <AlertCircle className="w-3 h-3" />
-            Token expires at 6:00 AM next day
-          </div>
+        {/* Security note */}
+        <div className="mt-4 flex items-start gap-2 text-xs text-[#444] px-1">
+          <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3b82f6]" />
+          <span>
+            Your token is stored locally and never sent to any server other than Zerodha.
+          </span>
         </div>
 
-        <div className="mt-4 text-center">
-          <a
-            href="https://kite.zerodha.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-[#3b82f6] hover:underline"
+        {/* How to get token */}
+        <div className="mt-3 text-center">
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-xs text-[#3b82f6] hover:underline inline-flex items-center gap-1"
           >
-            Open Kite <ExternalLink className="w-3 h-3" />
-          </a>
+            How to get your access token?
+            <ExternalLink className="w-3 h-3" />
+          </button>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-sm font-semibold text-[#f5f5f5]">
+                How to get your enc_token
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-[#666666] hover:text-[#f5f5f5] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <ol className="space-y-4">
+              {[
+                {
+                  n: "1",
+                  title: "Log in to Zerodha Kite",
+                  desc: "Open kite.zerodha.com and sign in with your credentials.",
+                },
+                {
+                  n: "2",
+                  title: "Open Developer Tools",
+                  desc: "Press F12 (or Cmd+Option+I on Mac) to open browser DevTools.",
+                },
+                {
+                  n: "3",
+                  title: "Go to Application → Cookies",
+                  desc: 'Click the "Application" tab → expand "Cookies" in the left sidebar → select the Kite URL.',
+                },
+                {
+                  n: "4",
+                  title: 'Find the "enctoken" cookie',
+                  desc: 'Look for the cookie named enctoken. Click it and copy the full value from the "Cookie Value" field.',
+                },
+                {
+                  n: "5",
+                  title: "Paste it here",
+                  desc: "Paste the copied value into the Access Token field and click Connect.",
+                },
+              ].map(({ n, title, desc }) => (
+                <li key={n} className="flex gap-3">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#1f1f1f] text-[#3b82f6] text-xs font-semibold flex items-center justify-center mt-0.5">
+                    {n}
+                  </span>
+                  <div>
+                    <p className="text-xs font-medium text-[#f5f5f5]">{title}</p>
+                    <p className="text-xs text-[#666666] mt-0.5">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <div className="mt-5 p-3 bg-[#0a0a0a] rounded-lg border border-[#1f1f1f]">
+              <p className="text-xs text-[#666666]">
+                <span className="text-[#f59e0b] font-medium">Note: </span>
+                The enc_token expires at 6:00 AM the next day. Repeat this process daily.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowModal(false)}
+              className="w-full mt-4 bg-[#1f1f1f] hover:bg-[#2a2a2a] text-[#f5f5f5] rounded-lg py-2.5 text-sm font-medium transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
