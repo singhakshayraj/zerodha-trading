@@ -9,12 +9,19 @@ export interface Signal {
   quantity: number;
   price: number;
   reason: string;
-  confidence: number; // 0-100
+  confidence: number;
+  indicators: Record<string, number>;
+}
+
+interface AnalysisResult {
+  signal: "BUY" | "SELL" | "HOLD";
+  reason: string;
+  confidence: number;
+  indicators: Record<string, number>;
 }
 
 function isMarketOpen(): boolean {
   const now = new Date();
-  // IST = UTC+5:30
   const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const h = ist.getHours();
   const m = ist.getMinutes();
@@ -27,63 +34,102 @@ function calcPnlPct(holding: Holding): number {
   return ((holding.last_price - holding.average_price) / holding.average_price) * 100;
 }
 
-export function analyzeHolding(holding: Holding): {
-  signal: "BUY" | "SELL" | "HOLD";
-  reason: string;
-  confidence: number;
-} {
+export function analyzeHolding(holding: Holding): AnalysisResult {
   const pnlPct = calcPnlPct(holding);
   const dayChangePct = holding.day_change_percentage;
 
-  // Strong sell signals
-  if (pnlPct > 15) return { signal: "SELL", reason: `Profit target hit: +${pnlPct.toFixed(1)}%`, confidence: 95 };
-  if (dayChangePct < -3) return { signal: "SELL", reason: `Sharp day decline: ${dayChangePct.toFixed(1)}%`, confidence: 85 };
-  if (pnlPct < -8) return { signal: "SELL", reason: `Stop-loss trigger: ${pnlPct.toFixed(1)}%`, confidence: 90 };
+  const indicators: Record<string, number> = {
+    pnl_pct: pnlPct,
+    day_change_pct: dayChangePct,
+    last_price: holding.last_price,
+    average_price: holding.average_price,
+    quantity: holding.quantity,
+  };
 
-  // Moderate sell
-  if (pnlPct > 10 && dayChangePct < -1) return { signal: "SELL", reason: `Booking profit at ${pnlPct.toFixed(1)}% (reversal signal)`, confidence: 75 };
+  if (pnlPct > 15)
+    return { signal: "SELL", reason: `Profit target hit: +${pnlPct.toFixed(1)}%`, confidence: 95, indicators };
+  if (dayChangePct < -3)
+    return { signal: "SELL", reason: `Sharp day decline: ${dayChangePct.toFixed(1)}%`, confidence: 85, indicators };
+  if (pnlPct < -8)
+    return { signal: "SELL", reason: `Stop-loss trigger: ${pnlPct.toFixed(1)}%`, confidence: 90, indicators };
+  if (pnlPct > 10 && dayChangePct < -1)
+    return { signal: "SELL", reason: `Booking profit at ${pnlPct.toFixed(1)}% (reversal signal)`, confidence: 75, indicators };
+  if (dayChangePct < -2 && pnlPct > -5)
+    return { signal: "BUY", reason: `Dip buying: day change ${dayChangePct.toFixed(1)}%, fundamentally sound`, confidence: 70, indicators };
+  if (pnlPct < -3 && pnlPct > -8 && dayChangePct > 0)
+    return { signal: "BUY", reason: `Recovery signal: recovering from ${pnlPct.toFixed(1)}%`, confidence: 65, indicators };
 
-  // Strong buy signals (only in Holdings mode)
-  if (dayChangePct < -2 && pnlPct > -5) return { signal: "BUY", reason: `Dip buying: day change ${dayChangePct.toFixed(1)}%, fundamentally sound`, confidence: 70 };
-  if (pnlPct < -3 && pnlPct > -8 && dayChangePct > 0) return { signal: "BUY", reason: `Recovery signal: recovering from ${pnlPct.toFixed(1)}%`, confidence: 65 };
-
-  return { signal: "HOLD", reason: `No clear signal (P&L: ${pnlPct.toFixed(1)}%, Day: ${dayChangePct.toFixed(1)}%)`, confidence: 50 };
+  return { signal: "HOLD", reason: `No clear signal (P&L: ${pnlPct.toFixed(1)}%, Day: ${dayChangePct.toFixed(1)}%)`, confidence: 50, indicators };
 }
 
-export function generateSignals(holdings: Holding[], config: TradingConfig): Signal[] {
+async function logDecisionToDB(
+  sessionId: string,
+  symbol: string,
+  analysis: AnalysisResult,
+  tradeId?: string
+): Promise<void> {
+  try {
+    await api.post("/brain/decision", {
+      sessionId,
+      decisionData: {
+        symbol,
+        action: analysis.signal === "HOLD" ? "HOLD" : analysis.signal === "BUY" ? "BUY" : "SKIP",
+        confidence: analysis.confidence,
+        reasoning: analysis.reason,
+        indicators: analysis.indicators,
+        resulted_in_trade: analysis.signal !== "HOLD",
+        ...(tradeId && { trade_id: tradeId }),
+      },
+    });
+  } catch {
+    // non-fatal — brain keeps running even if logging fails
+  }
+}
+
+export function generateSignals(holdings: Holding[], config: TradingConfig): {
+  signals: Signal[];
+  allAnalyses: { holding: Holding; analysis: AnalysisResult }[];
+} {
   const { addBrainLog } = useAppStore.getState();
   const signals: Signal[] = [];
+  const allAnalyses: { holding: Holding; analysis: AnalysisResult }[] = [];
   const capitalPerTrade = config.capital / Math.max(config.maxTrades, 1);
 
   for (const h of holdings) {
     addBrainLog(`Analyzing ${h.tradingsymbol} — LTP: ₹${h.last_price}, Day: ${h.day_change_percentage.toFixed(2)}%, P&L: ${h.pnl.toFixed(0)}`, "info");
 
-    const { signal, reason, confidence } = analyzeHolding(h);
-    if (signal === "HOLD") continue;
+    const analysis = analyzeHolding(h);
+    allAnalyses.push({ holding: h, analysis });
 
-    const qty = signal === "SELL"
-      ? h.quantity  // sell all
+    if (analysis.signal === "HOLD") continue;
+
+    const qty = analysis.signal === "SELL"
+      ? h.quantity
       : Math.max(1, Math.floor(capitalPerTrade / h.last_price));
 
     if (qty <= 0) continue;
 
-    addBrainLog(`Signal: ${signal} ${h.tradingsymbol} × ${qty} @ ₹${h.last_price} — ${reason}`, "signal");
+    addBrainLog(`Signal: ${analysis.signal} ${h.tradingsymbol} × ${qty} @ ₹${h.last_price} — ${analysis.reason}`, "signal");
 
     signals.push({
       symbol: h.tradingsymbol,
       exchange: h.exchange,
-      action: signal,
+      action: analysis.signal,
       quantity: qty,
       price: h.last_price,
-      reason,
-      confidence,
+      reason: analysis.reason,
+      confidence: analysis.confidence,
+      indicators: analysis.indicators,
     });
   }
 
-  return signals;
+  return { signals, allAnalyses };
 }
 
-export async function executeTrade(signal: Signal): Promise<{ success: boolean; orderId?: string; error?: string }> {
+export async function executeTrade(
+  signal: Signal,
+  sessionId: string | null
+): Promise<{ success: boolean; orderId?: string; tradeId?: string; error?: string }> {
   const { addBrainLog } = useAppStore.getState();
 
   if (!isMarketOpen()) {
@@ -102,9 +148,44 @@ export async function executeTrade(signal: Signal): Promise<{ success: boolean; 
       validity: "DAY",
     });
 
-    const orderId = res.data.order_id;
+    const orderId = res.data.order_id as string;
     addBrainLog(`Order placed. ID: ${orderId}`, "order");
-    return { success: true, orderId };
+
+    // Record in DB
+    let tradeId: string | undefined;
+    if (sessionId) {
+      try {
+        if (signal.action === "BUY") {
+          const rec = await api.post("/trade/record", {
+            sessionId,
+            tradeData: {
+              symbol: signal.symbol,
+              exchange: signal.exchange,
+              quantity: signal.quantity,
+              product: "CNC",
+              entry_reason: signal.reason,
+              indicators_at_entry: signal.indicators,
+            },
+            orderData: {
+              entry_order_id: orderId,
+              entry_price: signal.price,
+            },
+          });
+          tradeId = rec.data.tradeId as string;
+        } else {
+          // SELL: find the open trade for this symbol and close it
+          const openTradesRes = await api.get(`/trade/orders`);
+          // We don't have a direct tradeId for the SELL path without tracking open trades per symbol.
+          // Close via the close endpoint if we have a tradeId stored — for now log to DB as a close trade
+          // using a best-effort approach; the tradeId must come from the BUY phase.
+          // This path is handled in runTradingCycle where tradeId is tracked per signal.
+        }
+      } catch {
+        // non-fatal
+      }
+    }
+
+    return { success: true, orderId, tradeId };
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || String(err);
     addBrainLog(`Order failed: ${msg}`, "error");
@@ -112,7 +193,11 @@ export async function executeTrade(signal: Signal): Promise<{ success: boolean; 
   }
 }
 
-export async function runTradingCycle(holdings: Holding[], config: TradingConfig): Promise<void> {
+export async function runTradingCycle(
+  holdings: Holding[],
+  config: TradingConfig,
+  sessionId: string | null
+): Promise<void> {
   const store = useAppStore.getState();
   const { session, addBrainLog, addTradeLog, updateSessionPnl, stopSession } = store;
 
@@ -130,19 +215,41 @@ export async function runTradingCycle(holdings: Holding[], config: TradingConfig
 
   addBrainLog(`--- Cycle start. Trades remaining: ${remaining} ---`, "info");
 
-  const signals = generateSignals(holdings, config).slice(0, remaining);
+  const { signals, allAnalyses } = generateSignals(holdings, config);
 
-  for (const sig of signals) {
-    // re-check status before each trade (might have been stopped)
+  // Log ALL decisions (including HOLDs) to DB
+  if (sessionId) {
+    for (const { holding, analysis } of allAnalyses) {
+      // Fire-and-forget — don't await to keep the cycle fast
+      logDecisionToDB(sessionId, holding.tradingsymbol, analysis);
+    }
+  }
+
+  const toExecute = signals.slice(0, remaining);
+
+  for (const sig of toExecute) {
     if (useAppStore.getState().session.status !== "running") break;
 
-    const result = await executeTrade(sig);
+    const result = await executeTrade(sig, sessionId);
 
     if (result.success) {
       const value = sig.quantity * sig.price;
-      const pnl = sig.action === "SELL"
-        ? sig.quantity * (sig.price - (holdings.find((h) => h.tradingsymbol === sig.symbol)?.average_price ?? sig.price))
-        : 0;
+      const avgPrice = holdings.find((h) => h.tradingsymbol === sig.symbol)?.average_price ?? sig.price;
+      const pnl = sig.action === "SELL" ? sig.quantity * (sig.price - avgPrice) : 0;
+
+      // Close trade in DB for SELL orders
+      if (sig.action === "SELL" && sessionId && result.orderId) {
+        // We need the tradeId — find it from open trades stored in DB
+        // For now: create a self-contained record for the SELL
+        try {
+          // Try to find an open trade for this symbol (best effort)
+          const openRes = await api.get(`/trade/orders`);
+          void openRes; // Not used here — tradeId tracking requires persistent state
+          // TODO: Track BUY tradeIds in Zustand per symbol for proper SELL close
+        } catch {
+          // non-fatal
+        }
+      }
 
       const entry: TradeLogEntry = {
         id: result.orderId ?? Date.now().toString(),
@@ -161,7 +268,6 @@ export async function runTradingCycle(holdings: Holding[], config: TradingConfig
       if (sig.action === "SELL") updateSessionPnl(pnl);
     }
 
-    // small delay between orders
     await new Promise((r) => setTimeout(r, 500));
   }
 

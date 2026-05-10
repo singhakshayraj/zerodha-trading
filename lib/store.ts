@@ -51,6 +51,7 @@ interface TradingSession {
   brainLogs: BrainLogEntry[];
   pnlHistory: PnlPoint[];
   config: TradingConfig | null;
+  dbSessionId: string | null;
 }
 
 interface AppState {
@@ -72,6 +73,7 @@ interface AppState {
   // session actions
   startSession: (config: TradingConfig) => void;
   stopSession: (reason?: string) => void;
+  setDbSessionId: (id: string) => void;
   addTradeLog: (entry: TradeLogEntry) => void;
   addBrainLog: (msg: string, type?: BrainLogEntry["type"]) => void;
   updateSessionPnl: (delta: number) => void;
@@ -87,6 +89,7 @@ const defaultSession: TradingSession = {
   brainLogs: [],
   pnlHistory: [],
   config: null,
+  dbSessionId: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -132,10 +135,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         sessionPnl: 0,
         tradesExecuted: 0,
         tradeLogs: [],
+        dbSessionId: null,
         brainLogs: [{ time: now.toLocaleTimeString(), message: `Session started. Capital: ₹${config.capital}, Max loss: ${config.maxLossPct}%, Target: ${config.maxProfitPct}%`, type: "info" }],
         pnlHistory: [{ time: now.toLocaleTimeString(), pnl: 0 }],
       },
     }));
+  },
+
+  setDbSessionId: (id) => {
+    set((s) => ({ session: { ...s.session, dbSessionId: id } }));
   },
 
   stopSession: (reason = "Manually stopped") => {

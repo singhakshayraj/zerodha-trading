@@ -31,13 +31,22 @@ export default function ConnectPage() {
   const [error, setError] = useState("");
   const [successSteps, setSuccessSteps] = useState<number[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [dbStatus, setDbStatus] = useState<"checking" | "connected" | "disconnected">("checking");
 
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
 
+  useEffect(() => {
+    fetch("/api/db/health")
+      .then((r) => r.json())
+      .then((d) => setDbStatus(d.connected ? "connected" : "disconnected"))
+      .catch(() => setDbStatus("disconnected"));
+  }, []);
+
   // Already connected — show connected state instead of the form
   if (isConnected) {
+    const bothReady = dbStatus === "connected";
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -50,11 +59,12 @@ export default function ConnectPage() {
           </div>
 
           <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-5 pb-5 border-b border-[#1f1f1f]">
+            {/* Zerodha status */}
+            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-[#1f1f1f]">
               <div className="w-9 h-9 rounded-full bg-[#22c55e]/10 flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-[#f5f5f5]">
                   {userProfile?.name ?? "Connected"}
                 </p>
@@ -62,10 +72,54 @@ export default function ConnectPage() {
                   {userProfile?.email ?? ""}{userProfile?.broker ? ` · ${userProfile.broker}` : ""}
                 </p>
               </div>
-              <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20 font-medium">
-                ACTIVE
+              <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20 font-medium">
+                ZERODHA
               </span>
             </div>
+
+            {/* DB status */}
+            <div className="flex items-center gap-3 mb-5 pb-5 border-b border-[#1f1f1f]">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                dbStatus === "connected"
+                  ? "bg-[#22c55e]/10"
+                  : dbStatus === "disconnected"
+                  ? "bg-[#ef4444]/10"
+                  : "bg-[#666]/10"
+              }`}>
+                {dbStatus === "connected" ? (
+                  <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
+                ) : dbStatus === "disconnected" ? (
+                  <XCircle className="w-5 h-5 text-[#ef4444]" />
+                ) : (
+                  <Loader2 className="w-5 h-5 text-[#666] animate-spin" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-[#f5f5f5]">Database</p>
+                <p className="text-xs text-[#444]">
+                  {dbStatus === "connected"
+                    ? "Supabase connected — trade history will be recorded"
+                    : dbStatus === "disconnected"
+                    ? "Database unavailable — sessions won't be persisted"
+                    : "Checking database connection…"}
+                </p>
+              </div>
+              <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                dbStatus === "connected"
+                  ? "bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20"
+                  : dbStatus === "disconnected"
+                  ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20"
+                  : "bg-[#666]/10 text-[#666] border-[#666]/20"
+              }`}>
+                {dbStatus === "connected" ? "DB" : dbStatus === "disconnected" ? "OFFLINE" : "…"}
+              </span>
+            </div>
+
+            {!bothReady && dbStatus === "disconnected" && (
+              <div className="mb-4 p-3 bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-lg text-xs text-[#ef4444]">
+                Database is offline. You can still view your portfolio, but trade sessions won&apos;t be saved.
+              </div>
+            )}
 
             <div className="space-y-2">
               <button
@@ -244,6 +298,26 @@ export default function ConnectPage() {
           <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3b82f6]" />
           <span>
             Your token is stored locally and never sent to any server other than Zerodha.
+          </span>
+        </div>
+
+        {/* DB health */}
+        <div className="mt-2 flex items-center gap-2 text-xs px-1">
+          <div
+            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+              dbStatus === "connected"
+                ? "bg-[#22c55e]"
+                : dbStatus === "disconnected"
+                ? "bg-[#ef4444]"
+                : "bg-[#666666] animate-pulse"
+            }`}
+          />
+          <span className="text-[#333]">
+            {dbStatus === "checking"
+              ? "Checking database..."
+              : dbStatus === "connected"
+              ? "Database connected"
+              : "Database unavailable"}
           </span>
         </div>
 

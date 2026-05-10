@@ -7,9 +7,10 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Holding } from "@/lib/types";
 import { runTradingCycle } from "@/lib/tradingBrain";
 import api from "@/lib/api";
+import type { TradingSession, Trade } from "@/lib/db";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
-  Clock, Zap,
+  Clock, Zap, ChevronDown, ChevronRight,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
@@ -57,11 +58,22 @@ const INTERVALS = [
   { label: "Every 30 min", value: 30 },
 ];
 
+function winRate(s: TradingSession): string {
+  if (!s.total_trades) return "—";
+  return ((s.winning_trades / s.total_trades) * 100).toFixed(0) + "%";
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleString("en-IN", {
+    day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+  });
+}
+
 // ─── page ────────────────────────────────────────────────────────────────────
 
 export default function TradingPage() {
   const router = useRouter();
-  const { isConnected, hydrateFromStorage, session, startSession, stopSession, addBrainLog, resetSession } = useAppStore();
+  const { isConnected, hydrateFromStorage, session, startSession, stopSession, setDbSessionId, addBrainLog, resetSession } = useAppStore();
 
   const [config, setConfig] = useState<TradingConfig>({
     capital: 10000,
@@ -78,8 +90,16 @@ export default function TradingPage() {
   const [logPage, setLogPage] = useState(1);
   const LOGS_PER_PAGE = 20;
 
+  // Past sessions state
+  const [pastSessions, setPastSessions] = useState<TradingSession[]>([]);
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [sessionTrades, setSessionTrades] = useState<Record<string, Trade[]>>({});
+  const [loadingTrades, setLoadingTrades] = useState<string | null>(null);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+
   const brainLogRef = useRef<HTMLDivElement>(null);
-  const intervalRef  = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const contextIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -89,6 +109,21 @@ export default function TradingPage() {
     if (!isConnected) return;
     api.get("/portfolio/holdings").then((r) => setHoldings(r.data.holdings ?? [])).catch(() => {});
   }, [isConnected]);
+
+  // fetch past sessions
+  const fetchPastSessions = useCallback(async () => {
+    setSessionsLoading(true);
+    try {
+      const r = await api.get("/sessions?limit=30");
+      setPastSessions(r.data.sessions ?? []);
+    } catch {
+      // silently fail
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { if (isConnected) fetchPastSessions(); }, [isConnected, fetchPastSessions]);
 
   // elapsed timer
   useEffect(() => {
@@ -103,39 +138,106 @@ export default function TradingPage() {
 
   // trading loop
   const runCycle = useCallback(async () => {
-    // re-fetch latest holdings before each cycle
+    const dbSessionId = useAppStore.getState().session.dbSessionId;
     try {
       const r = await api.get("/portfolio/holdings");
       const fresh = r.data.holdings ?? [];
       setHoldings(fresh);
-      await runTradingCycle(fresh, config);
+      await runTradingCycle(fresh, config, dbSessionId);
     } catch {
       addBrainLog("Failed to fetch holdings for cycle", "error");
     }
   }, [config, addBrainLog]);
 
+  // market context logger — fires every 15 min during session
+  const logMarketContext = useCallback(async () => {
+    const dbSessionId = useAppStore.getState().session.dbSessionId;
+    if (!dbSessionId) return;
+    try {
+      await api.post("/market/context", {
+        sessionId: dbSessionId,
+        contextData: { market_direction: isMarketOpen() ? "SIDEWAYS" : "SIDEWAYS" },
+      });
+    } catch {
+      // non-fatal
+    }
+  }, []);
+
   useEffect(() => {
     if (session.status === "running") {
-      runCycle(); // immediate first run
+      runCycle();
       intervalRef.current = setInterval(runCycle, config.intervalMinutes * 60 * 1000);
+
+      // Log market context every 15 minutes
+      logMarketContext();
+      contextIntervalRef.current = setInterval(logMarketContext, 15 * 60 * 1000);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (contextIntervalRef.current) clearInterval(contextIntervalRef.current);
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (contextIntervalRef.current) clearInterval(contextIntervalRef.current);
+    };
   }, [session.status, config.intervalMinutes]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleStart() {
+  async function handleStart() {
     if (!isMarketOpen()) {
       addBrainLog("Cannot start: market is closed (9:15 AM – 3:30 PM IST)", "error");
       setShowConfirm(false);
       return;
     }
+
     startSession(config);
     setShowConfirm(false);
+
+    // Create DB session
+    try {
+      const res = await api.post("/trade/start", { config });
+      if (res.data.sessionId) {
+        setDbSessionId(res.data.sessionId);
+        addBrainLog(`DB session created: ${res.data.sessionId.slice(0, 8)}…`, "info");
+      }
+    } catch {
+      addBrainLog("DB session creation failed — trades won't be persisted", "error");
+    }
   }
 
-  function handleStop() {
+  async function handleStop() {
+    const dbSessionId = session.dbSessionId;
     stopSession("Manually stopped by user");
+
+    if (dbSessionId) {
+      try {
+        await api.post("/trade/stop", {
+          sessionId: dbSessionId,
+          endReason: "Manually stopped by user",
+        });
+      } catch {
+        // non-fatal
+      }
+      // Refresh past sessions list
+      fetchPastSessions();
+    }
+  }
+
+  async function handleExpandSession(id: string) {
+    if (expandedSession === id) {
+      setExpandedSession(null);
+      return;
+    }
+    setExpandedSession(id);
+    if (sessionTrades[id]) return;
+
+    setLoadingTrades(id);
+    try {
+      const r = await api.get(`/sessions/${id}/trades`);
+      setSessionTrades((prev) => ({ ...prev, [id]: r.data.trades ?? [] }));
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingTrades(null);
+    }
   }
 
   // derived
@@ -145,7 +247,6 @@ export default function TradingPage() {
   const tradeProgress = config.maxTrades > 0 ? (session.tradesExecuted / config.maxTrades) * 100 : 0;
   const pnlColor = session.sessionPnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]";
 
-  // paginated trade logs
   const pagedLogs = session.tradeLogs.slice((logPage - 1) * LOGS_PER_PAGE, logPage * LOGS_PER_PAGE);
   const totalPages = Math.ceil(session.tradeLogs.length / LOGS_PER_PAGE);
 
@@ -158,9 +259,9 @@ export default function TradingPage() {
     <div className="flex h-screen bg-[#0a0a0a] overflow-hidden">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Header */}
-        <div className="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 shrink-0">
+        <div className="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 shrink-0 sticky top-0 bg-[#0a0a0a] z-10">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold text-[#f5f5f5]">Auto Trade</h1>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium uppercase ${STATUS_COLORS[session.status]}`}>
@@ -176,7 +277,7 @@ export default function TradingPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
 
           {/* ── LEFT: Config panel ────────────────────────── */}
           <div className="w-72 border-r border-[#1f1f1f] flex flex-col overflow-y-auto shrink-0 p-5 space-y-4">
@@ -326,7 +427,7 @@ export default function TradingPage() {
           </div>
 
           {/* ── RIGHT: Dashboard ──────────────────────────── */}
-          <div className="flex-1 flex flex-col overflow-hidden p-5 space-y-4">
+          <div className="flex-1 flex flex-col overflow-y-auto p-5 space-y-4">
 
             {/* Status bar */}
             <div className="grid grid-cols-5 gap-3 shrink-0">
@@ -393,8 +494,8 @@ export default function TradingPage() {
             )}
 
             {/* Trade log table */}
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden flex-1 flex flex-col min-h-0">
-              <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f] shrink-0">
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden shrink-0">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
                 <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
                   Trade Log
                   <span className="ml-2 font-normal text-[#444]">{session.tradeLogs.length} trades</span>
@@ -407,7 +508,7 @@ export default function TradingPage() {
                   </div>
                 )}
               </div>
-              <div className="overflow-auto flex-1">
+              <div className="overflow-auto max-h-64">
                 <table className="w-full text-xs">
                   <thead className="sticky top-0 bg-[#111111]">
                     <tr className="border-b border-[#1a1a1a]">
@@ -468,6 +569,142 @@ export default function TradingPage() {
                 )}
               </div>
             </div>
+
+            {/* ── Past Sessions ─────────────────────────────── */}
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
+                <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
+                  Past Sessions
+                  <span className="ml-2 font-normal text-[#444]">{pastSessions.length}</span>
+                </h2>
+                <button
+                  onClick={fetchPastSessions}
+                  disabled={sessionsLoading}
+                  className="text-[10px] text-[#444] hover:text-[#888] transition-colors disabled:opacity-30"
+                >
+                  {sessionsLoading ? "Loading…" : "Refresh"}
+                </button>
+              </div>
+
+              {pastSessions.length === 0 ? (
+                <p className="px-5 py-8 text-center text-[#333] text-xs">
+                  {sessionsLoading ? "Loading sessions…" : "No past sessions yet."}
+                </p>
+              ) : (
+                <div className="overflow-auto max-h-96">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-[#111111]">
+                      <tr className="border-b border-[#1a1a1a]">
+                        {["", "Date", "Duration", "Trades", "Win Rate", "P&L", "Status", "End Reason"].map((h) => (
+                          <th key={h} className="text-left px-4 py-2.5 text-[10px] text-[#444] font-medium uppercase tracking-wider whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pastSessions.map((s) => {
+                        const isExpanded = expandedSession === s.id;
+                        const trades = sessionTrades[s.id];
+                        return (
+                          <>
+                            <tr
+                              key={s.id}
+                              onClick={() => handleExpandSession(s.id)}
+                              className="border-b border-[#141414] hover:bg-[#151515] cursor-pointer transition-colors"
+                            >
+                              <td className="px-3 py-2.5 text-[#444]">
+                                {isExpanded
+                                  ? <ChevronDown className="w-3 h-3" />
+                                  : <ChevronRight className="w-3 h-3" />
+                                }
+                              </td>
+                              <td className="px-4 py-2.5 text-[#888] whitespace-nowrap">{fmtDate(s.started_at)}</td>
+                              <td className="px-4 py-2.5 text-[#888]">
+                                {s.duration_minutes != null ? `${s.duration_minutes}m` : "—"}
+                              </td>
+                              <td className="px-4 py-2.5 text-[#f5f5f5]">{s.total_trades}</td>
+                              <td className="px-4 py-2.5 text-[#888]">{winRate(s)}</td>
+                              <td className="px-4 py-2.5">
+                                <span className={s.total_pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}>
+                                  {s.total_pnl >= 0 ? "+" : ""}₹{Math.abs(s.total_pnl).toFixed(2)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                  s.status === "RUNNING"
+                                    ? "bg-[#22c55e]/10 text-[#22c55e]"
+                                    : s.status === "COMPLETED"
+                                    ? "bg-[#3b82f6]/10 text-[#3b82f6]"
+                                    : "bg-[#ef4444]/10 text-[#ef4444]"
+                                }`}>
+                                  {s.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5 text-[#555] max-w-[160px] truncate">
+                                {s.end_reason ?? "—"}
+                              </td>
+                            </tr>
+
+                            {/* Expanded trades */}
+                            {isExpanded && (
+                              <tr key={`${s.id}-expanded`} className="border-b border-[#1a1a1a]">
+                                <td colSpan={8} className="bg-[#0d0d0d] px-5 py-3">
+                                  {loadingTrades === s.id ? (
+                                    <p className="text-[11px] text-[#444]">Loading trades…</p>
+                                  ) : !trades || trades.length === 0 ? (
+                                    <p className="text-[11px] text-[#444]">No trades recorded for this session.</p>
+                                  ) : (
+                                    <table className="w-full text-[11px]">
+                                      <thead>
+                                        <tr className="border-b border-[#1a1a1a]">
+                                          {["Symbol", "Entry", "Exit", "Qty", "Entry ₹", "Exit ₹", "P&L", "Status"].map((h) => (
+                                            <th key={h} className="text-left pb-2 pr-6 text-[10px] text-[#444] font-medium uppercase">{h}</th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {trades.map((t) => (
+                                          <tr key={t.id} className="border-b border-[#141414]">
+                                            <td className="py-1.5 pr-6 font-medium text-[#f5f5f5]">{t.symbol}</td>
+                                            <td className="py-1.5 pr-6 text-[#555]">{t.entry_at ? new Date(t.entry_at).toLocaleTimeString() : "—"}</td>
+                                            <td className="py-1.5 pr-6 text-[#555]">{t.exit_at ? new Date(t.exit_at).toLocaleTimeString() : "—"}</td>
+                                            <td className="py-1.5 pr-6 text-[#888]">{t.quantity}</td>
+                                            <td className="py-1.5 pr-6 text-[#888]">{t.entry_price != null ? `₹${t.entry_price.toFixed(2)}` : "—"}</td>
+                                            <td className="py-1.5 pr-6 text-[#888]">{t.exit_price != null ? `₹${t.exit_price.toFixed(2)}` : "—"}</td>
+                                            <td className="py-1.5 pr-6">
+                                              {t.pnl != null ? (
+                                                <span className={t.pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}>
+                                                  {t.pnl >= 0 ? "+" : ""}₹{t.pnl.toFixed(2)}
+                                                </span>
+                                              ) : <span className="text-[#444]">—</span>}
+                                            </td>
+                                            <td className="py-1.5">
+                                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                                t.status === "OPEN"
+                                                  ? "bg-[#f59e0b]/10 text-[#f59e0b]"
+                                                  : t.status === "CLOSED"
+                                                  ? "bg-[#3b82f6]/10 text-[#3b82f6]"
+                                                  : "bg-[#555]/10 text-[#555]"
+                                              }`}>
+                                                {t.status}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
