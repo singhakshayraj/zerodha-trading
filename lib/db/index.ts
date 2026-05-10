@@ -193,6 +193,54 @@ export interface IndicatorPattern {
   sample_values: unknown[];
 }
 
+export interface BrainHeartbeat {
+  id: string;
+  status: "ONLINE" | "RUNNING" | "OFFLINE" | "ERROR";
+  last_ping: string;
+  current_cycle: number | null;
+  message: string | null;
+  created_at: string;
+}
+
+// ─────────────────────────────────────────────
+// CONFIG (app_config table — brain reads/writes)
+// ─────────────────────────────────────────────
+
+export async function writeConfig(key: string, value: string): Promise<void> {
+  const { error } = await supabaseServer
+    .from("app_config")
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
+
+  if (error) throw new Error(`writeConfig(${key}): ${error.message}`);
+}
+
+export async function readConfig(key: string): Promise<string | null> {
+  const { data, error } = await supabaseServer
+    .from("app_config")
+    .select("value")
+    .eq("key", key)
+    .single();
+
+  if (error) return null;
+  return (data?.value as string) ?? null;
+}
+
+// ─────────────────────────────────────────────
+// BRAIN HEARTBEAT
+// ─────────────────────────────────────────────
+
+export async function getBrainHeartbeat(): Promise<BrainHeartbeat | null> {
+  const { data, error } = await supabaseServer
+    .from("brain_heartbeat")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) return null;
+  return data as BrainHeartbeat;
+}
+
 // ─────────────────────────────────────────────
 // Health check
 // ─────────────────────────────────────────────

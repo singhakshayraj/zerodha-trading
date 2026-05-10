@@ -32,6 +32,7 @@ export default function ConnectPage() {
   const [successSteps, setSuccessSteps] = useState<number[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [dbStatus, setDbStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+  const [brainStatus, setBrainStatus] = useState<"checking" | "online" | "running" | "offline">("checking");
 
   useEffect(() => {
     hydrateFromStorage();
@@ -44,9 +45,27 @@ export default function ConnectPage() {
       .catch(() => setDbStatus("disconnected"));
   }, []);
 
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("enc_token") || sessionStorage.getItem("enc_token")
+        : null;
+    if (!token) { setBrainStatus("offline"); return; }
+
+    fetch("/api/brain/status", { headers: { "x-enc-token": token } })
+      .then((r) => r.json())
+      .then((d) => {
+        const s = (d.status as string)?.toLowerCase();
+        if (s === "running") setBrainStatus("running");
+        else if (s === "online") setBrainStatus("online");
+        else setBrainStatus("offline");
+      })
+      .catch(() => setBrainStatus("offline"));
+  }, []);
+
   // Already connected — show connected state instead of the form
   if (isConnected) {
-    const bothReady = dbStatus === "connected";
+    const brainOnline = brainStatus === "online" || brainStatus === "running";
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -78,13 +97,11 @@ export default function ConnectPage() {
             </div>
 
             {/* DB status */}
-            <div className="flex items-center gap-3 mb-5 pb-5 border-b border-[#1f1f1f]">
+            {/* DB status */}
+            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-[#1f1f1f]">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                dbStatus === "connected"
-                  ? "bg-[#22c55e]/10"
-                  : dbStatus === "disconnected"
-                  ? "bg-[#ef4444]/10"
-                  : "bg-[#666]/10"
+                dbStatus === "connected" ? "bg-[#22c55e]/10" :
+                dbStatus === "disconnected" ? "bg-[#ef4444]/10" : "bg-[#666]/10"
               }`}>
                 {dbStatus === "connected" ? (
                   <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
@@ -105,19 +122,58 @@ export default function ConnectPage() {
                 </p>
               </div>
               <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium ${
-                dbStatus === "connected"
-                  ? "bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20"
-                  : dbStatus === "disconnected"
-                  ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20"
-                  : "bg-[#666]/10 text-[#666] border-[#666]/20"
+                dbStatus === "connected" ? "bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20" :
+                dbStatus === "disconnected" ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20" :
+                "bg-[#666]/10 text-[#666] border-[#666]/20"
               }`}>
                 {dbStatus === "connected" ? "DB" : dbStatus === "disconnected" ? "OFFLINE" : "…"}
               </span>
             </div>
 
-            {!bothReady && dbStatus === "disconnected" && (
+            {/* Brain status */}
+            <div className="flex items-center gap-3 mb-5 pb-5 border-b border-[#1f1f1f]">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                brainOnline ? "bg-[#22c55e]/10" :
+                brainStatus === "offline" ? "bg-[#ef4444]/10" : "bg-[#666]/10"
+              }`}>
+                {brainOnline ? (
+                  <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
+                ) : brainStatus === "offline" ? (
+                  <XCircle className="w-5 h-5 text-[#ef4444]" />
+                ) : (
+                  <Loader2 className="w-5 h-5 text-[#666] animate-spin" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-[#f5f5f5]">Brain Server</p>
+                <p className="text-xs text-[#444]">
+                  {brainStatus === "running"
+                    ? "Brain is actively trading"
+                    : brainStatus === "online"
+                    ? "Brain is online and ready"
+                    : brainStatus === "offline"
+                    ? "Brain offline — check Railway deployment"
+                    : "Checking brain status…"}
+                </p>
+              </div>
+              <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                brainStatus === "running" ? "bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20" :
+                brainStatus === "online"  ? "bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20" :
+                brainStatus === "offline" ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20" :
+                "bg-[#666]/10 text-[#666] border-[#666]/20"
+              }`}>
+                {brainStatus === "checking" ? "…" : brainStatus.toUpperCase()}
+              </span>
+            </div>
+
+            {dbStatus === "disconnected" && (
               <div className="mb-4 p-3 bg-[#ef4444]/5 border border-[#ef4444]/20 rounded-lg text-xs text-[#ef4444]">
                 Database is offline. You can still view your portfolio, but trade sessions won&apos;t be saved.
+              </div>
+            )}
+            {!brainOnline && brainStatus !== "checking" && (
+              <div className="mb-4 p-3 bg-[#f59e0b]/5 border border-[#f59e0b]/20 rounded-lg text-xs text-[#f59e0b]">
+                Brain server is offline. Auto trade won&apos;t execute until Railway is running.
               </div>
             )}
 

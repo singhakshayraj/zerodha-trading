@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as db from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,15 +38,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: false,
         error: (data.message as string) || "Invalid token",
-        debug: {
-          kiteStatus,
-          kiteStatusText: kiteRes.statusText,
-          kiteBody: data,
-        },
+        debug: { kiteStatus, kiteStatusText: kiteRes.statusText, kiteBody: data },
       }, { status: kiteStatus });
     }
 
     const profile = data.data as { user_name: string; email: string; broker: string; user_id: string };
+
+    // Persist token to Supabase so the Railway brain can read it
+    try {
+      await db.writeConfig("enc_token", cleanToken);
+      await db.writeConfig("token_updated_at", new Date().toISOString());
+    } catch {
+      // Non-fatal — token still works for this session even if DB write fails
+    }
 
     return NextResponse.json({
       success: true,

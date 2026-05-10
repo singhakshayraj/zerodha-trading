@@ -10,7 +10,7 @@ import api from "@/lib/api";
 import type { TradingSession, Trade } from "@/lib/db";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
-  Clock, Zap, ChevronDown, ChevronRight,
+  Clock, Zap, ChevronDown, ChevronRight, Radio,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
@@ -97,6 +97,16 @@ export default function TradingPage() {
   const [loadingTrades, setLoadingTrades] = useState<string | null>(null);
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
+  // Brain status
+  const [brainStatus, setBrainStatus] = useState<{
+    status: "ONLINE" | "RUNNING" | "OFFLINE" | "ERROR";
+    lastPing: string | null;
+    currentCycle: number | null;
+    message: string | null;
+    secondsSinceLastPing: number | null;
+  }>({ status: "OFFLINE", lastPing: null, currentCycle: null, message: null, secondsSinceLastPing: null });
+  const brainPollRef = useRef<NodeJS.Timeout | null>(null);
+
   const brainLogRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const contextIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -109,6 +119,23 @@ export default function TradingPage() {
     if (!isConnected) return;
     api.get("/portfolio/holdings").then((r) => setHoldings(r.data.holdings ?? [])).catch(() => {});
   }, [isConnected]);
+
+  // Brain status polling (every 5 seconds)
+  const fetchBrainStatus = useCallback(async () => {
+    try {
+      const r = await api.get("/brain/status");
+      setBrainStatus(r.data);
+    } catch {
+      setBrainStatus((prev) => ({ ...prev, status: "OFFLINE" }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected) return;
+    fetchBrainStatus();
+    brainPollRef.current = setInterval(fetchBrainStatus, 5000);
+    return () => { if (brainPollRef.current) clearInterval(brainPollRef.current); };
+  }, [isConnected, fetchBrainStatus]);
 
   // fetch past sessions
   const fetchPastSessions = useCallback(async () => {
@@ -268,12 +295,40 @@ export default function TradingPage() {
               {session.status}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#444]">
-            <Clock className="w-3 h-3" />
-            {isMarketOpen()
-              ? <span className="text-[#22c55e]">Market Open</span>
-              : <span className="text-[#ef4444]">Market Closed</span>
-            }
+          <div className="flex items-center gap-4">
+            {/* Brain status */}
+            <div className="flex items-center gap-1.5 text-xs">
+              <Radio className={`w-3 h-3 ${
+                brainStatus.status === "RUNNING" ? "text-[#22c55e] animate-pulse" :
+                brainStatus.status === "ONLINE"  ? "text-[#22c55e]" :
+                "text-[#ef4444]"
+              }`} />
+              <span className={
+                brainStatus.status === "OFFLINE" ? "text-[#ef4444]" :
+                brainStatus.status === "RUNNING" ? "text-[#22c55e]" :
+                "text-[#888]"
+              }>
+                Brain {brainStatus.status}
+              </span>
+              {brainStatus.secondsSinceLastPing !== null && (
+                <span className="text-[#333]">
+                  · {brainStatus.secondsSinceLastPing < 60
+                      ? `${brainStatus.secondsSinceLastPing}s ago`
+                      : `${Math.floor(brainStatus.secondsSinceLastPing / 60)}m ago`}
+                </span>
+              )}
+              {brainStatus.status === "OFFLINE" && brainStatus.secondsSinceLastPing !== null && brainStatus.secondsSinceLastPing > 120 && (
+                <span className="text-[#f59e0b] text-[10px]">⚠ Check Railway</span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5 text-xs text-[#444]">
+              <Clock className="w-3 h-3" />
+              {isMarketOpen()
+                ? <span className="text-[#22c55e]">Market Open</span>
+                : <span className="text-[#ef4444]">Market Closed</span>
+              }
+            </div>
           </div>
         </div>
 
@@ -398,13 +453,31 @@ export default function TradingPage() {
             <div className="space-y-2 pt-1">
               {session.status !== "running" ? (
                 <>
-                  <button
-                    onClick={() => setShowConfirm(true)}
-                    className="w-full py-3 rounded-lg text-sm font-semibold bg-[#22c55e] hover:bg-[#16a34a] text-white transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Play className="w-4 h-4" fill="white" />
-                    Start Auto Trade
-                  </button>
+                  {(() => {
+                    const brainOnline = brainStatus.status === "ONLINE" || brainStatus.status === "RUNNING";
+                    const staleHeartbeat = brainStatus.secondsSinceLastPing !== null && brainStatus.secondsSinceLastPing > 120;
+                    const brainReady = brainOnline && !staleHeartbeat;
+                    return (
+                      <div className="relative group">
+                        <button
+                          onClick={() => brainReady && setShowConfirm(true)}
+                          disabled={!brainReady}
+                          className="w-full py-3 rounded-lg text-sm font-semibold bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Play className="w-4 h-4" fill="white" />
+                          Start Auto Trade
+                        </button>
+                        {!brainReady && (
+                          <div className="absolute bottom-full left-0 right-0 mb-2 hidden group-hover:block z-20">
+                            <div className="bg-[#1f1f1f] border border-[#333] rounded-lg p-2.5 text-[11px] text-[#f59e0b] text-center">
+                              Brain server is offline. Check Railway deployment.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
                   {session.status === "stopped" && (
                     <button
                       onClick={resetSession}

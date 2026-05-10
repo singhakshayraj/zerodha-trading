@@ -9,6 +9,9 @@ export async function POST(req: NextRequest) {
     const { sessionId, endReason } = await req.json();
     if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
 
+    // Signal brain to stop before ending session
+    await db.writeConfig("brain_command", "STOP");
+
     await db.endSession(sessionId, endReason ?? "Manually stopped");
 
     const trades = await db.getSessionTrades(sessionId);
@@ -16,7 +19,6 @@ export async function POST(req: NextRequest) {
     const losing  = trades.filter((t) => (t.pnl ?? 0) < 0).length;
     const totalPnl = trades.reduce((s, t) => s + (t.pnl ?? 0), 0);
 
-    // Persist final stats on session row
     await db.updateSession(sessionId, {
       total_trades:   trades.length,
       winning_trades: winning,

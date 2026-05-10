@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     const session = await db.createSession(config ?? {});
 
     // Fetch holdings and seed stock universe
+    let topStocks: Awaited<ReturnType<typeof db.getTopScoredStocks>> = [];
     try {
       const holdings = await makeKiteRequest<{ tradingsymbol: string; exchange: string }[]>(
         token,
@@ -24,10 +25,24 @@ export async function POST(req: NextRequest) {
         holdings.map((h) => ({ tradingsymbol: h.tradingsymbol, exchange: h.exchange }))
       );
     } catch {
-      // Non-fatal — universe seeding failure shouldn't block session start
+      // Non-fatal
     }
 
-    const topStocks = await db.getTopScoredStocks(20);
+    topStocks = await db.getTopScoredStocks(20);
+
+    // Write session config for Railway brain
+    const sessionConfig = {
+      sessionId: session.id,
+      capitalDeployed: config?.capital ?? 0,
+      maxTrades: config?.maxTrades ?? 10,
+      maxLossPercent: config?.maxLossPct ?? 5,
+      maxProfitPercent: config?.maxProfitPct ?? 15,
+      tradeIntervalSeconds: (config?.intervalMinutes ?? 5) * 60,
+      stockUniverse: topStocks.map((s) => s.symbol),
+    };
+
+    await db.writeConfig("session_config", JSON.stringify(sessionConfig));
+    await db.writeConfig("brain_command", "START");
 
     return NextResponse.json({ sessionId: session.id, topStocks });
   } catch (err) {
