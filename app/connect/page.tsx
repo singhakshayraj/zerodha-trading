@@ -23,7 +23,7 @@ const STATUS_STEPS = [
 
 export default function ConnectPage() {
   const router = useRouter();
-  const { setToken, setProfile, isConnected, hydrateFromStorage } = useAppStore();
+  const { setToken, setProfile, hydrateFromStorage } = useAppStore();
 
   const [token, setTokenInput] = useState("");
   const [showToken, setShowToken] = useState(false);
@@ -35,10 +35,6 @@ export default function ConnectPage() {
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
-
-  useEffect(() => {
-    if (isConnected) router.push("/portfolio");
-  }, [isConnected, router]);
 
   async function handleConnect(e: React.FormEvent) {
     e.preventDefault();
