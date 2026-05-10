@@ -23,7 +23,7 @@ const STATUS_STEPS = [
 
 export default function ConnectPage() {
   const router = useRouter();
-  const { setToken, setProfile, hydrateFromStorage } = useAppStore();
+  const { setToken, setProfile, hydrateFromStorage, isConnected, userProfile, clearSession } = useAppStore();
 
   const [token, setTokenInput] = useState("");
   const [showToken, setShowToken] = useState(false);
@@ -35,6 +35,68 @@ export default function ConnectPage() {
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
+
+  // Already connected — show connected state instead of the form
+  if (isConnected) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#111111] border border-[#1f1f1f] mb-4">
+              <Zap className="w-6 h-6 text-[#3b82f6]" fill="#3b82f6" />
+            </div>
+            <h1 className="text-2xl font-semibold text-[#f5f5f5] tracking-tight">Zerodha Trader</h1>
+            <p className="text-sm text-[#666666] mt-1">Autonomous Trading Platform</p>
+          </div>
+
+          <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-5 pb-5 border-b border-[#1f1f1f]">
+              <div className="w-9 h-9 rounded-full bg-[#22c55e]/10 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[#f5f5f5]">
+                  {userProfile?.name ?? "Connected"}
+                </p>
+                <p className="text-xs text-[#444]">
+                  {userProfile?.email ?? ""}{userProfile?.broker ? ` · ${userProfile.broker}` : ""}
+                </p>
+              </div>
+              <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20 font-medium">
+                ACTIVE
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={() => router.push("/portfolio")}
+                className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg py-3 text-sm font-medium transition-colors"
+              >
+                Go to Portfolio
+              </button>
+              <button
+                onClick={() => router.push("/trading")}
+                className="w-full bg-[#1f1f1f] hover:bg-[#2a2a2a] text-[#f5f5f5] rounded-lg py-3 text-sm font-medium transition-colors"
+              >
+                Go to Auto Trade
+              </button>
+              <button
+                onClick={clearSession}
+                className="w-full text-[#444] hover:text-[#ef4444] py-2 text-xs transition-colors"
+              >
+                Disconnect & use different token
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-start gap-2 text-xs text-[#333] px-1">
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3b82f6]" />
+            <span>Session expires at 6:00 AM. Token stored locally only.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   async function handleConnect(e: React.FormEvent) {
     e.preventDefault();
