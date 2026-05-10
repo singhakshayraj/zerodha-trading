@@ -7,22 +7,14 @@ export async function POST(req: NextRequest) {
   if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
 
   try {
-    const body = await req.json();
-    const { tradingsymbol, exchange, transaction_type, quantity, order_type, product, validity, price, trigger_price } = body;
+    const { order_id, variety = "regular" } = await req.json();
+    if (!order_id) return NextResponse.json({ error: "order_id is required" }, { status: 400 });
 
-    const orderData: Record<string, unknown> = {
-      tradingsymbol,
-      exchange,
-      transaction_type,
-      quantity,
-      order_type: order_type ?? "MARKET",
-      product: product ?? "CNC",
-      validity: validity ?? "DAY",
-    };
-    if (price) orderData.price = price;
-    if (trigger_price) orderData.trigger_price = trigger_price;
-
-    const result = await makeKiteRequest<{ order_id: string }>(token, "POST", "/orders/regular", orderData);
+    const result = await makeKiteRequest<{ order_id: string }>(
+      token,
+      "DELETE",
+      `/orders/${variety}/${order_id}`
+    );
     return NextResponse.json({ order_id: result.order_id });
   } catch (err) {
     if (err instanceof ZerodhaError)
