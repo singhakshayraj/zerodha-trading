@@ -173,12 +173,7 @@ export async function executeTrade(
           });
           tradeId = rec.data.tradeId as string;
         } else {
-          // SELL: find the open trade for this symbol and close it
-          const openTradesRes = await api.get(`/trade/orders`);
-          // We don't have a direct tradeId for the SELL path without tracking open trades per symbol.
-          // Close via the close endpoint if we have a tradeId stored — for now log to DB as a close trade
-          // using a best-effort approach; the tradeId must come from the BUY phase.
-          // This path is handled in runTradingCycle where tradeId is tracked per signal.
+          // SELL path: tradeId comes from the BUY phase via runTradingCycle.
         }
       } catch {
         // non-fatal
@@ -237,19 +232,7 @@ export async function runTradingCycle(
       const avgPrice = holdings.find((h) => h.tradingsymbol === sig.symbol)?.average_price ?? sig.price;
       const pnl = sig.action === "SELL" ? sig.quantity * (sig.price - avgPrice) : 0;
 
-      // Close trade in DB for SELL orders
-      if (sig.action === "SELL" && sessionId && result.orderId) {
-        // We need the tradeId — find it from open trades stored in DB
-        // For now: create a self-contained record for the SELL
-        try {
-          // Try to find an open trade for this symbol (best effort)
-          const openRes = await api.get(`/trade/orders`);
-          void openRes; // Not used here — tradeId tracking requires persistent state
-          // TODO: Track BUY tradeIds in Zustand per symbol for proper SELL close
-        } catch {
-          // non-fatal
-        }
-      }
+
 
       const entry: TradeLogEntry = {
         id: result.orderId ?? Date.now().toString(),
