@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAppStore, TradingConfig } from "@/lib/store";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Holding } from "@/lib/types";
-import { runTradingCycle } from "@/lib/tradingBrain";
 import api from "@/lib/api";
 import type { TradingSession, Trade } from "@/lib/db";
 import { BrainStatus } from "@/components/BrainStatus";
@@ -100,8 +99,6 @@ export default function TradingPage() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
   const brainLogRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const contextIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const stopConfirmedRef = useRef(false);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
@@ -139,50 +136,8 @@ export default function TradingPage() {
     if (brainLogRef.current) brainLogRef.current.scrollTop = brainLogRef.current.scrollHeight;
   }, [session.brainLogs]);
 
-  // trading loop
-  const runCycle = useCallback(async () => {
-    const dbSessionId = useAppStore.getState().session.dbSessionId;
-    try {
-      const r = await api.get("/portfolio/holdings");
-      const fresh = r.data.holdings ?? [];
-      setHoldings(fresh);
-      await runTradingCycle(fresh, config, dbSessionId);
-    } catch {
-      addBrainLog("Failed to fetch holdings for cycle", "error");
-    }
-  }, [config, addBrainLog]);
-
-  // market context logger — fires every 15 min during session
-  const logMarketContext = useCallback(async () => {
-    const dbSessionId = useAppStore.getState().session.dbSessionId;
-    if (!dbSessionId) return;
-    try {
-      await api.post("/market/context", {
-        sessionId: dbSessionId,
-        contextData: { market_direction: isMarketOpen() ? "SIDEWAYS" : "SIDEWAYS" },
-      });
-    } catch {
-      // non-fatal
-    }
-  }, []);
-
-  useEffect(() => {
-    if (session.status === "running") {
-      runCycle();
-      intervalRef.current = setInterval(runCycle, config.intervalMinutes * 60 * 1000);
-
-      // Log market context every 15 minutes
-      logMarketContext();
-      contextIntervalRef.current = setInterval(logMarketContext, 15 * 60 * 1000);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (contextIntervalRef.current) clearInterval(contextIntervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (contextIntervalRef.current) clearInterval(contextIntervalRef.current);
-    };
-  }, [session.status, config.intervalMinutes]); // eslint-disable-line react-hooks/exhaustive-deps
+  // No trading loop here — Railway brain handles all order execution.
+  // This frontend only writes config to Supabase and polls brain heartbeat.
 
   async function handleStart() {
     if (!isMarketOpen()) {
