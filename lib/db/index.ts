@@ -218,7 +218,12 @@ export async function writeConfig(key: string, value: string): Promise<void> {
     .from("app_config")
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
 
-  if (error) throw new Error(`writeConfig(${key}): ${error.message}`);
+  if (error) {
+    console.error(`writeConfig failed for key '${key}':`, error);
+    throw new Error(`writeConfig(${key}): ${error.message}`);
+  }
+
+  console.log(`writeConfig success: ${key} = ${value.slice(0, 200)}`);
 }
 
 export async function readConfig(key: string): Promise<string | null> {
