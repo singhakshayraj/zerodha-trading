@@ -120,8 +120,8 @@ export function OpenPositions({ sessionId, isRunning }: Props) {
       {positions.length === 0 ? (
         <p className="px-5 py-8 text-center text-[#333] text-xs">No open positions.</p>
       ) : (
-        <div className="overflow-auto">
-          <table className="w-full text-xs">
+        <div className="overflow-x-auto scroll-touch">
+          <table className="w-full min-w-[640px] md:min-w-0 text-xs">
             <thead className="bg-[#0d0d0d]">
               <tr className="border-b border-[#1a1a1a]">
                 {["Symbol", "Side", "Qty", "Entry", "Current", "P&L", "Stop / Target", "Held"].map((h) => (

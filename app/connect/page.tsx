@@ -282,7 +282,12 @@ export default function ConnectPage() {
                   placeholder="Paste your enc_token here"
                   required
                   disabled={loading}
-                  className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg px-4 py-3 pr-11 text-sm text-[#f5f5f5] placeholder-[#333] focus:outline-none focus:border-[#3b82f6] transition-colors font-mono disabled:opacity-50"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                  inputMode="text"
+                  className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg px-4 py-3 pr-11 text-base md:text-sm text-[#f5f5f5] placeholder-[#333] focus:outline-none focus:border-[#3b82f6] transition-colors font-mono disabled:opacity-50"
                 />
                 <button
                   type="button"

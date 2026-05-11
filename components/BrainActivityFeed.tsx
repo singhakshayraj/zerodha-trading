@@ -113,7 +113,7 @@ export function BrainActivityFeed({ sessionId, isRunning }: Props) {
   }
 
   return (
-    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col" style={{ height: 400 }}>
+    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col h-72 md:h-[400px]">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
         <span className="text-[10px] font-semibold text-[#e5e5e5] uppercase tracking-wider">Brain Activity</span>
         {isRunning && (
@@ -125,7 +125,7 @@ export function BrainActivityFeed({ sessionId, isRunning }: Props) {
         <span className="text-[10px] text-[#333] ml-auto">{activity.length} events</span>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 font-mono text-[11px] space-y-0.5">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-touch p-3 font-mono text-[11px] space-y-0.5">
         {activity.length === 0 ? (
           <p className="text-[#333]">Waiting for brain activity…</p>
         ) : (

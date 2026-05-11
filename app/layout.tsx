@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -8,6 +8,20 @@ const geistMono = localFont({ src: "./fonts/GeistMonoVF.woff", variable: "--font
 export const metadata: Metadata = {
   title: "Zerodha Trader",
   description: "Personal Zerodha trading dashboard",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Zerodha Trader",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({

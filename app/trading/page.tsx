@@ -203,12 +203,12 @@ export default function TradingPage() {
 
   // ── render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-[#0a0a0a] overflow-hidden">
+    <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 md:overflow-y-auto">
         {/* Header */}
-        <div className="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 shrink-0 sticky top-0 bg-[#0a0a0a] z-10">
+        <div className="min-h-14 border-b border-[#1f1f1f] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0 md:sticky md:top-0 bg-[#0a0a0a] z-10">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold text-[#f5f5f5]">Auto Trade</h1>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium uppercase ${STATUS_COLORS[session.status]}`}>
@@ -227,10 +227,10 @@ export default function TradingPage() {
           </div>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1 md:overflow-hidden">
 
           {/* ── LEFT: Config panel ────────────────────────── */}
-          <div className="w-72 border-r border-[#1f1f1f] flex flex-col overflow-y-auto shrink-0 p-5 space-y-4">
+          <div className="w-full md:w-72 border-b md:border-b-0 md:border-r border-[#1f1f1f] flex flex-col md:overflow-y-auto shrink-0 p-4 md:p-5 space-y-4">
             <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">Configuration</h2>
 
             {/* Capital */}
@@ -413,10 +413,10 @@ export default function TradingPage() {
           </div>
 
           {/* ── RIGHT: Dashboard ──────────────────────────── */}
-          <div className="flex-1 flex flex-col overflow-y-auto p-5 space-y-4">
+          <div className="flex-1 flex flex-col md:overflow-y-auto p-4 md:p-5 space-y-4">
 
             {/* Status bar */}
-            <div className="grid grid-cols-5 gap-3 shrink-0">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 shrink-0">
               {[
                 {
                   label: "Status",

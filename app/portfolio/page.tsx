@@ -239,14 +239,14 @@ export default function PortfolioPage() {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] overflow-hidden">
+    <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 shrink-0">
+        <div className="min-h-14 border-b border-[#1f1f1f] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0">
           <h1 className="text-sm font-semibold text-[#f5f5f5]">Portfolio</h1>
-          <div className="flex items-center gap-5 text-xs text-[#444]">
+          <div className="flex items-center gap-3 md:gap-5 text-xs text-[#444] flex-wrap">
             {lastUpdated && <span>Updated {secsAgo}s ago</span>}
             <span>Refresh in <span className="text-[#666]">{countdown}s</span></span>
             <button
@@ -260,10 +260,10 @@ export default function PortfolioPage() {
           </div>
         </div>
 
-        <main className="flex-1 overflow-auto p-6 space-y-5">
+        <main className="flex-1 md:overflow-auto p-4 md:p-6 space-y-5">
 
           {/* Summary cards */}
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {summaryCards.map((c) => (
               <div key={c.label} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
