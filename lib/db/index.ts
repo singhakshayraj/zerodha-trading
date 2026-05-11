@@ -21,7 +21,12 @@ export interface TradingSession {
   duration_minutes: number | null;
   status: SessionStatus;
   end_reason: string | null;
-  config: Record<string, unknown>;
+  capital_deployed: number;
+  max_trades: number;
+  max_loss_percent: number;
+  max_profit_percent: number;
+  trade_interval_seconds: number;
+  stock_universe: string;
   total_trades: number;
   winning_trades: number;
   losing_trades: number;
@@ -107,10 +112,12 @@ export interface StockUniverse {
 // ─────────────────────────────────────────────
 
 export interface CreateSessionConfig {
-  max_trades?: number;
-  max_loss_pct?: number;
-  max_capital_per_trade?: number;
-  [key: string]: unknown;
+  capital_deployed: number;
+  max_trades: number;
+  max_loss_percent: number;
+  max_profit_percent: number;
+  trade_interval_seconds: number;
+  stock_universe: string;
 }
 
 export interface CreateTradeData {
@@ -263,13 +270,12 @@ export async function createSession(
     .from("trading_sessions")
     .insert({
       status: "RUNNING",
-      config,
-      total_trades: 0,
-      winning_trades: 0,
-      losing_trades: 0,
-      total_pnl: 0,
-      peak_pnl: 0,
-      max_drawdown: 0,
+      capital_deployed: config.capital_deployed,
+      max_trades: config.max_trades,
+      max_loss_percent: config.max_loss_percent,
+      max_profit_percent: config.max_profit_percent,
+      trade_interval_seconds: config.trade_interval_seconds,
+      stock_universe: config.stock_universe,
     })
     .select()
     .single();
