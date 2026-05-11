@@ -182,6 +182,16 @@ export class ZerodhaError extends Error {
   }
 }
 
+export interface BrainActivity {
+  id: string;
+  session_id: string;
+  activity_type: string;
+  symbol: string | null;
+  message: string | null;
+  data: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export type BrainStatus = "OFFLINE" | "ONLINE" | "RUNNING" | "ERROR";
 
 export interface BrainHeartbeat {

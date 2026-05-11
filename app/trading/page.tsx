@@ -8,9 +8,11 @@ import { Holding } from "@/lib/types";
 import api from "@/lib/api";
 import type { TradingSession, Trade } from "@/lib/db";
 import { BrainStatus } from "@/components/BrainStatus";
+import { BrainActivityFeed } from "@/components/BrainActivityFeed";
+import { OpenPositions } from "@/components/OpenPositions";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
-  Clock, Zap, ChevronDown, ChevronRight,
+  Clock, ChevronDown, ChevronRight,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
@@ -41,14 +43,6 @@ const STATUS_COLORS = {
   running: "bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/30",
   paused:  "bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30",
   stopped: "bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30",
-};
-
-const LOG_COLORS = {
-  info:   "text-[#4ade80]",
-  signal: "text-[#60a5fa]",
-  order:  "text-[#fbbf24]",
-  error:  "text-[#f87171]",
-  stop:   "text-[#f87171] font-bold",
 };
 
 const INTERVALS = [
@@ -98,7 +92,6 @@ export default function TradingPage() {
   const [loadingTrades, setLoadingTrades] = useState<string | null>(null);
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
-  const brainLogRef = useRef<HTMLDivElement>(null);
   const stopConfirmedRef = useRef(false);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
@@ -130,11 +123,6 @@ export default function TradingPage() {
     const t = setInterval(() => setElapsedTime(elapsed(session.startTime)), 1000);
     return () => clearInterval(t);
   }, [session.startTime]);
-
-  // auto-scroll brain log
-  useEffect(() => {
-    if (brainLogRef.current) brainLogRef.current.scrollTop = brainLogRef.current.scrollHeight;
-  }, [session.brainLogs]);
 
   // No trading loop here — Railway brain handles all order execution.
   // This frontend only writes config to Supabase and polls brain heartbeat.
@@ -339,6 +327,26 @@ export default function TradingPage() {
               </select>
             </div>
 
+            {/* Session stats (derived from trade log) */}
+            {session.tradeLogs.length > 0 && (() => {
+              const sells = session.tradeLogs.filter((t) => t.action === "SELL");
+              const wins  = sells.filter((t) => t.pnl > 0);
+              const loss  = sells.filter((t) => t.pnl < 0);
+              const winRatePct = sells.length ? (wins.length / sells.length) * 100 : 0;
+              const avgWin  = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
+              const avgLoss = loss.length ? loss.reduce((s, t) => s + t.pnl, 0) / loss.length : 0;
+              const best    = sells.length ? Math.max(...sells.map((t) => t.pnl)) : 0;
+              return (
+                <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg p-3 space-y-1.5">
+                  <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Session Stats</p>
+                  <div className="flex justify-between text-xs"><span className="text-[#444]">Win Rate</span><span className="text-[#f5f5f5] font-medium">{winRatePct.toFixed(0)}%</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#444]">Avg Win</span><span className="text-[#22c55e] font-medium">+₹{avgWin.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#444]">Avg Loss</span><span className="text-[#ef4444] font-medium">₹{avgLoss.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#444]">Best Trade</span><span className="text-[#22c55e] font-medium">+₹{best.toFixed(2)}</span></div>
+                </div>
+              );
+            })()}
+
             {/* Computed values */}
             <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg p-3 space-y-1.5">
               <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Computed</p>
@@ -528,25 +536,17 @@ export default function TradingPage() {
               </div>
             </div>
 
-            {/* Brain activity log */}
-            <div className="bg-[#080808] border border-[#1a1a1a] rounded-xl overflow-hidden shrink-0" style={{ height: 180 }}>
-              <div className="flex items-center gap-2 px-4 py-2 border-b border-[#1a1a1a] bg-[#0d0d0d]">
-                <Zap className="w-3 h-3 text-[#22c55e]" />
-                <span className="text-[10px] font-semibold text-[#22c55e] uppercase tracking-wider">Brain Activity</span>
-                <span className="text-[10px] text-[#333] ml-auto">{session.brainLogs.length} entries</span>
-              </div>
-              <div ref={brainLogRef} className="overflow-y-auto h-full p-3 space-y-0.5 pb-6">
-                {session.brainLogs.length === 0 ? (
-                  <p className="text-[11px] text-[#333] font-mono">Waiting for session to start...</p>
-                ) : (
-                  session.brainLogs.map((log, i) => (
-                    <p key={i} className={`text-[11px] font-mono leading-5 ${LOG_COLORS[log.type]}`}>
-                      <span className="text-[#333]">[{log.time}]</span> {log.message}
-                    </p>
-                  ))
-                )}
-              </div>
-            </div>
+            {/* Brain Activity Feed (live from Supabase) */}
+            <BrainActivityFeed
+              sessionId={session.dbSessionId}
+              isRunning={session.status === "running"}
+            />
+
+            {/* Open Positions (live) */}
+            <OpenPositions
+              sessionId={session.dbSessionId}
+              isRunning={session.status === "running"}
+            />
 
             {/* ── Past Sessions ─────────────────────────────── */}
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden">

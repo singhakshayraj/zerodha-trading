@@ -90,6 +90,16 @@ export interface MarketContext {
   created_at: string;
 }
 
+export interface BrainActivity {
+  id: string;
+  session_id: string;
+  activity_type: string;
+  symbol: string | null;
+  message: string | null;
+  data: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export interface StockUniverse {
   id: string;
   symbol: string;
@@ -451,6 +461,24 @@ export async function getOpenTrades(sessionId: string): Promise<Trade[]> {
 
   if (error) throw new Error(`getOpenTrades: ${error.message}`);
   return (data ?? []) as Trade[];
+}
+
+export async function getOpenPositions(sessionId: string): Promise<Trade[]> {
+  return getOpenTrades(sessionId);
+}
+
+export async function getBrainActivity(
+  sessionId: string | null,
+  limit: number = 50
+): Promise<BrainActivity[]> {
+  let q = supabaseServer.from("brain_activity").select("*");
+  if (sessionId) q = q.eq("session_id", sessionId);
+  const { data, error } = await q
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(`getBrainActivity: ${error.message}`);
+  return (data ?? []) as BrainActivity[];
 }
 
 export async function getSessionTrades(sessionId: string): Promise<Trade[]> {
