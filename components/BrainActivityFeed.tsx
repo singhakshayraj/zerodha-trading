@@ -13,10 +13,10 @@ interface ActivityEvent {
 
 export default function BrainActivityFeed({
   sessionId,
-  isRunning = true,
+  isRunning: _isRunning = true,
 }: {
   sessionId?: string | null;
-  isRunning?: boolean; // eslint-disable-line @typescript-eslint/no-unused-vars
+  isRunning?: boolean;
 }) {
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
