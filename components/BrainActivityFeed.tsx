@@ -117,7 +117,7 @@ export default function BrainActivityFeed({
           </>
         )}
       </div>
-      <div className="text-right text-xs text-gray-600 mt-1">{events.length} events</div>
+      <div className="text-right text-xs text-gray-600 mt-1">{events.length} event{events.length !== 1 ? "s" : ""}</div>
     </div>
   );
 }
