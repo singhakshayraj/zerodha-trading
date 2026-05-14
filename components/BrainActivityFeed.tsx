@@ -16,7 +16,7 @@ export default function BrainActivityFeed({
   isRunning = true,
 }: {
   sessionId?: string | null;
-  isRunning?: boolean;
+  isRunning?: boolean; // eslint-disable-line @typescript-eslint/no-unused-vars
 }) {
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
