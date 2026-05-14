@@ -13,7 +13,6 @@ interface ActivityEvent {
 
 export default function BrainActivityFeed({
   sessionId,
-  isRunning: _isRunning = true,
 }: {
   sessionId?: string | null;
   isRunning?: boolean;
