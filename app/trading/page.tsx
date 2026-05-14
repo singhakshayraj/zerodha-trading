@@ -8,7 +8,7 @@ import { Holding } from "@/lib/types";
 import api from "@/lib/api";
 import type { TradingSession, Trade } from "@/lib/db";
 import { BrainStatus } from "@/components/BrainStatus";
-import { BrainActivityFeed } from "@/components/BrainActivityFeed";
+import BrainActivityFeed from "@/components/BrainActivityFeed";
 import { OpenPositions } from "@/components/OpenPositions";
 import {
   Play, Square, AlertTriangle, CheckCircle2,

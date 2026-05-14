@@ -1,163 +1,123 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
 
-import { useEffect, useRef, useState } from "react";
-import api from "@/lib/api";
-import type { BrainActivity } from "@/lib/types";
-
-interface Props {
-  sessionId: string | null;
-  isRunning: boolean;
+interface ActivityEvent {
+  id: string;
+  session_id: string;
+  activity_type: string;
+  symbol?: string;
+  message?: string;
+  data?: Record<string, unknown>;
+  created_at: string;
 }
 
-interface IconCfg {
-  icon: string;
-  cls: string;
-}
+export default function BrainActivityFeed({
+  sessionId,
+  isRunning = true,
+}: {
+  sessionId?: string | null;
+  isRunning?: boolean;
+}) {
+  const [events, setEvents] = useState<ActivityEvent[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-function iconFor(type: string, data?: Record<string, unknown> | null): IconCfg {
-  const t = (type || "").toUpperCase();
-  const action = (data?.action as string | undefined)?.toUpperCase();
+  const fetchActivity = async () => {
+    try {
+      const url = sessionId
+        ? `/api/brain/activity?sessionId=${sessionId}&limit=50`
+        : `/api/brain/activity?limit=50`;
 
-  if (t === "CYCLE_START")    return { icon: "🔄", cls: "text-[#60a5fa]" };
-  if (t === "ANALYZING")      return { icon: "🔍", cls: "text-[#e5e5e5]" };
-  if (t === "ORDER_PLACED")   return { icon: "✅", cls: "text-[#22c55e] font-bold" };
-  if (t === "ORDER_FAILED")   return { icon: "❌", cls: "text-[#ef4444] font-bold" };
-  if (t === "POSITION_EXIT")  return { icon: "💰", cls: "text-[#fbbf24]" };
-  if (t === "SESSION_END")    return { icon: "🏁", cls: "text-[#f5f5f5]" };
-  if (t === "ERROR")          return { icon: "⚠️", cls: "text-[#f97316]" };
+      const res = await fetch(url);
+      const json = await res.json();
 
-  if (t === "SIGNAL" || t.startsWith("SIGNAL")) {
-    if (action === "BUY"  || t === "SIGNAL_BUY")  return { icon: "🟢", cls: "text-[#22c55e]" };
-    if (action === "SELL" || t === "SIGNAL_SELL") return { icon: "🔴", cls: "text-[#ef4444]" };
-    return { icon: "⚪", cls: "text-[#888]" };
-  }
+      const activityData = json.activity || [];
 
-  return { icon: "•", cls: "text-[#888]" };
-}
-
-function timeFmt(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString("en-IN", { hour12: false });
-}
-
-function isSignal(type: string): boolean {
-  return (type || "").toUpperCase().startsWith("SIGNAL");
-}
-
-function indicatorRow(data: Record<string, unknown> | null | undefined): string | null {
-  if (!data) return null;
-  const parts: string[] = [];
-  const ind = (data.indicators as Record<string, unknown> | undefined) ?? data;
-  if (ind.rsi != null)    parts.push(`RSI: ${Number(ind.rsi).toFixed(0)}`);
-  if (ind.ema21 != null)  parts.push(`EMA21: ${ind.ema21 ? "✅" : "❌"}`);
-  if (ind.macd  != null)  parts.push(`MACD: ${ind.macd  ? "✅" : "❌"}`);
-  if (ind.volume!= null)  parts.push(`Volume: ${ind.volume ? "✅" : "❌"}`);
-  if (data.regime)        parts.push(`Regime: ${data.regime}`);
-  if (data.risk_reward || data.rr) parts.push(`R:R: ${data.risk_reward ?? data.rr}`);
-  return parts.length ? parts.join(" | ") : null;
-}
-
-export function BrainActivityFeed({ sessionId, isRunning }: Props) {
-  const [activity, setActivity] = useState<BrainActivity[]>([]);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const pollRef = useRef<NodeJS.Timeout | null>(null);
-  const stopRef = useRef(false);
-
-  useEffect(() => {
-    stopRef.current = false;
-
-    async function poll() {
-      if (stopRef.current) return;
-      try {
-        const params = new URLSearchParams();
-        if (sessionId) params.set("sessionId", sessionId);
-        params.set("limit", "100");
-        const r = await api.get<{ activity: BrainActivity[] }>(`/brain/activity?${params}`);
-        if (stopRef.current) return;
-        // API returns DESC; reverse to show oldest first (newest at bottom).
-        const rows = (r.data.activity ?? []).slice().reverse().slice(-100);
-        setActivity(rows);
-      } catch {
-        // non-fatal
+      if (Array.isArray(activityData) && activityData.length > 0) {
+        setEvents([...activityData].reverse());
+        setError(null);
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
     }
-
-    if (isRunning) {
-      poll();
-      pollRef.current = setInterval(poll, 3000);
-    } else {
-      // One final poll after stop to capture SESSION_END
-      poll();
-    }
-
-    return () => {
-      stopRef.current = true;
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = null;
-    };
-  }, [isRunning, sessionId]);
+  };
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [activity]);
+    fetchActivity();
+    const interval = setInterval(fetchActivity, 3000);
+    return () => clearInterval(interval);
+  }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function toggle(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [events]);
+
+  const getIcon = (type: string, message?: string) => {
+    if (type === "CYCLE_START")  return "🔄";
+    if (type === "ANALYZING")    return "🔍";
+    if (type === "ORDER_PLACED") return "✅";
+    if (type === "ORDER_FAILED") return "❌";
+    if (type === "POSITION_EXIT")return "💰";
+    if (type === "ERROR")        return "⚠️";
+    if (type === "SIGNAL") {
+      if (message?.includes("BUY"))  return "🟢";
+      if (message?.includes("SELL")) return "🔴";
+      return "⚪";
+    }
+    return "•";
+  };
+
+  const getColor = (type: string, message?: string) => {
+    if (type === "ORDER_PLACED")  return "text-green-400 font-bold";
+    if (type === "ORDER_FAILED")  return "text-red-400 font-bold";
+    if (type === "POSITION_EXIT") return "text-yellow-400";
+    if (type === "ERROR")         return "text-orange-400";
+    if (type === "CYCLE_START")   return "text-blue-400";
+    if (type === "SIGNAL") {
+      if (message?.includes("BUY"))  return "text-green-400";
+      if (message?.includes("SELL")) return "text-red-400";
+      return "text-gray-400";
+    }
+    return "text-white";
+  };
+
+  const formatTime = (ts: string) =>
+    new Date(ts).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
     });
-  }
 
   return (
-    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col h-72 md:h-[400px]">
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-[#1f1f1f] bg-[#0d0d0d] shrink-0">
-        <span className="text-[10px] font-semibold text-[#e5e5e5] uppercase tracking-wider">Brain Activity</span>
-        {isRunning && (
-          <span className="flex items-center gap-1 text-[10px] text-[#22c55e]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-            LIVE
-          </span>
-        )}
-        <span className="text-[10px] text-[#333] ml-auto">{activity.length} events</span>
-      </div>
-
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-touch p-3 font-mono text-[11px] space-y-0.5">
-        {activity.length === 0 ? (
-          <p className="text-[#333]">Waiting for brain activity…</p>
+    <div className="w-full">
+      {error && (
+        <div className="text-red-400 text-xs p-2 mb-2 bg-red-900/20 rounded">
+          Error: {error}
+        </div>
+      )}
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg h-72 md:h-[400px] overflow-y-auto scroll-touch font-mono text-xs p-3">
+        {events.length === 0 ? (
+          <div className="text-gray-500 italic">Waiting for brain activity...</div>
         ) : (
-          activity.map((a) => {
-            const { icon, cls } = iconFor(a.activity_type, a.data);
-            const signal = isSignal(a.activity_type);
-            const isOpen = expanded.has(a.id);
-            const detail = signal ? indicatorRow(a.data) : null;
-            return (
-              <div key={a.id}>
-                <div
-                  className={`leading-5 ${signal ? "cursor-pointer hover:bg-[#111]" : ""}`}
-                  onClick={signal ? () => toggle(a.id) : undefined}
-                >
-                  <span className="text-[#333]">[{timeFmt(a.created_at)}]</span>{" "}
-                  <span>{icon}</span>{" "}
-                  <span className={cls}>
-                    {a.symbol ? <span className="font-semibold">{a.symbol}</span> : null}
-                    {a.symbol && a.message ? " — " : null}
-                    {a.message ?? a.activity_type}
-                  </span>
-                </div>
-                {signal && isOpen && detail && (
-                  <div className="pl-12 text-[10px] text-[#888] leading-5">
-                    {detail}
-                  </div>
-                )}
+          <>
+            {events.map((event) => (
+              <div key={event.id} className="mb-1 leading-relaxed">
+                <span className="text-gray-600 mr-2">[{formatTime(event.created_at)}]</span>
+                <span className="mr-1">{getIcon(event.activity_type, event.message)}</span>
+                <span className={getColor(event.activity_type, event.message)}>
+                  {event.symbol && (
+                    <span className="text-blue-300 mr-1 font-bold">{event.symbol}</span>
+                  )}
+                  {event.message}
+                </span>
               </div>
-            );
-          })
+            ))}
+            <div ref={bottomRef} />
+          </>
         )}
       </div>
+      <div className="text-right text-xs text-gray-600 mt-1">{events.length} events</div>
     </div>
   );
 }
