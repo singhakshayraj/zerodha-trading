@@ -537,10 +537,9 @@ export default function TradingPage() {
             </div>
 
             {/* Brain Activity Feed (live from Supabase) */}
-            <BrainActivityFeed
-              sessionId={session.dbSessionId}
-              isRunning={session.status === "running"}
-            />
+            {/* No sessionId — API reads active_session_id from app_config,
+                which the brain keeps updated with its own session ID. */}
+            <BrainActivityFeed />
 
             {/* Open Positions (live) */}
             <OpenPositions

@@ -7,9 +7,9 @@ export async function GET(req: NextRequest) {
     const sessionId = searchParams.get("sessionId");
     const limit = parseInt(searchParams.get("limit") || "50");
 
-    let targetSessionId = sessionId;
+    let targetSessionId = sessionId ?? null;
 
-    // Fall back to active session from app_config if not provided
+    // Tier 1: app_config.active_session_id (written by brain on each new session)
     if (!targetSessionId) {
       const { data: configData } = await supabaseServer
         .from("app_config")
@@ -17,14 +17,23 @@ export async function GET(req: NextRequest) {
         .eq("key", "active_session_id")
         .single();
 
-      targetSessionId = configData?.value || null;
+      targetSessionId = configData?.value ?? null;
+    }
+
+    // Tier 2: most recent session seen in brain_activity itself
+    if (!targetSessionId) {
+      const { data: latest } = await supabaseServer
+        .from("brain_activity")
+        .select("session_id")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      targetSessionId = latest?.session_id ?? null;
     }
 
     if (!targetSessionId) {
-      return NextResponse.json({
-        activity: [],
-        message: "No active session found",
-      });
+      return NextResponse.json({ activity: [], message: "No activity found" });
     }
 
     const { data, error } = await supabaseServer
@@ -36,10 +45,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error("[activity] Supabase error:", error);
-      return NextResponse.json({
-        activity: [],
-        error: error.message,
-      });
+      return NextResponse.json({ activity: [], error: error.message });
     }
 
     return NextResponse.json({
@@ -50,9 +56,6 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[activity] Exception:", msg);
-    return NextResponse.json({
-      activity: [],
-      error: msg,
-    });
+    return NextResponse.json({ activity: [], error: msg });
   }
 }
