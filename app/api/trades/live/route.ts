@@ -1,29 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 
-// Returns live trades + session stats for the brain's active session.
-// Reads active_session_id from app_config so it always follows the brain's session,
-// not the frontend's dbSessionId.
 export async function GET(req: NextRequest) {
   const token = req.headers.get("x-enc-token");
   if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
 
   try {
-    // Read active_session_id and session_config from app_config
+    // Tier 1: active_session_id from app_config
     const { data: configRows } = await supabaseServer
       .from("app_config")
       .select("key, value")
       .in("key", ["active_session_id", "session_config"]);
 
-    const cfg = Object.fromEntries((configRows ?? []).map((r: { key: string; value: string }) => [r.key, r.value]));
-    const sessionId = cfg["active_session_id"] ?? null;
-    const sessionConfig = cfg["session_config"] ? (() => { try { return JSON.parse(cfg["session_config"]); } catch { return null; } })() : null;
+    const cfg = Object.fromEntries(
+      (configRows ?? []).map((r: { key: string; value: string }) => [r.key, r.value])
+    );
 
-    if (!sessionId) {
-      return NextResponse.json({ trades: [], tradesCount: 0, sessionId: null, sessionConfig: null });
+    let sessionId: string | null = cfg["active_session_id"] ?? null;
+    const sessionConfig = cfg["session_config"]
+      ? (() => { try { return JSON.parse(cfg["session_config"]); } catch { return null; } })()
+      : null;
+
+    if (sessionId) {
+      // Verify this session actually has trades; if not, fall through to Tier 2
+      const { count } = await supabaseServer
+        .from("trades")
+        .select("id", { count: "exact", head: true })
+        .eq("session_id", sessionId);
+
+      if ((count ?? 0) === 0) {
+        console.log(`[trades/live] active_session_id ${sessionId} has 0 trades — falling back`);
+        sessionId = null;
+      }
     }
 
-    // Fetch all trades for the active session (no status filter — show OPEN + CLOSED)
+    // Tier 2: most recent session that has trades
+    if (!sessionId) {
+      const { data: latest } = await supabaseServer
+        .from("trades")
+        .select("session_id")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      sessionId = latest?.session_id ?? null;
+    }
+
+    if (!sessionId) {
+      return NextResponse.json({ trades: [], tradesCount: 0, sessionId: null, sessionConfig });
+    }
+
     const { data: trades, error } = await supabaseServer
       .from("trades")
       .select("*")
@@ -35,19 +61,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ trades: [], tradesCount: 0, sessionId, sessionConfig, error: error.message });
     }
 
-    // Also read session row for total_trades_executed if the brain updates it
-    const { data: sessionRow } = await supabaseServer
-      .from("trading_sessions")
-      .select("total_trades, total_pnl, status")
-      .eq("id", sessionId)
-      .single();
-
     return NextResponse.json({
       trades: trades ?? [],
       tradesCount: trades?.length ?? 0,
       sessionId,
       sessionConfig,
-      sessionStats: sessionRow ?? null,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
