@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 
-export async function GET(req: NextRequest) {
-  const token = req.headers.get("x-enc-token");
-  if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
-
+export async function GET() {
   try {
     // Tier 1: active_session_id from app_config
     const { data: configRows } = await supabaseServer
