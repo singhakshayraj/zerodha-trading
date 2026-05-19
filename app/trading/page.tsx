@@ -85,6 +85,11 @@ export default function TradingPage() {
   const [logPage, setLogPage] = useState(1);
   const LOGS_PER_PAGE = 20;
 
+  // Live trades from DB (brain-placed trades)
+  const [liveTrades, setLiveTrades] = useState<Trade[]>([]);
+  const [liveSessionConfig, setLiveSessionConfig] = useState<Record<string, unknown> | null>(null);
+  const [liveTradesCount, setLiveTradesCount] = useState(0);
+
   // Past sessions state
   const [pastSessions, setPastSessions] = useState<TradingSession[]>([]);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
@@ -123,6 +128,23 @@ export default function TradingPage() {
     const t = setInterval(() => setElapsedTime(elapsed(session.startTime)), 1000);
     return () => clearInterval(t);
   }, [session.startTime]);
+
+  // Poll live trades from DB every 5 seconds — brain places all trades
+  useEffect(() => {
+    let active = true;
+    async function poll() {
+      try {
+        const r = await api.get("/trades/live");
+        if (!active) return;
+        setLiveTrades(r.data.trades ?? []);
+        setLiveTradesCount(r.data.tradesCount ?? 0);
+        if (r.data.sessionConfig) setLiveSessionConfig(r.data.sessionConfig);
+      } catch { /* non-fatal */ }
+    }
+    poll();
+    const t = setInterval(poll, 5000);
+    return () => { active = false; clearInterval(t); };
+  }, []);
 
   // No trading loop here — Railway brain handles all order execution.
   // This frontend only writes config to Supabase and polls brain heartbeat.
@@ -187,15 +209,27 @@ export default function TradingPage() {
     }
   }
 
-  // derived
+  // derived — use live DB data where available
   const maxLossAmt    = (config.capital * config.maxLossPct)   / 100;
   const maxProfitAmt  = (config.capital * config.maxProfitPct) / 100;
   const capitalPerTrade = config.capital / Math.max(config.maxTrades, 1);
-  const tradeProgress = config.maxTrades > 0 ? (session.tradesExecuted / config.maxTrades) * 100 : 0;
-  const pnlColor = session.sessionPnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]";
 
-  const pagedLogs = session.tradeLogs.slice((logPage - 1) * LOGS_PER_PAGE, logPage * LOGS_PER_PAGE);
-  const totalPages = Math.ceil(session.tradeLogs.length / LOGS_PER_PAGE);
+  // Use live DB trade count; fall back to store for display consistency
+  const displayTradeCount = liveTradesCount || session.tradesExecuted;
+  const displayMaxTrades  = (liveSessionConfig?.maxTrades as number | undefined) ?? config.maxTrades;
+  const tradeProgress     = displayMaxTrades > 0 ? (displayTradeCount / displayMaxTrades) * 100 : 0;
+
+  // Live session P&L from closed trades
+  const livePnl   = liveTrades.filter((t) => t.status === "CLOSED").reduce((s, t) => s + (t.pnl ?? 0), 0);
+  const displayPnl = liveTrades.length > 0 ? livePnl : session.sessionPnl;
+  const pnlColor   = displayPnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]";
+
+  // Use live trades for log display (newest first from API, show paginated)
+  const pagedLogs  = liveTrades.slice((logPage - 1) * LOGS_PER_PAGE, logPage * LOGS_PER_PAGE);
+  const totalPages = Math.ceil(liveTrades.length / LOGS_PER_PAGE);
+
+  // Running universe from live session config
+  const runningUniverse = (liveSessionConfig?.stockUniverse as string | undefined)?.toLowerCase() ?? null;
 
   function field<K extends keyof TradingConfig>(key: K, value: TradingConfig[K]) {
     setConfig((c) => ({ ...c, [key]: value }));
@@ -294,21 +328,30 @@ export default function TradingPage() {
             {/* Mode toggle */}
             <div>
               <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">Trading Mode</label>
-              <div className="flex rounded-lg overflow-hidden border border-[#1f1f1f]">
-                {(["holdings", "market"] as const).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => field("mode", m)}
-                    disabled={session.status === "running"}
-                    className={`flex-1 py-2 text-xs font-medium transition-colors capitalize disabled:opacity-40
-                      ${config.mode === m ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#0d0d0d] text-[#444] hover:text-[#888]"}`}
-                  >
-                    {m === "holdings" ? "Holdings Only" : "Open Market"}
-                  </button>
-                ))}
-              </div>
+              {/* When a session is running show the brain's actual universe; otherwise use local config */}
+              {runningUniverse ? (
+                <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-xs text-[#f5f5f5] font-medium">
+                  {runningUniverse === "holdings" ? "Holdings Only" :
+                   runningUniverse === "both"     ? "Holdings + Market" : runningUniverse.toUpperCase()}
+                  <span className="ml-2 text-[10px] text-[#22c55e]">(active)</span>
+                </div>
+              ) : (
+                <div className="flex rounded-lg overflow-hidden border border-[#1f1f1f]">
+                  {(["holdings", "market"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => field("mode", m)}
+                      disabled={session.status === "running"}
+                      className={`flex-1 py-2 text-xs font-medium transition-colors capitalize disabled:opacity-40
+                        ${config.mode === m ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#0d0d0d] text-[#444] hover:text-[#888]"}`}
+                    >
+                      {m === "holdings" ? "Holdings Only" : "Open Market"}
+                    </button>
+                  ))}
+                </div>
+              )}
               <p className="text-[10px] text-[#444] mt-1">
-                {config.mode === "holdings" ? "Trades only within your existing holdings" : "Can buy new positions from market"}
+                {(runningUniverse ?? config.mode) === "holdings" ? "Trades only within your existing holdings" : "Can buy new positions from market"}
               </p>
             </div>
 
@@ -424,11 +467,11 @@ export default function TradingPage() {
                 },
                 {
                   label: "Session P&L",
-                  value: <span className={`text-sm font-semibold ${pnlColor}`}>{INR(session.sessionPnl)}</span>,
+                  value: <span className={`text-sm font-semibold ${pnlColor}`}>{INR(displayPnl)}</span>,
                 },
                 {
                   label: "Trades",
-                  value: <span className="text-sm font-semibold text-[#f5f5f5]">{session.tradesExecuted} / {config.maxTrades}</span>,
+                  value: <span className="text-sm font-semibold text-[#f5f5f5]">{displayTradeCount} / {displayMaxTrades}</span>,
                 },
                 {
                   label: "Elapsed",
@@ -479,12 +522,12 @@ export default function TradingPage() {
               </div>
             )}
 
-            {/* Trade log table */}
+            {/* Trade log table — reads live DB trades placed by Railway brain */}
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden shrink-0">
               <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
                 <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
                   Trade Log
-                  <span className="ml-2 font-normal text-[#444]">{session.tradeLogs.length} trades</span>
+                  <span className="ml-2 font-normal text-[#444]">{liveTrades.length} trades</span>
                 </h2>
                 {totalPages > 1 && (
                   <div className="flex items-center gap-2 text-xs text-[#444]">
@@ -494,40 +537,49 @@ export default function TradingPage() {
                   </div>
                 )}
               </div>
-              <div className="overflow-auto max-h-64">
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto max-h-64 scroll-touch">
+                <table className="w-full min-w-[640px] md:min-w-0 text-xs">
                   <thead className="sticky top-0 bg-[#111111]">
                     <tr className="border-b border-[#1a1a1a]">
-                      {["Time", "Symbol", "Action", "Qty", "Price", "Value", "P&L", "Reason"].map((h) => (
+                      {["Time", "Symbol", "Side", "Qty", "Entry ₹", "Exit ₹", "P&L", "Status", "Reason"].map((h) => (
                         <th key={h} className="text-left px-4 py-2.5 text-[10px] text-[#444] font-medium uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {pagedLogs.map((t) => (
-                      <tr key={t.id} className={`border-b border-[#141414] hover:bg-[#151515] transition-colors ${t.action === "BUY" ? "bg-[#3b82f6]/[0.03]" : "bg-[#f97316]/[0.03]"}`}>
-                        <td className="px-4 py-2.5 text-[#444] font-mono">{t.time}</td>
+                      <tr key={t.id} className="border-b border-[#141414] hover:bg-[#151515] transition-colors">
+                        <td className="px-4 py-2.5 text-[#444] font-mono whitespace-nowrap">
+                          {t.entry_at ? new Date(t.entry_at).toLocaleTimeString("en-IN", { hour12: false }) : "—"}
+                        </td>
                         <td className="px-4 py-2.5 font-medium text-[#f5f5f5]">{t.symbol}</td>
                         <td className="px-4 py-2.5">
-                          <span className={`font-semibold ${t.action === "BUY" ? "text-[#22c55e]" : "text-[#f97316]"}`}>{t.action}</span>
+                          <span className="font-semibold text-[#f97316]">SHORT</span>
                         </td>
-                        <td className="px-4 py-2.5 text-[#888]">{t.qty}</td>
-                        <td className="px-4 py-2.5 text-[#888]">₹{t.price.toFixed(2)}</td>
-                        <td className="px-4 py-2.5 text-[#888]">₹{t.value.toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-[#888]">{t.quantity}</td>
+                        <td className="px-4 py-2.5 text-[#888]">{t.entry_price != null ? `₹${Number(t.entry_price).toFixed(2)}` : "—"}</td>
+                        <td className="px-4 py-2.5 text-[#888]">{t.exit_price  != null ? `₹${Number(t.exit_price).toFixed(2)}`  : "—"}</td>
                         <td className="px-4 py-2.5">
-                          {t.action === "SELL" ? (
+                          {t.pnl != null ? (
                             <span className={t.pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}>
-                              {t.pnl >= 0 ? "+" : ""}₹{t.pnl.toFixed(2)}
+                              {t.pnl >= 0 ? "+" : ""}₹{Number(t.pnl).toFixed(2)}
                             </span>
                           ) : <span className="text-[#444]">—</span>}
                         </td>
-                        <td className="px-4 py-2.5 text-[#555] max-w-xs truncate">{t.reason}</td>
+                        <td className="px-4 py-2.5">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                            t.status === "OPEN"   ? "bg-[#f59e0b]/10 text-[#f59e0b]" :
+                            t.status === "CLOSED" ? "bg-[#3b82f6]/10 text-[#3b82f6]" :
+                            "bg-[#555]/10 text-[#555]"
+                          }`}>{t.status}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-[#555] max-w-xs truncate">{t.entry_reason ?? "—"}</td>
                       </tr>
                     ))}
-                    {session.tradeLogs.length === 0 && (
+                    {liveTrades.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="px-4 py-8 text-center text-[#333] text-xs">
-                          No trades yet. Start a session to begin.
+                        <td colSpan={9} className="px-4 py-8 text-center text-[#333] text-xs">
+                          No trades yet for active session.
                         </td>
                       </tr>
                     )}
