@@ -18,7 +18,6 @@ export interface TradingSession {
   id: string;
   started_at: string;
   ended_at: string | null;
-  duration_minutes: number | null;
   status: SessionStatus;
   end_reason: string | null;
   capital_deployed: number;
@@ -326,17 +325,11 @@ export async function endSession(
   id: string,
   endReason: string
 ): Promise<void> {
-  const session = await getLatestSession();
-  const startedAt = new Date(session.started_at).getTime();
-  const endedAt = Date.now();
-  const durationMinutes = Math.round((endedAt - startedAt) / 60_000);
-
   const { error } = await supabaseServer
     .from("trading_sessions")
     .update({
-      status: "COMPLETED",
-      ended_at: new Date(endedAt).toISOString(),
-      duration_minutes: durationMinutes,
+      status: "STOPPED",
+      ended_at: new Date().toISOString(),
       end_reason: endReason,
     })
     .eq("id", id);

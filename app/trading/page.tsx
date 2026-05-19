@@ -648,7 +648,7 @@ export default function TradingPage() {
                               </td>
                               <td className="px-4 py-2.5 text-[#888] whitespace-nowrap">{fmtDate(s.started_at)}</td>
                               <td className="px-4 py-2.5 text-[#888]">
-                                {s.duration_minutes != null ? `${s.duration_minutes}m` : "—"}
+                                {"—"}
                               </td>
                               <td className="px-4 py-2.5 text-[#f5f5f5]">{s.total_trades}</td>
                               <td className="px-4 py-2.5 text-[#888]">{winRate(s)}</td>
