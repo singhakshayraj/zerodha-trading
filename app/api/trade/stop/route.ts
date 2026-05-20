@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const totalPnl = trades.reduce((s, t) => s + (t.pnl ?? 0), 0);
 
     await db.updateSession(sessionId, {
-      total_trades:   trades.length,
+      total_trades_executed: trades.length,
       winning_trades: winning,
       losing_trades:  losing,
       total_pnl:      totalPnl,

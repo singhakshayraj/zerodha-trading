@@ -26,7 +26,7 @@ export interface TradingSession {
   max_profit_percent: number;
   trade_interval_seconds: number;
   stock_universe: string;
-  total_trades: number;
+  total_trades_executed: number;
   winning_trades: number;
   losing_trades: number;
   total_pnl: number;
@@ -303,7 +303,7 @@ export async function updateSession(
   updates: Partial<
     Pick<
       TradingSession,
-      | "total_trades"
+      | "total_trades_executed"
       | "winning_trades"
       | "losing_trades"
       | "total_pnl"

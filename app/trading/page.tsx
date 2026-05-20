@@ -53,8 +53,8 @@ const INTERVALS = [
 ];
 
 function winRate(s: TradingSession): string {
-  if (!s.total_trades) return "—";
-  return ((s.winning_trades / s.total_trades) * 100).toFixed(0) + "%";
+  if (!s.total_trades_executed) return "—";
+  return ((s.winning_trades / s.total_trades_executed) * 100).toFixed(0) + "%";
 }
 
 function fmtDate(iso: string) {
@@ -223,8 +223,8 @@ export default function TradingPage() {
   const maxProfitAmt  = (config.capital * config.maxProfitPct) / 100;
   const capitalPerTrade = config.capital / Math.max(config.maxTrades, 1);
 
-  // Use live DB trade count; fall back to store for display consistency
-  const displayTradeCount = liveTradesCount || session.tradesExecuted;
+  // Live DB trade count from /api/trades/live (trades.length in DB)
+  const displayTradeCount = liveTradesCount;
   const displayMaxTrades  = (liveSessionConfig?.maxTrades as number | undefined) ?? config.maxTrades;
   const tradeProgress     = displayMaxTrades > 0 ? (displayTradeCount / displayMaxTrades) * 100 : 0;
 
@@ -659,7 +659,7 @@ export default function TradingPage() {
                               <td className="px-4 py-2.5 text-[#888]">
                                 {"—"}
                               </td>
-                              <td className="px-4 py-2.5 text-[#f5f5f5]">{s.total_trades}</td>
+                              <td className="px-4 py-2.5 text-[#f5f5f5]">{s.total_trades_executed ?? 0}</td>
                               <td className="px-4 py-2.5 text-[#888]">{winRate(s)}</td>
                               <td className="px-4 py-2.5">
                                 <span className={s.total_pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}>

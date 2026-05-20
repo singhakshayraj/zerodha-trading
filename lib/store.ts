@@ -45,6 +45,9 @@ export interface PnlPoint {
 interface TradingSession {
   status: SessionStatus;
   sessionPnl: number;
+  // DEPRECATED: brain writes trades directly to DB. Use liveTradesCount
+  // from /api/trades/live (trades.length) instead. Kept to avoid breaking
+  // unrelated call sites that still reference it.
   tradesExecuted: number;
   startTime: Date | null;
   tradeLogs: TradeLogEntry[];
