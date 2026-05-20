@@ -138,7 +138,7 @@ export default function TradingPage() {
         if (!active) return;
         setLiveTrades(r.data.trades ?? []);
         setLiveTradesCount(r.data.tradesCount ?? 0);
-        if (r.data.sessionConfig) setLiveSessionConfig(r.data.sessionConfig);
+        setLiveSessionConfig(r.data.sessionConfig ?? null);
       } catch { /* non-fatal */ }
     }
     poll();

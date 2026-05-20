@@ -13,36 +13,17 @@ export async function GET() {
       (configRows ?? []).map((r: { key: string; value: string }) => [r.key, r.value])
     );
 
-    let sessionId: string | null = cfg["active_session_id"] ?? null;
+    const rawSessionId = cfg["active_session_id"] ?? null;
+    const sessionId =
+      rawSessionId && rawSessionId !== "none" && rawSessionId !== ""
+        ? rawSessionId
+        : null;
+
     const sessionConfig = cfg["session_config"]
       ? (() => { try { return JSON.parse(cfg["session_config"]); } catch { return null; } })()
       : null;
 
-    if (sessionId) {
-      // Verify this session actually has trades; if not, fall through to Tier 2
-      const { count } = await supabaseServer
-        .from("trades")
-        .select("id", { count: "exact", head: true })
-        .eq("session_id", sessionId);
-
-      if ((count ?? 0) === 0) {
-        console.log(`[trades/live] active_session_id ${sessionId} has 0 trades — falling back`);
-        sessionId = null;
-      }
-    }
-
-    // Tier 2: most recent session that has trades
-    if (!sessionId) {
-      const { data: latest } = await supabaseServer
-        .from("trades")
-        .select("session_id")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      sessionId = latest?.session_id ?? null;
-    }
-
+    // No active session → return empty. Never fall back to stale prior sessions.
     if (!sessionId) {
       return NextResponse.json({ trades: [], tradesCount: 0, sessionId: null, sessionConfig });
     }
