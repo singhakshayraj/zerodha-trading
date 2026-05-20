@@ -129,7 +129,14 @@ export default function TradingPage() {
     return () => clearInterval(t);
   }, [session.startTime]);
 
-  // Poll live trades from DB every 5 seconds — brain places all trades
+  // Reset trade log when session changes (new session = fresh slate)
+  useEffect(() => {
+    setLiveTrades([]);
+    setLiveTradesCount(0);
+  }, [session.dbSessionId]);
+
+  // Poll live trades from DB every 4 seconds — brain places all trades.
+  // Route reads active_session_id from app_config, so no sessionId prop needed.
   useEffect(() => {
     let active = true;
     async function poll() {
@@ -139,10 +146,12 @@ export default function TradingPage() {
         setLiveTrades(r.data.trades ?? []);
         setLiveTradesCount(r.data.tradesCount ?? 0);
         setLiveSessionConfig(r.data.sessionConfig ?? null);
-      } catch { /* non-fatal */ }
+      } catch (e) {
+        console.error("[TradeLog] fetch failed:", e);
+      }
     }
     poll();
-    const t = setInterval(poll, 5000);
+    const t = setInterval(poll, 4000);
     return () => { active = false; clearInterval(t); };
   }, []);
 
