@@ -20,20 +20,14 @@ export async function GET(req: NextRequest) {
       targetSessionId = configData?.value ?? null;
     }
 
-    // Tier 2: most recent session seen in brain_activity itself
-    if (!targetSessionId) {
-      const { data: latest } = await supabaseServer
-        .from("brain_activity")
-        .select("session_id")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      targetSessionId = latest?.session_id ?? null;
-    }
-
-    if (!targetSessionId) {
-      return NextResponse.json({ activity: [], message: "No activity found" });
+    // No Tier 2. If app_config has no active session, return empty —
+    // never fall back to prior sessions (which surfaces stale events).
+    if (
+      !targetSessionId ||
+      targetSessionId === "" ||
+      targetSessionId === "none"
+    ) {
+      return NextResponse.json({ activity: [], sessionId: null, count: 0 });
     }
 
     const { data, error } = await supabaseServer

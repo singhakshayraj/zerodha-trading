@@ -32,7 +32,7 @@ export default function BrainActivityFeed({
 
       const activityData = json.activity || [];
 
-      if (Array.isArray(activityData) && activityData.length > 0) {
+      if (Array.isArray(activityData)) {
         setEvents([...activityData].reverse());
         setError(null);
       }
@@ -42,7 +42,8 @@ export default function BrainActivityFeed({
   };
 
   useEffect(() => {
-    fetchActivity();
+    setEvents([]);     // clear immediately on session change
+    fetchActivity();   // then fetch fresh
     const interval = setInterval(fetchActivity, 3000);
     return () => clearInterval(interval);
   }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
