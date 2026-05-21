@@ -107,11 +107,32 @@ export default function TradingPage() {
   useEffect(() => {
     async function restoreSessionIfRunning() {
       try {
-        const brainRes = await api.get("/brain/status");
-        if (brainRes.data.status !== "RUNNING") return;
+        // Get token from store (or localStorage if store not yet hydrated).
+        // Use plain fetch to bypass axios 401 interceptor that would clear
+        // the session and redirect to /connect on transient failures.
+        const encToken =
+          useAppStore.getState().token ||
+          (typeof window !== "undefined" ? localStorage.getItem("enc_token") : null) ||
+          "";
 
-        const tradesRes = await api.get("/trades/live");
-        const tradesData = tradesRes.data;
+        const brainRes = await fetch("/api/brain/status", {
+          headers: { "x-enc-token": encToken },
+        });
+        if (!brainRes.ok) {
+          console.warn("[restore] brain/status returned", brainRes.status);
+          return;
+        }
+        const brain = await brainRes.json();
+        if (brain.status !== "RUNNING") return;
+
+        const tradesRes = await fetch("/api/trades/live", {
+          headers: { "x-enc-token": encToken },
+        });
+        if (!tradesRes.ok) {
+          console.warn("[restore] trades/live returned", tradesRes.status);
+          return;
+        }
+        const tradesData = await tradesRes.json();
         if (!tradesData.sessionId) return;
 
         const currentStatus = useAppStore.getState().session.status;
@@ -134,7 +155,7 @@ export default function TradingPage() {
         addBrainLog("Session restored after page refresh", "info");
         console.log("[restore] Restored running session:", tradesData.sessionId);
       } catch (e) {
-        console.warn("[restore] Could not restore session:", e);
+        console.warn("[restore] Session restore failed:", e);
       }
     }
     restoreSessionIfRunning();
