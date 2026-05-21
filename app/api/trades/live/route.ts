@@ -7,7 +7,7 @@ export async function GET() {
     const { data: configRows } = await supabaseServer
       .from("app_config")
       .select("key, value")
-      .in("key", ["active_session_id", "session_config"]);
+      .in("key", ["active_session_id", "session_config", "brain_status"]);
 
     const cfg = Object.fromEntries(
       (configRows ?? []).map((r: { key: string; value: string }) => [r.key, r.value])
@@ -23,9 +23,18 @@ export async function GET() {
       ? (() => { try { return JSON.parse(cfg["session_config"]); } catch { return null; } })()
       : null;
 
+    const brainStatus = cfg["brain_status"] ?? "OFFLINE";
+
     // No active session → return empty. Never fall back to stale prior sessions.
     if (!sessionId) {
-      return NextResponse.json({ trades: [], tradesCount: 0, sessionId: null, sessionConfig });
+      return NextResponse.json({
+        trades: [],
+        tradesCount: 0,
+        sessionId: null,
+        sessionConfig,
+        brainStatus,
+        isSessionActive: false,
+      });
     }
 
     const { data: trades, error } = await supabaseServer
@@ -36,14 +45,28 @@ export async function GET() {
 
     if (error) {
       console.error("[trades/live] query error:", error.message);
-      return NextResponse.json({ trades: [], tradesCount: 0, sessionId, sessionConfig, error: error.message });
+      return NextResponse.json({
+        trades: [],
+        tradesCount: 0,
+        sessionId,
+        sessionConfig,
+        brainStatus,
+        isSessionActive: false,
+        error: error.message,
+      });
     }
+
+    const isSessionActive = Boolean(
+      sessionId && (brainStatus === "RUNNING" || brainStatus === "IDLE")
+    );
 
     return NextResponse.json({
       trades: trades ?? [],
       tradesCount: trades?.length ?? 0,
       sessionId,
       sessionConfig,
+      brainStatus,
+      isSessionActive,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

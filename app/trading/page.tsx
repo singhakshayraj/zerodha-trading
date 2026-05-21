@@ -103,64 +103,6 @@ export default function TradingPage() {
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
 
-  // Auto-restore session state if brain is already running (page refresh recovery)
-  useEffect(() => {
-    async function restoreSessionIfRunning() {
-      try {
-        // Get token from store (or localStorage if store not yet hydrated).
-        // Use plain fetch to bypass axios 401 interceptor that would clear
-        // the session and redirect to /connect on transient failures.
-        const encToken =
-          useAppStore.getState().token ||
-          (typeof window !== "undefined" ? localStorage.getItem("enc_token") : null) ||
-          "";
-
-        const brainRes = await fetch("/api/brain/status", {
-          headers: { "x-enc-token": encToken },
-        });
-        if (!brainRes.ok) {
-          console.warn("[restore] brain/status returned", brainRes.status);
-          return;
-        }
-        const brain = await brainRes.json();
-        if (brain.status !== "RUNNING") return;
-
-        const tradesRes = await fetch("/api/trades/live", {
-          headers: { "x-enc-token": encToken },
-        });
-        if (!tradesRes.ok) {
-          console.warn("[restore] trades/live returned", tradesRes.status);
-          return;
-        }
-        const tradesData = await tradesRes.json();
-        if (!tradesData.sessionId) return;
-
-        const currentStatus = useAppStore.getState().session.status;
-        if (currentStatus !== "idle") return;
-
-        const sessionConfig = tradesData.sessionConfig;
-        const restoredConfig: TradingConfig = sessionConfig
-          ? {
-              capital: (sessionConfig.capital as number) ?? config.capital,
-              maxProfitPct: (sessionConfig.maxProfitPct as number) ?? config.maxProfitPct,
-              maxLossPct: (sessionConfig.maxLossPct as number) ?? config.maxLossPct,
-              maxTrades: (sessionConfig.maxTrades as number) ?? config.maxTrades,
-              mode: (sessionConfig.mode as "holdings" | "market") ?? config.mode,
-              intervalMinutes: (sessionConfig.intervalMinutes as number) ?? config.intervalMinutes,
-            }
-          : config;
-
-        startSession(restoredConfig);
-        setDbSessionId(tradesData.sessionId);
-        addBrainLog("Session restored after page refresh", "info");
-        console.log("[restore] Restored running session:", tradesData.sessionId);
-      } catch (e) {
-        console.warn("[restore] Session restore failed:", e);
-      }
-    }
-    restoreSessionIfRunning();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   // fetch holdings once
   useEffect(() => {
     if (!isConnected) return;
@@ -194,29 +136,59 @@ export default function TradingPage() {
     setLiveTradesCount(0);
   }, [session.dbSessionId]);
 
-  // Poll live trades from DB every 4 seconds — brain places all trades.
-  // Route reads active_session_id from app_config, so no sessionId prop needed.
+  // Poll live trades from DB every 4 seconds. Single source of truth for
+  // session state — also restores UI on page refresh and detects session end.
   useEffect(() => {
     let active = true;
     async function poll() {
+      if (!active) return;
       try {
-        const r = await api.get("/trades/live");
+        const res = await api.get("/trades/live");
         if (!active) return;
-        setLiveTrades(r.data.trades ?? []);
-        const count = r.data.tradesCount ?? 0;
-        if (count > 0) {
-          lastKnownTradeCount.current = count;
-        }
+        const r = res.data;
+
+        // Trade count
+        const count = r.tradesCount ?? 0;
+        if (count > 0) lastKnownTradeCount.current = count;
         setLiveTradesCount(count);
-        setLiveSessionConfig(r.data.sessionConfig ?? null);
+        setLiveTrades(r.trades ?? []);
+        setLiveSessionConfig(r.sessionConfig ?? null);
+
+        // Session state sync
+        const sessionId = r.sessionId ?? null;
+        const sessionCfg = r.sessionConfig;
+        const currentStatus = useAppStore.getState().session.status;
+
+        // Restore: active session exists but UI is idle (e.g. after page refresh)
+        if (sessionId && currentStatus === "idle") {
+          console.log("[poll] Active session detected, restoring UI state");
+          const restoredConfig: TradingConfig = sessionCfg
+            ? {
+                capital: (sessionCfg.capital as number) ?? config.capital,
+                maxProfitPct: (sessionCfg.maxProfitPct as number) ?? config.maxProfitPct,
+                maxLossPct: (sessionCfg.maxLossPct as number) ?? config.maxLossPct,
+                maxTrades: (sessionCfg.maxTrades as number) ?? config.maxTrades,
+                mode: (sessionCfg.mode as "holdings" | "market") ?? config.mode,
+                intervalMinutes: (sessionCfg.intervalMinutes as number) ?? config.intervalMinutes,
+              }
+            : config;
+          startSession(restoredConfig);
+          setDbSessionId(sessionId);
+        }
+
+        // Stop: sessionId gone but UI still running
+        if (!sessionId && currentStatus === "running") {
+          console.log("[poll] Session ended, updating UI state");
+          stopSession("Session ended");
+        }
       } catch (e) {
-        console.error("[TradeLog] fetch failed:", e);
+        console.error("[poll] error:", e);
       }
     }
     poll();
     const t = setInterval(poll, 4000);
     return () => { active = false; clearInterval(t); };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // No trading loop here — Railway brain handles all order execution.
   // This frontend only writes config to Supabase and polls brain heartbeat.
