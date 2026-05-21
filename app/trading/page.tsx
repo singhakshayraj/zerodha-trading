@@ -98,6 +98,7 @@ export default function TradingPage() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
   const stopConfirmedRef = useRef(false);
+  const lastKnownTradeCount = useRef(0);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -144,7 +145,11 @@ export default function TradingPage() {
         const r = await api.get("/trades/live");
         if (!active) return;
         setLiveTrades(r.data.trades ?? []);
-        setLiveTradesCount(r.data.tradesCount ?? 0);
+        const count = r.data.tradesCount ?? 0;
+        if (count > 0) {
+          lastKnownTradeCount.current = count;
+        }
+        setLiveTradesCount(count);
         setLiveSessionConfig(r.data.sessionConfig ?? null);
       } catch (e) {
         console.error("[TradeLog] fetch failed:", e);
@@ -166,6 +171,7 @@ export default function TradingPage() {
     }
 
     startSession(config);
+    lastKnownTradeCount.current = 0;  // reset for new session
     setShowConfirm(false);
 
     // Create DB session
@@ -223,8 +229,12 @@ export default function TradingPage() {
   const maxProfitAmt  = (config.capital * config.maxProfitPct) / 100;
   const capitalPerTrade = config.capital / Math.max(config.maxTrades, 1);
 
-  // Live DB trade count from /api/trades/live (trades.length in DB)
-  const displayTradeCount = liveTradesCount;
+  // Live DB trade count from /api/trades/live, but preserve final count
+  // when session ends and active_session_id is cleared (count → 0).
+  const displayTradeCount =
+    liveTradesCount > 0
+      ? liveTradesCount
+      : lastKnownTradeCount.current;
   const displayMaxTrades  = (liveSessionConfig?.maxTrades as number | undefined) ?? config.maxTrades;
   const tradeProgress     = displayMaxTrades > 0 ? (displayTradeCount / displayMaxTrades) * 100 : 0;
 
