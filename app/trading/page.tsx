@@ -103,6 +103,43 @@ export default function TradingPage() {
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
 
+  // Auto-restore session state if brain is already running (page refresh recovery)
+  useEffect(() => {
+    async function restoreSessionIfRunning() {
+      try {
+        const brainRes = await api.get("/brain/status");
+        if (brainRes.data.status !== "RUNNING") return;
+
+        const tradesRes = await api.get("/trades/live");
+        const tradesData = tradesRes.data;
+        if (!tradesData.sessionId) return;
+
+        const currentStatus = useAppStore.getState().session.status;
+        if (currentStatus !== "idle") return;
+
+        const sessionConfig = tradesData.sessionConfig;
+        const restoredConfig: TradingConfig = sessionConfig
+          ? {
+              capital: (sessionConfig.capital as number) ?? config.capital,
+              maxProfitPct: (sessionConfig.maxProfitPct as number) ?? config.maxProfitPct,
+              maxLossPct: (sessionConfig.maxLossPct as number) ?? config.maxLossPct,
+              maxTrades: (sessionConfig.maxTrades as number) ?? config.maxTrades,
+              mode: (sessionConfig.mode as "holdings" | "market") ?? config.mode,
+              intervalMinutes: (sessionConfig.intervalMinutes as number) ?? config.intervalMinutes,
+            }
+          : config;
+
+        startSession(restoredConfig);
+        setDbSessionId(tradesData.sessionId);
+        addBrainLog("Session restored after page refresh", "info");
+        console.log("[restore] Restored running session:", tradesData.sessionId);
+      } catch (e) {
+        console.warn("[restore] Could not restore session:", e);
+      }
+    }
+    restoreSessionIfRunning();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // fetch holdings once
   useEffect(() => {
     if (!isConnected) return;
@@ -169,6 +206,16 @@ export default function TradingPage() {
       setShowConfirm(false);
       return;
     }
+
+    // Guard: refuse if brain already has an active session
+    try {
+      const tradesRes = await api.get("/trades/live");
+      if (tradesRes.data?.sessionId) {
+        addBrainLog("Brain already has an active session. Stop it first.", "error");
+        setShowConfirm(false);
+        return;
+      }
+    } catch { /* non-fatal, proceed */ }
 
     startSession(config);
     lastKnownTradeCount.current = 0;  // reset for new session
