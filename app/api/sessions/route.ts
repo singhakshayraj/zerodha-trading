@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as db from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const token = req.headers.get("x-enc-token");
   if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });

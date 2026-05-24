@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Logger } from "next-axiom";
 import { supabaseServer } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const log = new Logger();
   try {

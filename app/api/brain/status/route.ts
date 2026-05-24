@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Logger } from "next-axiom";
 import * as db from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const log = new Logger();
   const token = req.headers.get("x-enc-token");
