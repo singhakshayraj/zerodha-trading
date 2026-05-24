@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Logger } from "next-axiom";
 import * as db from "@/lib/db";
 
 export async function GET(req: NextRequest) {
+  const log = new Logger();
   const token = req.headers.get("x-enc-token");
   if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
 
@@ -26,6 +28,17 @@ export async function GET(req: NextRequest) {
     const isAlive = secondsSinceLastPing !== null && secondsSinceLastPing < 120;
     const effectiveStatus = isAlive ? heartbeat.status : "OFFLINE";
 
+    log.info("brain status", {
+      app: "zerodha-trader",
+      tag: "api",
+      route: "brain/status",
+      status: effectiveStatus,
+      isAlive,
+      secondsSinceLastPing,
+      currentCycle: heartbeat.current_cycle,
+    });
+    await log.flush();
+
     return NextResponse.json({
       status: effectiveStatus,
       lastPing: heartbeat.last_ping,
@@ -36,6 +49,13 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Internal server error";
+    log.error("api exception", {
+      app: "zerodha-trader",
+      tag: "api",
+      route: "brain/status",
+      error: msg,
+    });
+    await log.flush();
     return NextResponse.json(
       { status: "OFFLINE", lastPing: null, isAlive: false, message: msg, currentCycle: null, secondsSinceLastPing: null },
       { status: 500 }

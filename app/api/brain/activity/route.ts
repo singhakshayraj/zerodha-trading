@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Logger } from "next-axiom";
 import { supabaseServer } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
+  const log = new Logger();
   try {
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get("sessionId");
@@ -38,9 +40,25 @@ export async function GET(req: NextRequest) {
       .limit(limit);
 
     if (error) {
-      console.error("[activity] Supabase error:", error);
+      log.error("activity query error", {
+        app: "zerodha-trader",
+        tag: "api",
+        route: "brain/activity",
+        sessionId: targetSessionId,
+        error: error.message,
+      });
+      await log.flush();
       return NextResponse.json({ activity: [], error: error.message });
     }
+
+    log.info("activity fetched", {
+      app: "zerodha-trader",
+      tag: "api",
+      route: "brain/activity",
+      sessionId: targetSessionId,
+      count: data?.length || 0,
+    });
+    await log.flush();
 
     return NextResponse.json({
       activity: data || [],
@@ -49,7 +67,13 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[activity] Exception:", msg);
+    log.error("api exception", {
+      app: "zerodha-trader",
+      tag: "api",
+      route: "brain/activity",
+      error: msg,
+    });
+    await log.flush();
     return NextResponse.json({ activity: [], error: msg });
   }
 }

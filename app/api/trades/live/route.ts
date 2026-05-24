@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { Logger } from "next-axiom";
 import { supabaseServer } from "@/lib/supabase";
 
 export async function GET() {
+  const log = new Logger();
   try {
     // Tier 1: active_session_id from app_config
     const { data: configRows } = await supabaseServer
@@ -44,7 +46,14 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[trades/live] query error:", error.message);
+      log.error("trades query error", {
+        app: "zerodha-trader",
+        tag: "api",
+        route: "trades/live",
+        sessionId,
+        error: error.message,
+      });
+      await log.flush();
       return NextResponse.json({
         trades: [],
         tradesCount: 0,
@@ -60,6 +69,16 @@ export async function GET() {
       sessionId && (brainStatus === "RUNNING" || brainStatus === "IDLE")
     );
 
+    log.info("trades fetched", {
+      app: "zerodha-trader",
+      tag: "api",
+      route: "trades/live",
+      sessionId,
+      count: trades?.length ?? 0,
+      brainStatus,
+    });
+    await log.flush();
+
     return NextResponse.json({
       trades: trades ?? [],
       tradesCount: trades?.length ?? 0,
@@ -70,7 +89,13 @@ export async function GET() {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[trades/live] exception:", msg);
+    log.error("api exception", {
+      app: "zerodha-trader",
+      tag: "api",
+      route: "trades/live",
+      error: msg,
+    });
+    await log.flush();
     return NextResponse.json({ trades: [], tradesCount: 0, error: msg }, { status: 500 });
   }
 }
