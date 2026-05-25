@@ -99,6 +99,7 @@ export default function TradingPage() {
 
   const stopConfirmedRef = useRef(false);
   const lastKnownTradeCount = useRef(0);
+  const sessionStartedAt = useRef<number | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -176,10 +177,27 @@ export default function TradingPage() {
           setDbSessionId(sessionId);
         }
 
-        // Stop: sessionId gone but UI still running
-        if (!sessionId && currentStatus === "running") {
-          console.log("[poll] Session ended, updating UI state");
+        // Stop: sessionId gone but UI still running.
+        // Apply 60s grace period after start so brain has time to write
+        // active_session_id to app_config (brain polls every ~30s + init).
+        const secondsSinceStart = sessionStartedAt.current
+          ? (Date.now() - sessionStartedAt.current) / 1000
+          : 999;
+
+        if (
+          !sessionId &&
+          currentStatus === "running" &&
+          secondsSinceStart > 60
+        ) {
+          console.log("[poll] No active session after 60s grace → stopping");
+          sessionStartedAt.current = null;
           stopSession("Session ended");
+        }
+
+        // If restore detected active session, mark start time so grace
+        // logic works on subsequent polls without falsely stopping.
+        if (sessionId && sessionStartedAt.current === null) {
+          sessionStartedAt.current = Date.now();
         }
       } catch (e) {
         console.error("[poll] error:", e);
@@ -212,6 +230,7 @@ export default function TradingPage() {
 
     startSession(config);
     lastKnownTradeCount.current = 0;  // reset for new session
+    sessionStartedAt.current = Date.now();  // grace period anchor
     setShowConfirm(false);
 
     // Create DB session
@@ -229,6 +248,7 @@ export default function TradingPage() {
   async function confirmStop() {
     setShowStopConfirm(false);
     stopConfirmedRef.current = true;
+    sessionStartedAt.current = null;
     const dbSessionId = session.dbSessionId;
     stopSession("Manually stopped by user");
 
