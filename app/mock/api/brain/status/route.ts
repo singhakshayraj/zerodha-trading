@@ -1,16 +1,14 @@
 // MOCK MIRROR of app/api/brain/status/route.ts — identical logic, reads from
 // the staging (sim) Supabase project via lib/db-sim. Diff against the original.
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Logger } from "next-axiom";
 import * as db from "@/lib/db-sim";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+// MOCK: no token gate — staging viewer must work without a Kite login.
+export async function GET() {
   const log = new Logger();
-  const token = req.headers.get("x-enc-token");
-  if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
-
   try {
     const heartbeat = await db.getBrainHeartbeat();
 

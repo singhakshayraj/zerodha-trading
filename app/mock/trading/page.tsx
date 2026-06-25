@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useAppStore, TradingConfig } from "@/lib/store";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Holding } from "@/lib/types";
-import axios from "axios";
+import api from "@/app/mock/lib/mock-api";
 import type { TradingSession, Trade } from "@/lib/db";
-import { BrainStatus } from "@/components/BrainStatus";
-import BrainActivityFeed from "@/components/BrainActivityFeed";
-import { OpenPositions } from "@/components/OpenPositions";
+import { BrainStatus } from "@/app/mock/components/BrainStatus";
+import BrainActivityFeed from "@/app/mock/components/BrainActivityFeed";
+import { OpenPositions } from "@/app/mock/components/OpenPositions";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
   Clock, ChevronDown, ChevronRight,
@@ -18,27 +17,6 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, ReferenceLine,
 } from "recharts";
-
-// MOCK-ONLY axios instance. Mirrors lib/api.ts (same token interceptor) but
-// targets /mock/api instead of /api, so every request from this page hits the
-// staging-backed mock routes and NEVER touches production. Endpoints without a
-// mock mirror (e.g. /portfolio/holdings, /trade/start) simply 404 here — which
-// is the intended safety behaviour: the mock dashboard cannot write to prod.
-const api = axios.create({
-  baseURL: "/mock/api",
-  timeout: 15000,
-  headers: { "Content-Type": "application/json" },
-});
-
-api.interceptors.request.use((config) => {
-  const token =
-    useAppStore.getState().token ||
-    (typeof window !== "undefined" ? localStorage.getItem("enc_token") : null);
-  if (token) {
-    config.headers["x-enc-token"] = token;
-  }
-  return config;
-});
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -87,7 +65,6 @@ function fmtDate(iso: string) {
 // ─── page ────────────────────────────────────────────────────────────────────
 
 export default function MockTradingPage() {
-  const router = useRouter();
   const { isConnected, hydrateFromStorage, session, startSession, stopSession, setDbSessionId, addBrainLog, resetSession, brainStatus } = useAppStore();
 
   const [config, setConfig] = useState<TradingConfig>({
@@ -124,7 +101,8 @@ export default function MockTradingPage() {
   const sessionStartedAt = useRef<number | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
-  useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
+  // MOCK: no Kite login required — viewing staging data, so do NOT redirect to
+  // /connect when disconnected (unlike production /trading).
 
   // fetch holdings once
   useEffect(() => {
@@ -145,7 +123,8 @@ export default function MockTradingPage() {
     }
   }, []);
 
-  useEffect(() => { if (isConnected) fetchPastSessions(); }, [isConnected, fetchPastSessions]);
+  // MOCK: load past sessions regardless of connection state.
+  useEffect(() => { fetchPastSessions(); }, [fetchPastSessions]);
 
   // elapsed timer
   useEffect(() => {

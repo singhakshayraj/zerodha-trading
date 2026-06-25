@@ -168,10 +168,8 @@ async function seed() {
   return { sessionId: sid, trades: 5, winning, losing, totalPnl };
 }
 
+// MOCK: no token gate — staging seeder must work without a Kite login.
 async function handle(req: NextRequest) {
-  const token = req.headers.get("x-enc-token");
-  if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
-
   try {
     const doReset = new URL(req.url).searchParams.get("reset");
     if (doReset === "1" || doReset === "true") {

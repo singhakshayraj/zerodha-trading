@@ -5,10 +5,8 @@ import * as db from "@/lib/db-sim";
 
 export const dynamic = "force-dynamic";
 
+// MOCK: no token gate — staging viewer must work without a Kite login.
 export async function GET(req: NextRequest) {
-  const token = req.headers.get("x-enc-token");
-  if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
-
   try {
     const url = new URL(req.url);
     const limit = Math.min(100, Number(url.searchParams.get("limit") ?? "30"));
