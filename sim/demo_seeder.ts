@@ -53,6 +53,28 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+// app_config is a key/value table (PK: key). Mirror production write shape.
+async function setConfig(key: string, value: string) {
+  await sim
+    .from("app_config")
+    .upsert(
+      { key, value, updated_at: new Date().toISOString() },
+      { onConflict: "key" }
+    );
+}
+
+// brain_heartbeat is a single row (id=1). last_ping MUST be fresh (<120s) or
+// the status route reports OFFLINE regardless of `status`. Call every loop.
+async function pingHeartbeat(cycle: number, message: string) {
+  await sim.from("brain_heartbeat").upsert({
+    id: 1,
+    last_ping: new Date().toISOString(),
+    status: "RUNNING",
+    current_cycle: cycle,
+    message,
+  });
+}
+
 // --- reset -----------------------------------------------------------------
 async function reset() {
   console.log(`Resetting sim project to IDLE defaults: ${SIM_URL}`);
@@ -65,13 +87,14 @@ async function reset() {
     .delete()
     .neq("id", "00000000-0000-0000-0000-000000000000");
 
-  await sim.from("app_config").upsert({
-    id: 1,
-    active_session_id: "",
-    brain_status: "IDLE",
-  });
+  // Upsert keys (don't delete) — the routes expect these keys to always exist.
+  await setConfig("active_session_id", "");
+  await setConfig("brain_status", "IDLE");
+
+  // Stale last_ping (1h ago) so isAlive evaluates false → OFFLINE.
   await sim.from("brain_heartbeat").upsert({
     id: 1,
+    last_ping: new Date(Date.now() - 3600_000).toISOString(),
     status: "OFFLINE",
     current_cycle: 0,
     message: "Reset to defaults",
@@ -104,20 +127,24 @@ async function seed() {
   if (sessionErr) throw sessionErr;
   const sid = session.id as string;
 
-  // 4. app_config
-  await sim.from("app_config").upsert({
-    id: 1,
-    active_session_id: sid,
-    brain_status: "RUNNING",
-  });
+  // 4. app_config (key/value)
+  await setConfig("active_session_id", sid);
+  await setConfig("brain_status", "RUNNING");
+  await setConfig(
+    "session_config",
+    JSON.stringify({
+      sessionId: sid,
+      capitalDeployed: 10000,
+      maxTrades: 5,
+      maxLossPercent: 3,
+      maxProfitPercent: 5,
+      tradeIntervalSeconds: 300,
+      stockUniverse: "BOTH",
+    })
+  );
 
   // 5. brain_heartbeat
-  await sim.from("brain_heartbeat").upsert({
-    id: 1,
-    status: "RUNNING",
-    current_cycle: 0,
-    message: "Seeding fake session",
-  });
+  await pingHeartbeat(0, "Seeding fake session");
 
   const trades: { pnl: number; isWinner: boolean }[] = [];
 
@@ -127,6 +154,9 @@ async function seed() {
     const positionType = i % 2 === 0 ? "LONG" : "SHORT";
     const side = positionType === "LONG" ? "BUY" : "SELL";
     const entryPrice = ENTRY_PRICES[symbol];
+
+    // Keep last_ping fresh at the top of every iteration.
+    await pingHeartbeat(i, `Analyzing ${symbol}`);
 
     // a/b ANALYZING
     await sim.from("brain_activity").insert({
@@ -201,13 +231,8 @@ async function seed() {
       message: `Closed ${symbol}, P&L: Rs${pnl}`,
     });
 
-    // l heartbeat cycle += 1
-    await sim.from("brain_heartbeat").upsert({
-      id: 1,
-      status: "RUNNING",
-      current_cycle: i + 1,
-      message: "Seeding fake session",
-    });
+    // l heartbeat cycle += 1 (fresh last_ping)
+    await pingHeartbeat(i + 1, `Closed ${symbol}`);
 
     trades.push({ pnl, isWinner });
     console.log(`Trade ${i + 1}/5 complete: ${symbol} ${pnl}`);
@@ -233,14 +258,12 @@ async function seed() {
     })
     .eq("id", sid);
 
-  await sim.from("app_config").upsert({
-    id: 1,
-    active_session_id: "",
-    brain_status: "IDLE",
-  });
+  await setConfig("active_session_id", "");
+  await setConfig("brain_status", "IDLE");
 
   await sim.from("brain_heartbeat").upsert({
     id: 1,
+    last_ping: new Date().toISOString(),
     status: "IDLE",
     current_cycle: 5,
     message: "Session ended",
