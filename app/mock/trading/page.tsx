@@ -100,6 +100,7 @@ export default function MockTradingPage() {
   });
 
   const [, setHoldings] = useState<Holding[]>([]);
+  const [seeding, setSeeding] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [elapsedTime, setElapsedTime] = useState("00:00");
@@ -339,9 +340,34 @@ export default function MockTradingPage() {
   return (
     <>
       {/* MOCK banner — unmistakable so screenshots/screen-shares can never be
-          confused with production. */}
-      <div className="w-full bg-amber-400 text-black text-center text-xs md:text-sm font-bold py-2 px-4 tracking-wide">
-        🧪 MOCK ENVIRONMENT — staging data, not real trades
+          confused with production. Seed/Reset trigger the staging-only seed
+          route (/mock/api/seed); they never touch production. */}
+      <div className="w-full bg-amber-400 text-black flex items-center justify-center gap-3 text-xs md:text-sm font-bold py-2 px-4 tracking-wide">
+        <span>🧪 MOCK ENVIRONMENT — staging data, not real trades</span>
+        <button
+          onClick={async () => {
+            if (seeding) return;
+            setSeeding(true);
+            try { await api.post("/seed"); window.location.reload(); }
+            catch { setSeeding(false); }
+          }}
+          disabled={seeding}
+          className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black disabled:opacity-50 text-[11px]"
+        >
+          {seeding ? "Seeding…" : "Seed"}
+        </button>
+        <button
+          onClick={async () => {
+            if (seeding) return;
+            setSeeding(true);
+            try { await api.post("/seed?reset=1"); window.location.reload(); }
+            catch { setSeeding(false); }
+          }}
+          disabled={seeding}
+          className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black disabled:opacity-50 text-[11px]"
+        >
+          Reset
+        </button>
       </div>
     <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
