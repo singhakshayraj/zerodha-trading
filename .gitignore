@@ -29,6 +29,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# sim staging credentials (keep .env.sim.example committed)
+sim/.env.sim
+
 # vercel
 .vercel
 
