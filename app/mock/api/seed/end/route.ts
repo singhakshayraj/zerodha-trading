@@ -7,6 +7,11 @@
 //   POST /mock/api/seed/end → { ok, done:true, sessionId?, totals? }
 import { NextResponse } from "next/server";
 import { supabaseSim } from "@/lib/supabase-sim";
+import {
+  PRICE_STATE_KEY,
+  type PriceState,
+  tradePnl,
+} from "@/app/mock/lib/market-sim";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -36,27 +41,35 @@ async function endSession() {
   const sid = cfgRow?.value as string | undefined;
   if (!sid || sid === "" || sid === "none") return { done: true as const };
 
-  // Close any leftover OPEN trades so totals are complete.
+  // Close any leftover OPEN trades at the simulated last-traded price so
+  // exits are consistent with the price walk, not random.
+  const { data: stateRow } = await supabaseSim
+    .from("app_config")
+    .select("value")
+    .eq("key", PRICE_STATE_KEY)
+    .maybeSingle();
+  let priceState: PriceState | null = null;
+  try { priceState = JSON.parse((stateRow?.value as string) ?? ""); } catch { /* no state */ }
+
   const { data: openTrades, error: openErr } = await supabaseSim
     .from("trades")
-    .select("id, symbol, position_type, entry_price")
+    .select("id, symbol, position_type, entry_price, quantity")
     .eq("session_id", sid)
     .eq("status", "OPEN");
   if (openErr) throw openErr;
 
   for (const open of openTrades ?? []) {
-    const pnl = round2(Math.random() * 20 - 8); // [-8, +12]
     const entryPrice = (open.entry_price as number) ?? 0;
-    const exitPrice =
-      open.position_type === "SHORT"
-        ? round2(entryPrice - pnl)
-        : round2(entryPrice + pnl);
+    const qty = (open.quantity as number) ?? 1;
+    const positionType = (open.position_type as "LONG" | "SHORT") ?? "LONG";
+    const ltp = priceState?.prices?.[open.symbol as string] ?? entryPrice;
+    const { pnl, pnlPercent } = tradePnl(entryPrice, ltp, qty, positionType);
 
     const { error: closeErr } = await supabaseSim
       .from("trades")
       .update({
         status: "CLOSED",
-        exit_price: exitPrice,
+        exit_price: ltp,
         pnl,
         is_winner: pnl > 0,
         exit_reason: "SESSION_END",
@@ -69,9 +82,12 @@ async function endSession() {
       session_id: sid,
       activity_type: "POSITION_EXIT",
       symbol: open.symbol,
-      message: `Closed ${open.symbol}, P&L: Rs${pnl}`,
+      message: `SESSION_END: closed ${positionType} ${open.symbol} x${qty} @ ₹${ltp} — P&L ₹${pnl} (${pnlPercent}%)`,
     });
   }
+
+  // Drop sim price state so the next live seed starts a fresh walk.
+  await setConfig(PRICE_STATE_KEY, "");
 
   // Totals from all trades in the session.
   const { data: allTrades, error: allErr } = await supabaseSim

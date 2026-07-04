@@ -17,6 +17,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { supabaseSim } from "@/lib/supabase-sim";
+import {
+  PRICE_STATE_KEY,
+  type PriceState,
+  pickDirection,
+  initialPrices,
+  generateSignal,
+  exitLevels,
+  sizePosition,
+  round2 as simRound2,
+  UNIVERSE,
+} from "@/app/mock/lib/market-sim";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -219,33 +230,71 @@ async function seedLive() {
     last_ping: nowIso(),
     status: "RUNNING",
     current_cycle: 0,
-    message: "Live session started",
+    message: "Live session started — scanning universe",
   });
 
-  // First trade goes in OPEN so the dashboard has something live to show.
-  const symbol = SYMBOLS[0];
-  const entryPrice = ENTRY_PRICES[symbol];
+  // Market simulation state: direction + random-walk starting prices,
+  // persisted so /seed/tick continues the same walk statelessly.
+  const direction = pickDirection();
+  const state: PriceState = {
+    direction,
+    cycle: 0,
+    prices: initialPrices(),
+    openMeta: {},
+  };
+
+  // First entry: signal-driven symbol/side, capital-based sizing (10k capital
+  // / 5 max trades = ~2k allocation), bracket exit levels kept in sim state.
+  const symbol = UNIVERSE[Math.floor(Math.random() * UNIVERSE.length)].symbol;
+  const entryPrice = state.prices[symbol];
+  const signal = generateSignal(direction);
+  const qty = sizePosition(2000, entryPrice);
+  const brackets = exitLevels(entryPrice, signal.positionType);
+  const tradeId = randomUUID();
+  state.openMeta[tradeId] = { openedCycle: 0, ...brackets };
 
   await supabaseSim.from("brain_activity").insert([
-    { session_id: sid, activity_type: "ANALYZING", symbol, message: `Analyzing ${symbol}` },
-    { session_id: sid, activity_type: "SIGNAL", symbol, message: `BUY signal, confidence 75%` },
-    { session_id: sid, activity_type: "ORDER_PLACED", symbol, message: `LONG opened ${symbol} x1` },
+    {
+      session_id: sid,
+      activity_type: "MARKET_SCAN",
+      message: `Market read: ${direction} — scanning ${UNIVERSE.length} symbols`,
+    },
+    {
+      session_id: sid,
+      activity_type: "ANALYZING",
+      symbol,
+      message: `Analyzing ${symbol} @ ₹${entryPrice} — RSI ${signal.rsi}, VWAP dist ${signal.vwapDist}%`,
+    },
+    {
+      session_id: sid,
+      activity_type: "SIGNAL",
+      symbol,
+      message: `${signal.positionType === "LONG" ? "BUY" : "SELL"} signal, confidence ${signal.confidence}%`,
+    },
+    {
+      session_id: sid,
+      activity_type: "ORDER_PLACED",
+      symbol,
+      message: `${signal.positionType} ${symbol} x${qty} @ ₹${entryPrice} | SL ₹${brackets.stopLoss} · Target ₹${brackets.target}`,
+    },
   ]);
 
   const { error: tradeErr } = await supabaseSim.from("trades").insert({
-    id: randomUUID(),
+    id: tradeId,
     session_id: sid,
     symbol,
     status: "OPEN",
-    position_type: "LONG",
+    position_type: signal.positionType,
     entry_price: entryPrice,
-    quantity: 1,
-    entry_value: entryPrice,
-    regime: "TRENDING",
-    confidence_score: 75,
+    quantity: qty,
+    entry_value: simRound2(entryPrice * qty),
+    regime: direction === "SIDEWAYS" ? "CHOPPY" : "TRENDING",
+    confidence_score: signal.confidence,
     updated_at: nowIso(),
   });
   if (tradeErr) throw tradeErr;
+
+  await setConfig(PRICE_STATE_KEY, JSON.stringify(state));
 
   // Verify the config row actually landed — read it back the same way
   // /mock/api/trades/live does, so a schema/constraint mismatch surfaces

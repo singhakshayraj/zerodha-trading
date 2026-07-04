@@ -1,32 +1,64 @@
 // MOCK-ONLY live-session ticker. Companion to POST /mock/api/seed?mode=live.
-// Each POST advances the live staging session one step: closes the current
-// OPEN trade and opens the next until maxTrades, then keeps the session
-// RUNNING indefinitely (fresh heartbeat every tick) so the dashboard can be
-// observed and refresh-tested. It NEVER finalizes — that's the explicit
-// POST /mock/api/seed/end. The browser calls this on an interval so no
-// serverless function ever has to hold a long-running timer. Writes only
-// ever touch the sim client.
+// Each POST advances the market simulation one step: random-walks all symbol
+// prices, exits OPEN positions whose stop-loss/target got hit (or on aged
+// discretionary signals), and opens new sized positions until maxTrades.
+// After maxTrades it keeps the session RUNNING indefinitely (fresh heartbeat
+// every tick) so the dashboard can be observed and refresh-tested. It NEVER
+// finalizes — that's the explicit POST /mock/api/seed/end. The browser calls
+// this on an interval so no serverless function ever has to hold a
+// long-running timer. Writes only ever touch the sim client.
 //
-//   POST /mock/api/seed/tick → { ok, done, tradeCount?, atMax? }
+//   POST /mock/api/seed/tick → { ok, done, tradeCount?, openCount?, atMax? }
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { supabaseSim } from "@/lib/supabase-sim";
+import {
+  PRICE_STATE_KEY,
+  type PriceState,
+  UNIVERSE,
+  stepPrices,
+  initialPrices,
+  generateSignal,
+  exitLevels,
+  sizePosition,
+  checkExit,
+  tradePnl,
+  round2,
+} from "@/app/mock/lib/market-sim";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-const SYMBOLS = ["RELIANCE", "INFY", "HINDALCO", "SBIN", "HINDUNILVR"] as const;
-const ENTRY_PRICES: Record<string, number> = {
-  RELIANCE: 1350,
-  INFY: 1190,
-  HINDALCO: 1090,
-  SBIN: 950,
-  HINDUNILVR: 2190,
-};
 const MAX_TRADES = 5;
+const MAX_CONCURRENT = 2;
+const ALLOCATION = 2000; // ₹ per position (10k capital / 5 trades)
 
 const nowIso = () => new Date().toISOString();
-const round2 = (n: number) => Math.round(n * 100) / 100;
+
+async function setConfig(key: string, value: string) {
+  // Must throw: silent config-write failures make ticks claim success while
+  // the dashboard reads stale state.
+  const { error } = await supabaseSim
+    .from("app_config")
+    .upsert(
+      { key, value, updated_at: new Date().toISOString() },
+      { onConflict: "key" }
+    );
+  if (error) throw new Error(`setConfig(${key}): ${error.message}${error.details ? ` — ${error.details}` : ""}`);
+}
+
+async function loadPriceState(): Promise<PriceState> {
+  const { data } = await supabaseSim
+    .from("app_config")
+    .select("value")
+    .eq("key", PRICE_STATE_KEY)
+    .maybeSingle();
+  try {
+    const parsed = JSON.parse((data?.value as string) ?? "");
+    if (parsed && parsed.prices) return parsed as PriceState;
+  } catch { /* fall through to fresh state */ }
+  return { direction: "SIDEWAYS", cycle: 0, prices: initialPrices(), openMeta: {} };
+}
 
 async function tick() {
   // Which session is live?
@@ -47,106 +79,158 @@ async function tick() {
 
   if (!session || session.status !== "RUNNING") return { done: true as const };
 
-  // Heartbeat: fresh ping, cycle += 1.
-  const { data: hb } = await supabaseSim
-    .from("brain_heartbeat")
-    .select("current_cycle")
-    .eq("id", 1)
-    .maybeSingle();
-  const cycle = ((hb?.current_cycle as number | null) ?? 0) + 1;
+  // Advance the market one step.
+  const state = await loadPriceState();
+  state.cycle += 1;
+  stepPrices(state);
+
+  // Heartbeat: fresh ping every tick so brainStatus never goes stale.
   await supabaseSim.from("brain_heartbeat").upsert({
     id: 1,
     last_ping: nowIso(),
     status: "RUNNING",
-    current_cycle: cycle,
-    message: `Cycle ${cycle}`,
+    current_cycle: state.cycle,
+    message: `Cycle ${state.cycle}: scanning ${UNIVERSE.length} symbols (${state.direction})`,
   });
 
-  // Close the most recent OPEN trade.
+  // Evaluate every OPEN position against current prices.
   const { data: openTrades, error: openErr } = await supabaseSim
     .from("trades")
-    .select("id, symbol, position_type, entry_price")
+    .select("id, symbol, position_type, entry_price, quantity")
     .eq("session_id", sid)
-    .eq("status", "OPEN")
-    .order("created_at", { ascending: false })
-    .limit(1);
+    .eq("status", "OPEN");
   if (openErr) throw openErr;
 
-  const open = openTrades?.[0];
-  if (open) {
-    const pnl = round2(Math.random() * 20 - 8); // [-8, +12]
-    const isWinner = pnl > 0;
+  for (const open of openTrades ?? []) {
+    const symbol = open.symbol as string;
+    const positionType = (open.position_type as "LONG" | "SHORT") ?? "LONG";
     const entryPrice = (open.entry_price as number) ?? 0;
-    const exitPrice =
-      open.position_type === "SHORT"
-        ? round2(entryPrice - pnl)
-        : round2(entryPrice + pnl);
+    const qty = (open.quantity as number) ?? 1;
+    const ltp = state.prices[symbol] ?? entryPrice;
+    const meta = state.openMeta[open.id as string] ?? {
+      openedCycle: state.cycle - 1,
+      ...exitLevels(entryPrice, positionType),
+    };
 
+    const exit = checkExit(ltp, positionType, meta, state.cycle);
+    if (!exit.shouldExit) continue;
+
+    const { pnl, pnlPercent } = tradePnl(entryPrice, ltp, qty, positionType);
     const { error: closeErr } = await supabaseSim
       .from("trades")
       .update({
         status: "CLOSED",
-        exit_price: exitPrice,
+        exit_price: ltp,
         pnl,
-        is_winner: isWinner,
-        exit_reason: "SIGNAL_EXIT",
+        is_winner: pnl > 0,
+        exit_reason: exit.reason,
         updated_at: nowIso(),
       })
       .eq("id", open.id);
     if (closeErr) throw closeErr;
 
+    delete state.openMeta[open.id as string];
+
     await supabaseSim.from("brain_activity").insert({
       session_id: sid,
       activity_type: "POSITION_EXIT",
-      symbol: open.symbol,
-      message: `Closed ${open.symbol}, P&L: Rs${pnl}`,
+      symbol,
+      message: `${exit.reason}: closed ${positionType} ${symbol} x${qty} @ ₹${ltp} — P&L ₹${pnl} (${pnlPercent}%)`,
     });
   }
 
-  // How many trades so far?
+  // Current book after exits.
   const { data: allTrades, error: allErr } = await supabaseSim
     .from("trades")
-    .select("id, pnl, is_winner")
+    .select("id, status")
     .eq("session_id", sid);
   if (allErr) throw allErr;
 
   const tradeCount = allTrades?.length ?? 0;
+  let openCount = (allTrades ?? []).filter((t) => t.status === "OPEN").length;
 
-  if (tradeCount < MAX_TRADES) {
-    // Open the next trade: rotating symbol, alternating LONG/SHORT.
-    const i = tradeCount;
-    const symbol = SYMBOLS[i % SYMBOLS.length];
-    const positionType = i % 2 === 0 ? "LONG" : "SHORT";
-    const side = positionType === "LONG" ? "BUY" : "SELL";
-    const entryPrice = ENTRY_PRICES[symbol];
+  // Open a new position while there's room in the book.
+  if (tradeCount < MAX_TRADES && openCount < MAX_CONCURRENT) {
+    // Pick a symbol we don't already hold.
+    const { data: heldRows } = await supabaseSim
+      .from("trades")
+      .select("symbol")
+      .eq("session_id", sid)
+      .eq("status", "OPEN");
+    const held = new Set((heldRows ?? []).map((r) => r.symbol as string));
+    const candidates = UNIVERSE.filter((s) => !held.has(s.symbol));
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+
+    const entryPrice = state.prices[pick.symbol];
+    const signal = generateSignal(state.direction);
+    const qty = sizePosition(ALLOCATION, entryPrice);
+    const brackets = exitLevels(entryPrice, signal.positionType);
+    const tradeId = randomUUID();
+    state.openMeta[tradeId] = { openedCycle: state.cycle, ...brackets };
 
     await supabaseSim.from("brain_activity").insert([
-      { session_id: sid, activity_type: "ANALYZING", symbol, message: `Analyzing ${symbol}` },
-      { session_id: sid, activity_type: "SIGNAL", symbol, message: `${side} signal, confidence 75%` },
-      { session_id: sid, activity_type: "ORDER_PLACED", symbol, message: `${positionType} opened ${symbol} x1` },
+      {
+        session_id: sid,
+        activity_type: "ANALYZING",
+        symbol: pick.symbol,
+        message: `Analyzing ${pick.symbol} @ ₹${entryPrice} — RSI ${signal.rsi}, VWAP dist ${signal.vwapDist}%`,
+      },
+      {
+        session_id: sid,
+        activity_type: "SIGNAL",
+        symbol: pick.symbol,
+        message: `${signal.positionType === "LONG" ? "BUY" : "SELL"} signal, confidence ${signal.confidence}%`,
+      },
+      {
+        session_id: sid,
+        activity_type: "ORDER_PLACED",
+        symbol: pick.symbol,
+        message: `${signal.positionType} ${pick.symbol} x${qty} @ ₹${entryPrice} | SL ₹${brackets.stopLoss} · Target ₹${brackets.target}`,
+      },
     ]);
 
     const { error: insErr } = await supabaseSim.from("trades").insert({
-      id: randomUUID(),
+      id: tradeId,
       session_id: sid,
-      symbol,
+      symbol: pick.symbol,
       status: "OPEN",
-      position_type: positionType,
+      position_type: signal.positionType,
       entry_price: entryPrice,
-      quantity: 1,
-      entry_value: entryPrice,
-      regime: "TRENDING",
-      confidence_score: 75,
+      quantity: qty,
+      entry_value: round2(entryPrice * qty),
+      regime: state.direction === "SIDEWAYS" ? "CHOPPY" : "TRENDING",
+      confidence_score: signal.confidence,
       updated_at: nowIso(),
     });
     if (insErr) throw insErr;
 
-    return { done: false as const, tradeCount: tradeCount + 1 };
+    openCount += 1;
+    await setConfig(PRICE_STATE_KEY, JSON.stringify(state));
+    return { done: false as const, tradeCount: tradeCount + 1, openCount };
   }
 
-  // At maxTrades: do NOT finalize. Session stays RUNNING with a fresh
-  // heartbeat (already written above) until POST /mock/api/seed/end.
-  return { done: false as const, tradeCount, atMax: true as const };
+  // Occasionally log a considered-and-skipped symbol so the feed shows the
+  // brain thinking even when the book is full.
+  if (Math.random() < 0.4) {
+    const skip = UNIVERSE[Math.floor(Math.random() * UNIVERSE.length)];
+    await supabaseSim.from("brain_activity").insert({
+      session_id: sid,
+      activity_type: "SKIPPED",
+      symbol: skip.symbol,
+      message: `Skipped ${skip.symbol} @ ₹${state.prices[skip.symbol]} — confidence below threshold`,
+    });
+  }
+
+  await setConfig(PRICE_STATE_KEY, JSON.stringify(state));
+
+  // At maxTrades (or book full): do NOT finalize. Session stays RUNNING with
+  // a fresh heartbeat until POST /mock/api/seed/end.
+  return {
+    done: false as const,
+    tradeCount,
+    openCount,
+    atMax: tradeCount >= MAX_TRADES,
+  };
 }
 
 export async function POST() {
