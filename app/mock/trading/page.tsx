@@ -9,6 +9,7 @@ import type { TradingSession, Trade } from "@/lib/db";
 import { BrainStatus } from "@/app/mock/components/BrainStatus";
 import BrainActivityFeed from "@/app/mock/components/BrainActivityFeed";
 import { OpenPositions } from "@/app/mock/components/OpenPositions";
+import { ValidationsPanel } from "./validations";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
   Clock, ChevronDown, ChevronRight,
@@ -408,6 +409,8 @@ export default function MockTradingPage() {
           Reset
         </button>
       </div>
+      {/* Automated validation panel — scripted live-seed test incl. real reload */}
+      <ValidationsPanel />
     <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
 
