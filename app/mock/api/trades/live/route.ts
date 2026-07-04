@@ -7,6 +7,10 @@ import { supabaseSim } from "@/lib/supabase-sim";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  console.log(
+    "[mock/trades/live] supabase host:",
+    (process.env.SIM_SUPABASE_URL || "MISSING").slice(8, 28)
+  );
   const log = new Logger();
   try {
     // Tier 1: active_session_id from app_config

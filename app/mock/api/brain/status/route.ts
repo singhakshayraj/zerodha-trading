@@ -8,6 +8,10 @@ export const dynamic = "force-dynamic";
 
 // MOCK: no token gate — staging viewer must work without a Kite login.
 export async function GET() {
+  console.log(
+    "[mock/brain/status] supabase host:",
+    (process.env.SIM_SUPABASE_URL || "MISSING").slice(8, 28)
+  );
   const log = new Logger();
   try {
     const heartbeat = await db.getBrainHeartbeat();

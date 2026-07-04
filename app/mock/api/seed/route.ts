@@ -271,7 +271,9 @@ async function handle(req: NextRequest) {
     "[mock/seed] invoked. SIM_URL present:",
     !!process.env.SIM_SUPABASE_URL,
     "SIM_KEY present:",
-    !!process.env.SIM_SUPABASE_SERVICE_KEY
+    !!process.env.SIM_SUPABASE_SERVICE_KEY,
+    "supabase host:",
+    (process.env.SIM_SUPABASE_URL || "MISSING").slice(8, 28)
   );
   try {
     const params = new URL(req.url).searchParams;
