@@ -100,6 +100,29 @@ export default function MockTradingPage() {
   const lastKnownTradeCount = useRef(0);
   const sessionStartedAt = useRef<number | null>(null);
 
+  // Live-seed driver: browser advances the staging session via /seed/tick.
+  const tickTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopTicking = useCallback(() => {
+    if (tickTimerRef.current) {
+      clearInterval(tickTimerRef.current);
+      tickTimerRef.current = null;
+    }
+  }, []);
+  useEffect(() => stopTicking, [stopTicking]);
+
+  const startLiveSeed = useCallback(async () => {
+    await api.post("/seed?mode=live");
+    stopTicking();
+    tickTimerRef.current = setInterval(async () => {
+      try {
+        const r = await api.post("/seed/tick");
+        if (r.data?.done) stopTicking();
+      } catch {
+        stopTicking();
+      }
+    }, 5000);
+  }, [stopTicking]);
+
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   // MOCK: no Kite login required — viewing staging data, so do NOT redirect to
   // /connect when disconnected (unlike production /trading).
@@ -327,13 +350,27 @@ export default function MockTradingPage() {
           onClick={async () => {
             if (seeding) return;
             setSeeding(true);
-            try { await api.post("/seed"); window.location.reload(); }
+            // No reload: the normal /trades/live polling picks up the RUNNING
+            // session while the tick interval advances it in the background.
+            try { await startLiveSeed(); } catch { /* surfaced by route logs */ }
+            setSeeding(false);
+          }}
+          disabled={seeding}
+          className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black disabled:opacity-50 text-[11px]"
+        >
+          {seeding ? "Seeding…" : "Seed (Live)"}
+        </button>
+        <button
+          onClick={async () => {
+            if (seeding) return;
+            setSeeding(true);
+            try { await api.post("/seed?mode=batch"); window.location.reload(); }
             catch { setSeeding(false); }
           }}
           disabled={seeding}
           className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black disabled:opacity-50 text-[11px]"
         >
-          {seeding ? "Seeding…" : "Seed"}
+          {seeding ? "Seeding…" : "Seed (Batch)"}
         </button>
         <button
           onClick={async () => {

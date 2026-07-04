@@ -6,7 +6,10 @@
 // (serverless can't reliably hold a long-running request) — it writes the final
 // completed-session state in one shot. Reads SIM_* via lib/supabase-sim.
 //
-//   POST /mock/api/seed            → seed one fake completed session
+//   POST /mock/api/seed?mode=batch → seed one fake completed session (default)
+//   POST /mock/api/seed?mode=live  → start a RUNNING session with one OPEN
+//                                    trade, then return; the browser advances
+//                                    it via POST /mock/api/seed/tick
 //   POST /mock/api/seed?reset=1    → wipe sim data back to IDLE/OFFLINE
 //
 // Token-protected (x-enc-token) like the other mock routes. Writes only ever
@@ -168,6 +171,82 @@ async function seed() {
   return { sessionId: sid, trades: 5, winning, losing, totalPnl };
 }
 
+// LIVE mode: establish a RUNNING session with ONE OPEN trade, then return.
+// No server-side loop — serverless can't hold a timer reliably. The browser
+// drives progression by POSTing /mock/api/seed/tick every few seconds.
+async function seedLive() {
+  // Clear prior state: close orphan OPEN trades from previous runs.
+  await supabaseSim
+    .from("trades")
+    .update({ status: "CLOSED", exit_reason: "ORPHAN_CLEANUP", updated_at: nowIso() })
+    .eq("status", "OPEN");
+  await setConfig("active_session_id", "");
+
+  const sid = randomUUID();
+
+  const { error: sessionErr } = await supabaseSim.from("trading_sessions").insert({
+    id: sid,
+    status: "RUNNING",
+    capital_deployed: 10000,
+    max_trades: 5,
+    max_loss_percent: 3,
+    max_profit_percent: 5,
+    trade_interval_seconds: 300,
+    stock_universe: "BOTH",
+  });
+  if (sessionErr) throw sessionErr;
+
+  await setConfig("active_session_id", sid);
+  await setConfig("brain_status", "RUNNING");
+  await setConfig(
+    "session_config",
+    JSON.stringify({
+      sessionId: sid,
+      capitalDeployed: 10000,
+      maxTrades: 5,
+      maxLossPercent: 3,
+      maxProfitPercent: 5,
+      tradeIntervalSeconds: 300,
+      stockUniverse: "BOTH",
+    })
+  );
+
+  await supabaseSim.from("brain_heartbeat").upsert({
+    id: 1,
+    last_ping: nowIso(),
+    status: "RUNNING",
+    current_cycle: 0,
+    message: "Live session started",
+  });
+
+  // First trade goes in OPEN so the dashboard has something live to show.
+  const symbol = SYMBOLS[0];
+  const entryPrice = ENTRY_PRICES[symbol];
+
+  await supabaseSim.from("brain_activity").insert([
+    { session_id: sid, activity_type: "ANALYZING", symbol, message: `Analyzing ${symbol}` },
+    { session_id: sid, activity_type: "SIGNAL", symbol, message: `BUY signal, confidence 75%` },
+    { session_id: sid, activity_type: "ORDER_PLACED", symbol, message: `LONG opened ${symbol} x1` },
+  ]);
+
+  const { error: tradeErr } = await supabaseSim.from("trades").insert({
+    id: randomUUID(),
+    session_id: sid,
+    symbol,
+    status: "OPEN",
+    position_type: "LONG",
+    entry_price: entryPrice,
+    quantity: 1,
+    entry_value: entryPrice,
+    regime: "TRENDING",
+    confidence_score: 75,
+    updated_at: nowIso(),
+  });
+  if (tradeErr) throw tradeErr;
+
+  return { sessionId: sid };
+}
+
 // MOCK: no token gate — staging seeder must work without a Kite login.
 async function handle(req: NextRequest) {
   console.log(
@@ -177,13 +256,18 @@ async function handle(req: NextRequest) {
     !!process.env.SIM_SUPABASE_SERVICE_KEY
   );
   try {
-    const doReset = new URL(req.url).searchParams.get("reset");
+    const params = new URL(req.url).searchParams;
+    const doReset = params.get("reset");
     if (doReset === "1" || doReset === "true") {
       await reset();
       return NextResponse.json({ ok: true, action: "reset" });
     }
+    if (params.get("mode") === "live") {
+      const result = await seedLive();
+      return NextResponse.json({ ok: true, mode: "live", ...result });
+    }
     const result = await seed();
-    return NextResponse.json({ ok: true, action: "seed", ...result });
+    return NextResponse.json({ ok: true, action: "seed", mode: "batch", ...result });
   } catch (err) {
     // Supabase PostgrestError is a plain object (not instanceof Error), so
     // pull message/details defensively and serialize the whole thing.
