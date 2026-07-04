@@ -26,12 +26,15 @@ const nowIso = () => new Date().toISOString();
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 async function setConfig(key: string, value: string) {
-  await supabaseSim
+  // Must throw: silent config-write failures make ticks claim success while
+  // the dashboard reads stale state.
+  const { error } = await supabaseSim
     .from("app_config")
     .upsert(
       { key, value, updated_at: new Date().toISOString() },
       { onConflict: "key" }
     );
+  if (error) throw new Error(`setConfig(${key}): ${error.message}${error.details ? ` — ${error.details}` : ""}`);
 }
 
 async function tick() {

@@ -34,12 +34,15 @@ const nowIso = () => new Date().toISOString();
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 async function setConfig(key: string, value: string) {
-  await supabaseSim
+  // Must throw: a silently failed upsert here leaves active_session_id unset
+  // while the route still reports ok:true (the exact bug seen in HAR traces).
+  const { error } = await supabaseSim
     .from("app_config")
     .upsert(
       { key, value, updated_at: new Date().toISOString() },
       { onConflict: "key" }
     );
+  if (error) throw new Error(`setConfig(${key}): ${error.message}${error.details ? ` — ${error.details}` : ""}`);
 }
 
 async function reset() {
@@ -244,7 +247,22 @@ async function seedLive() {
   });
   if (tradeErr) throw tradeErr;
 
-  return { sessionId: sid };
+  // Verify the config row actually landed — read it back the same way
+  // /mock/api/trades/live does, so a schema/constraint mismatch surfaces
+  // here instead of as a silently-idle dashboard.
+  const { data: check, error: checkErr } = await supabaseSim
+    .from("app_config")
+    .select("value")
+    .eq("key", "active_session_id")
+    .maybeSingle();
+  if (checkErr) throw new Error(`verify read failed: ${checkErr.message}`);
+  if (check?.value !== sid) {
+    throw new Error(
+      `active_session_id verify mismatch: wrote '${sid}', read back '${check?.value ?? "<missing>"}'`
+    );
+  }
+
+  return { sessionId: sid, verified: true };
 }
 
 // MOCK: no token gate — staging seeder must work without a Kite login.
