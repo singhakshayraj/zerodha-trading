@@ -356,11 +356,15 @@ export default function MockTradingPage() {
 
   // ── render ──────────────────────────────────────────────────────────────────
   return (
-    <>
+    // Single screen-height column: banner + validations stay pinned at the
+    // top (shrink-0), the trading layout fills the REMAINING height and does
+    // its own internal scrolling — previously the inner div was md:h-screen
+    // itself, pushing total height past the viewport and clipping the bars.
+    <div className="flex flex-col md:h-screen bg-[#0a0a0a]">
       {/* MOCK banner — unmistakable so screenshots/screen-shares can never be
           confused with production. Seed/Reset trigger the staging-only seed
           route (/mock/api/seed); they never touch production. */}
-      <div className="w-full bg-amber-400 text-black flex items-center justify-center gap-3 text-xs md:text-sm font-bold py-2 px-4 tracking-wide">
+      <div className="w-full shrink-0 bg-amber-400 text-black flex flex-wrap items-center justify-center gap-3 text-xs md:text-sm font-bold py-2 px-4 tracking-wide">
         <span>🧪 MOCK ENVIRONMENT — staging data, not real trades</span>
         <button
           onClick={async () => {
@@ -410,8 +414,10 @@ export default function MockTradingPage() {
         </button>
       </div>
       {/* Automated validation panel — scripted live-seed test incl. real reload */}
-      <ValidationsPanel />
-    <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
+      <div className="shrink-0 max-h-[45vh] overflow-y-auto">
+        <ValidationsPanel />
+      </div>
+    <div className="flex flex-col md:flex-row md:flex-1 md:min-h-0 bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0 md:overflow-y-auto">
@@ -993,6 +999,6 @@ export default function MockTradingPage() {
         </div>
       )}
     </div>
-    </>
+    </div>
   );
 }
