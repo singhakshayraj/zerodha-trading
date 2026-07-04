@@ -113,6 +113,9 @@ export default function MockTradingPage() {
   const startLiveSeed = useCallback(async () => {
     await api.post("/seed?mode=live");
     stopTicking();
+    // Ticks run indefinitely — the session stays RUNNING (fresh heartbeat
+    // each tick) until the user clicks End Session. done:true only comes
+    // back if the session vanished (e.g. Reset in another tab).
     tickTimerRef.current = setInterval(async () => {
       try {
         const r = await api.post("/seed/tick");
@@ -121,6 +124,11 @@ export default function MockTradingPage() {
         stopTicking();
       }
     }, 5000);
+  }, [stopTicking]);
+
+  const endLiveSeed = useCallback(async () => {
+    stopTicking();
+    await api.post("/seed/end");
   }, [stopTicking]);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
@@ -359,6 +367,14 @@ export default function MockTradingPage() {
           className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black disabled:opacity-50 text-[11px]"
         >
           {seeding ? "Seeding…" : "Seed (Live)"}
+        </button>
+        <button
+          onClick={async () => {
+            try { await endLiveSeed(); } catch { /* surfaced by route logs */ }
+          }}
+          className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black text-[11px]"
+        >
+          End Session
         </button>
         <button
           onClick={async () => {

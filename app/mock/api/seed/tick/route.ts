@@ -1,10 +1,13 @@
 // MOCK-ONLY live-session ticker. Companion to POST /mock/api/seed?mode=live.
 // Each POST advances the live staging session one step: closes the current
-// OPEN trade and either opens the next one or finalizes the session. The
-// browser calls this on an interval so no serverless function ever has to
-// hold a long-running timer. Writes only ever touch the sim client.
+// OPEN trade and opens the next until maxTrades, then keeps the session
+// RUNNING indefinitely (fresh heartbeat every tick) so the dashboard can be
+// observed and refresh-tested. It NEVER finalizes — that's the explicit
+// POST /mock/api/seed/end. The browser calls this on an interval so no
+// serverless function ever has to hold a long-running timer. Writes only
+// ever touch the sim client.
 //
-//   POST /mock/api/seed/tick → { ok, done, tradeCount? }
+//   POST /mock/api/seed/tick → { ok, done, tradeCount?, atMax? }
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { supabaseSim } from "@/lib/supabase-sim";
@@ -24,18 +27,6 @@ const MAX_TRADES = 5;
 
 const nowIso = () => new Date().toISOString();
 const round2 = (n: number) => Math.round(n * 100) / 100;
-
-async function setConfig(key: string, value: string) {
-  // Must throw: silent config-write failures make ticks claim success while
-  // the dashboard reads stale state.
-  const { error } = await supabaseSim
-    .from("app_config")
-    .upsert(
-      { key, value, updated_at: new Date().toISOString() },
-      { onConflict: "key" }
-    );
-  if (error) throw new Error(`setConfig(${key}): ${error.message}${error.details ? ` — ${error.details}` : ""}`);
-}
 
 async function tick() {
   // Which session is live?
@@ -153,44 +144,9 @@ async function tick() {
     return { done: false as const, tradeCount: tradeCount + 1 };
   }
 
-  // All trades placed and now closed → finalize the session.
-  const winning = (allTrades ?? []).filter((t) => t.is_winner).length;
-  const losing = tradeCount - winning;
-  const totalPnl = round2(
-    (allTrades ?? []).reduce((s, t) => s + ((t.pnl as number) ?? 0), 0)
-  );
-
-  await supabaseSim
-    .from("trading_sessions")
-    .update({
-      status: "COMPLETED",
-      ended_at: nowIso(),
-      total_trades_executed: tradeCount,
-      winning_trades: winning,
-      losing_trades: losing,
-      total_pnl: totalPnl,
-      end_reason: "MAX_TRADES_HIT",
-    })
-    .eq("id", sid);
-
-  await setConfig("active_session_id", "");
-  await setConfig("brain_status", "IDLE");
-
-  await supabaseSim.from("brain_heartbeat").upsert({
-    id: 1,
-    last_ping: nowIso(),
-    status: "IDLE",
-    current_cycle: cycle,
-    message: "Session ended",
-  });
-
-  await supabaseSim.from("brain_activity").insert({
-    session_id: sid,
-    activity_type: "SESSION_END",
-    message: "Session ended: MAX_TRADES_HIT",
-  });
-
-  return { done: true as const };
+  // At maxTrades: do NOT finalize. Session stays RUNNING with a fresh
+  // heartbeat (already written above) until POST /mock/api/seed/end.
+  return { done: false as const, tradeCount, atMax: true as const };
 }
 
 export async function POST() {
