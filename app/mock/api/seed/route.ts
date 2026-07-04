@@ -170,6 +170,12 @@ async function seed() {
 
 // MOCK: no token gate — staging seeder must work without a Kite login.
 async function handle(req: NextRequest) {
+  console.log(
+    "[mock/seed] invoked. SIM_URL present:",
+    !!process.env.SIM_SUPABASE_URL,
+    "SIM_KEY present:",
+    !!process.env.SIM_SUPABASE_SERVICE_KEY
+  );
   try {
     const doReset = new URL(req.url).searchParams.get("reset");
     if (doReset === "1" || doReset === "true") {
@@ -179,8 +185,23 @@ async function handle(req: NextRequest) {
     const result = await seed();
     return NextResponse.json({ ok: true, action: "seed", ...result });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    // Supabase PostgrestError is a plain object (not instanceof Error), so
+    // pull message/details defensively and serialize the whole thing.
+    const e = err as { message?: string; stack?: string; details?: string; hint?: string; code?: string };
+    const detail =
+      e?.message ||
+      (typeof err === "object" ? JSON.stringify(err) : String(err)) ||
+      "no message";
+    const stack = e?.stack || "no stack";
+    console.error("[mock/seed] FAILED:", detail, stack, {
+      details: e?.details,
+      hint: e?.hint,
+      code: e?.code,
+    });
+    return NextResponse.json(
+      { ok: false, error: detail, stack, details: e?.details, hint: e?.hint, code: e?.code },
+      { status: 500 }
+    );
   }
 }
 
