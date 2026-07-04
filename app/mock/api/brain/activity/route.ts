@@ -5,6 +5,8 @@ import { Logger } from "next-axiom";
 import { supabaseSim } from "@/lib/supabase-sim";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   const log = new Logger();

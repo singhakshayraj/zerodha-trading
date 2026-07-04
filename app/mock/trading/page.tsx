@@ -20,6 +20,13 @@ import {
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
+// Cache-busted GET: no-cache header + t=Date.now() param so neither the
+// browser nor any intermediary can serve a stale polling response.
+const freshGet = (path: string) =>
+  api.get(`${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`, {
+    headers: { "Cache-Control": "no-cache" },
+  });
+
 function isMarketOpen(): boolean {
   const ist = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const mins = ist.getHours() * 60 + ist.getMinutes();
@@ -138,14 +145,14 @@ export default function MockTradingPage() {
   // fetch holdings once
   useEffect(() => {
     if (!isConnected) return;
-    api.get("/portfolio/holdings").then((r) => setHoldings(r.data.holdings ?? [])).catch(() => {});
+    freshGet("/portfolio/holdings").then((r) => setHoldings(r.data.holdings ?? [])).catch(() => {});
   }, [isConnected]);
 
   // fetch past sessions
   const fetchPastSessions = useCallback(async () => {
     setSessionsLoading(true);
     try {
-      const r = await api.get("/sessions?limit=30");
+      const r = await freshGet("/sessions?limit=30");
       setPastSessions(r.data.sessions ?? []);
     } catch {
       // silently fail
@@ -176,7 +183,7 @@ export default function MockTradingPage() {
     async function poll() {
       if (!active) return;
       try {
-        const res = await api.get("/trades/live");
+        const res = await freshGet("/trades/live");
         if (!active) return;
         const r = res.data;
 
@@ -252,7 +259,7 @@ export default function MockTradingPage() {
 
     // Guard: refuse if brain already has an active session
     try {
-      const tradesRes = await api.get("/trades/live");
+      const tradesRes = await freshGet("/trades/live");
       if (tradesRes.data?.sessionId) {
         addBrainLog("Brain already has an active session. Stop it first.", "error");
         setShowConfirm(false);
@@ -307,7 +314,7 @@ export default function MockTradingPage() {
 
     setLoadingTrades(id);
     try {
-      const r = await api.get(`/sessions/${id}/trades`);
+      const r = await freshGet(`/sessions/${id}/trades`);
       setSessionTrades((prev) => ({ ...prev, [id]: r.data.trades ?? [] }));
     } catch {
       // silently fail

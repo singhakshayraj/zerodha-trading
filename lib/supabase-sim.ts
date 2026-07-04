@@ -11,4 +11,14 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.SIM_SUPABASE_URL || "https://placeholder.supabase.co";
 const key = process.env.SIM_SUPABASE_SERVICE_KEY || "placeholder-key";
 
-export const supabaseSim = createClient(url, key);
+// global.fetch override: Next.js patches fetch with a Data Cache that can
+// serve stale GET responses even under force-dynamic routes. Forcing
+// cache:'no-store' on every underlying request guarantees reads always hit
+// the sim DB, regardless of route-level cache settings.
+export const supabaseSim = createClient(url, key, {
+  global: {
+    fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+      fetch(input, { ...init, cache: "no-store" }),
+  },
+  auth: { persistSession: false },
+});

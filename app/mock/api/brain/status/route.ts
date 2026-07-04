@@ -5,6 +5,8 @@ import { Logger } from "next-axiom";
 import * as db from "@/lib/db-sim";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 // MOCK: no token gate — staging viewer must work without a Kite login.
 export async function GET() {
