@@ -328,7 +328,9 @@ export async function endSession(
   const { error } = await supabaseServer
     .from("trading_sessions")
     .update({
-      status: "STOPPED",
+      // Must be a valid SessionStatus — "STOPPED" is not in the enum and
+      // breaks every consumer filtering on status.
+      status: "COMPLETED",
       ended_at: new Date().toISOString(),
       end_reason: endReason,
     })
@@ -420,7 +422,14 @@ export async function closeTrade(
 
   if (fetchErr) throw new Error(`closeTrade fetch: ${fetchErr.message}`);
 
-  const entryPrice = trade.entry_price as number;
+  const entryPrice = trade.entry_price as number | null;
+  if (entryPrice == null) {
+    // Trade row exists but entry was never recorded — closing it would write
+    // NaN P&L and corrupt session totals.
+    throw new Error(
+      `closeTrade: trade ${tradeId} has no entry_price (entry order never confirmed)`
+    );
+  }
   const quantity = trade.quantity as number;
   const pnl = (exitData.exit_price - entryPrice) * quantity;
   const pnlPercent =
@@ -441,8 +450,15 @@ export async function closeTrade(
 
   if (error) throw new Error(`closeTrade update: ${error.message}`);
 
-  // Update stock universe stats after close
-  await updateStockScore(trade.symbol as string, { pnl, pnlPercent });
+  // Update stock universe stats after close. Best-effort: the trade is
+  // already CLOSED in the DB at this point, so a missing stock_universe row
+  // must not turn the close into a 500 (which would make callers retry an
+  // already-closed trade).
+  try {
+    await updateStockScore(trade.symbol as string, { pnl, pnlPercent });
+  } catch (scoreErr) {
+    console.error(`closeTrade: updateStockScore failed for ${trade.symbol}:`, scoreErr);
+  }
 }
 
 export async function getOpenTrades(sessionId: string): Promise<Trade[]> {

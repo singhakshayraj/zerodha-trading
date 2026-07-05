@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
     // Signal brain to stop
     await db.writeConfig("brain_status", "STOP");
 
+    // Clear the active session pointer, otherwise the dashboard poll sees the
+    // stale id after a refresh and resurrects the stopped session as RUNNING.
+    await db.writeConfig("active_session_id", "");
+
     // Give brain 2 seconds to acknowledge before we close the session
     await new Promise((r) => setTimeout(r, 2000));
 

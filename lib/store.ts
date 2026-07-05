@@ -197,11 +197,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       const history = [...s.session.pnlHistory, point].slice(-100);
       return { session: { ...s.session, sessionPnl: pnl, pnlHistory: history } };
     });
-    // check guardrails
+    // check guardrails — state already includes delta after set() above;
+    // adding it again would trip limits at half the configured threshold.
     const { session } = get();
     const config = session.config;
     if (!config) return;
-    const pnl = session.sessionPnl + delta;
+    const pnl = session.sessionPnl;
     const maxLossAmt = (config.capital * config.maxLossPct) / 100;
     const maxProfitAmt = (config.capital * config.maxProfitPct) / 100;
     if (pnl <= -maxLossAmt) get().stopSession(`Max loss limit hit: ₹${Math.abs(pnl).toFixed(2)}`);

@@ -163,14 +163,19 @@ export default function TradingPage() {
         // Restore: active session exists but UI is idle (e.g. after page refresh)
         if (sessionId && currentStatus === "idle") {
           console.log("[poll] Active session detected, restoring UI state");
+          // session_config is written by /api/trade/start with the brain's
+          // key names (capitalDeployed, maxLossPercent, …) — read those, not
+          // the UI-side TradingConfig names.
           const restoredConfig: TradingConfig = sessionCfg
             ? {
-                capital: (sessionCfg.capital as number) ?? config.capital,
-                maxProfitPct: (sessionCfg.maxProfitPct as number) ?? config.maxProfitPct,
-                maxLossPct: (sessionCfg.maxLossPct as number) ?? config.maxLossPct,
+                capital: (sessionCfg.capitalDeployed as number) ?? config.capital,
+                maxProfitPct: (sessionCfg.maxProfitPercent as number) ?? config.maxProfitPct,
+                maxLossPct: (sessionCfg.maxLossPercent as number) ?? config.maxLossPct,
                 maxTrades: (sessionCfg.maxTrades as number) ?? config.maxTrades,
-                mode: (sessionCfg.mode as "holdings" | "market") ?? config.mode,
-                intervalMinutes: (sessionCfg.intervalMinutes as number) ?? config.intervalMinutes,
+                mode: (sessionCfg.stockUniverse as string) === "HOLDINGS" ? "holdings" : config.mode,
+                intervalMinutes: sessionCfg.tradeIntervalSeconds != null
+                  ? Math.max(1, Math.round((sessionCfg.tradeIntervalSeconds as number) / 60))
+                  : config.intervalMinutes,
               }
             : config;
           startSession(restoredConfig);
