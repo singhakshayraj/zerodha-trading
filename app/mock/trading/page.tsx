@@ -9,7 +9,7 @@ import type { TradingSession, Trade } from "@/lib/db";
 import { BrainStatus } from "@/app/mock/components/BrainStatus";
 import BrainActivityFeed from "@/app/mock/components/BrainActivityFeed";
 import { OpenPositions } from "@/app/mock/components/OpenPositions";
-import { ValidationsPanel } from "./validations";
+import Link from "next/link";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
   Clock, ChevronDown, ChevronRight,
@@ -416,10 +416,12 @@ export default function MockTradingPage() {
         >
           Reset
         </button>
-      </div>
-      {/* Automated validation panel — scripted live-seed test incl. real reload */}
-      <div className="shrink-0 max-h-[45vh] overflow-y-auto">
-        <ValidationsPanel />
+        <Link
+          href="/mock/validations"
+          className="px-2 py-0.5 rounded bg-black/80 text-amber-300 hover:bg-black text-[11px]"
+        >
+          Validations →
+        </Link>
       </div>
     <div className="flex flex-col md:flex-row md:flex-1 md:min-h-0 bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />

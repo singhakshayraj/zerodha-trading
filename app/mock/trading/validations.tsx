@@ -52,8 +52,8 @@ async function call(path: string, method: "GET" | "POST" = "GET") {
   return { httpOk: res.ok, status: res.status, body };
 }
 
-export function ValidationsPanel() {
-  const [open, setOpen] = useState(false);
+export function ValidationsPanel({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [steps, setSteps] = useState<StepResult[]>(INITIAL_STEPS);
   const [running, setRunning] = useState(false);
   const [verdict, setVerdict] = useState<string | null>(null);
@@ -227,7 +227,7 @@ export function ValidationsPanel() {
   };
 
   return (
-    <div className="border border-[#1f1f1f] rounded-lg bg-[#0f0f0f] mx-4 md:mx-6 my-3">
+    <div className="border border-[#1f1f1f] rounded-lg bg-[#0f0f0f]">
       <button
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#f5f5f5]"
