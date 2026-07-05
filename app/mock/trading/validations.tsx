@@ -175,11 +175,14 @@ export function ValidationsPanel() {
 
       // STEP C — trade count increments over consecutive polls.
       // The panel drives /seed/tick itself (the Seed button's interval isn't
-      // running during validation).
-      mark("C", { status: "RUNNING", detail: "polling /trades/live every 2s…" });
+      // running during validation). Window is 40s: the market sim holds up to
+      // 2 concurrent positions and only opens the next trade after an exit
+      // (SL/target hit or an aged signal exit), so the count legitimately
+      // plateaus for several ticks before incrementing.
+      mark("C", { status: "RUNNING", detail: "polling /trades/live every 2s (up to 40s)…" });
       const counts: number[] = [];
       let increments = 0;
-      const deadline = Date.now() + 15_000;
+      const deadline = Date.now() + 40_000;
       while (Date.now() < deadline && increments < 2) {
         await call("/seed/tick", "POST");
         const c = await call("/trades/live");
@@ -190,7 +193,7 @@ export function ValidationsPanel() {
         if (increments >= 2) break;
         await sleep(2000);
       }
-      if (increments < 2) return fail("C", `count did not increment twice within 15s — observed [${counts.join(",")}]`);
+      if (increments < 2) return fail("C", `count did not increment twice within 40s — observed [${counts.join(",")}]`);
       mark("C", { status: "PASS", detail: `observed [${counts.join(",")}]` });
       const lastCount = counts[counts.length - 1];
 
