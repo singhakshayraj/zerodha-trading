@@ -1,6 +1,10 @@
 # Session Handoff — Paper Trading Infra Setup
 
 Read this first in a new session to resume exactly where we left off.
+Companion doc: `docs/VISION.md` — mission, trading fundamentals, risk
+limits, pre-run gates, go/no-go criteria. Read that too if the "why" behind
+any decision here is unclear; it's the durable reference, this file is the
+fast-moving state.
 
 ## Big picture
 
@@ -11,7 +15,7 @@ all decisions/trades as a training dataset. Full plan:
 
 Two repos involved:
 - `zerodha-trading` (this repo) — Next.js dashboard + API + Supabase, deployed on Vercel
-- `zerodha-brain` (`~/Desktop/GITHUB/zerodha-brain`) — Python decision engine, was on Railway, migrating to a self-hosted VM
+- `zerodha-brain` (`~/Desktop/GITHUB/zerodha-brain`) — Python decision engine, moving back to Railway (see below)
 
 ## What's DONE
 
@@ -22,100 +26,146 @@ mismatch, stop route not clearing `active_session_id`.
 
 **Mock/validation system (zerodha-trading, multiple commits through `96f4b14`,
 `aa06d2d`):** `/mock/trading` dashboard against a staging Supabase project,
-realistic market simulator (`app/mock/lib/market-sim.ts` — random-walk prices,
-SL/target exits, position sizing), live-seed mode that holds a session RUNNING
-until explicit end, and a dedicated `/mock/validations` page with a 7-step
-automated test suite (reset → seed live → trade-count increments → brain
-status → REAL page reload → post-reload restore check → clean end). All 7
-steps passing as of last run.
+realistic market simulator, live-seed mode, `/mock/validations` 7-step
+automated test suite. All 7 passing as of last run.
 
-**Phase 1 (zerodha-brain, commit `8bb2240`, pushed to GitHub):**
-`paper_broker.py` — drop-in replacement for `OrderManager`. Fills at real
-live LTP (`kite.get_ltp`, read-only) + slippage, `PAPER-*` order ids, refuses
-to fill without a real price. Selected via `config.PAPER_TRADING` env flag.
-`scheduler.py` writes `app_config.paper_mode` so the dashboard can label
-sessions. Doc at `zerodha-brain/docs/PAPER_TRADING.md`. Brain's full test
-suite (208 tests) + new smoke tests pass.
+**Phase 1 (zerodha-brain, commit `8bb2240`):** `paper_broker.py` — drop-in
+replacement for `OrderManager`. Fills at real live LTP + slippage, `PAPER-*`
+order ids, selected via `config.PAPER_TRADING` env flag.
 
-## Railway → Oracle Cloud migration (IN PROGRESS)
+**Realistic cost model (zerodha-brain, commit `ae90de6`, pushed):**
+`paper_broker.py` was slippage-only, which overstated paper P&L. Added
+`_zerodha_intraday_charges()` — full Zerodha MIS schedule (brokerage, STT,
+exchange, SEBI, GST, stamp, ~0.1% round trip), folded into the fill price
+adversely. No schema change needed. 208 brain tests still pass.
 
-Railway usage ran out. Chose Oracle Cloud Always Free over AWS (12mo-limited)
-and GitHub Actions (6hr job cap makes market-hours runs awkward, plus repo
-already public so that tradeoff was moot — went with Oracle for a real
-always-on host anyway).
+**Vision doc (zerodha-trading, commit `b257519`, pushed):** `docs/VISION.md`
+written — mission/stages table, edge hypothesis, architecture, trading
+fundamentals (R-multiples, stop discipline, regime awareness, NSE intraday
+clock, process-over-outcome, losing-streak throttle), risk limits, 9-item
+pre-run gate, go/no-go criteria with metric definitions, live kill criteria,
+the trade→data→learn→improve flywheel, and a decision log. **This is now
+the source of truth for "what are we building and why" — read it before
+re-deriving any of this from scratch.**
 
-**Oracle VM created:**
-- Name: `zerodha-brain`, region `ap-hyderabad-1` (India South), AD-1
-- Shape: `VM.Standard.E2.1.Micro` (1 OCPU, 1GB RAM) — **not** the originally
-  planned `VM.Standard.A1.Flex` (ARM), because A1 hit "out of capacity" in
-  this region. E2.1.Micro is also Always Free-eligible, just smaller —
-  fine for this workload (lightweight polling, no ML inference).
-- Image: **Oracle Linux 9.7** — not Ubuntu as originally planned. The OCI
-  console wizard silently reset the image to its default every time we
-  changed shape; we didn't catch it until after creation. Decision made:
-  keep it and adapt (Oracle Linux is also free, just use `dnf` not `apt`,
-  login user is `opc` not `ubuntu`) rather than risk losing the free-tier
-  capacity slot by recreating.
-- Networking: created `zerodha-vcn` (CIDR `10.0.0.0/16`) + `zerodha-igw`
-  (internet gateway) + default route table rule (`0.0.0.0/0` → igw) +
-  `zerodha-public-subnet` (`10.0.0.0/24`, public). Default security list
-  already allows inbound TCP/22 from `0.0.0.0/0` — confirmed, no change
-  needed.
-- **Public IP: `129.159.233.238`**
-- **SSH user: `opc`**
-- **SSH key: `~/.ssh/oracle-zerodha-brain.key`** (moved from Downloads,
-  chmod 600; `.pub` counterpart alongside it, chmod 644)
-- SSH connection verified working from this Mac.
+## Oracle Cloud VM — ABANDONED, do not resume
 
-**Setup progress on the VM (last known state — VERIFY IN NEW SESSION,
-a background command was checking this when the session ended):**
-1. `.env` from local `zerodha-brain/.env` (SUPABASE_URL + SUPABASE_SERVICE_KEY)
-   was `scp`'d to the VM at `~/brain.env` — confirmed done.
-2. Docker + git install command was launched in the background
-   (`dnf install docker-ce` via Docker's CentOS repo, since Oracle Linux 9
-   is RHEL-compatible) — **status unconfirmed, check this first.**
+Tried migrating the brain off Railway to a free Oracle Cloud VM. Killed this
+approach after ~1hr of fighting it. Keeping the story here so we don't
+repeat the mistake:
 
-**Still to do on the VM:**
-1. Verify Docker + git installed OK (`ssh -i ~/.ssh/oracle-zerodha-brain.key opc@129.159.233.238 "sudo docker --version && git --version"`)
-2. `git clone https://github.com/singhakshayraj/zerodha-brain.git` on the VM
-3. Move `~/brain.env` into the cloned repo as `.env`
-4. `sudo docker build -t zerodha-brain .`
-5. `sudo docker run -d --name zerodha-brain --restart=always --env-file .env zerodha-brain`
-6. `sudo systemctl enable docker` (survive reboots)
-7. Verify: `sudo docker logs -f zerodha-brain` should show
-   `[BRAIN] PAPER TRADING mode — no real orders will be placed` IF
-   `PAPER_TRADING=true` is in the env file — **check whether `PAPER_TRADING=true`
-   was ever added to the local `.env` before it was scp'd. If not, add it
-   there and re-scp, or add it directly on the VM's copy.**
-8. Confirm heartbeat lands in Supabase (`brain_heartbeat` table, status
-   ONLINE/RUNNING, fresh `last_ping`).
+- Created `zerodha-brain` VM, `VM.Standard.E2.1.Micro` (1 OCPU, ~500MB
+  *usable* RAM despite "1GB" spec), Oracle Linux 9, `ap-hyderabad-1`, IP
+  `129.159.233.238`, user `opc`, key `~/.ssh/oracle-zerodha-brain.key`.
+  **Terminated 2026-07-05 — cleanup done, no longer running.**
+- `dnf install docker-ce` **OOM-killed twice** — even a bundled install of
+  just `git` alone got OOM-killed after growing swap from 498MB to 3GB.
+  Root cause: this VM shape's real headroom is too thin for dnf's
+  metadata/transaction overhead, let alone running Docker + Python +
+  indicators + Kite polling unattended for a month.
+- Tried the bigger free-tier shape (`VM.Standard.A1.Flex`, ARM, 4 OCPU/24GB
+  pool) as a fix — hit "out of capacity" in `ap-hyderabad-1` **twice**
+  (region is single-AD, no fallback AD to try). A1.Flex capacity is
+  globally contested; not worth an open-ended retry loop.
+- Verdict (see `VISION.md` §5 gate #2, #4 — silent failure is disqualifying):
+  a host that OOMs on `dnf install git` cannot be trusted for an unattended
+  month handling real trade decisions. Decided to stop fighting free tier.
+- The VM (`129.159.233.238`) is still running in OCI — **not yet
+  terminated**. Low priority cleanup: terminate it once Railway is
+  confirmed working, to avoid confusion/leftover cost-free-but-clutter.
+
+## Railway — DONE (confirmed working 2026-07-05)
+
+Decided to resume Railway (~$5/mo Hobby plan) instead of self-hosting.
+Rationale: code already ran there before credits ran out; PaaS means no OS
+to babysit; checked pricing against Hetzner/DigitalOcean/Render — Railway
+isn't the cheapest (~$1-2/mo more than a raw VPS) but the alternatives all
+require managing your own box, which is the exact risk category just
+escaped with Oracle.
+
+**Done:**
+- User signed up for Railway Hobby plan.
+- Railway CLI installed locally (`brew install railway`, v5.23.3).
+- `railway login` completed — authenticated as `singhakshayraj@ymail.com`.
+- `railway setup agent` run — installs Railway's own Claude Code
+  integration:
+  - Skill `use-railway` → `~/.claude/skills/use-railway`
+  - MCP server registered in `~/.claude.json`
+  - **Requires a Claude Code session restart to actually load** — this was
+    just configured, not yet active as of this handoff.
+- Existing Railway project confirmed via `railway list`: **`stunning-harmony`**
+  (this is presumably the old zerodha-brain deployment — not yet inspected
+  in detail).
+
+**Verified 2026-07-05, all items closed:**
+1. Railway MCP tools live post-restart — confirmed via `whoami`/`list_projects`.
+2. `stunning-harmony` (id `c2088221-f7bb-4d10-9e6e-3af8238203d9`) is the
+   zerodha-brain deployment, linked to `singhakshayraj/zerodha-brain` repo
+   (Railpack builder), single service `zerodha-brain`, one environment
+   `production`.
+3. `PAPER_TRADING` was **not** set (old deployment predates paper mode) —
+   added `PAPER_TRADING=true` via `mcp__railway__set_variables`, which
+   auto-triggered a redeploy.
+4. `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` confirmed pointing at prod
+   (`gilmuwmtdpjccibfhqtx`), not sim.
+5. Redeploy landed automatically from the var change — deployment SUCCESS
+   at 2026-07-05 18:35:47 UTC, picks up `main` HEAD (includes cost-model
+   fix `ae90de6`).
+6. `[BRAIN] PAPER TRADING mode` banner (`brain.py:31`) only prints when a
+   `TradingBrain` session actually starts (market-hours gated via
+   scheduler), not at container boot — **not yet observed live**, container
+   boot alone just runs the heartbeat loop. Confirm this during the next
+   NSE market session (09:15-15:30 IST) by tailing deploy logs.
+7. Heartbeat confirmed live in Supabase: `brain_heartbeat` row updating in
+   real time (`last_ping` 18:36:28 UTC post-redeploy), `status=ONLINE`,
+   `message="Waiting for START command"` — correct idle state outside
+   market hours.
+8. Abandoned Oracle VM (`129.159.233.238`) terminated 2026-07-05.
+
+**Next session should pick up here:**
+- During next market session, confirm the `PAPER TRADING mode` banner
+  actually appears in Railway deploy logs and a real cycle count > 0 shows
+  up in `brain_heartbeat` (proves the scheduler is starting sessions and
+  the paper broker path is live end-to-end).
+- Note: only 2 custom vars are defined on the Railway service
+  (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, now + `PAPER_TRADING`). Kite
+  `enc_token` is **not** a Railway env var — it's read from the Supabase
+  `config` table via `database.get_enc_token()`. Daily token refresh
+  (open risk, see below) needs to write there, not to Railway.
 
 ## Other loose ends
 
-- **Supabase MCP just added** (`claude mcp add supabase ...`, confirmed
-  `✓ Connected` via `claude mcp list`) but tools weren't visible in the old
-  session — needs a fresh session (this one) to pick it up. Two Supabase MCP
-  connections exist: `claude.ai Supabase` (pre-existing connector) and
-  `supabase` (the one just added, scoped with an access token). Use whichever
-  responds; if both expose the same tool names there may be a naming
-  collision to sort out.
-- Old Railway deployment: not yet decommissioned/deleted — do this once the
-  Oracle VM is confirmed running the brain correctly, to avoid double-billing
-  risk or duplicate `active_session_id` writers.
-- **Daily enc_token refresh** is still the main open operational risk for
-  the month-long run (Zerodha token expires ~6 AM IST daily) — deferred
-  decision from Phase 3 planning (manual paste vs TOTP auto-login).
-- Phase 2 (verify decision/SKIP logging completeness, add an analytics
-  export route) and Phase 3 (market-hours auto start/stop, holiday calendar,
-  heartbeat watchdog) haven't been started yet.
-
-## Immediate next action for new session
-
-1. Check the Docker install background command actually finished OK (see
-   command above).
-2. If it succeeded, proceed through steps 2-8 in "Still to do on the VM"
-   above — clone, build, run, verify.
-3. If it failed, debug (Oracle Linux 9 uses `dnf`, SELinux may need Docker
-   permissions tweaks, `opc` user needs `sudo`).
-4. Then re-verify the Supabase MCP tools are visible via ToolSearch and use
-   them to double check `brain_heartbeat` / `app_config` state if useful.
+- **Supabase MCP working** — confirmed via `mcp__supabase__list_projects`.
+  4 projects visible: `zerodha-trader` (prod, ACTIVE_HEALTHY,
+  `gilmuwmtdpjccibfhqtx`), `zerodha-trading-sim` (staging,
+  `fbfluafzxgynasvuryiu`), `MarketMind` + `zerodha-portfolio` (both
+  INACTIVE, unrelated/unused). No naming collision issue in practice.
+- **Mystery test files — RESOLVED 2026-07-06.** They were the untracked
+  half of the passing 208-test suite (written May 26, "T2.2" batch, never
+  committed). Verified all green, committed + pushed (`da23cf5`),
+  `.coverage` gitignored.
+- `test_paper_broker.py` was discussed as a good addition (unit tests for
+  the new cost-model math) but **not yet written**.
+- **Daily enc_token refresh — DECIDED 2026-07-06, partially closed.**
+  - TOTP auto-login **built and shipped** (`token_refresher.py`, commit
+    `ad01ce3`): replays kite.zerodha.com login (password + TOTP via pyotp),
+    writes fresh enctoken to Supabase `config.enc_token`. Scheduler fires
+    it daily 6:30 IST + on START-with-no-token. 13 unit tests, suite 221.
+  - **Currently DORMANT** — user not comfortable storing broker creds yet,
+    so `KITE_USER_ID` / `KITE_PASSWORD` / `KITE_TOTP_SECRET` are NOT set on
+    Railway. Without all three, every refresher call is a no-op by design.
+  - Interim decision: **manual paste daily before 9:15 AM IST** (user
+    commitment). To activate auto-login later: set the 3 env vars on
+    Railway (user should set them via dashboard themselves, TOTP secret =
+    base32 string from 2FA re-setup, not a 6-digit code).
+  - **Hard alert NOT built (user chose defer)** — VISION gate #3 therefore
+    still OPEN: manual paste with no missed-morning alert is not
+    month-run-ready. Revisit before the run starts (heartbeat watchdog in
+    Phase 3 overlaps this).
+- Phase 2 (decision/SKIP logging completeness, analytics export route) and
+  Phase 3 (market-hours auto start/stop, holiday calendar, heartbeat
+  watchdog) haven't been started. All are pre-run gate items in
+  `VISION.md` §5 — none of them are optional before the real month run.
+- Backtest across multiple market regimes (gate #6) also not started —
+  needed to separate "infra works" from "strategy has edge," per
+  `VISION.md` §1.
