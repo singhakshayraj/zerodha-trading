@@ -162,10 +162,37 @@ escaped with Oracle.
     still OPEN: manual paste with no missed-morning alert is not
     month-run-ready. Revisit before the run starts (heartbeat watchdog in
     Phase 3 overlaps this).
-- Phase 2 (decision/SKIP logging completeness, analytics export route) and
-  Phase 3 (market-hours auto start/stop, holiday calendar, heartbeat
-  watchdog) haven't been started. All are pre-run gate items in
-  `VISION.md` §5 — none of them are optional before the real month run.
+- **Phase 2 — DONE 2026-07-06** (brain commit `3df3f9c`, trading commit
+  `44b4281`):
+  - Decision logging verified complete: every analyzed symbol logs
+    BUY/SELL/HOLD with indicators + skip_reasons. Patched two gaps:
+    regime-blocked HOLDs now carry indicator snapshots, and data-gap skips
+    (no candles / no price) log as `SKIP` decisions.
+  - `quote_snapshots` table created (prod migration): one row per cycle,
+    jsonb symbol→LTP map, written from `brain.run_cycle`.
+  - `performance_daily` view created (prod migration): IST trade-date
+    rollup — trades, win rate, net pnl, max intraday drawdown, regime
+    distribution. Validated against May trades.
+  - `/api/analytics/export` route: sessions/trades/decisions/daily for a
+    date range, JSON or CSV, paginated. **Gated by `ANALYTICS_EXPORT_TOKEN`
+    env var — NOT YET SET on Vercel** (route 401s until set; generate with
+    `openssl rand -hex 32`).
+- **Phase 3 — code DONE 2026-07-06, activation pending:**
+  - NSE 2026 holiday list hardcoded + merged with 2025; risk_manager now
+    uses the merged set (old check was 2025-only, silently useless).
+  - AUTOPILOT env flag: self-start at 09:30 IST trading days, at most once
+    per day (any session today suppresses restart — manual stop, loss
+    limit, token expiry). Square-off at 15:20 already existed via
+    `end_session`. **AUTOPILOT NOT YET SET on Railway** — user chose to
+    keep manual dashboard START for now; set `AUTOPILOT=true` when ready
+    for the shakedown day.
+  - Run config written to prod `app_config.session_config`: ₹10,000,
+    10 trades/day, 3% max loss, 10% max profit, 300s interval, NIFTY50.
+  - Heartbeat watchdog + alerts still NOT built (user deferred alerts) —
+    remaining Phase 3 gap, blocks month-run start per VISION §5.
+- Backtest across multiple market regimes (gate #6) also not started —
+  needed to separate "infra works" from "strategy has edge," per
+  `VISION.md` §1.
 - Backtest across multiple market regimes (gate #6) also not started —
   needed to separate "infra works" from "strategy has edge," per
   `VISION.md` §1.
