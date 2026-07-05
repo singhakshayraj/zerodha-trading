@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "seed:sim": "tsx sim/demo_seeder.ts",
-    "seed:sim:reset": "tsx sim/demo_seeder.ts --reset"
+    "seed:sim:reset": "tsx sim/demo_seeder.ts --reset",
+    "test:e2e": "playwright test",
+    "test:e2e:prod": "E2E_BASE_URL=https://zerodha-trading-liard.vercel.app playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -29,6 +31,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
