@@ -23,10 +23,9 @@ test.describe("control plane (QA stack)", () => {
     await page.goto("/trading");
     await expect(page.getByRole("heading", { name: "Auto Trade" })).toBeVisible();
 
-    // Brain heartbeat must be live before Start enables. "ONLINE"/"RUNNING"
-    // render as a separate text node from the "Brain" label, so match them
-    // independently rather than as one phrase.
-    await expect(page.getByText(/^(ONLINE|RUNNING)$/).first()).toBeVisible({ timeout: 60_000 });
+    // Brain heartbeat must be live before Start enables. The header renders
+    // as one flattened text node: "idle Brain ONLINE · 1s ago Waiting for…"
+    await expect(page.getByText(/Brain (ONLINE|RUNNING)/)).toBeVisible({ timeout: 60_000 });
 
     const startBtn = page.getByRole("button", { name: "Start Auto Trade" });
     await expect(startBtn).toBeEnabled({ timeout: 30_000 });
