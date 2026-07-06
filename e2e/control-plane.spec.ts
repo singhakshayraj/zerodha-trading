@@ -46,12 +46,18 @@ test.describe("control plane (QA stack)", () => {
       timeout: 120_000,
     });
 
-    // Stop: brain polls commands in 10s slices → clean idle well within 60s
+    // Stop: brain polls commands in 10s slices → session ends within ~60s.
+    // Stopping is a two-step UX by design: the store flips to "stopped"
+    // immediately (a terminal summary state, shown in red) and stays there
+    // until the user explicitly dismisses it via "Reset Session" — it does
+    // NOT auto-return to "idle" on its own.
     await page.getByRole("button", { name: "Stop Trading" }).click();
     await page.getByRole("button", { name: "Stop & Square Off" }).click();
 
-    await expect(page.getByText("idle", { exact: true }).first()).toBeVisible({
+    await expect(page.getByText("stopped", { exact: true }).first()).toBeVisible({
       timeout: 90_000,
     });
+    await page.getByRole("button", { name: "Reset Session" }).click();
+    await expect(page.getByText("idle", { exact: true }).first()).toBeVisible();
   });
 });
