@@ -193,6 +193,33 @@ escaped with Oracle.
 - Backtest across multiple market regimes (gate #6) also not started —
   needed to separate "infra works" from "strategy has edge," per
   `VISION.md` §1.
-- Backtest across multiple market regimes (gate #6) also not started —
-  needed to separate "infra works" from "strategy has edge," per
-  `VISION.md` §1.
+
+## 2026-07-07 — Architecture-failure scan + hardening (brain `db2fbb9`)
+
+Full-system failure-mode scan, then fixed everything found. Brain:
+
+1. **Transient Supabase error no longer ends the session** — the
+   `active_session_id` re-verification now retries and fails OPEN
+   (`get_config_strict` distinguishes "query failed" from "key cleared").
+   Was the most probable month-run killer.
+2. **Instance lock + SIGTERM handler** — Railway redeploy overlap can no
+   longer double-trade one session; older process exits without teardown
+   when a newer one claims `brain_instance_id`.
+3. **Zombie unfilled trades voided on init/resume** (`UNFILLED_VOID`) —
+   a NULL-quantity row used to crash every cycle silently after a resume.
+4. **STOP while brain idle now finalizes the orphaned session** (was:
+   brain_status stuck STOP + session RUNNING forever).
+5. **Startup interlocks** (`config.assert_safe_boot`): QA_MODE+prod DB
+   refuses to boot; real trading requires `REAL_TRADING_CONFIRM` env.
+   NOTE: brain now REQUIRES `PAPER_TRADING=true` on Railway to boot.
+6. Circuit-breaker streak rebuilt on resume; loss limit now counts open
+   (unrealized) losses; `write_config` retries; `total_pnl_percent` vs
+   capital; `_execute_sell_by_symbol` LONG-only match.
+
+Dashboard: `/api/trade/start` + `/stop` now 403 unless `x-enc-token`
+matches the stored `enc_token` (was presence-only = effectively public).
+QA unaffected (sim DB has no enc_token row).
+
+Verified: 256 brain unit tests, QA stack 4/4 Playwright scenarios,
+brain-restart scenario PASS. Railway auto-deploys from main — confirm
+`PAPER_TRADING=true` is set there before/at next deploy (it is today).

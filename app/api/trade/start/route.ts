@@ -6,6 +6,14 @@ export async function POST(req: NextRequest) {
   const token = req.headers.get("x-enc-token");
   if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
 
+  // Presence-only check made this endpoint effectively public: any value
+  // passed. Require the header to match the stored enc_token when one
+  // exists (prod always has one via /connect; the QA sim DB has none).
+  const stored = await db.readConfig("enc_token");
+  if (stored && stored !== token) {
+    return NextResponse.json({ error: "invalid token" }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     const c = body.config ?? body;

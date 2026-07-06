@@ -11,6 +11,13 @@ export async function POST(req: NextRequest) {
   const token = req.headers.get("x-enc-token");
   if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
 
+  // Same auth as /start: match against the stored enc_token when one
+  // exists — presence-only made STOP callable by anyone with the URL.
+  const stored = await db.readConfig("enc_token");
+  if (stored && stored !== token) {
+    return NextResponse.json({ error: "invalid token" }, { status: 403 });
+  }
+
   try {
     await db.writeConfig("brain_status", "STOP");
     return NextResponse.json({
