@@ -117,8 +117,21 @@ export default function TradingPage() {
   const lastKnownTradeCount = useRef(0);
   const sessionStartedAt = useRef<number | null>(null);
 
-  useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
-  useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
+  // Hydration + the redirect check must happen in one effect. Split across
+  // two effects, the redirect ran against the pre-hydration `isConnected`
+  // closure (still false on a fresh mount) and fired router.push("/connect")
+  // before hydrateFromStorage's setState had a chance to land — so any hard
+  // load of /trading (new tab, bookmark, refresh) bounced to /connect even
+  // with a valid stored token. Only masked because normal use always
+  // arrives via client-side nav from /connect, where the store is already
+  // hydrated in memory.
+  useEffect(() => {
+    hydrateFromStorage();
+    const hasToken = Boolean(
+      localStorage.getItem("enc_token") || sessionStorage.getItem("enc_token")
+    );
+    if (!hasToken) router.push("/connect");
+  }, [hydrateFromStorage, router]);
 
   // fetch holdings once
   useEffect(() => {
