@@ -173,6 +173,14 @@ export default function TradingPage() {
         const sessionCfg = r.sessionConfig;
         const currentStatus = useAppStore.getState().session.status;
 
+        // Always track the brain's session id. /api/trade/start no longer
+        // returns one (the brain creates the session), and the idle-restore
+        // branch below can't fire right after Start (status is already
+        // "running") — without this sync Stop had no session to act on.
+        if (sessionId && useAppStore.getState().session.dbSessionId !== sessionId) {
+          setDbSessionId(sessionId);
+        }
+
         // Restore: active session exists but UI is idle (e.g. after page refresh)
         if (sessionId && currentStatus === "idle") {
           console.log("[poll] Active session detected, restoring UI state");
@@ -267,20 +275,16 @@ export default function TradingPage() {
     setShowStopConfirm(false);
     stopConfirmedRef.current = true;
     sessionStartedAt.current = null;
-    const dbSessionId = session.dbSessionId;
     stopSession("Manually stopped by user");
 
-    if (dbSessionId) {
-      try {
-        await api.post("/trade/stop", {
-          sessionId: dbSessionId,
-          endReason: "Manually stopped by user",
-        });
-      } catch {
-        // non-fatal
-      }
-      fetchPastSessions();
+    // Stop is signal-only — the brain squares off, finalizes stats and
+    // clears active_session_id itself. No session id needed to signal.
+    try {
+      await api.post("/trade/stop", {});
+    } catch {
+      // non-fatal
     }
+    fetchPastSessions();
   }
 
   async function handleExpandSession(id: string) {
