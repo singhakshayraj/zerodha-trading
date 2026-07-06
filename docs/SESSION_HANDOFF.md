@@ -223,3 +223,22 @@ QA unaffected (sim DB has no enc_token row).
 Verified: 256 brain unit tests, QA stack 4/4 Playwright scenarios,
 brain-restart scenario PASS. Railway auto-deploys from main — confirm
 `PAPER_TRADING=true` is set there before/at next deploy (it is today).
+
+## 2026-07-07 (late) — Tier 1 alerting DEPLOYED (brain `ace1bfd`)
+
+- **Watchdog service live on Railway** (`stunning-harmony` → `watchdog`,
+  same repo/image, `SERVICE_ROLE=watchdog` dispatch in main.py). Checks
+  every 60s, trading days only: heartbeat stale/missing (CRITICAL),
+  ERROR/DEGRADED status, TOKEN_EXPIRED, zero trades by 11:00, and an
+  08:45 IST enc_token paste reminder. 30-min per-key dedup.
+- **Telegram NOT configured yet — alerts print to Railway logs only.**
+  To activate: create bot via @BotFather, get chat id, then
+  `railway variables --service watchdog --set TELEGRAM_BOT_TOKEN=... --set TELEGRAM_CHAT_ID=...`
+- **AUTOPILOT=true set on brain service** — self-starts 09:30 IST trading
+  days (once/day). Manual daily step remaining: paste enc_token before 09:15.
+- Error budget: ≥5 consecutive control-plane DB failures → heartbeat
+  DEGRADED → watchdog alert.
+- NOTE: watchdog service is NOT repo-connected (CLI auth limitation) —
+  redeploy it after watchdog.py changes with:
+  `railway up --service watchdog --detach` from the brain repo.
+- Suite: 273 tests passing.
