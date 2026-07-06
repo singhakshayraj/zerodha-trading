@@ -15,23 +15,18 @@ export async function POST(req: NextRequest) {
     const maxLossPercent   = Number(c.maxLossPct       ?? c.maxLoss            ?? 5);
     const maxProfitPercent = Number(c.maxProfitPct     ?? c.maxProfit          ?? 15);
     const intervalSec      = Number(c.intervalMinutes != null ? c.intervalMinutes * 60 : (c.interval ?? 300));
-    const stockUniverse    = String(c.universe         ?? c.stockUniverse      ?? "BOTH");
+    // The dashboard sends `mode` ("holdings" | "market") — map it to the
+    // brain's universe names. Before this mapping existed the value fell
+    // through to "BOTH" and the UI toggle was silently ignored.
+    const modeUniverse =
+      c.mode === "holdings" ? "HOLDINGS" :
+      c.mode === "market"   ? "NIFTY50"  : undefined;
+    const stockUniverse    = String(c.universe ?? c.stockUniverse ?? modeUniverse ?? "BOTH");
 
-    const session = await db.createSession({
-      capital_deployed:       capital,
-      max_trades:             maxTrades,
-      max_loss_percent:       maxLossPercent,
-      max_profit_percent:     maxProfitPercent,
-      trade_interval_seconds: intervalSec,
-      stock_universe:         stockUniverse,
-    });
-
-    const sessionId = session.id;
-    console.log("Session created:", sessionId);
-
-    // Write 1 — session config for brain
+    // The brain creates the trading_sessions row itself when it handles
+    // START (scheduler.run) and writes active_session_id. Creating another
+    // one here produced a duplicate orphaned RUNNING session on every start.
     const configPayload = JSON.stringify({
-      sessionId,
       capitalDeployed:      capital,
       maxTrades,
       maxLossPercent,
@@ -41,23 +36,15 @@ export async function POST(req: NextRequest) {
     });
     console.log("Writing session_config:", configPayload);
     await db.writeConfig("session_config", configPayload);
-    console.log("session_config written");
 
-    // Write 2 — active session id
-    console.log("Writing active_session_id:", sessionId);
-    await db.writeConfig("active_session_id", sessionId);
-    console.log("active_session_id written");
-
-    // Write 3 — START command LAST.
-    // Brain reads this and immediately looks for session_config.
+    // START command LAST — brain reads this and immediately looks for
+    // session_config, then creates the session and active_session_id.
     console.log("Writing brain_status: START");
     await db.writeConfig("brain_status", "START");
-    console.log("brain_status START written");
 
     return NextResponse.json({
       success: true,
-      sessionId,
-      message: "Brain command sent",
+      message: "Brain command sent — session id appears once the brain starts",
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Internal server error";
