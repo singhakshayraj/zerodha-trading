@@ -42,3 +42,6 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# QA env (real keys) — only the .example is committed
+.env.qa

@@ -22,6 +22,9 @@ import {
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function isMarketOpen(): boolean {
+  // QA stack rehearses off-hours against the sim project + QA-mode brain
+  // (synthetic market) — the wall clock is meaningless there.
+  if (process.env.NEXT_PUBLIC_QA_MODE === "true") return true;
   const ist = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const mins = ist.getHours() * 60 + ist.getMinutes();
   return mins >= 9 * 60 + 15 && mins < 15 * 60 + 30;
