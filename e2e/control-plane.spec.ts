@@ -33,8 +33,10 @@ test.describe("control plane (QA stack)", () => {
     await page.getByRole("button", { name: "Confirm & Start" }).click();
 
     // Brain picks up START within ~30s (idle loop) and creates the session;
-    // the poll then flips the UI to running.
-    await expect(page.getByText("RUNNING", { exact: true }).first()).toBeVisible({
+    // the poll then flips the UI to running. The status badge's raw DOM/
+    // accessible text is lowercase ("running") — only styled uppercase via
+    // CSS text-transform — so match case-insensitively.
+    await expect(page.getByText("running", { exact: true }).first()).toBeVisible({
       timeout: 90_000,
     });
 
@@ -48,7 +50,7 @@ test.describe("control plane (QA stack)", () => {
     await page.getByRole("button", { name: "Stop Trading" }).click();
     await page.getByRole("button", { name: "Stop & Square Off" }).click();
 
-    await expect(page.getByText("IDLE", { exact: true }).first()).toBeVisible({
+    await expect(page.getByText("idle", { exact: true }).first()).toBeVisible({
       timeout: 90_000,
     });
   });
