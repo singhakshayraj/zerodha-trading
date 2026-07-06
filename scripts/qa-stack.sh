@@ -26,7 +26,7 @@ echo "[qa-stack] Starting brain (QA_MODE, sim Supabase)…"
   QA_MODE=true PAPER_TRADING=true \
   SUPABASE_URL="$SIM_SUPABASE_URL" \
   SUPABASE_SERVICE_KEY="$SIM_SUPABASE_SERVICE_KEY" \
-  python3 main.py
+  python3 -u main.py
 ) > /tmp/qa-brain.log 2>&1 &
 BRAIN_PID=$!
 
