@@ -74,9 +74,22 @@ export default function TradingPage() {
     maxProfitPct: 15,
     maxLossPct: 5,
     maxTrades: 10,
-    mode: "holdings",
+    mode: "market",
     intervalMinutes: 5,
   });
+
+  // Form settings survive reloads/stops. Without this the mode toggle
+  // silently reverted to the default after every page load while the
+  // "(active)" chip made it look like the old selection was still set.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("trading_form_config");
+      if (raw) setConfig((c) => ({ ...c, ...JSON.parse(raw) }));
+    } catch { /* corrupt saved config — keep defaults */ }
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem("trading_form_config", JSON.stringify(config)); } catch { /* storage full/blocked */ }
+  }, [config]);
 
   const [, setHoldings] = useState<Holding[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
