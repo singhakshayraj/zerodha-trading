@@ -242,3 +242,17 @@ brain-restart scenario PASS. Railway auto-deploys from main — confirm
   redeploy it after watchdog.py changes with:
   `railway up --service watchdog --detach` from the brain repo.
 - Suite: 273 tests passing.
+
+## 2026-07-07 (later) — ENGINEERING_SPEC alignment round 1 (brain `44a6714`)
+
+- Spec reviewed vs system; amendments A1–A3 added to ENGINEERING_SPEC §9b.
+- Decision: current month = M2 acceptance run (data now), M5 backtest
+  later, M4 pipeline v2 built in parallel behind QA stack.
+- Shipped: config_hash+git_sha on sessions and every decision row;
+  immutable config on resume; r_multiple on all trade closes; 3R daily
+  stop (mark-to-market) + REQ-005 config sanity checks; deploy-freeze
+  incident (SHA change mid-session → watchdog alert, one-shot);
+  SKIP/HOLD reason codes. Migrations applied to prod + sim.
+- Process rule now in force: NO pushes to zerodha-brain main between
+  09:00–15:30 IST (Railway auto-deploys = mid-session restart).
+- Suite: 296 tests passing. Watchdog redeployed with deploy-incident check.
