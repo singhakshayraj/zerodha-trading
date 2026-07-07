@@ -319,3 +319,18 @@ Process rule reminder: no pushes to brain main 09:00–15:30 IST.
   LEVEL_STOPS. Validate against accumulated counterfactuals, then enable.
 - Next: ORB archetype, boundary extras (max_open_positions/profit_lockin),
   or REQ-030 config-table cleanup.
+
+## 2026-07-08 (cont) — M4 ORB archetype (brain e5ec3c6)
+
+- orb.py: opening-range breakout, second entry archetype. Flag-gated OFF
+  (ORB_ENABLED); logged as counterfactual (orb=) on every decision.
+- Promotion made executable: ORB_MIN_CONFIDENCE=70 clears BUY gate; short
+  branch accepts archetype==ORB.
+- Decision rows now carry orb + level_snapshot + trend_tells + event_policy
+  + config_hash + git_sha (verified in sim; ORB fired SELL on synthetic mkt).
+- Suite 407; QA 4/4.
+- FIVE dark strategy flags now built: TIME_STOP, EVENT_DAY, LEVEL_FILTER,
+  LEVEL_STOPS, ORB. Entry+exit+filter machinery complete.
+- **Next real milestone = M5 backtest/replay harness** to validate the dark
+  flags against accumulating counterfactual logs, then enable with evidence.
+  (Lighter alternatives remain: boundary extras, REQ-030 config cleanup.)

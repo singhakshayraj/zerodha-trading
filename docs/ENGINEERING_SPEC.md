@@ -451,13 +451,22 @@ logged as a counterfactual on every decision. REQ-020 full snapshot now
 complete — decision rows carry config_hash + git_sha + indicators +
 trend_tells + event_policy + level_snapshot together.
 
-Remaining before M4 proper: per-pipeline-step reason codes, ORB archetype
-(entry-side; the level machinery for its stops/targets now exists), boundary
-extras (max_open_positions=1, max_trades_per_day=3, profit_lockin_r=2),
-move remaining hardcoded tunables into the config table (REQ-030). Then,
-once a few days of real level packs + counterfactual logs exist, validate
-and flip the strategy flags (TIME_STOP / EVENT_DAY / LEVEL_FILTER /
-LEVEL_STOPS) on.
+**A8 — Implemented as of brain `e5ec3c6` (M4 ORB archetype):** opening-
+range breakout (§5 step 5A) in orb.py, the second entry archetype alongside
+indicator confluence. Flag-gated OFF (ORB_ENABLED); ORB signal logged on
+every decision (orb=...) as a counterfactual, promotes a HOLD to an entry
+only when enabled and confidence ≥ ORB_MIN_CONFIDENCE (=MIN_BUY_CONFIDENCE
+so the promotion clears the BUY gate; short branch accepts archetype ORB).
+Decision rows now carry orb + level_snapshot + trend_tells + event_policy +
+config_hash + git_sha together.
+
+Remaining before M4 proper: per-pipeline-step reason codes, boundary extras
+(max_open_positions=1, max_trades_per_day=3, profit_lockin_r=2), move
+remaining hardcoded tunables into the config table (REQ-030). The entry +
+exit + filter machinery now exists — the next real milestone is M5 (the
+backtest/replay harness) to VALIDATE the five dark strategy flags
+(TIME_STOP / EVENT_DAY / LEVEL_FILTER / LEVEL_STOPS / ORB) against the
+counterfactual logs now accumulating, then flip them on with evidence.
 
 ---
 
