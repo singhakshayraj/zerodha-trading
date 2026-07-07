@@ -405,6 +405,30 @@ REQ-061, REQ-070, REQ-072 (guard + alert; process rule: no pushes to
 main 09:00–15:30 IST), REQ-081, REQ-083 (kill-brain drill; token-expiry
 and network drills pending), REQ-011, REQ-060, REQ-047.
 
+**A4 — Implemented as of brain `5db1889` (2026-07-07 round 2):**
+- REQ-083 chaos drills: token-expiry drill (`qa-scenario-token-expiry.sh`,
+  PASSES) + network-drop coverage via QA_FAULT injection + unit tests.
+  Found + fixed a silent-failure bug: an expired token was swallowed by
+  `market_data`'s blanket excepts → universal empty-candle SKIPs → zero-
+  trade stall. Now propagates → clean session end + durable `token_incident`
+  flag the watchdog alerts on. VM-reboot drill still pending (Railway
+  auto-restart covers the mechanism; not scripted).
+- REQ-071 alert tiers P1/P2/P3 in the watchdog.
+- REQ-080 sizing property test (grid sweep; no hypothesis dep).
+- REQ-052 trend tells: `trend_tells.py`, computed + logged on every decision
+  (NON-GATING during the paper run — entry-gating flips on after M5
+  validation). `breadth_sector` abstains until M0 unlocks the data feed.
+- REQ-050 step 0: `data_quality.py` quarantine gate WIRED LIVE (stale /
+  missing / non-finite / >20%-deviation quote → QUARANTINE_* SKIP).
+- M3 data layer built + tested (level_pack, stock_profile, inplay ranking,
+  tables prod+sim, Mac cron runners) — NOT yet cron-scheduled or gating;
+  activation is post-M2-run.
+
+Remaining before M4 proper: per-pipeline-step reason codes, ORB archetype,
+level filter + level-anchored stops, time-stop, event-day calendar, move
+remaining hardcoded tunables into the config table (REQ-030), wire the
+09:30 in-play locker + level/profile crons.
+
 ---
 
 ## 10. Traceability

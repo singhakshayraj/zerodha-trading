@@ -256,3 +256,25 @@ brain-restart scenario PASS. Railway auto-deploys from main — confirm
 - Process rule now in force: NO pushes to zerodha-brain main between
   09:00–15:30 IST (Railway auto-deploys = mid-session restart).
 - Suite: 296 tests passing. Watchdog redeployed with deploy-incident check.
+
+## 2026-07-07 (round 2) — spec-alignment items 1–5 (brain 6e55a51, 5db1889)
+
+Worked the ordered backlog from the spec review:
+
+1. **Chaos drills (REQ-083)** — QA_FAULT fault injection in FakeKiteClient;
+   `scripts/qa-scenario-token-expiry.sh` PASSES end-to-end. Found+fixed a
+   real silent-failure: expired token was swallowed by market_data → zero-
+   trade stall. Now propagates → clean end + durable `token_incident` flag.
+   Network-drop covered by unit tests + error-budget → DEGRADED.
+2. **Sizing property test (REQ-080)** — deterministic grid sweep.
+3. **Alert tiers (REQ-071)** — watchdog P1/P2/P3; token/deploy incidents P1.
+4. **Trend tells (REQ-052)** — trend_tells.py, logged non-gating on every
+   decision for later validation. breadth_sector abstains (no data yet).
+5. **M3 data layer** — level_pack/stock_profile/inplay pure modules +
+   tables (prod+sim) + Mac cron runner scripts; data-quality quarantine
+   gate WIRED LIVE (REQ-050 step 0). Crons + in-play locker + gating are
+   post-run activation.
+
+Suite: 352 tests passing. QA stack 4/4 + token-expiry drill green.
+Spec amendments A4 added. Two new watchdog config keys already covered.
+Process rule reminder: no pushes to brain main 09:00–15:30 IST.
