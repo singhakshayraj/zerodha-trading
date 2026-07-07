@@ -304,3 +304,18 @@ Process rule reminder: no pushes to brain main 09:00–15:30 IST.
   under new SHA) and the 3R daily stop on a resumed session.
 - Suite 379 passing. From tomorrow's session, level_pack rows accumulate
   daily in prod — unblocks ORB + level-anchored stops (M4 #8).
+
+## 2026-07-08 (cont) — M4 #8: level filter + anchored stops (brain a9137fb)
+
+- levels.py: level filter (§5 step 6) + level-anchored stops/targets (§5
+  step 7), consuming the live M3 level pack. Flag-gated OFF
+  (LEVEL_FILTER_ENABLED / LEVEL_STOPS_ENABLED); logged as counterfactual.
+- Level packs loaded at init (27/27 in QA); every decision row now carries
+  a level_snapshot → REQ-020 full snapshot complete (config_hash + git_sha
+  + indicators + trend_tells + event_policy + level_snapshot together,
+  verified in sim).
+- Suite 395; QA stack 4/4.
+- Strategy flags now built + dark: TIME_STOP, EVENT_DAY, LEVEL_FILTER,
+  LEVEL_STOPS. Validate against accumulated counterfactuals, then enable.
+- Next: ORB archetype, boundary extras (max_open_positions/profit_lockin),
+  or REQ-030 config-table cleanup.

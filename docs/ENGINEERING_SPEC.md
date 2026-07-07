@@ -444,11 +444,20 @@ non-gating. stock_profile stays a manual/weekend Mac script
 verified in sim: 27/27 level_pack rows; REQ-072 incident + 3R stop also
 fired correctly under real conditions during the verify run.
 
-Remaining before M4 proper: per-pipeline-step reason codes, ORB archetype,
-level filter + level-anchored stops (level_pack now populates daily from
-tomorrow's session), move remaining hardcoded tunables into the config
-table (REQ-030). Then flip TIME_STOP_ENABLED / EVENT_DAY_ENABLED on once
-validated.
+**A7 — Implemented as of brain `a9137fb` (M4 #8):** level filter (§5 step
+6) + level-anchored stops/targets (§5 step 7) in levels.py, consuming the
+M3 level pack. Flag-gated OFF (LEVEL_FILTER_ENABLED / LEVEL_STOPS_ENABLED),
+logged as a counterfactual on every decision. REQ-020 full snapshot now
+complete — decision rows carry config_hash + git_sha + indicators +
+trend_tells + event_policy + level_snapshot together.
+
+Remaining before M4 proper: per-pipeline-step reason codes, ORB archetype
+(entry-side; the level machinery for its stops/targets now exists), boundary
+extras (max_open_positions=1, max_trades_per_day=3, profit_lockin_r=2),
+move remaining hardcoded tunables into the config table (REQ-030). Then,
+once a few days of real level packs + counterfactual logs exist, validate
+and flip the strategy flags (TIME_STOP / EVENT_DAY / LEVEL_FILTER /
+LEVEL_STOPS) on.
 
 ---
 
