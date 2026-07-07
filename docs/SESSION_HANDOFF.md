@@ -278,3 +278,16 @@ Worked the ordered backlog from the spec review:
 Suite: 352 tests passing. QA stack 4/4 + token-expiry drill green.
 Spec amendments A4 added. Two new watchdog config keys already covered.
 Process rule reminder: no pushes to brain main 09:00–15:30 IST.
+
+## 2026-07-08 — M4 piece #6: time-stop + event-day calendar (brain 5cbb721)
+
+- Time-stop exit (REQ-051) and event-day calendar (REQ-053) built, tested,
+  shipped. BOTH flag-gated OFF (TIME_STOP_ENABLED / EVENT_DAY_ENABLED) so
+  the in-flight paper run is unchanged; flip on once validated.
+- Time-stop logs TIME_STOP_WOULD_FIRE while disabled → measure impact first.
+- Event policy logged on every decision row (event_policy) for later study.
+- Suite 367 passing. QA stack 4/4 (one flaky red under heavy local load;
+  clean on isolated re-run — not a regression).
+- Spec amendment A5 added. Prod brain redeployed clean (off-hours, 01:14 IST).
+- Next per the backlog: activate M3 crons (level_pack/profiles) so ORB +
+  level-anchored stops (M4 #8) have data, or REQ-030 config-table cleanup.

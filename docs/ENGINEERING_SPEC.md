@@ -424,10 +424,20 @@ and network drills pending), REQ-011, REQ-060, REQ-047.
   tables prod+sim, Mac cron runners) — NOT yet cron-scheduled or gating;
   activation is post-M2-run.
 
+**A5 — Implemented as of brain `5cbb721` (M4 piece #6):**
+- REQ-051 time-stop exit — flag-gated (TIME_STOP_ENABLED, default off);
+  40m/25m; priority-correct (stop→target→time-stop); logs
+  TIME_STOP_WOULD_FIRE while disabled so its impact is measurable first.
+- REQ-053 event-day calendar — event_calendar.py; weekly (Tue) / monthly
+  (last Tue) expiry; STAND_ASIDE monthly heavyweights, RAISE_BAR weekly
+  heavyweights, STAND_ASIDE results-day. Logged on every decision; gates
+  entries only when EVENT_DAY_ENABLED (default off).
+
 Remaining before M4 proper: per-pipeline-step reason codes, ORB archetype,
-level filter + level-anchored stops, time-stop, event-day calendar, move
-remaining hardcoded tunables into the config table (REQ-030), wire the
-09:30 in-play locker + level/profile crons.
+level filter + level-anchored stops (need level_pack cron populated first),
+move remaining hardcoded tunables into the config table (REQ-030), wire the
+09:30 in-play locker + level/profile crons. Then flip TIME_STOP_ENABLED /
+EVENT_DAY_ENABLED on once validated.
 
 ---
 
