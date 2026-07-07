@@ -291,3 +291,16 @@ Process rule reminder: no pushes to brain main 09:00–15:30 IST.
 - Spec amendment A5 added. Prod brain redeployed clean (off-hours, 01:14 IST).
 - Next per the backlog: activate M3 crons (level_pack/profiles) so ORB +
   level-anchored stops (M4 #8) have data, or REQ-030 config-table cleanup.
+
+## 2026-07-08 (cont) — M3 activated brain-side (brain b933411)
+
+- Level pack now builds automatically at session start (27/27 in sim
+  verify); in-play list locks at first cycle ≥09:30 (retry-safe when no
+  RVOL baseline). Both idempotent, never-throw, non-gating.
+- Deviation from spec recorded (A6): brain-side, not Mac cron — enctoken
+  expiry makes an 07:00 cron unauthable. Profiles stay manual
+  (scripts/build_profiles.py) until M0.
+- Verify run also live-validated REQ-072 deploy incident (fired on resume
+  under new SHA) and the 3R daily stop on a resumed session.
+- Suite 379 passing. From tomorrow's session, level_pack rows accumulate
+  daily in prod — unblocks ORB + level-anchored stops (M4 #8).

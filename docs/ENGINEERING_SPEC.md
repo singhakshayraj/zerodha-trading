@@ -433,11 +433,22 @@ and network drills pending), REQ-011, REQ-060, REQ-047.
   heavyweights, STAND_ASIDE results-day. Logged on every decision; gates
   entries only when EVENT_DAY_ENABLED (default off).
 
+**A6 — Implemented as of brain `b933411` (M3 activation):** level-pack
+builder and 09:30 in-play locker run BRAIN-SIDE, not on the Mac cron the
+spec drew — retail enctoken auth makes an 07:00 IST cron impossible (old
+token dies ~06:00; fresh one arrives just before 09:15). Level pack builds
+at brain.initialize (prior-day data — post-open build loses nothing);
+in-play locks at the first cycle ≥09:30. Both idempotent, never-throw,
+non-gating. stock_profile stays a manual/weekend Mac script
+(scripts/build_profiles.py) until M0 removes the token constraint. Live-
+verified in sim: 27/27 level_pack rows; REQ-072 incident + 3R stop also
+fired correctly under real conditions during the verify run.
+
 Remaining before M4 proper: per-pipeline-step reason codes, ORB archetype,
-level filter + level-anchored stops (need level_pack cron populated first),
-move remaining hardcoded tunables into the config table (REQ-030), wire the
-09:30 in-play locker + level/profile crons. Then flip TIME_STOP_ENABLED /
-EVENT_DAY_ENABLED on once validated.
+level filter + level-anchored stops (level_pack now populates daily from
+tomorrow's session), move remaining hardcoded tunables into the config
+table (REQ-030). Then flip TIME_STOP_ENABLED / EVENT_DAY_ENABLED on once
+validated.
 
 ---
 
