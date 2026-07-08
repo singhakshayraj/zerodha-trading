@@ -359,3 +359,16 @@ CIRCUIT_BREAKER — safety layers all worked.
 Also fixed REQ-072 incident log spam (dedup per session+sha — yesterday's
 autopilot retry loop re-reported one incident every 40s for an hour).
 Suite 418. QA 4/4. Deployed off-hours 03:0x IST.
+
+## 2026-07-09 (cont) — market-direction fix + REQ-073 (brain ac54406)
+
+- Dead SIDEWAYS stub (root cause of day-1 short whipsaw) replaced by real
+  universe-breadth direction from level_pack PDC vs live price. Logged on
+  every decision (market_context); feeds trend-tells breadth_sector.
+  MARKET_DIRECTION_ENABLED (default off) gates the engine feed — 6th dark
+  flag. Verified in sim.
+- REQ-073: decision_to_order_ms per entry (~800ms in QA), prod+sim column.
+- Suite 428. QA 4/4. Deployed 03:06 IST (off-hours).
+- NEXT: collect a few more days dark, re-run counterfactual audit; if the
+  trend-tells/market-direction effect holds, enable those flags first.
+  Then REQ-030 config cleanup + M5 replay harness.

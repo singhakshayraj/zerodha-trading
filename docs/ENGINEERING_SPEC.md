@@ -451,6 +451,25 @@ logged as a counterfactual on every decision. REQ-020 full snapshot now
 complete — decision rows carry config_hash + git_sha + indicators +
 trend_tells + event_policy + level_snapshot together.
 
+**A9 — Implemented as of brain `ac54406` (2026-07-09, day-1 learnings):**
+- Stop-detection latency fixed: intra-cycle exit checks every ~30s
+  (get_fresh_close TTL-bypass) vs cycle-boundary only. 2026-07-08 stops
+  filled at −2.78R; worst-case detection 300s → 30s.
+- Dead market-direction input fixed: `get_nifty_level` was stubbed to
+  SIDEWAYS (no retail index feed). `brain._market_context()` reconstructs
+  direction + breadth from universe day-change (level_pack PDC vs live).
+  Logged on every decision (market_context block) + feeds trend-tells
+  breadth_sector. Engine feed gated by MARKET_DIRECTION_ENABLED (default
+  off) — the 6th dark strategy flag.
+- REQ-073 partial: decision_to_order_ms per entry (prod+sim). Stop-
+  detection delay deferred (needs tick data).
+- Counterfactual audit tooling: SQL over the decision analytics blocks;
+  day-1 showed trend-tells gate would have cut 18/23 entries and ~88% of
+  the loss (n=1, needs corroboration).
+
+Six dark flags now: TIME_STOP, EVENT_DAY, LEVEL_FILTER, LEVEL_STOPS, ORB,
+MARKET_DIRECTION. Validation via multi-day counterfactual audit → M5.
+
 **A8 — Implemented as of brain `e5ec3c6` (M4 ORB archetype):** opening-
 range breakout (§5 step 5A) in orb.py, the second entry archetype alongside
 indicator confluence. Flag-gated OFF (ORB_ENABLED); ORB signal logged on
