@@ -334,3 +334,28 @@ Process rule reminder: no pushes to brain main 09:00–15:30 IST.
 - **Next real milestone = M5 backtest/replay harness** to validate the dark
   flags against accumulating counterfactual logs, then enable with evidence.
   (Lighter alternatives remain: boundary extras, REQ-030 config cleanup.)
+
+## 2026-07-09 — Day-1 data review + stop-latency fix (brain 902f807)
+
+**Day-1 capture (2026-07-08 session): EXCELLENT.** 905 decisions, 100%
+carrying all six analytics blocks (config_hash, git_sha, trend_tells,
+level_snapshot, orb, event_policy). 23 trades all closed w/ r_multiple.
+47 level_pack + 8 inplay rows. Result: 1W/22L, −₹877 (−3.51%), ended by
+CIRCUIT_BREAKER — safety layers all worked.
+
+**Two learnings, one fixed:**
+1. FIXED — stop-detection latency: stopped longs filled at −2.78R vs −1R
+   design because stops were checked once per 5-min cycle against
+   cycle-start prices. Now: get_fresh_close (TTL-bypass) + intra-cycle
+   check_open_exits every ~30s in the scheduler slice loop. Worst-case
+   stop detection 300s → 30s. Every future day's R data is now honest.
+2. OPEN — 14/14 shorts lost via signal-flip whipsaw (COVER_SHORT, avg
+   −0.40R). Suspected root cause: get_nifty_level stubbed to SIDEWAYS
+   (retail enctoken can't fetch index) so no market-direction gate on
+   shorts. Trend-tells counterfactuals were logged on all 905 decisions —
+   NEXT STEP: counterfactual audit (mini-M5) to see if trend_tells/level
+   filter/time-stop would have prevented the losses, then decide flags.
+
+Also fixed REQ-072 incident log spam (dedup per session+sha — yesterday's
+autopilot retry loop re-reported one incident every 40s for an hour).
+Suite 418. QA 4/4. Deployed off-hours 03:0x IST.
