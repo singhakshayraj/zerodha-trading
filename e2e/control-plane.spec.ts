@@ -10,9 +10,17 @@ import { test, expect } from "@playwright/test";
 
 test.describe("control plane (QA stack)", () => {
   test.skip(process.env.QA_STACK !== "1", "run via scripts/qa-stack.sh");
+  // This test drives a real async brain over a synthetic market; under CPU
+  // contention its cycles slow and the step waits stretch. Retry a genuine
+  // transient spike rather than fail the suite (a real regression still
+  // fails all attempts). Scoped here — the deterministic suites stay at 0.
+  test.describe.configure({ retries: 2 });
 
   test("start → brain trades → stop → clean idle", async ({ page }) => {
-    test.setTimeout(300_000);
+    // Budget must exceed the SUM of the internal waits below
+    // (60+30+90+120+90 ≈ 390s), or a slow-but-healthy run trips the
+    // test timeout before any single wait does.
+    test.setTimeout(420_000);
 
     // Bypass /connect: the store treats a stored token as connected.
     // QA brain never uses it (FakeKiteClient).

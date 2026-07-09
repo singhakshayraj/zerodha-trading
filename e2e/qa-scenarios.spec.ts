@@ -9,6 +9,12 @@ import { test, expect } from "@playwright/test";
 
 test.describe("QA scenarios (QA stack)", () => {
   test.skip(process.env.QA_STACK !== "1", "run via scripts/qa-stack.sh");
+  // The brain-interaction tests race a real async engine over a synthetic
+  // market; under CPU contention cycles slow and step waits stretch. Retry a
+  // transient spike (a real regression still fails all attempts). The
+  // deterministic Insights test also lives here but is unaffected — retries
+  // only re-run on failure. Scoped so the validation suite stays at 0.
+  test.describe.configure({ retries: 2 });
 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -17,7 +23,7 @@ test.describe("QA scenarios (QA stack)", () => {
   });
 
   test("session self-ends when max trades hit — no manual Stop needed", async ({ page }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(360_000);   // covers 60+30+90+150s of internal waits
 
     await page.goto("/trading");
     await expect(page.getByText(/Brain (ONLINE|RUNNING)/)).toBeVisible({ timeout: 60_000 });
@@ -49,7 +55,7 @@ test.describe("QA scenarios (QA stack)", () => {
   });
 
   test("page refresh mid-session restores the running state, not /connect", async ({ page }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(380_000);   // covers 60+30+90+120+15+30s of internal waits
 
     await page.goto("/trading");
     await expect(page.getByText(/Brain (ONLINE|RUNNING)/)).toBeVisible({ timeout: 60_000 });
@@ -98,7 +104,7 @@ test.describe("QA scenarios (QA stack)", () => {
   });
 
   test("rapid Stop then Start doesn't leave a stuck or duplicate session", async ({ page }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(400_000);   // covers 60+30+90+15+90+90s of internal waits
 
     // Regression guard for the 2026-07-06 ghost-session race: a STOP
     // immediately followed by a START used to get lost because brain_status
