@@ -150,4 +150,29 @@ test.describe("QA scenarios (QA stack)", () => {
     });
     await page.getByRole("button", { name: "Reset Session" }).click();
   });
+
+  test("Insights page loads from the sidebar, renders data, and scrolls", async ({ page }) => {
+    test.setTimeout(60_000);
+
+    // Reach it the way a user does — via the sidebar nav, not a direct URL.
+    await page.goto("/trading");
+    await page.getByRole("link", { name: "Insights" }).first().click();
+    await expect(page).toHaveURL(/\/insights$/);
+
+    // Heading + the data-backed panels only render once the fetch resolves,
+    // so their visibility proves /api/analytics/insights returned (RPC +
+    // queries work against the sim DB), not just that the shell mounted.
+    await expect(page.getByRole("heading", { name: "Data Insights" })).toBeVisible();
+    await expect(page.getByText("Data captured per day")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("R-multiple distribution")).toBeVisible();
+
+    // Scroll regression guard (the page could not scroll on first ship): a
+    // panel near the bottom must become visible after scrolling to it.
+    const bottomPanel = page.getByText("Decision signals");
+    await bottomPanel.scrollIntoViewIfNeeded();
+    await expect(bottomPanel).toBeInViewport();
+
+    // No unhandled error surface
+    await expect(page.getByText(/Failed to load insights/)).toHaveCount(0);
+  });
 });

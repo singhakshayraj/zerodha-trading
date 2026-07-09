@@ -86,9 +86,10 @@ export default function InsightsPage() {
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0a]">
+    <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
-      <main className="flex-1 p-5 md:p-8 max-w-[1200px] w-full mx-auto">
+      <main className="flex-1 md:overflow-auto p-5 md:p-8">
+        <div className="max-w-[1200px] w-full mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-semibold text-[#f5f5f5]">Data Insights</h1>
@@ -232,6 +233,7 @@ export default function InsightsPage() {
             </div>
           </div>
         )}
+        </div>
       </main>
     </div>
   );
