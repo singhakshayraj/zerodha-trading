@@ -215,7 +215,12 @@ export default function TradingPage() {
                   : config.intervalMinutes,
               }
             : config;
-          startSession(restoredConfig);
+          // Anchor the elapsed timer to the brain's real started_at, not
+          // now() — otherwise the counter resets to 00:00 on every refresh.
+          const restoredStart = r.sessionStartedAt
+            ? new Date(r.sessionStartedAt as string)
+            : undefined;
+          startSession(restoredConfig, restoredStart);
           setDbSessionId(sessionId);
         }
 

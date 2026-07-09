@@ -82,7 +82,7 @@ interface AppState {
   setBrainStatus: (status: AppState["brainStatus"], message?: string) => void;
 
   // session actions
-  startSession: (config: TradingConfig) => void;
+  startSession: (config: TradingConfig, startTime?: Date) => void;
   stopSession: (reason?: string) => void;
   setDbSessionId: (id: string) => void;
   addTradeLog: (entry: TradeLogEntry) => void;
@@ -138,8 +138,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  startSession: (config) => {
-    const now = new Date();
+  startSession: (config, startTime) => {
+    // startTime is the real session start (the brain's started_at) when
+    // restoring after a page refresh; omitted → now() for a fresh start.
+    // Without honoring it, restore stamped "now" and the elapsed timer
+    // reset to 00:00 on every refresh.
+    const now = startTime ?? new Date();
     set((s) => ({
       session: {
         ...s.session,

@@ -36,10 +36,20 @@ export async function GET() {
         tradesCount: 0,
         sessionId: null,
         sessionConfig,
+        sessionStartedAt: null,
         brainStatus,
         isSessionActive: false,
       });
     }
+
+    // started_at drives the dashboard's elapsed timer. Without it the client
+    // stamps "now" on every restore, so the counter resets on each refresh.
+    const { data: sessionRow } = await supabaseServer
+      .from("trading_sessions")
+      .select("started_at")
+      .eq("id", sessionId)
+      .single();
+    const sessionStartedAt = sessionRow?.started_at ?? null;
 
     const { data: trades, error } = await supabaseServer
       .from("trades")
@@ -61,6 +71,7 @@ export async function GET() {
         tradesCount: 0,
         sessionId,
         sessionConfig,
+        sessionStartedAt,
         brainStatus,
         isSessionActive: false,
         error: error.message,
@@ -86,6 +97,7 @@ export async function GET() {
       tradesCount: trades?.length ?? 0,
       sessionId,
       sessionConfig,
+      sessionStartedAt,
       brainStatus,
       isSessionActive,
     });
