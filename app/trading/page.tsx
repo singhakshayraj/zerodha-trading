@@ -676,7 +676,14 @@ export default function TradingPage() {
                         </td>
                         <td className="px-4 py-2.5 font-medium text-[#f5f5f5]">{t.symbol}</td>
                         <td className="px-4 py-2.5">
-                          <span className="font-semibold text-[#f97316]">SHORT</span>
+                          {(() => {
+                            const isShort = t.position_type === "SHORT";
+                            return (
+                              <span className={`font-semibold ${isShort ? "text-[#f97316]" : "text-[#22c55e]"}`}>
+                                {t.position_type ?? "LONG"}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-2.5 text-[#888]">{t.quantity}</td>
                         <td className="px-4 py-2.5 text-[#888]">{t.entry_price != null ? `₹${Number(t.entry_price).toFixed(2)}` : "—"}</td>

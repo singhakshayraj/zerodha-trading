@@ -55,6 +55,7 @@ export interface Trade {
   target: number | null;
   entry_reason: string | null;
   exit_reason: string | null;
+  position_type: "LONG" | "SHORT" | null;
   indicators_at_entry: Record<string, unknown> | null;
   created_at: string;
 }
