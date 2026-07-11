@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Zap, Briefcase, Bot, LineChart, LogOut } from "lucide-react";
+import { Zap, Briefcase, Bot, LineChart, Compass, LogOut } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const navItems = [
   { href: "/portfolio", label: "Portfolio",  icon: Briefcase },
   { href: "/trading",   label: "Auto Trade", icon: Bot },
   { href: "/insights",  label: "Insights",   icon: LineChart },
+  { href: "/advisor",   label: "Advisor",    icon: Compass },
 ];
 
 export function Sidebar() {
@@ -93,7 +94,7 @@ export function Sidebar() {
 
       {/* ─── Mobile bottom nav ────────────────────────────────────────── */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
