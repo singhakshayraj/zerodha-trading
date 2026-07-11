@@ -46,6 +46,17 @@ export async function GET() {
 
     const { data: daily } = await supabaseServer.rpc("daily_capture");
     const { data: ttEffectRows } = await supabaseServer.rpc("trend_tells_effect");
+
+    // News correlation (NEWS_CORRELATION_PLAN): coverage + latest headlines +
+    // outcome-by-sentiment. Empty/degrades gracefully until the collector runs.
+    const { data: newsEffectRows } = await supabaseServer.rpc("news_outcome_effect");
+    const { count: newsCount } = await supabaseServer
+      .from("news_events").select("*", { count: "exact", head: true });
+    const { data: latestNews } = await supabaseServer
+      .from("news_events")
+      .select("published_at, headline, symbols, sentiment_label, sentiment_score, url")
+      .order("published_at", { ascending: false })
+      .limit(8);
     const tt = (ttEffectRows?.[0] as
       | { entry_signals: number; permitted: number; linked: number; blocked_losers: number; blocked_loser_pnl: number }
       | undefined) ?? { entry_signals: 0, permitted: 0, linked: 0, blocked_losers: 0, blocked_loser_pnl: 0 };
@@ -223,6 +234,28 @@ export async function GET() {
           blockedLosers: Number(tt.blocked_losers),
           blockedLoserPnl: Number(tt.blocked_loser_pnl),
         },
+      },
+      news: {
+        total: newsCount ?? 0,
+        byOutcome: (newsEffectRows ?? []).map(
+          (r: { sentiment_bucket: string; trades: number; wins: number; avg_r: number; total_pnl: number }) => ({
+            bucket: r.sentiment_bucket,
+            trades: Number(r.trades),
+            wins: Number(r.wins),
+            avgR: r.avg_r == null ? null : Number(r.avg_r),
+            totalPnl: Number(r.total_pnl),
+          })
+        ),
+        latest: (latestNews ?? []).map(
+          (n: { published_at: string; headline: string; symbols: string[]; sentiment_label: string | null; sentiment_score: number | null; url: string }) => ({
+            publishedAt: n.published_at,
+            headline: n.headline,
+            symbols: n.symbols ?? [],
+            sentimentLabel: n.sentiment_label,
+            sentimentScore: n.sentiment_score,
+            url: n.url,
+          })
+        ),
       },
     });
   } catch (err) {

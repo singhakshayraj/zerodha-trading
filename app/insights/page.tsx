@@ -30,6 +30,11 @@ type Insights = {
   mfeScatter: { mae: number; mfe: number; r: number; win: boolean }[];
   execution: { avgLatencyMs: number; samples: number };
   flags: { trendTells: { entrySignals: number; permitted: number; permitPct: number; linked: number; blockedLosers: number; blockedLoserPnl: number } };
+  news: {
+    total: number;
+    byOutcome: { bucket: string; trades: number; wins: number; avgR: number | null; totalPnl: number }[];
+    latest: { publishedAt: string; headline: string; symbols: string[]; sentimentLabel: string | null; sentimentScore: number | null; url: string }[];
+  };
 };
 
 const GREEN = "#22c55e", RED = "#ef4444", BLUE = "#3b82f6", AMBER = "#f59e0b", MUTE = "#3f3f46";
@@ -298,6 +303,73 @@ export default function InsightsPage() {
                     </p>
                   </Panel>
                 </div>
+              </div>
+
+              {/* ── NEWS CONTEXT ─────────────────────────────────────────── */}
+              <div>
+                <SectionTitle hint="does the news around a trade move its outcome?">News context</SectionTitle>
+                {data.news.total === 0 ? (
+                  <Panel title="No news captured yet" subtitle="financial-news collector">
+                    <p className="text-[12px] text-[#888] leading-relaxed">
+                      The news collector is wired but idle. Set <span className="text-[#f5f5f5] font-mono">NEWS_ENABLED=true</span> (key already set) and the next session begins tagging each decision with the news sentiment around it — then this fills in with sentiment-vs-outcome and recent headlines.
+                    </p>
+                  </Panel>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <Panel title="Outcome by pre-entry sentiment" subtitle="freshest news within 24h before entry">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-[10px] uppercase tracking-wider text-[#555] border-b border-[#1a1a1a]">
+                              <th className="text-left py-2">Sentiment</th>
+                              <th className="text-right py-2">Trades</th>
+                              <th className="text-right py-2">Win%</th>
+                              <th className="text-right py-2">Avg R</th>
+                              <th className="text-right py-2">P&L</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.news.byOutcome.map((r) => {
+                              const c = r.bucket === "positive" ? GREEN : r.bucket === "negative" ? RED : r.bucket === "none" ? MUTE : AMBER;
+                              return (
+                                <tr key={r.bucket} className="border-b border-[#141414]">
+                                  <td className="py-2 font-medium capitalize" style={{ color: c }}>{r.bucket}</td>
+                                  <td className="py-2 text-right text-[#888] tabular-nums">{r.trades}</td>
+                                  <td className="py-2 text-right text-[#888] tabular-nums">{r.trades ? Math.round((r.wins / r.trades) * 100) : 0}%</td>
+                                  <td className="py-2 text-right tabular-nums" style={{ color: (r.avgR ?? 0) >= 0 ? GREEN : RED }}>{r.avgR == null ? "—" : r.avgR.toFixed(2)}</td>
+                                  <td className="py-2 text-right tabular-nums" style={{ color: r.totalPnl >= 0 ? GREEN : RED }}>{INR(r.totalPnl)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-[11px] text-[#666] mt-3 leading-relaxed">&quot;none&quot; = no tagged news in the 24h before entry. Causal: only news published before the decision counts.</p>
+                    </Panel>
+                    <Panel title="Latest headlines" subtitle={`${data.news.total.toLocaleString()} stored`}>
+                      <ul className="space-y-2.5">
+                        {data.news.latest.map((n, i) => {
+                          const c = n.sentimentLabel === "positive" ? GREEN : n.sentimentLabel === "negative" ? RED : AMBER;
+                          return (
+                            <li key={i} className="text-[12px] leading-snug">
+                              <div className="flex items-start gap-2">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: c }} />
+                                <div className="min-w-0">
+                                  <p className="text-[#ccc] truncate">{n.headline ?? "—"}</p>
+                                  <p className="text-[10px] text-[#555] mt-0.5">
+                                    {n.symbols.slice(0, 4).join(", ") || "macro"}
+                                    {n.publishedAt ? " · " + new Date(n.publishedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : ""}
+                                    {n.sentimentScore != null ? " · " + n.sentimentScore.toFixed(2) : ""}
+                                  </p>
+                                </div>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </Panel>
+                  </div>
+                )}
               </div>
 
               {/* ── DATASET HEALTH ───────────────────────────────────────── */}
