@@ -99,6 +99,24 @@ Daily after holdings score, advisor scans **all 500 Nifty 500 names** to find ro
 - SILVERBEES (−58) → ABCAPITAL (100, cross-sector)
 - ITC (−57) → RADICO (100, same sector)
 
+### Rotation Sizing
+
+Every rotation call specifies exactly how much:
+
+- **Sell qty** — full position for SELL/SELL_ON_BOUNCE, half for TRIM
+- **₹ freed** — sell qty × current price
+- **Buy qty** — 95% of freed capital ÷ target price (Zerodha releases ~80% of CNC sell proceeds same-day; the 5% margin absorbs fill-price drift)
+
+Example: "SELL 39 NTPC → ₹13,240 frees ~29 ACMESOLAR @ ₹421". Shown in the Telegram digest, on `/advisor`, and stored per row.
+
+### Accept / Decline from Telegram
+
+The daily digest carries inline ✅/❌ buttons per actionable call. Tapping records your decision on the advice row (**recording only — no order is placed**). The track record then judges accepted, declined, and ignored calls separately: the honest measure of whether following the advisor beats ignoring it.
+
+Security: taps honored only from your configured chat id. Flag: `ADVISOR_DECISIONS_ENABLED`.
+
+Order execution on accept is deliberately NOT built. If enabled later it will be a separate module with pre-agreed gates: LIMIT order at last price, two-step confirmation expiring in 5 min, ₹25,000/day cap.
+
 ### Rate Limit
 
 500-symbol scan runs **once per day only** (after 09:20 advisor run), paced at 350ms/request to not starve the paper-trading engine's Kite session. ~3 min wall time total. Per-symbol failures isolated (one bad fetch doesn't abort the batch).
