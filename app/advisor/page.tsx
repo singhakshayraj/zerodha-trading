@@ -20,6 +20,9 @@ type Advice = {
   reasons: string[];
   stop_level: number | null;
   exit_target: number | null;
+  rotation_target_symbol?: string | null;
+  rotation_target_score?: number | null;
+  rotation_reason?: string | null;
   indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number } | null;
 };
 
@@ -133,10 +136,16 @@ export default function AdvisorPage() {
                               </li>
                             ))}
                           </ul>
-                          {(r.stop_level || r.exit_target) && (
-                            <div className="flex gap-4 mt-3 text-[11px]">
+                          {(r.stop_level || r.exit_target || r.rotation_target_symbol) && (
+                            <div className="flex flex-wrap gap-2 mt-3 text-[11px]">
                               {r.exit_target && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#f5f5f5]">sell near <span style={{ color: AMBER }}>{INR(r.exit_target)}</span></span>}
                               {r.stop_level && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#f5f5f5]">exit below <span style={{ color: RED }}>{INR(r.stop_level)}</span></span>}
+                              {r.rotation_target_symbol && (
+                                <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#f5f5f5]" style={{ borderColor: `${GREEN}44` }}>
+                                  rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
+                                  <span className="text-[#666]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
