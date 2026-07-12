@@ -120,11 +120,11 @@ here" reasoning. If the user wants it complete: export that date range from
 Kite Console → Reports → Tradebook once more, paste it here, same import
 path (dedup on exchange+trade_id+order_id makes it safe to re-run).
 
-**#3 — Autopilot mode decision (user's call, not yet made).** Keep
-`AUTOPILOT=true` (hands-off, self-starts 09:30 IST) vs `AUTOPILOT=false`
-(manual Start click every day). Root cause of the "starts when I open Auto
-Trade" confusion was autopilot self-starting on token-live, NOT the page —
-config choice only, no bug.
+**#3 — ✅ DECIDED 2026-07-12: keep `AUTOPILOT=true`** (hands-off,
+self-starts 09:30 IST, once/day). No config change needed — was already
+set. Daily manual step stays: enc_token paste before 09:15 IST. (Root
+cause of the earlier "starts when I open Auto Trade" confusion was
+autopilot self-starting on token-live, NOT the page — no bug.)
 
 **#4 — CNC rejected orders source (user-side, not us).** 2026-07-10 08:58
 IST: 5× BUY INFY CNC orders rejected on the real Kite account. Proven NOT
@@ -139,9 +139,12 @@ strongest candidate), then trend-tells gate (cuts ~71% of signals, blocked
 6 would-be losers). Time-stop is weak on n=5, don't enable yet. Needs 2-3
 more clean days before flipping anything for real.
 
-**#6 — DATA_COLLECTION_MODE not yet enabled for an actual full day.** Built
-+ tested, default off. Flip via Railway env post-close when ready to stop
-throttling the dataset at 10 trades/day.
+**#6 — ✅ ENABLED 2026-07-12: `DATA_COLLECTION_MODE=true` set on Railway**
+(Saturday, market closed; redeploy SUCCESS 12:14 UTC). From Monday
+2026-07-14 sessions run to natural close — soft stops (MAX_TRADES /
+DAILY_STOP_3R / loss-floor / circuit-breaker / MAX_PROFIT) log as
+counterfactuals instead of ending the day. Hard safety (risk sizing,
+per-trade stops) unchanged.
 
 **#7 — Deferred builds (not urgent, no action needed unless revisited):**
 - P4 exit-state feature snapshot — needs careful TA recompute inside the
