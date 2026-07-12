@@ -88,6 +88,45 @@ live summary — start here, dip into the log only for the "why."
     (consistency/rel-strength/news) contribute 0 rather than skew the read
     when data is missing.
 
+### Rotation Advisor suite (LATER same day, 2026-07-12 — brain suite 588→639)
+
+Six phases, all shipped + pushed (brain `8bb34de`→`3da5f16`, dashboard
+`631c0d4`,`97073f1`). Full plan: `~/.claude/plans/tingly-coalescing-cocke.md`.
+Advisory-only pin (no order-path method) extended to every new module.
+
+1. **`telegram.py`** — shared send wrapper (never raises); watchdog
+   refactored onto it, behavior unchanged.
+2. **Nifty 500 universe** — `data/nifty500.csv` pins symbol/token/sector for
+   all 500 names (joined from public niftyindices CSV × Kite public
+   instrument master — both curl-able, no auth). Regenerate quarterly:
+   `scripts/build_nifty500_tokens.py` then `scripts/seed_nifty500_universe.py`.
+   `stock_universe` gained instrument_token/industry/is_nifty500/
+   advisor_score (separate from paper-engine `brain_score`). Both DBs
+   migrated + seeded (500 rows, 21 sectors, 0 missing tokens).
+3. **Rotation calls** — daily scan scores every unheld Nifty 500 name with
+   the same 7-factor scorer (350ms pacing ≈ 3min once/day); a weak holding
+   (score ≤ −20) gets a rotation target only if target ≥ 50 AND gap ≥ 40
+   (all env-tunable) — same-sector preferred, cross-sector fallback.
+   Advice rows carry rotation_target_symbol/score/reason; /advisor shows a
+   "rotate into X" chip. **ROTATION_ADVISOR_ENABLED=true set on Railway.**
+4. **Accountability backtest** — `advisor_backtest.py` judges every verdict
+   after 10 trading days (HOLD right if price rose; exit calls right if it
+   fell; alpha vs Nifty). Track record on /advisor: hit rate, avg alpha,
+   and rupees the exit calls saved vs sitting still (qty-sized, TRIM
+   half-weight). `/api/advisor/track-record`.
+   **ADVISOR_BACKTEST_ENABLED=true set on Railway.** First outcomes land
+   ~10 trading days after the first advice rows (late July).
+5. **Daily Telegram digest** — actionable calls only, worst first, silent on
+   HOLD-only days, durable per-day dedup. **NOT ACTIVE — needs user:**
+   create a bot via @BotFather, get chat_id, set
+   `ADVISOR_TELEGRAM_BOT_TOKEN`/`ADVISOR_TELEGRAM_CHAT_ID` +
+   `ADVISOR_DIGEST_ENABLED=true` (separate bot from the watchdog's, by
+   design).
+6. **Intraday holdings watch** — daemon thread, one holdings call per 5min
+   during market hours, one alert per symbol/direction/day at ±3% vs prev
+   close, direction-aware guidance. **NOT ACTIVE — same bot creds +
+   `ADVISOR_INTRADAY_ALERTS_ENABLED=true`.**
+
 ### Live verdicts as of 2026-07-12 (proof the fix + v2 work)
 
 20 real holdings scored. Worst-to-best trend_score sample: NTPC
