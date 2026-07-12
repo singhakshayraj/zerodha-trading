@@ -37,11 +37,20 @@ const VERDICT_META: Record<Advice["verdict"], { color: string; icon: React.Eleme
   INSUFFICIENT:   { color: MUTE,  icon: ShieldAlert,  label: "No read",        blurb: "not enough daily history for an honest verdict" },
 };
 
+type TrackRecord = {
+  evaluatedCalls: number;
+  hitRatePct: number | null;
+  avgReturnPct: number | null;
+  avgAlphaPct: number | null;
+  adviceValueInr: number;
+};
+
 export default function AdvisorPage() {
   const router = useRouter();
   const { isConnected, hydrateFromStorage } = useAppStore();
   const [rows, setRows] = useState<Advice[] | null>(null);
   const [runDate, setRunDate] = useState<string | null>(null);
+  const [track, setTrack] = useState<TrackRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +64,10 @@ export default function AdvisorPage() {
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
+    try {
+      const t = (await api.get("/advisor/track-record")).data;
+      if (typeof t?.evaluatedCalls === "number") setTrack(t);
+    } catch { /* track record is additive — never blocks the page */ }
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
 
@@ -88,6 +101,27 @@ export default function AdvisorPage() {
               <p className="text-[12px] text-[#888] leading-relaxed">
                 The advisor runs automatically once per day after <span className="text-[#f5f5f5] font-mono">09:20 IST</span> whenever a live enctoken exists — independent of trading sessions. Paste today&apos;s token and the analysis appears here within a few minutes.
               </p>
+            </div>
+          )}
+
+          {track && track.evaluatedCalls > 0 && (
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6 flex flex-wrap items-center gap-x-8 gap-y-2">
+              <div>
+                <p className="text-[10px] text-[#666] uppercase tracking-wide">Track record</p>
+                <p className="text-[11px] text-[#555]">{track.evaluatedCalls} calls judged vs what actually happened next</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#666] uppercase tracking-wide">Hit rate</p>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: (track.hitRatePct ?? 0) >= 50 ? GREEN : RED }}>{track.hitRatePct?.toFixed(1)}%</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#666] uppercase tracking-wide">Avg alpha vs Nifty</p>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: (track.avgAlphaPct ?? 0) >= 0 ? GREEN : RED }}>{track.avgAlphaPct !== null ? `${track.avgAlphaPct >= 0 ? "+" : ""}${track.avgAlphaPct.toFixed(2)}pp` : "—"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#666] uppercase tracking-wide">Exit calls saved you</p>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: track.adviceValueInr >= 0 ? GREEN : RED }}>{INR(track.adviceValueInr)}</p>
+              </div>
             </div>
           )}
 
