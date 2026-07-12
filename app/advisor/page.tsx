@@ -23,6 +23,8 @@ type Advice = {
   rotation_target_symbol?: string | null;
   rotation_target_score?: number | null;
   rotation_reason?: string | null;
+  market_regime?: string | null;
+  trigger_type?: "MACRO" | "MICRO" | null;
   indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number } | null;
 };
 
@@ -35,6 +37,14 @@ const VERDICT_META: Record<Advice["verdict"], { color: string; icon: React.Eleme
   TRIM:           { color: BLUE,  icon: Scissors,     label: "Trim",           blurb: "mixed structure — de-risk, book part" },
   HOLD:           { color: GREEN, icon: TrendingUp,   label: "Hold",           blurb: "uptrend intact — hold above the stop line" },
   INSUFFICIENT:   { color: MUTE,  icon: ShieldAlert,  label: "No read",        blurb: "not enough daily history for an honest verdict" },
+};
+
+const REGIME_META: Record<string, { color: string; label: string; blurb: string }> = {
+  AGGRESSIVE_BULL:       { color: GREEN, label: "Bull trend", blurb: "trending tape — momentum signals carry weight" },
+  AGGRESSIVE_BEAR:       { color: RED,   label: "Bear trend", blurb: "trending down — exits get the benefit of the doubt" },
+  CHOPPY_SIDEWAYS:       { color: MUTE,  label: "Choppy",     blurb: "trendless tape — rotation bar raised to 65pts to filter churn" },
+  HIGH_VOLATILITY_PANIC: { color: AMBER, label: "Panic vol",  blurb: "wide-range tape — 200-day structure weighted over momentum" },
+  NEUTRAL:               { color: MUTE,  label: "Neutral",    blurb: "no strong regime read" },
 };
 
 type TrackRecord = {
@@ -99,7 +109,7 @@ export default function AdvisorPage() {
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
               <div className="flex items-center gap-2 mb-2"><Compass className="w-4 h-4 text-[#888]" /><h3 className="text-sm font-semibold text-[#f5f5f5]">No advice yet</h3></div>
               <p className="text-[12px] text-[#888] leading-relaxed">
-                The advisor runs automatically once per day after <span className="text-[#f5f5f5] font-mono">09:20 IST</span> whenever a live enctoken exists — independent of trading sessions. Paste today&apos;s token and the analysis appears here within a few minutes.
+                The advisor runs automatically once per day after <span className="text-[#f5f5f5] font-mono">09:45 IST</span> (past the opening-bell noise) whenever a live enctoken exists — independent of trading sessions. Paste today&apos;s token and the analysis appears here within a few minutes.
               </p>
             </div>
           )}
@@ -122,6 +132,17 @@ export default function AdvisorPage() {
                 <p className="text-[10px] text-[#666] uppercase tracking-wide">Exit calls saved you</p>
                 <p className="text-lg font-semibold tabular-nums" style={{ color: track.adviceValueInr >= 0 ? GREEN : RED }}>{INR(track.adviceValueInr)}</p>
               </div>
+            </div>
+          )}
+
+          {rows && rows.length > 0 && rows[0].market_regime && REGIME_META[rows[0].market_regime] && (
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
+              <span className="text-[10px] text-[#666] uppercase tracking-wide">Market regime</span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
+                    style={{ background: `${REGIME_META[rows[0].market_regime].color}1a`, color: REGIME_META[rows[0].market_regime].color }}>
+                {REGIME_META[rows[0].market_regime].label}
+              </span>
+              <span className="text-[11px] text-[#666]">{REGIME_META[rows[0].market_regime].blurb}</span>
             </div>
           )}
 
@@ -159,7 +180,16 @@ export default function AdvisorPage() {
                           <div className="mt-3 space-y-1 text-[11px] text-[#888]">
                             <p>{r.quantity} × avg {INR(r.avg_price)} → now {INR(r.last_price)}</p>
                             <p style={{ color: pnl >= 0 ? GREEN : RED }}>{pnl >= 0 ? "+" : ""}{pnl?.toFixed(1)}%{(r.breakeven_gain_pct ?? 0) > 0 ? <span className="text-[#666]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span> : null}</p>
-                            <p className="text-[#555]">trend {r.trend_score > 0 ? "+" : ""}{r.trend_score} · confidence {r.confidence}%</p>
+                            <p className="text-[#555]">
+                              trend {r.trend_score > 0 ? "+" : ""}{r.trend_score} · confidence {r.confidence}%
+                              {r.trigger_type && (
+                                <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide align-middle"
+                                      style={{ background: "#ffffff0d", color: r.trigger_type === "MACRO" ? "#a78bfa" : "#60a5fa" }}
+                                      title={r.trigger_type === "MACRO" ? "Long-term structure call — judged at 30 trading days" : "Short-term signal call — judged at 10 trading days"}>
+                                  {r.trigger_type}
+                                </span>
+                              )}
+                            </p>
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
