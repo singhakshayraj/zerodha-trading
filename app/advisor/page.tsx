@@ -25,6 +25,11 @@ type Advice = {
   rotation_reason?: string | null;
   market_regime?: string | null;
   trigger_type?: "MACRO" | "MICRO" | null;
+  rotation_sell_qty?: number | null;
+  rotation_freed_inr?: number | null;
+  rotation_buy_qty?: number | null;
+  rotation_buy_price?: number | null;
+  user_decision?: "accept" | "decline" | null;
   indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number } | null;
 };
 
@@ -208,6 +213,16 @@ export default function AdvisorPage() {
                                 <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#f5f5f5]" style={{ borderColor: `${GREEN}44` }}>
                                   rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
                                   <span className="text-[#666]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
+                                </span>
+                              )}
+                              {r.rotation_buy_qty != null && r.rotation_freed_inr != null && (
+                                <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#f5f5f5]">
+                                  sell {r.rotation_sell_qty} → <span style={{ color: GREEN }}>{INR(r.rotation_freed_inr)}</span> frees ~{r.rotation_buy_qty} @ {INR(r.rotation_buy_price ?? 0)}
+                                </span>
+                              )}
+                              {r.user_decision && (
+                                <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-[10px]" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
+                                  you {r.user_decision === "accept" ? "accepted ✓" : "declined ✗"}
                                 </span>
                               )}
                             </div>
