@@ -112,13 +112,12 @@ to earlier note) upserted 29 rows post-deploy → 20 unique articles in prod
 automatically. Optional cleanup: remove `NEWS_BACKFILL_WINDOW` env var
 (idempotent, harmless if left).
 
-**#2 — Tradebook has a gap: 2026-05-25 → 2026-07-11 not covered.** The
-one-time CSV import stopped at 05-25; `sync_tradebook()` only appends
-TODAY's fills going forward (Kite `/trades` is not a historical endpoint).
-So ~6 weeks of real trades are invisible to the advisor's "your history
-here" reasoning. If the user wants it complete: export that date range from
-Kite Console → Reports → Tradebook once more, paste it here, same import
-path (dedup on exchange+trade_id+order_id makes it safe to re-run).
+**#2 — ✅ CLOSED 2026-07-12: no gap after all.** User confirmed no real
+trades were placed 2026-05-26 → 2026-07-11, so the tradebook (215 fills,
+02-11 → 05-25, source='import') is complete as-is. A re-export of 05-25
+matched the DB exactly (21/21 rows already present). `sync_tradebook()`
+appends each day's fills from Monday onward (source='kite_daily') —
+self-maintaining, no more CSVs needed.
 
 **#3 — ✅ DECIDED 2026-07-12: keep `AUTOPILOT=true`** (hands-off,
 self-starts 09:30 IST, once/day). No config change needed — was already
