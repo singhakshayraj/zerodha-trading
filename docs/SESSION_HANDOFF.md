@@ -6,6 +6,165 @@ limits, pre-run gates, go/no-go criteria. Read that too if the "why" behind
 any decision here is unclear; it's the durable reference, this file is the
 fast-moving state.
 
+---
+
+## ⭐ CURRENT STATE as of 2026-07-12 — READ THIS FIRST
+
+Everything below this box is historical log (oldest first). This box is the
+live summary — start here, dip into the log only for the "why."
+
+### What shipped this session (brain suite 496 → 588; all pushed to `main`)
+
+1. **Data-collection mode** (brain `2c0be75`) — 8th dark flag. Soft session
+   stops (MAX_TRADES/DAILY_STOP_3R/loss-floor/circuit-breaker/MAX_PROFIT)
+   become logged counterfactuals instead of ending the session, so a paper
+   day can run to natural close instead of stopping at 10 trades.
+   **Still OFF** — enable via Railway env `DATA_COLLECTION_MODE=true`
+   (post-close only) when ready for a full-day run.
+2. **Dashboard fixes** (dash `e9e1ca2`, `ec64a12`… wait these are brain) —
+   trade-log SHORT/LONG display bug fixed (was hardcoded "SHORT"); brain
+   token-incident banner now clears before `initialize()`, not after (no
+   more flash on a healthy start).
+3. **Tier-2 capture** (brain `f054ea0`) — `market_context.realized_vol`
+   (cross-sectional stdev) replaces the dead `india_vix=15` constant;
+   `trades.execution` jsonb captures slippage decomposition (reference vs
+   fill price, bps) on the paper path.
+4. **REQ-030 live-tunable signal knobs** (brain `0e22ba9`) — `MIN_BUY_CONFIDENCE`,
+   `MIN_SELL_CONFIDENCE`, `MIN_RISK_REWARD_RATIO`, `ADX_TRENDING/WEAK_THRESHOLD`
+   overridable via app_config `tunables` JSON, no redeploy, 60s cache,
+   fails safe to compiled defaults. Risk-sizing knobs deliberately NOT
+   included (money path stays code-only).
+5. **Timing capture** (brain `46652f8`) — every decision carries a `timing`
+   block (minutes_since_open/close, session_phase, cycle, data_age_seconds,
+   concurrency) in `indicators`. Realizes Pillars 1-2 of
+   `TIMING_CORRELATION_PLAN.md`. **Live now, no action needed.**
+6. **News pipeline** (brain `40be41e`→`b8b9a64`→`2f5c619`→`8c33995`) —
+   `news_events` table (both DBs), `news_jobs.py` (Marketaux normalize/
+   fetch/collect/backfill), per-decision `news_context` cache-read (no
+   hot-loop API calls), Insights "News context" section (dashboard `4e359e0`).
+   **Wired live, `NEWS_ENABLED=true` IS set on Railway, but `news_events`
+   has 0 rows as of this writing** — see PENDING #1 below.
+7. **Portfolio Advisor** (brain `c466cc0`→`22298c4`→`a029c85`→`f236d4d`→`ed40e5f`,
+   dashboard `3995709`) — NEW daily HOLD/SELL/TRIM/SELL_ON_BOUNCE advisory
+   for the user's REAL long-term holdings (separate from the paper-trading
+   engine). Advisory only — physically cannot place orders (test-pinned).
+   `/advisor` page. Auto-runs once/day after 09:20 IST on a live token;
+   manual on-demand trigger also built (see below). **CONFIRMED WORKING
+   with real data as of 2026-07-12** — 20 holdings scored, real verdicts,
+   `daily_bars: 270` (not the old bug's `0`).
+8. **Real tradebook** (brain `22298c4`) — user's Kite Console CSV
+   (215 fills, 46 symbols, 2026-02-11 → 2026-05-25) imported into new
+   `tradebook` table. Every advisor run auto-appends TODAY's real fills via
+   `GET /trades` (`sync_tradebook()`) — self-maintaining going forward, no
+   more manual exports needed for NEW trades.
+9. **Manual advisor trigger** (brain `a029c85`) — set app_config
+   `advisor_run_now`='true' to fire the advisor immediately (bypasses the
+   09:20 window + once/day dedup), checked every ~30s scheduler tick, no
+   redeploy. Consumed after firing.
+10. **Advisor bug fix** (brain `f236d4d`) — root cause of "0 daily bars /
+    INSUFFICIENT for every holding": `run_advisor` read holdings via
+    `kite.get_holdings()` directly, never calling
+    `market_data.refresh_holdings_cache()`, so the instrument-token cache
+    `get_candles()` depends on was empty. Fixed by seeding
+    `_instrument_cache` straight from the holdings response. **Verified
+    fixed** — `daily_bars: 270` confirmed live in `portfolio_advice`.
+11. **Advisor v2 — "10/10" scoring overhaul** (brain `f236d4d`, `ed40e5f`) —
+    was EMA200/EMA50 snapshot + momentum + ADX only (4 factors). Now 7:
+    - `trend_consistency` — % of last 20 days above 50-day EMA (steadier
+      than one EMA-cross snapshot)
+    - `relative_strength` — stock's 20-day return vs Nifty 50's (is it
+      actually beating the market, or just moving with it)
+    - `volume_trend` — reason-only signal, is a move backed by real
+      participation
+    - **overextension guard** — an uptrend with RSI≥75 AND >15% above its
+      50-day EMA no longer blind-HOLDs, downgrades to TRIM ("take some off
+      into strength")
+    - **portfolio concentration flag** — position ≥25% of total holdings
+      value flagged regardless of trend direction (risk mgmt, not direction)
+    - **news sentiment** — 7th factor, mean of the symbol's last 5 tagged
+      articles' sentiment_score, contributes 0 when no coverage (same
+      honest degradation pattern as relative strength)
+    Score reweighted to sum to 100 across all factors. All optional terms
+    (consistency/rel-strength/news) contribute 0 rather than skew the read
+    when data is missing.
+
+### Live verdicts as of 2026-07-12 (proof the fix + v2 work)
+
+20 real holdings scored. Worst-to-best trend_score sample: NTPC
+(SELL_ON_BOUNCE, −79), SILVERBEES (SELL, −58), ITC (SELL, −57) … up to
+SUPRAJIT/ITCHOTELS/MAHLIFE (HOLD, 97-98). All `news_sentiment: null`
+(no news captured yet — see PENDING #1).
+
+---
+
+## PENDING — nothing here should be lost
+
+**#1 — News still not capturing (0 rows in `news_events`).** `NEWS_ENABLED=true`
+is set, `MARKETAUX_API_KEY` is set, code is deployed and wired. But:
+- The collector only fires from `run_cycle` (a live trading session) OR the
+  advisor's portfolio-symbol refresh (`news_jobs.collect()` call in
+  `run_advisor`) — and both have run since the key was set, yet 0 rows
+  landed. **Not yet root-caused — needs investigation next session:**
+  check Railway logs for `[news_jobs.collect]` / `[advisor] news refresh
+  failed` lines, verify the Marketaux key is valid (test the API directly),
+  check response payload shape matches `normalize_marketaux`'s expectations.
+- Separately, the **historical backfill was never actually run** — the
+  boot-hook (`NEWS_BACKFILL_WINDOW` env var, brain `8c33995`) exists but no
+  one set the var. If live capture gets fixed, backfill is still optional
+  extra depth (Marketaux free tier likely caps at ~3 days history anyway).
+
+**#2 — Tradebook has a gap: 2026-05-25 → 2026-07-11 not covered.** The
+one-time CSV import stopped at 05-25; `sync_tradebook()` only appends
+TODAY's fills going forward (Kite `/trades` is not a historical endpoint).
+So ~6 weeks of real trades are invisible to the advisor's "your history
+here" reasoning. If the user wants it complete: export that date range from
+Kite Console → Reports → Tradebook once more, paste it here, same import
+path (dedup on exchange+trade_id+order_id makes it safe to re-run).
+
+**#3 — Autopilot mode decision (user's call, not yet made).** Keep
+`AUTOPILOT=true` (hands-off, self-starts 09:30 IST) vs `AUTOPILOT=false`
+(manual Start click every day). Root cause of the "starts when I open Auto
+Trade" confusion was autopilot self-starting on token-live, NOT the page —
+config choice only, no bug.
+
+**#4 — CNC rejected orders source (user-side, not us).** 2026-07-10 08:58
+IST: 5× BUY INFY CNC orders rejected on the real Kite account. Proven NOT
+our system (PAPER_TRADING=true, MIS-only never CNC, brain was idle,
+`PAPER-*` fills only). User should check Kite Console → connected apps for
+another bot/script on the same account. Nothing to fix in our code.
+
+**#5 — Dark-flag enablement (needs more clean paper-trading days).**
+Counterfactual audit (2 clean days, 20 trades) ranked candidates:
+`MARKET_DIRECTION_ENABLED` (shorts had avg MFE ≈ −0.04, barely ever green —
+strongest candidate), then trend-tells gate (cuts ~71% of signals, blocked
+6 would-be losers). Time-stop is weak on n=5, don't enable yet. Needs 2-3
+more clean days before flipping anything for real.
+
+**#6 — DATA_COLLECTION_MODE not yet enabled for an actual full day.** Built
++ tested, default off. Flip via Railway env post-close when ready to stop
+throttling the dataset at 10 trades/day.
+
+**#7 — Deferred builds (not urgent, no action needed unless revisited):**
+- P4 exit-state feature snapshot — needs careful TA recompute inside the
+  ~30s exit loop; deferred to avoid a cycle-latency regression.
+- P5 M5 replay/backtest harness — blocked on candle-archive depth (only
+  ~1 partial day archived as of 2026-07-10; needs weeks for indicator
+  warmup). `generate_signal` is pure so the engine is buildable once depth
+  exists.
+- Timing Pillars 3-4 (correlation surface + factor-importance model) — the
+  capture (Pillars 1-2) is live; the analysis waits for more data days.
+- Insights "News context" section is built and will populate automatically
+  once #1 is fixed — no separate action needed there.
+
+**#8 — Portfolio Advisor: possible future depth (not requested yet, ideas
+only if revisited)** — fundamentals/sector overlay, dividend/corporate-action
+awareness (large single-day gaps in daily candles could be splits/bonuses
+misread as trend), advisor's own historical accuracy tracking (verdict vs.
+what the stock actually did N days later — the data is already being stored
+daily in `portfolio_advice`, just needs a query once enough days accrue).
+
+---
+
 ## Big picture
 
 Goal: validate the auto-trade platform against real market data with
