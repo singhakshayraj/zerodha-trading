@@ -42,8 +42,8 @@ live summary — start here, dip into the log only for the "why."
    `news_events` table (both DBs), `news_jobs.py` (Marketaux normalize/
    fetch/collect/backfill), per-decision `news_context` cache-read (no
    hot-loop API calls), Insights "News context" section (dashboard `4e359e0`).
-   **Wired live, `NEWS_ENABLED=true` IS set on Railway, but `news_events`
-   has 0 rows as of this writing** — see PENDING #1 below.
+   **WORKING as of 2026-07-12 (brain `72221c4`)** — 0-rows bug was the
+   Marketaux ticker suffix (`.NSE` vs `.NS`), see resolved #1 below.
 7. **Portfolio Advisor** (brain `c466cc0`→`22298c4`→`a029c85`→`f236d4d`→`ed40e5f`,
    dashboard `3995709`) — NEW daily HOLD/SELL/TRIM/SELL_ON_BOUNCE advisory
    for the user's REAL long-term holdings (separate from the paper-trading
@@ -99,19 +99,18 @@ SUPRAJIT/ITCHOTELS/MAHLIFE (HOLD, 97-98). All `news_sentiment: null`
 
 ## PENDING — nothing here should be lost
 
-**#1 — News still not capturing (0 rows in `news_events`).** `NEWS_ENABLED=true`
-is set, `MARKETAUX_API_KEY` is set, code is deployed and wired. But:
-- The collector only fires from `run_cycle` (a live trading session) OR the
-  advisor's portfolio-symbol refresh (`news_jobs.collect()` call in
-  `run_advisor`) — and both have run since the key was set, yet 0 rows
-  landed. **Not yet root-caused — needs investigation next session:**
-  check Railway logs for `[news_jobs.collect]` / `[advisor] news refresh
-  failed` lines, verify the Marketaux key is valid (test the API directly),
-  check response payload shape matches `normalize_marketaux`'s expectations.
-- Separately, the **historical backfill was never actually run** — the
-  boot-hook (`NEWS_BACKFILL_WINDOW` env var, brain `8c33995`) exists but no
-  one set the var. If live capture gets fixed, backfill is still optional
-  extra depth (Marketaux free tier likely caps at ~3 days history anyway).
+**#1 — ✅ RESOLVED 2026-07-12 (brain `72221c4`) — news now capturing.**
+Root cause: Marketaux tags Indian tickers Yahoo-style (`RELIANCE.NS`) but
+every query sent `.NSE` — API returned 200 with `found: 0`, so no error was
+ever logged. Key was valid all along (curl `AAPL` → 98k articles,
+`RELIANCE.NS` → 11k, `RELIANCE.NSE` → 0). Fixed `.NSE`→`.NS` in all three
+call sites (brain collect, advisor refresh, backfill) + fetch limit 25→3
+(free-plan cap). Suite 588 green. Verified live: boot backfill
+(`NEWS_BACKFILL_WINDOW=2026-07-09,2026-07-12` WAS set on Railway, contrary
+to earlier note) upserted 29 rows post-deploy → 20 unique articles in prod
+`news_events`. Advisor news_sentiment + Insights news section now populate
+automatically. Optional cleanup: remove `NEWS_BACKFILL_WINDOW` env var
+(idempotent, harmless if left).
 
 **#2 — Tradebook has a gap: 2026-05-25 → 2026-07-11 not covered.** The
 one-time CSV import stopped at 05-25; `sync_tradebook()` only appends
