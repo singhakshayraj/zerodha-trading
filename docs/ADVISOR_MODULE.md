@@ -1,10 +1,10 @@
 # Portfolio Advisor Module
 
-Real-time decision support for your holdings. Runs daily, scores positions, suggests exits + rotations, tracks accuracy.
+Real-time decision support for your holdings. Runs daily, scores positions, suggests exits + rotations, tracks accuracy — and adapts its lens to the market regime.
 
 ## Overview
 
-Advisor reads your real Zerodha portfolio every morning (09:20 IST) and gives you a trading verdict on each holding:
+Advisor reads your real Zerodha portfolio every morning (**09:45 IST** — past the opening-bell noise window; a 09:16 pre-flight pings you on Telegram if the Kite token is dead so you can fix it in time) and gives you a trading verdict on each holding:
 - **HOLD** — trend intact, hold
 - **TRIM** — weakness starting, trim position
 - **SELL** — strong downtrend, exit now
@@ -65,6 +65,22 @@ Navigate to `/advisor` page:
    - Avg alpha % (how much better/worse than just holding Nifty)
    - ₹ value saved (rupees your exit calls freed up to redeploy)
 
+## Market Regime Filter
+
+Before scoring anything, the advisor classifies the **Nifty 50 tape** (14-period ADX, 14-period ATR as % of price, distance from 20-day EMA) into one of five regimes — and adapts:
+
+| Regime | Detected when | Adaptation |
+|--------|---------------|------------|
+| **AGGRESSIVE_BULL** | Price > 20-EMA, ADX ≥ 25 | none — momentum signals trusted |
+| **AGGRESSIVE_BEAR** | Price < 20-EMA, ADX ≥ 25 | none — exits get benefit of the doubt |
+| **CHOPPY_SIDEWAYS** | ADX < 20, ATR% ≤ 1.1 | rotation gap widens **40 → 65 pts** — trendless tapes generate score noise that mean-reverts; don't churn capital on it |
+| **HIGH_VOLATILITY_PANIC** | ATR% ≥ 1.8 (overrides all) | trend score reweighted: **EMA200 term ×1.5, 20-bar momentum ×0.5** — in a panic the short-term slope is the least trustworthy number on the chart |
+| **NEUTRAL** | anything else / any error | identity — behaves exactly like the pre-regime advisor |
+
+Fail-safe by construction: regime detection failing in any way yields NEUTRAL, which changes nothing. The regime is stamped on every advice row and shown as a banner on `/advisor`.
+
+Thresholds env-tunable: `REGIME_ADX_TREND` (25), `REGIME_ADX_CHOP` (20), `REGIME_ATR_PANIC_PCT` (1.8), `REGIME_ATR_QUIET_PCT` (1.1), `ROTATION_MIN_GAP_CHOPPY` (65). Kill switch: `REGIME_FILTER_ENABLED`.
+
 ## Rotation Candidates
 
 ### How It Works
@@ -93,9 +109,16 @@ Reuses the same 7-factor `trend_score()` logic as holdings (no new scoring math)
 
 ## Accountability & Track Record
 
-### 10-Trading-Day Backtest
+### Asymmetric Multi-Timeframe Backtest
 
-After 10 trading days (bars on the symbol's own chart), advisor grades its own calls:
+Every call is tagged at creation as **MACRO** (the 200-day EMA side or a decisive ≥5pp relative-strength read backs the call's direction) or **MICRO** (only short-term momentum/consistency fired it). The tag picks the judgment window:
+
+- **MICRO** → graded at **10 trading days** (that's the timescale the signal claims to read)
+- **MACRO** → graded at **30 trading days** (a 200-day-structure thesis can't be judged in two weeks)
+
+Alpha is computed over the **stock's exact realized calendar window** — if the stock skipped sessions (illiquidity, suspension), the Nifty is measured over the same dates, not its own bar count, so the benchmark never covers a different window than the stock.
+
+After the horizon (bars on the symbol's own chart), advisor grades its own calls:
 
 - **HOLD verdict correct if** → price rose (even 0.1%) ✅
 - **SELL/TRIM/SELL_ON_BOUNCE correct if** → price fell ❌
@@ -189,6 +212,11 @@ All knobs in `app_config` table — no redeploy to change.
 | `ADVISOR_UNIVERSE_SCAN_DELAY_MS` | 350 | Pace (ms between Kite candle fetches) during 500-scan |
 | `ADVISOR_INTRADAY_THRESHOLD_PCT` | 3.0 | % move threshold for intraday alerts |
 | `ADVISOR_WATCH_INTERVAL_SECONDS` | 300 | Poll interval (seconds) for intraday watch |
+| `ADVISOR_RUN_AFTER_IST` | 09:45 | Daily run gate (moved from 09:20 — opening noise) |
+| `ADVISOR_PREFLIGHT_IST` | 09:16 | Token health check time; dead token → Telegram alert |
+| `ADVISOR_PRICE_SMOOTHING_ENABLED` | true | EMA(3× 15-min closes) verdict price vs raw LTP |
+| `ADVISOR_BACKTEST_MACRO_HORIZON_DAYS` | 30 | Judgment window for MACRO-triggered calls |
+| `REGIME_FILTER_ENABLED` | true | Market regime detection + adaptations |
 
 All live-tunable. No order-path method ever touched — fully advisory.
 
@@ -198,12 +226,12 @@ All live-tunable. No order-path method ever touched — fully advisory.
 Live read from your Zerodha account via Kite API at 09:20 IST.
 
 ### Candle Data
-Daily 15-minute candles for:
+**Daily candles** (400-day fetch) drive all trend scoring, for:
 - Your holdings (all of them)
-- Nifty 50 (for relative performance)
+- Nifty 50 (relative performance + regime detection)
 - Nifty 500 names (during rotation scan)
 
-Fetched live, 90-day history retained in DB.
+Plus the last three **15-minute candles** per holding at run time — the verdict-time price is an EMA over those closes, so a single opening spike/flush can't flip a near-support or oversold check.
 
 ### News Sentiment
 Marketaux API (if key is set). Real-time sentiment (bullish/bearish/neutral) scored −3 to +3 in the 7-factor model. If key not set, news contribution = 0 (other 6 factors still active).
