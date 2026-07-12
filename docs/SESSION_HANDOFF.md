@@ -117,15 +117,21 @@ Advisory-only pin (no order-path method) extended to every new module.
    **ADVISOR_BACKTEST_ENABLED=true set on Railway.** First outcomes land
    ~10 trading days after the first advice rows (late July).
 5. **Daily Telegram digest** — actionable calls only, worst first, silent on
-   HOLD-only days, durable per-day dedup. **NOT ACTIVE — needs user:**
-   create a bot via @BotFather, get chat_id, set
-   `ADVISOR_TELEGRAM_BOT_TOKEN`/`ADVISOR_TELEGRAM_CHAT_ID` +
-   `ADVISOR_DIGEST_ENABLED=true` (separate bot from the watchdog's, by
-   design).
+   HOLD-only days, durable per-day dedup. **ACTIVE** — bot `@singhakshayraj_bot`
+   created, chat_id `1721064751` confirmed (test message delivered),
+   `ADVISOR_DIGEST_ENABLED=true` set on Railway. First digest fires after
+   tomorrow's 09:20 IST advisor run.
 6. **Intraday holdings watch** — daemon thread, one holdings call per 5min
    during market hours, one alert per symbol/direction/day at ±3% vs prev
-   close, direction-aware guidance. **NOT ACTIVE — same bot creds +
-   `ADVISOR_INTRADAY_ALERTS_ENABLED=true`.**
+   close, direction-aware guidance. **ACTIVE** —
+   `ADVISOR_INTRADAY_ALERTS_ENABLED=true` set, same bot.
+
+**ALL SIX PHASES LIVE as of 2026-07-12.** Rotation scan live-verified same
+day with real data: 484/500 Nifty 500 names scored in 278s, 6 rotation calls
+correctly gated (NTPC/SILVERBEES/ITC/NBCC/RVNL/NMDC → mostly same-sector
+targets, all clearing the 40pt-gap/50-min-target bar). Nothing left to
+configure — only remaining wait is the backtest's first outcomes, which need
+~10 trading days of price action to accrue (~late July).
 
 ### Live verdicts as of 2026-07-12 (proof the fix + v2 work)
 
