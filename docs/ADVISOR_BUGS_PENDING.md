@@ -65,3 +65,33 @@ Logs "alerting" even when Telegram creds are unset and no message actually
 sends. No functional impact — just misleads anyone reading logs.
 
 **Fix:** move the log line inside the `if`, or branch the message.
+
+---
+
+# Data-Capture Gaps (from DB deep-scan, 2026-07-13)
+
+Not advisor bugs — found while auditing whether the whole DB is capturing
+the right data. Parked here too since they're also post-session fixes.
+
+## 5. `inplay_list` missing today's row (MEDIUM)
+
+**File:** `data_jobs.py:86`, `maybe_lock_inplay()`, called from `brain.py:432`
+
+Last locked row is 2026-07-10. Today (07-13, a live trading day, session
+well past cycle 3) has no row despite being well past the 09:30 lock gate.
+Fails silently (`except Exception: print(...)` — non-fatal by design) so
+nothing crashed; the paper engine doesn't depend on this list
+("non-gating — not enforced"), but the daily in-play dataset this feeds
+(M4/M5 candidate ranking) now has a gap. Need to check today's full log
+history (not just the last 3000 lines, which may have scrolled past the
+~09:30 attempt) to see whether it's throwing an exception or silently
+never firing.
+
+## 6. `stock_profile` never populated (LOW)
+
+**File:** `stock_profile.py` / `scripts/build_profiles.py`
+
+0 rows. Dormant weekly behavioral-fingerprint pipeline (Kaufman efficiency
+ratio, gap-follow rate) — docstring says "runs on the Mac," never wired
+into the scheduler, never run. Not blocking anything currently reading it
+(nothing does), but a capability that's built and silently inert.
