@@ -17,7 +17,7 @@ import {
 // ─── types ───────────────────────────────────────────────────────────────────
 type Finding = { text: string; tone: "bad" | "warn" | "good" | "info" };
 type Insights = {
-  scale: { sessions: number; trades: number; decisions: number; candles: number };
+  scale: { sessions: number; trades: number; decisions: number; candles: number; totalDeployed: number };
   verdict: { label: string; expectancyR: number; winRate: number; breakevenWinRate: number; totalPnl: number; closed: number; confidence: string };
   findings: Finding[];
   equityCurve: { i: number; date: string | null; cumPnl: number; cumR: number }[];
@@ -70,9 +70,7 @@ function Panel({ title, subtitle, children, className = "" }: { title?: string; 
     </div>
   );
 }
-function PlainEnglishGuide() {
-  const [open, setOpen] = useState(true);
-  const terms: { term: string; simple: string }[] = [
+const GUIDE_TERMS: { term: string; simple: string }[] = [
     { term: "What is this page?", simple: "Our trading robot practices with pretend money every market day. This page is its report card — every chart below answers one question: \"is the robot's way of trading actually any good?\"" },
     { term: "R (risk unit)", simple: "Before every trade the robot decides the most it's willing to lose — that amount is called 1R. A result of +2R means it won twice what it risked; −1R means it lost exactly what it planned to risk. Measuring in R makes big and small trades comparable." },
     { term: "Expectancy", simple: "The average result per trade, in R. Positive = on average each trade adds money; negative = each trade quietly leaks money. This single number matters more than how many trades win." },
@@ -82,26 +80,28 @@ function PlainEnglishGuide() {
     { term: "MFE / MAE", simple: "For each trade: the best it ever looked (MFE) and the worst it ever looked (MAE) before closing. If trades often look great but end small, targets are too timid; if they look terrible before recovering, stops are too tight." },
     { term: "News sentiment", simple: "Headlines are scored positive or negative. This section checks whether the news mood before a trade actually predicted how it went — or whether the news is just noise." },
     { term: "Small sample warning", simple: "With only a handful of trades, results are mostly luck — like judging a coin after 5 flips. Confidence grows with the trade count shown in the banner below." },
-  ];
+];
+
+function GuideModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="bg-[#111111] border border-[#1f1f1f] rounded-2xl mb-6 overflow-hidden">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#161616] transition-colors">
-        <div className="flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-[#3b82f6]" />
-          <span className="text-sm font-semibold text-[#f5f5f5]">New here? What all of this means, in plain English</span>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#111111] border border-[#1f1f1f] rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f1f1f] sticky top-0 bg-[#111111]">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[#3b82f6]" />
+            <span className="text-sm font-semibold text-[#f5f5f5]">What all of this means, in plain English</span>
+          </div>
+          <button onClick={onClose} className="text-[#666] hover:text-[#f5f5f5] text-sm px-2">✕</button>
         </div>
-        <span className="text-[11px] text-[#666]">{open ? "hide" : "show"}</span>
-      </button>
-      {open && (
-        <div className="px-5 pb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {terms.map((t) => (
+        <div className="p-5 grid gap-3 sm:grid-cols-2">
+          {GUIDE_TERMS.map((t) => (
             <div key={t.term} className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-xl p-4">
               <p className="text-[12px] font-semibold text-[#3b82f6] mb-1">{t.term}</p>
               <p className="text-[12px] text-[#999] leading-relaxed">{t.simple}</p>
             </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -127,6 +127,7 @@ export default function InsightsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [curveMode, setCurveMode] = useState<"R" | "₹">("R");
+  const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -148,22 +149,62 @@ export default function InsightsPage() {
       <main className="flex-1 md:overflow-auto p-5 md:p-8">
         <div className="max-w-[1200px] w-full mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-semibold text-[#f5f5f5]">Data Insights</h1>
-              <p className="text-xs text-[#555] mt-1">What the brain has recorded — and what it means</p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h1 className="text-xl font-semibold text-[#f5f5f5]">Data Insights</h1>
+                <p className="text-xs text-[#555] mt-1">What the brain has recorded — and what it means</p>
+              </div>
+              <button onClick={() => setGuideOpen(true)} title="What does all this mean? Plain-English guide"
+                      className="p-2 rounded-lg text-[#3b82f6] bg-[#111111] border border-[#1f1f1f] hover:bg-[#161616] transition-colors">
+                <Info className="w-4 h-4" />
+              </button>
             </div>
             <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#888] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] transition-colors">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
             </button>
           </div>
 
-          <PlainEnglishGuide />
-
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}
           {!data && loading && <p className="text-sm text-[#555]">Loading…</p>}
 
+          {guideOpen && <GuideModal onClose={() => setGuideOpen(false)} />}
+
           {data && v && (
             <div className="space-y-8">
+              {/* ── CURRENT STATE SNAPSHOT ───────────────────────────────── */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Trades taken</p>
+                  <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{data.scale.trades.toLocaleString()}</p>
+                  <p className="text-[10px] text-[#555] mt-0.5">{v.closed} closed</p>
+                </div>
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Win rate</p>
+                  <p className="text-xl font-semibold tabular-nums" style={{ color: v.winRate >= v.breakevenWinRate ? GREEN : RED }}>{v.winRate.toFixed(0)}%</p>
+                  <p className="text-[10px] text-[#555] mt-0.5">of closed trades</p>
+                </div>
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Total P&L</p>
+                  <p className="text-xl font-semibold tabular-nums" style={{ color: v.totalPnl >= 0 ? GREEN : RED }}>{INR(v.totalPnl)}</p>
+                  <p className="text-[10px] text-[#555] mt-0.5">paper money</p>
+                </div>
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Capital deployed</p>
+                  <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{INR(data.scale.totalDeployed)}</p>
+                  <p className="text-[10px] text-[#555] mt-0.5">total across entries</p>
+                </div>
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Decisions taken</p>
+                  <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{data.scale.decisions.toLocaleString()}</p>
+                  <p className="text-[10px] text-[#555] mt-0.5">every look logged</p>
+                </div>
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Sessions</p>
+                  <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{data.scale.sessions.toLocaleString()}</p>
+                  <p className="text-[10px] text-[#555] mt-0.5">trading days run</p>
+                </div>
+              </div>
+
               {/* ── VERDICT HERO ─────────────────────────────────────────── */}
               <div className="rounded-2xl border p-6" style={{ borderColor: `${toneColor[verdictTone]}55`, background: `linear-gradient(135deg, ${toneColor[verdictTone]}14, transparent 60%)` }}>
                 <div className="flex flex-col lg:flex-row lg:items-center gap-6">

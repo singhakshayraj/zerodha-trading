@@ -75,6 +75,15 @@ export async function GET() {
       .order("entry_time", { ascending: true, nullsFirst: false });
     const trades = (tradesRaw ?? []) as Trade[];
 
+    // Total capital put to work across all filled entries (paper turnover).
+    const { data: sizedRows } = await supabaseServer
+      .from("trades")
+      .select("quantity, entry_price")
+      .not("entry_price", "is", null);
+    const totalDeployed = (sizedRows ?? []).reduce(
+      (a, t: { quantity: number | null; entry_price: number | null }) =>
+        a + (t.quantity ?? 0) * (t.entry_price ?? 0), 0);
+
     const closed = trades.length;
     const winners = trades.filter((t) => (t.pnl ?? 0) > 0);
     const losers = trades.filter((t) => (t.pnl ?? 0) <= 0);
@@ -199,6 +208,7 @@ export async function GET() {
         trades: tradeCount.count ?? 0,
         decisions: decCount.count ?? 0,
         candles: candleCount.count ?? 0,
+        totalDeployed,
       },
       verdict: {
         label: verdictLabel,
