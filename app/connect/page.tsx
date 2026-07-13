@@ -34,9 +34,32 @@ export default function ConnectPage() {
   const [dbStatus, setDbStatus] = useState<"checking" | "connected" | "disconnected">("checking");
   const [brainStatus, setBrainStatus] = useState<"checking" | "online" | "running" | "offline">("checking");
 
+  const [restoring, setRestoring] = useState(true);
+
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
+
+  // No token on THIS device? Adopt the one already in Supabase (pasted from
+  // another browser this morning) — validated server-side before handout.
+  // Paste once anywhere; every device just works until the token expires.
+  useEffect(() => {
+    const local =
+      typeof window !== "undefined"
+        ? localStorage.getItem("enc_token") || sessionStorage.getItem("enc_token")
+        : null;
+    if (local) { setRestoring(false); return; }
+    fetch("/api/connect/restore")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && d.token) {
+          setToken(d.token);
+          if (d.profile) setProfile(d.profile);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setRestoring(false));
+  }, [setToken, setProfile]);
 
   useEffect(() => {
     fetch("/api/db/health")
@@ -62,6 +85,17 @@ export default function ConnectPage() {
       })
       .catch(() => setBrainStatus("offline"));
   }, []);
+
+  // Checking Supabase for a token pasted on another device — brief, avoids
+  // flashing the paste form on phones that never saw the morning paste.
+  if (restoring && !isConnected) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-6 h-6 text-[#3b82f6] animate-spin mb-3" />
+        <p className="text-sm text-[#888]">Checking for an active session…</p>
+      </div>
+    );
+  }
 
   // Already connected — show connected state instead of the form
   if (isConnected) {
