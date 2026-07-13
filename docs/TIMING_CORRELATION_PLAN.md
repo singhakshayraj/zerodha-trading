@@ -1,6 +1,10 @@
 # Timing Capture & Correlation — High-Level Plan
 
-Status: **PARKED** (created 2026-07-10). Revisit after a few clean data days.
+Status: **Pillars 1–2 SHIPPED 2026-07-11** (brain 46652f8) — each decision now
+carries a `timing` block in its indicators jsonb (minutes_since_open,
+minutes_to_close, session_phase, cycle, data_age_seconds, concurrency), derived
+with no extra DB calls and joined to outcomes via the existing decision→trade
+link. Pillars 3–4 (correlation surface, factor model) await clean data days.
 
 ## Motivation
 

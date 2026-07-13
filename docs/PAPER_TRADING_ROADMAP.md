@@ -1,5 +1,14 @@
 # Paper-Trading Validation Roadmap
 
+> **STATUS 2026-07-14:** Phases 0–3 are SHIPPED and live (paper broker,
+> autopilot, watchdog, quote_snapshots, decision logging, performance_daily,
+> /api/analytics/export). The unticked boxes below are historical — kept for
+> the original design record. The only live section is **Phase 4** (post-run
+> analysis), which activates when the month-long run completes. Current
+> operational state lives in docs/SESSION_HANDOFF.md + docs/KNOWN_ISSUES.md.
+
+
+
 Goal: validate the auto-trade platform against **real market data with simulated
 execution** (paper trading), run it unattended for **one month**, and store every
 decision + outcome as a dataset for training/strategy improvement.
