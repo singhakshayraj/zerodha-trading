@@ -5,66 +5,15 @@ to the Resolved log at the bottom. Re-scan cadence: after every major feature
 ship, or when `/post-session-check` flags something new.
 
 Last full scan: **2026-07-14** (post data-richness ship, pre first full-day run).
+**Backlog cleared 2026-07-14** — all P1–P6 resolved same day (brain `cf8a628`,
+dashboard `1944f45`); details in the Resolved log. New findings start fresh
+below.
 
 ---
 
-## Parked — needs a decision or a design (ordered by impact on the vision)
+## Parked — needs a decision or a design
 
-### P1. Concurrent exposure unbounded in data-collection mode
-**Where:** `brain.py` position opening; no cap on open positions.
-**Why it matters:** with the 40-entry/day budget, MIS positions can stack far
-beyond `capitalDeployed` (₹25k) — 15 concurrent × ₹10k notional = ₹150k
-"deployed" on a ₹25k session. Paper fills tolerate it, but the dataset drifts
-from anything replicable with real capital: pnl% divides by capital, Kelly
-sizing reads a distorted history, and the eventual go-live calibration
-inherits fantasy numbers.
-**Options:** `MAX_CONCURRENT_POSITIONS` (simple), or a notional cap
-(Σ open qty×price ≤ k × capital). Entry gate already exists
-(`_entry_block`) — one more clause.
-**Decide by:** after 2–3 full-day sessions show real concurrency numbers.
-
-### P2. Supabase 1000-row default limit — silent truncation time bombs
-**Where:** every un-paginated `.select()` on growing tables.
-**Blast radius & ETA at 40 trades/day, ~2–3k decisions/day:**
-- `/api/analytics/insights` closed-trades select + `sizedRows` (turnover):
-  truncates at ~25 more trading days (~mid-Aug 2026) — insights silently
-  compute on the OLDEST 1000 rows.
-- `database.get_evaluated_advice()`: ~50 days away.
-- `database.get_tradebook()`: slow growth, months away.
-**Fix pattern:** `.range()` pagination loop, or aggregate server-side (RPC).
-**Decide by:** before 2026-08-01.
-
-### P3. Advisor indicators include today's forming daily bar
-**Where:** `portfolio_advisor.advise()` — `run_all_indicators(daily_candles)`
-at 09:45 includes today's 30-minute-old "daily" candle.
-**Why it matters:** EMA/momentum/consistency get a partial bar that will look
-different by close — verdicts drift by run time. The smoothing fix handled the
-verdict *price*; the indicator inputs still see the partial bar.
-**Fix sketch:** drop the last bar when its date == today for indicator
-computation; keep smoothed LTP for price-vs-level checks.
-**Impact:** small score jitter, not wrongness. Do with the next advisor pass.
-
-### P4. Deferred-entry reason not stamped on the decision row
-**Where:** `brain._log_entry_deferred` logs to `brain_activity` only; the
-decision row (already written before the gate) keeps its original
-skip_reasons.
-**Why it matters:** analyzing "what did pacing cost us" requires joining
-activities→decisions instead of filtering decisions directly.
-**Fix sketch:** `db.update_decision_skip(decision_id, reason)` after the gate.
-
-### P5. In-play list: quiet days capture nothing
-**Where:** `data_jobs.maybe_lock_inplay`, RVOL_THRESHOLD=2.0.
-2026-07-13: 21 attempts, 0 of 39 names cleared, day recorded nothing.
-Diagnostics now log top-3 RVOLs, but for the data-collection phase an empty
-day is a lost sample.
-**Fix sketch:** capture-first fallback — lock top-N by RVOL regardless (rvol
-stored per row; downstream can re-filter to ≥2.0). Semantics change: decide
-whether "in-play" means "cleared the bar" or "best available that day".
-
-### P6. Local `next build` fails on mock API route
-**Where:** `app/mock/api/*` (pre-existing; needs env at build).
-Vercel builds fine. Annoyance for local verification only — typecheck
-(`npx tsc --noEmit`) is the local gate meanwhile.
+*(empty — next scan or `/post-session-check` findings land here)*
 
 ---
 
@@ -96,6 +45,25 @@ match prior days.
 ---
 
 ## Resolved log
+
+**2026-07-14 backlog clear (brain `cf8a628`, dashboard `1944f45`):**
+- P1: `DATA_MAX_CONCURRENT_POSITIONS=8` joined the entry gate (data mode
+  only) — bounded open book, exits never gated.
+- P2: pagination everywhere growth would have silently truncated at
+  PostgREST's 1000-row default — `db._fetch_all()` (brain) + `fetchAll()`
+  (insights route). Was ~4 weeks from corrupting insights.
+- P3: advisor indicators use completed daily bars only (`completed_bars`),
+  applied to holdings, universe scan AND the Nifty benchmark — no more
+  partial-bar jitter, relative strength compares like with like.
+- P4: deferred entries stamp `ENTRY_DEFERRED:<reason>` onto the decision
+  row (`append_decision_skip`) — pacing cost queryable without joins.
+- P5: in-play capture-first fallback (data mode): quiet days lock top-3
+  below-bar names with true RVOLs (`INPLAY_FALLBACK_TOP_N`); strict
+  semantics preserved via stored or_rvol re-filtering. Plain mode unchanged.
+- P6: root-caused local build failure — a literal `<placeholder>` in
+  `.env.local` was truthy, dodged the `||` fallback, threw in
+  `createClient` at import. Both supabase clients now shape-validate the
+  URL. Local `next build` passes.
 
 **2026-07-14 scan (fixed same day, brain commit after `f67f82d`):**
 - Weekly profile builder ran unpaced (~100 burst historical fetches) and was
