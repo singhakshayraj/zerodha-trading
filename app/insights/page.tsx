@@ -7,7 +7,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import api from "@/lib/api";
 import {
   Database, TrendingUp, Layers, Activity, RefreshCw, Gauge,
-  AlertTriangle, CheckCircle2, Info, XCircle,
+  AlertTriangle, CheckCircle2, Info, XCircle, BookOpen,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -70,6 +70,42 @@ function Panel({ title, subtitle, children, className = "" }: { title?: string; 
     </div>
   );
 }
+function PlainEnglishGuide() {
+  const [open, setOpen] = useState(true);
+  const terms: { term: string; simple: string }[] = [
+    { term: "What is this page?", simple: "Our trading robot practices with pretend money every market day. This page is its report card — every chart below answers one question: \"is the robot's way of trading actually any good?\"" },
+    { term: "R (risk unit)", simple: "Before every trade the robot decides the most it's willing to lose — that amount is called 1R. A result of +2R means it won twice what it risked; −1R means it lost exactly what it planned to risk. Measuring in R makes big and small trades comparable." },
+    { term: "Expectancy", simple: "The average result per trade, in R. Positive = on average each trade adds money; negative = each trade quietly leaks money. This single number matters more than how many trades win." },
+    { term: "Win rate & break-even", simple: "How often trades end in profit. You do NOT need 50% — if winners are bigger than losers, even 40% wins can make money. The \"need X% to break even\" line shows the bar this strategy must clear." },
+    { term: "Regime", simple: "The market's mood that day — trending up, trending down, or choppy/sideways. Grouping results by mood shows when the robot does well and when it should sit out." },
+    { term: "Time of day", simple: "Same idea, but by clock: morning trades vs afternoon trades. Markets behave differently right after opening than mid-day." },
+    { term: "MFE / MAE", simple: "For each trade: the best it ever looked (MFE) and the worst it ever looked (MAE) before closing. If trades often look great but end small, targets are too timid; if they look terrible before recovering, stops are too tight." },
+    { term: "News sentiment", simple: "Headlines are scored positive or negative. This section checks whether the news mood before a trade actually predicted how it went — or whether the news is just noise." },
+    { term: "Small sample warning", simple: "With only a handful of trades, results are mostly luck — like judging a coin after 5 flips. Confidence grows with the trade count shown in the banner below." },
+  ];
+  return (
+    <div className="bg-[#111111] border border-[#1f1f1f] rounded-2xl mb-6 overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#161616] transition-colors">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-[#3b82f6]" />
+          <span className="text-sm font-semibold text-[#f5f5f5]">New here? What all of this means, in plain English</span>
+        </div>
+        <span className="text-[11px] text-[#666]">{open ? "hide" : "show"}</span>
+      </button>
+      {open && (
+        <div className="px-5 pb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {terms.map((t) => (
+            <div key={t.term} className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-xl p-4">
+              <p className="text-[12px] font-semibold text-[#3b82f6] mb-1">{t.term}</p>
+              <p className="text-[12px] text-[#999] leading-relaxed">{t.simple}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Stat({ icon: Icon, label, value, tint, sub }: { icon: React.ElementType; label: string; value: string; tint: string; sub?: string }) {
   return (
     <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
@@ -120,6 +156,8 @@ export default function InsightsPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
             </button>
           </div>
+
+          <PlainEnglishGuide />
 
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}
           {!data && loading && <p className="text-sm text-[#555]">Loading…</p>}
