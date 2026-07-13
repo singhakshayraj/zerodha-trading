@@ -8,7 +8,13 @@ import { createClient } from "@supabase/supabase-js";
 // when absent (e.g. local `next build` without sim creds) so module import never
 // throws — the mock routes are force-dynamic and only run at request time, where
 // the real env vars are present.
-const url = process.env.SIM_SUPABASE_URL || "https://placeholder.supabase.co";
+// Shape-validated, not just truthy: a literal "<placeholder, fill in>" left
+// in .env.local is truthy and used to reach createClient, which throws at
+// module import and breaks the whole local `next build` (KNOWN_ISSUES P6).
+const rawUrl = process.env.SIM_SUPABASE_URL ?? "";
+const url = rawUrl.startsWith("http")
+  ? rawUrl
+  : "https://placeholder.supabase.co";
 const key = process.env.SIM_SUPABASE_SERVICE_KEY || "placeholder-key";
 
 // global.fetch override: Next.js patches fetch with a Data Cache that can

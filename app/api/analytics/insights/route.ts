@@ -24,6 +24,20 @@ type Trade = {
 
 type Finding = { text: string; tone: "bad" | "warn" | "good" | "info" };
 
+// Drain a select past Supabase's 1000-row server default — without this the
+// query silently truncates once trades outgrow one page and every insight
+// quietly computes on the OLDEST 1000 rows (KNOWN_ISSUES P2).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchAll<T>(makeQuery: (from: number, to: number) => any, pageSize = 1000): Promise<T[]> {
+  const out: T[] = [];
+  for (let start = 0; ; start += pageSize) {
+    const { data } = await makeQuery(start, start + pageSize - 1);
+    const batch = (data ?? []) as T[];
+    out.push(...batch);
+    if (batch.length < pageSize) return out;
+  }
+}
+
 function rBucket(r: number): string {
   if (r <= -2) return "≤-2";
   if (r < -1) return "-2..-1";
@@ -67,22 +81,26 @@ export async function GET() {
       )
     );
 
-    const { data: tradesRaw } = await supabaseServer
-      .from("trades")
-      .select("pnl,r_multiple,mfe_r,mae_r,regime,position_type,exit_reason,is_winner,entry_time,created_at,decision_to_order_ms")
-      .eq("status", "CLOSED")
-      .not("pnl", "is", null)
-      .order("entry_time", { ascending: true, nullsFirst: false });
-    const trades = (tradesRaw ?? []) as Trade[];
+    const trades = await fetchAll<Trade>((from, to) =>
+      supabaseServer
+        .from("trades")
+        .select("pnl,r_multiple,mfe_r,mae_r,regime,position_type,exit_reason,is_winner,entry_time,created_at,decision_to_order_ms")
+        .eq("status", "CLOSED")
+        .not("pnl", "is", null)
+        .order("entry_time", { ascending: true, nullsFirst: false })
+        .range(from, to));
 
     // Total capital put to work across all filled entries (paper turnover).
-    const { data: sizedRows } = await supabaseServer
-      .from("trades")
-      .select("quantity, entry_price")
-      .not("entry_price", "is", null);
-    const totalDeployed = (sizedRows ?? []).reduce(
-      (a, t: { quantity: number | null; entry_price: number | null }) =>
-        a + (t.quantity ?? 0) * (t.entry_price ?? 0), 0);
+    const sizedRows = await fetchAll<{ quantity: number | null; entry_price: number | null }>(
+      (from, to) =>
+        supabaseServer
+          .from("trades")
+          .select("quantity, entry_price")
+          .not("entry_price", "is", null)
+          .order("created_at")
+          .range(from, to));
+    const totalDeployed = sizedRows.reduce(
+      (a, t) => a + (t.quantity ?? 0) * (t.entry_price ?? 0), 0);
 
     const closed = trades.length;
     const winners = trades.filter((t) => (t.pnl ?? 0) > 0);
