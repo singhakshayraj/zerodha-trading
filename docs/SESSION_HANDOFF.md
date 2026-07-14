@@ -8,10 +8,70 @@ fast-moving state.
 
 ---
 
-## ⭐ CURRENT STATE as of 2026-07-12 — READ THIS FIRST
+## ⭐ CURRENT STATE as of 2026-07-14 (post-close) — READ THIS FIRST
 
-Everything below this box is historical log (oldest first). This box is the
-live summary — start here, dip into the log only for the "why."
+Everything below this box is historical log. This box is the live summary —
+start here, dip into the log only for the "why."
+
+### The last 48h in one line
+Advisor became regime-aware + interactive (Telegram accept/decline with
+₹-sizing), the engine got data-richness pacing (analysis never stops,
+entries spread all day), two full scan-and-fix passes cleared every parked
+bug, and today was the first rich full-day session — **1,269 decisions vs
+125 the day before**.
+
+### Today's session (2026-07-14) — first data-richness day
+- Started late (token pasted ~11:45 IST; 09:16 preflight had alerted),
+  COMPLETED clean at close. **14 trades, 6W/8L, −₹36.77**, 0 stuck open.
+- **1,269 decisions** across 46 symbols, zero nulls — ~10× the old cadence.
+  Entries spread across 4 hourly buckets (pacing worked).
+- Counterfactuals captured: 22 ENTRY_DEFERRED (11 CONCURRENT_CAP ×
+  11 CYCLE_LIMIT), 4 LIMIT_WOULD_STOP markers.
+- **exit_state on all 14 exits** — P4 snapshot shipped this morning, worked
+  first try.
+- Advisor: 20 rows, CHOPPY_SIDEWAYS stamped, 19 MACRO / 1 MICRO, 9 rotation
+  calls with ₹-sizing, digest + decision buttons delivered.
+
+### Bug found live TODAY (fixed, deployed post-close, brain `0be362d`)
+**Candle archive lost every batch all day** (`candles_today = 0`).
+`upsert_candles` batches carried duplicate (symbol,interval,ts) rows — a
+symbol present in BOTH holdings and nifty50 universe buffers its bars twice
+per cycle — and Postgres rejects a single upsert touching one row twice,
+rejecting the WHOLE 141-row batch. Fix: dedup before upsert (test-pinned,
+suite 727). Impact: today has quote_snapshots (28/cycle-wise) but no 5-min
+bars; archive resumes tomorrow. Also explains why the archive looked thin on
+earlier days — any cycle with a holdings∩nifty50 overlap lost its batch.
+
+### NEXT SESSION — pick up here
+1. **Verify candle fix live** (first cycles tomorrow):
+   `select count(*) from candles where ts::date=current_date` >0, growing.
+2. **`/post-session-check`** on tomorrow's session (covers watchlist W1
+   cycle-duration + W4 smoothed-run sanity too).
+3. **`/counterfactual-audit`** — today + tomorrow = first real sample for
+   flag-effect measurement. If effects hold 2-3 days: enable
+   `MARKET_DIRECTION_ENABLED` first (post-close flip), then trend-tells —
+   one flag at a time, measure between flips.
+4. **Coverage push parked mid-batch-1** — plan/baseline in
+   `docs/TEST_COVERAGE.md` (76% production). Done: indicators 95%,
+   trading_principles 97% + dead-code deletion + pytest.ini collection fix.
+   Next: telegram/advisor files (batch 2), database error branches (batch 4).
+5. **User-side open item**: Kite Console → connected apps — identify the
+   external CNC INFY order source from 07-10.
+6. Data-gated, untouched: timing pillars 3-4; M5 replay harness (archive
+   starts actually filling tomorrow thanks to the candle fix).
+
+### Where everything lives
+- Bug/improvement backlog: `docs/KNOWN_ISSUES.md` (parked: empty; watchlist
+  W1-W4 active) · Post-session audit: `/post-session-check` skill ·
+  Flag measurement: `/counterfactual-audit` skill · Coverage:
+  `docs/TEST_COVERAGE.md` · Advisor: `docs/ADVISOR_MODULE.md`
+- Daily rhythm: token paste ≤09:15 → 09:16 preflight → 09:30 autopilot →
+  09:45 advisor + digest with ✅/❌ buttons → intraday ±3% alerts →
+  15:40 weekly-profiles window → post-close: commit/deploy + audits.
+
+---
+
+## Historical: CURRENT STATE as of 2026-07-12
 
 ### What shipped this session (brain suite 496 → 588; all pushed to `main`)
 
