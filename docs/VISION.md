@@ -704,6 +704,48 @@ Rules of the loop:
 - **Improvements must survive the same gates** — a "better" algorithm
   re-passes backtest + paper comparison before touching real money.
 
+## 7a. ML data-volume acceleration (decided 2026-07-15)
+
+Prompted by a genuine question: why only ~14 executed trades from 1,269
+decisions on the first full-data-richness day, and can that be raised
+toward the "1000+ trades" bar in §7 faster? Investigated and found the
+real bottleneck was NOT the strategy's own selectivity (MIN_BUY_CONFIDENCE
+etc., untouched) — it was the data-collection pacing knobs
+(`DATA_MAX_CONCURRENT_POSITIONS`, `DATA_MAX_NEW_TRADES_PER_HOUR`,
+`MAX_TRADES_PER_CYCLE`, `DATA_MAX_TRADES_PER_SYMBOL`) deferring 115
+already-qualifying signals as `ENTRY_DEFERRED` counterfactuals that day.
+Raised all of them (brain `aabce55`, Railway env vars) to convert more of
+the strategy's own real signals into executed trades — pure throughput,
+zero change to what counts as a signal. See `SESSION_HANDOFF.md` for the
+exact numbers; they'll keep moving as data accrues.
+
+Two things explicitly reaffirmed in that conversation, now written down so
+they don't get re-litigated:
+
+1. **Paper data is not "less real" for ML training purposes.** The paper
+   broker fills at real live LTP with a realistic Zerodha cost model — the
+   prices and signals are real market data either way. Switching to real
+   money would not accelerate data collection (same clock either way) and
+   would not fix a small-sample/overfitting problem — it only adds real
+   financial risk before the §5/§6 gates are met. Stay on paper until this
+   document's own gates say otherwise; don't let an ML curiosity be the
+   reason to skip them.
+2. **A learned model's honest goal here is "beat our own rule-based
+   baseline out-of-sample," not "beat the market."** Quant funds' edge is
+   structural (alt-data, breadth across thousands of small bets,
+   colocation) — not reproducible solo. What IS reproducible: does a model
+   trained on our own `indicators`/`trend_tells`/outcome data (features
+   already logged on every decision) do better than the hand-coded
+   confidence weights, on strictly out-of-sample data? That requires
+   walk-forward validation (train on past, test on later unseen period,
+   roll forward) — repeatedly retraining against the SAME small dataset
+   without new out-of-sample data converges toward overfitting the noise,
+   not toward truth. Also worth exploring separately from executed-trade
+   count: every logged decision (not just the ~1% that become trades) can
+   be labeled with a forward-looking counterfactual outcome from the
+   candle archive, which is a much larger and faster-growing training set
+   than executed trades alone.
+
 ## 7b. Pivot path — decided now, so killing the hypothesis stays cheap
 
 Honest prior: intraday momentum on liquid NSE names is the most competed,

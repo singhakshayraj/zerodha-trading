@@ -8,10 +8,24 @@ fast-moving state.
 
 ---
 
-## ⭐ CURRENT STATE as of 2026-07-15 00:20 IST — READ THIS FIRST
+## ⭐ CURRENT STATE as of 2026-07-15 01:50 IST — READ THIS FIRST
 
 Everything below this box is historical log. This box is the live summary —
 start here, dip into the log only for the "why."
+
+### Data-richness pacing raised (brain `aabce55`, Railway vars set)
+Diagnosed why only 14/1269 decisions became trades on 07-14: pacing knobs,
+not strategy selectivity, deferred 115 qualifying signals. Raised (Railway
+env vars on `zerodha-brain` service, redeployed ~01:47 IST):
+`MAX_TRADES_PER_CYCLE` 3→8, `DATA_MAX_TRADES_PER_DAY` 40→150,
+`DATA_MAX_TRADES_PER_SYMBOL` 3→6, `DATA_MAX_NEW_TRADES_PER_HOUR` 6→15,
+`DATA_MAX_CONCURRENT_POSITIONS` 8→20. MIN_BUY_CONFIDENCE/MIN_SELL_CONFIDENCE/
+MIN_RISK_REWARD_RATIO untouched — same signal quality, just less throttled
+execution of it. Reasoning + the paper-vs-real / overfitting discipline
+this connects to: `VISION.md` §7a (new). **NEXT SESSION: watch tomorrow's
+trade count — should be meaningfully >14 if pacing was really the
+bottleneck; if still low, the ceiling is signal availability itself, not
+pacing, and that's useful information too.**
 
 ### Advisor: dedup bug fix + intraday refresh (brain `0661155`, pushed)
 User noticed the advisor page felt stale. Root cause found: the once-per-day
