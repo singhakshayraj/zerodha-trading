@@ -311,6 +311,52 @@ Aggregated backtest results:
 3. **Intraday watch runs at 5-min granularity** — misses sub-5-min spikes, intentional to minimize API load.
 4. **Market-hours check is IST only** — assumes you trade during NSE hours (09:15–15:30 IST).
 
+## Future work: Nifty-500 rotation scan cost (parked 2026-07-15)
+
+`score_universe()` scores all ~484 Nifty 500 names at `ADVISOR_UNIVERSE_SCAN_DELAY_MS`
+(350ms) pacing between each historical-candle fetch — roughly 3 minutes per
+full pass. This is why the scan runs once/day (inside the official run only)
+rather than on every intraday refresh tick: at 5-min cadence a 3-min scan
+would eat 60% of the interval and hammer Kite's historical-candle quota
+(484 names × ~75 potential ticks/day if run every cycle — tens of thousands
+of calls, unnecessary since daily-timeframe scores can't meaningfully change
+within minutes anyway).
+
+**This does NOT currently block the 5-min holdings-refresh cadence** — the
+2026-07-14 intraday-refresh design already decoupled it: lite runs skip the
+scan entirely and carry forward the day's official scan's rotation targets
+(`portfolio_advisor.run_advisor_lite`, reads `stock_universe`/today's
+official `portfolio_advice` row instead of rescanning). The cost only
+becomes a real constraint if either of these is wanted later:
+
+- **Rotation targets refreshed faster than once/day** (e.g. hourly, so a
+  weak holding's suggested replacement updates as the tape moves).
+- **Holdings-refresh cadence pushed below ~3 min**, if some future feature
+  needs the scan itself bundled into every tick rather than decoupled.
+
+Candidate directions, not yet designed in detail:
+
+1. **Incremental/rolling scan** — score a rotating subset (e.g. 80-100
+   names) per tick instead of all 484 atomically, cycling through the full
+   universe over ~30-60 min; keep a per-symbol `last_scored_at` in
+   `stock_universe` so rotation-candidate lookups always use the freshest
+   available score even mid-cycle.
+2. **Concurrent candle fetches** — the 350ms pacing is serial/conservative;
+   Kite's actual rate limit (~3 req/sec) may tolerate controlled concurrency
+   (e.g. a small thread pool), cutting wall-clock time without increasing
+   the *rate* of calls.
+3. **Skip-if-unchanged** — only rescan sector-mates of holdings that are
+   currently weak (candidates a rotation could actually target) instead of
+   the full 500; most names are irrelevant to any live rotation decision on
+   a given day.
+4. **Accept the once/day cadence as correct** — since rotation targets are
+   inherently a daily-timeframe read, the honest answer may be that this
+   never needs to be faster, and effort is better spent elsewhere. Revisit
+   only if a concrete use case needs sub-daily rotation freshness.
+
+No action needed now — this is a parking note for when/if faster rotation
+refresh becomes an actual requirement, not a current bottleneck.
+
 ## Examples
 
 ### Holdings Analysis Output (2026-07-12 run)

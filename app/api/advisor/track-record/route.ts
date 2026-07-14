@@ -17,6 +17,11 @@ export async function GET() {
       .select(
         "run_date, symbol, verdict, quantity, last_price, outcome_return_pct, outcome_vs_nifty_pct, outcome_correct"
       )
+      // is_official: the 2026-07-14 intraday refresh writes extra snapshot
+      // rows per symbol/day that are never backtest-evaluated (evaluated_at
+      // stays null on those), so this filter is redundant in practice — kept
+      // explicit so this query's intent doesn't depend on that invariant.
+      .eq("is_official", true)
       .not("evaluated_at", "is", null);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

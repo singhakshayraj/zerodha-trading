@@ -8,10 +8,37 @@ fast-moving state.
 
 ---
 
-## ⭐ CURRENT STATE as of 2026-07-14 (post-close) — READ THIS FIRST
+## ⭐ CURRENT STATE as of 2026-07-15 00:20 IST — READ THIS FIRST
 
 Everything below this box is historical log. This box is the live summary —
 start here, dip into the log only for the "why."
+
+### Advisor: dedup bug fix + intraday refresh (brain `0661155`, pushed)
+User noticed the advisor page felt stale. Root cause found: the once-per-day
+dedup flag was set in-memory BEFORE the run executed — a transient failure
+(e.g. holdings fetch hiccup) silently burned the day's one attempt with zero
+rows written, no retry until a lucky redeploy reset the flag. Hadn't bitten
+in practice yet (3/3 days present, no gap), but was a live landmine.
+**Fixed**: dedup now DB-backed (`has_official_advisor_run` /
+`get_last_advisor_run_time`), survives redeploys, retries on failure.
+
+Alongside the fix, shipped what the user actually wanted: the advisor no
+longer runs once/day. First live-token run past 09:45 IST = "official"
+(full: Nifty-500 rotation scan + digest + backtest-eligible). Every 300s
+after that until market close (15:20), a lightweight re-score fires — fresh
+price/verdict only, stored as a new snapshot row (`is_official=false`), no
+rotation rescan (that's a ~3min/484-name scan, decoupled — see
+`ADVISOR_MODULE.md` "Future work" for the parked plan to speed it up if
+ever needed), no digest spam. `/advisor` now shows "updated HH:MM IST" +
+an intraday-refresh tag instead of just a date.
+
+Schema (prod+sim migrated): `portfolio_advice` gained `is_official`/`run_id`;
+dropped the old `(run_date,symbol)` unique constraint. Backtest/track-record/
+decision-recording queries scoped to `is_official=true` — unaffected by the
+new snapshot rows. Brain suite 733→752 (19 new tests). **NEXT SESSION: watch
+tomorrow's first live day — confirm the official run still fires ~09:45-ish
+and lite snapshots accumulate every 5min without spamming Telegram or
+rescanning rotation.**
 
 ### The last 48h in one line
 Advisor became regime-aware + interactive (Telegram accept/decline with
@@ -42,15 +69,38 @@ suite 727). Impact: today has quote_snapshots (28/cycle-wise) but no 5-min
 bars; archive resumes tomorrow. Also explains why the archive looked thin on
 earlier days — any cycle with a holdings∩nifty50 overlap lost its batch.
 
+### Post-close audits run (this session, still 2026-07-14 night)
+- **`/post-session-check`**: all clean. Only known FAIL = candles (0 rows
+  today, expected — fix deployed post-close, verifies tomorrow). W1 cycle
+  duration unverifiable (Railway log buffer only reaches back to the
+  23:27 IST redeploy, market-hours lines already rotated out — check via
+  a log export or earlier pull next time). W4 smoothed advisor run PASS
+  (bars=272 across holdings, no absurd verdicts). One benign 409
+  (Telegram getUpdates conflict, single occurrence, redeploy-overlap).
+- **`/counterfactual-audit`**: gate says LOW-CONFIDENCE (only 14 closed
+  trades, 1 day) — no flags enabled. Notable: trend-tells direction is
+  right (blocked bucket −₹34.69/40%win vs permitted −₹2.08/50%win) but n
+  too small. **Market-direction unmeasurable today — every trade's
+  `market_context.direction` was SIDEWAYS**, so the strongest prior
+  candidate flag has zero informative days so far; needs a trending day.
+  LIMIT_WOULD_STOP markers show session recovered from −₹140 (at
+  CIRCUIT_BREAKER) to final −₹36.77 by continuing — supports keeping
+  data-collection mode on. Pacing-cost step (rupees foregone on the 98
+  CONCURRENT_CAP + 17 CYCLE_LIMIT deferrals) couldn't run — needs candle
+  price-path data, blocked by today's 0-candle bug. Re-run after 2-3 more
+  clean days, and once candles backfill for the deferred-entry pricing.
+
 ### NEXT SESSION — pick up here
-1. **Verify candle fix live** (first cycles tomorrow):
+1. **Verify candle fix live** (first cycles tomorrow, 07-14 checked = 0,
+   confirmed still broken as expected pre-fix):
    `select count(*) from candles where ts::date=current_date` >0, growing.
-2. **`/post-session-check`** on tomorrow's session (covers watchlist W1
-   cycle-duration + W4 smoothed-run sanity too).
-3. **`/counterfactual-audit`** — today + tomorrow = first real sample for
-   flag-effect measurement. If effects hold 2-3 days: enable
-   `MARKET_DIRECTION_ENABLED` first (post-close flip), then trend-tells —
-   one flag at a time, measure between flips.
+2. ~~`/post-session-check` on today's (07-14) session~~ — **done this
+   session, all clean**, see box above. Re-run again after tomorrow's
+   session for W1 (need an earlier log pull, buffer rotated out this time).
+3. ~~`/counterfactual-audit`~~ — **done this session, LOW-CONFIDENCE**
+   (n=14, 1 day) — see box above. Re-run after tomorrow adds a 2nd day;
+   market-direction still needs an actual trending (non-SIDEWAYS) day to
+   be measurable at all before it can be enabled.
 4. **Coverage push parked mid-batch-1** — plan/baseline in
    `docs/TEST_COVERAGE.md` (76% production). Done: indicators 95%,
    trading_principles 97% + dead-code deletion + pytest.ini collection fix.

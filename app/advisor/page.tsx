@@ -65,6 +65,8 @@ export default function AdvisorPage() {
   const { isConnected, hydrateFromStorage } = useAppStore();
   const [rows, setRows] = useState<Advice[] | null>(null);
   const [runDate, setRunDate] = useState<string | null>(null);
+  const [runAt, setRunAt] = useState<string | null>(null);
+  const [isOfficial, setIsOfficial] = useState<boolean | null>(null);
   const [track, setTrack] = useState<TrackRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +79,7 @@ export default function AdvisorPage() {
     try {
       const r = (await api.get("/advisor")).data;
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
+      setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
     try {
@@ -98,7 +101,12 @@ export default function AdvisorPage() {
               <h1 className="text-xl font-semibold text-[#f5f5f5]">Portfolio Advisor</h1>
               <p className="text-xs text-[#555] mt-1">
                 Daily hold/sell read on your long-term holdings — direction first, entry price is sunk cost
-                {runDate ? <> · run <span className="text-[#888]">{runDate}</span></> : null}
+                {runAt ? (
+                  <> · updated <span className="text-[#888]">
+                    {new Date(runAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })} IST
+                  </span>
+                  {isOfficial === false ? <span className="text-[#666]"> (intraday refresh)</span> : null}</>
+                ) : runDate ? <> · run <span className="text-[#888]">{runDate}</span></> : null}
               </p>
             </div>
             <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#888] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] transition-colors">
