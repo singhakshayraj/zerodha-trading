@@ -8,10 +8,25 @@ fast-moving state.
 
 ---
 
-## ⭐ CURRENT STATE as of 2026-07-15 01:50 IST — READ THIS FIRST
+## ⭐ CURRENT STATE as of 2026-07-22 — READ THIS FIRST
 
 Everything below this box is historical log. This box is the live summary —
 start here, dip into the log only for the "why."
+
+### Week-long gap 07-15 → 07-21: enc_token never repasted, watchdog alert never reached the phone
+User away/busy a week; nobody pasted a fresh token, so the system correctly
+sat idle the whole time (heartbeat ONLINE, brain_status IDLE, zero
+sessions/decisions/candles — not a bug). **Real gap found while
+diagnosing**: the watchdog DID detect + log a dead-token alert every single
+day, but `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` were never set on the
+`watchdog` Railway service — alerts only ever reached Railway logs, never
+the phone. **Fixed 2026-07-22**: watchdog now reuses the advisor bot's
+working Telegram creds. Next lapse reaches the phone same morning.
+**Still needs the user**: paste a fresh enc_token to resume — nothing else
+is broken, everything (pacing fix, advisor intraday refresh, Track C
+labeling) is deployed and simply hasn't had a live session to run against
+since 07-14. See memory `enc-token-refresh` for the fuller note + the case
+for revisiting TOTP auto-login now that the manual-paste risk materialized.
 
 ### Data-richness pacing raised (brain `aabce55`, Railway vars set)
 Diagnosed why only 14/1269 decisions became trades on 07-14: pacing knobs,
