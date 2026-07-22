@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -60,6 +60,15 @@ type TrackRecord = {
   adviceValueInr: number;
 };
 
+type PortfolioRisk = {
+  total_value: number;
+  top_position: { symbol: string; weight_pct: number } | null;
+  sector_weights: Record<string, number>;
+  concentration_flags: string[];
+  tax_loss_harvest: { symbol: string; unrealized_loss_inr: number; verdict: string; pnl_percent: number | null }[];
+  harvestable_loss_inr: number;
+};
+
 export default function AdvisorPage() {
   const router = useRouter();
   const { isConnected, hydrateFromStorage } = useAppStore();
@@ -68,6 +77,7 @@ export default function AdvisorPage() {
   const [runAt, setRunAt] = useState<string | null>(null);
   const [isOfficial, setIsOfficial] = useState<boolean | null>(null);
   const [track, setTrack] = useState<TrackRecord | null>(null);
+  const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +90,7 @@ export default function AdvisorPage() {
       const r = (await api.get("/advisor")).data;
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
+      setRisk(r.portfolioRisk ?? null);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
     try {
@@ -156,6 +167,47 @@ export default function AdvisorPage() {
                 {REGIME_META[rows[0].market_regime].label}
               </span>
               <span className="text-[11px] text-[#666]">{REGIME_META[rows[0].market_regime].blurb}</span>
+            </div>
+          )}
+
+          {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0) && (
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Layers className="w-4 h-4 text-[#888]" />
+                <h3 className="text-sm font-semibold text-[#f5f5f5]">Portfolio-level risk</h3>
+                <span className="text-[11px] text-[#555]">the whole book, not one name at a time</span>
+              </div>
+              {risk.concentration_flags.length > 0 && (
+                <div className="space-y-1.5 mb-3">
+                  {risk.concentration_flags.map((f, i) => (
+                    <div key={i} className="flex items-start gap-2 text-[12px] text-[#f59e0b] leading-relaxed">
+                      <ShieldAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {risk.tax_loss_harvest.length > 0 && (
+                <div className="border-t border-[#1f1f1f] pt-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Receipt className="w-3.5 h-3.5 text-[#22c55e]" />
+                    <span className="text-[12px] text-[#f5f5f5] font-medium">
+                      Tax-loss harvest: {INR(risk.harvestable_loss_inr)} in realizable losses
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#888] leading-relaxed mb-2">
+                    Weak names already flagged to exit — selling books these losses to offset capital gains elsewhere. Short- vs long-term treatment depends on how long you&apos;ve held.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {risk.tax_loss_harvest.map((h) => (
+                      <span key={h.symbol} className="text-[11px] px-2 py-0.5 rounded-md bg-[#22c55e0d] text-[#e5e5e5]">
+                        {h.symbol} <span className="text-[#ef4444]">{INR(-Math.abs(h.unrealized_loss_inr))}</span>
+                        <span className="text-[#666]"> · {h.verdict}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

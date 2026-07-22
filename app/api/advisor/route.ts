@@ -29,11 +29,33 @@ export async function GET() {
       .order("trend_score", { ascending: true }); // worst first — act on those
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Portfolio-level risk view (concentration + tax-loss harvest), written
+    // by the brain's official run to app_config as JSON. Only surface it when
+    // it belongs to the run being shown — a stale read from an earlier day
+    // must not render against today's rows.
+    let portfolioRisk = null;
+    const runDate = latest?.[0]?.run_date ?? null;
+    try {
+      const { data: cfg } = await supabaseServer
+        .from("app_config")
+        .select("value")
+        .eq("key", "portfolio_risk_latest")
+        .single();
+      if (cfg?.value) {
+        const parsed = JSON.parse(cfg.value as string);
+        if (parsed?.run_date === runDate) portfolioRisk = parsed;
+      }
+    } catch {
+      /* risk view is additive — never blocks the advice payload */
+    }
+
     return NextResponse.json({
-      runDate: latest?.[0]?.run_date ?? null,
+      runDate,
       runAt: latest?.[0]?.created_at ?? null,
       isOfficial: latest?.[0]?.is_official ?? null,
       rows: rows ?? [],
+      portfolioRisk,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
