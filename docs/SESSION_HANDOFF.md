@@ -8,10 +8,72 @@ fast-moving state.
 
 ---
 
-## ⭐ CURRENT STATE as of 2026-07-22 — READ THIS FIRST
+## ⭐ CURRENT STATE as of 2026-07-23 — READ THIS FIRST
 
 Everything below this box is historical log. This box is the live summary —
 start here, dip into the log only for the "why."
+
+### Track C bug found + fixed: SELL decisions logged wrong-direction stop/target (brain `6948767`)
+While building the pacing-cost replay script (below), found `decision_outcomes`
+(Track C, shipped 07-15) was silently mislabeling almost every SELL/SHORT
+counterfactual as an instant +1.000R win. Root cause: `signal_engine`
+always computes long-side levels (stop below price, target above);
+`_open_short` correctly inverts them for the real trade, but
+`db.log_decision()` logged the pre-invert (wrong-direction) values for
+every SELL signal — so `decision_outcomes`'s stop-first walk-forward saw
+a "stop" sitting below entry and crossed it almost immediately. **Real
+executed trades were never affected** (verified against `trades`:
+07-22 SHORT avg stop 1604 > entry 1596 > target 1584, correct) — only the
+logged decision snapshot used for counterfactual labeling. Fixed: shared
+`_invert_for_short()` now used by both the decision log and `_open_short`
+so they can't drift apart again. Backfilled the already-logged 07-22
+`brain_decisions.indicators` (965 SELL rows), deleted + relabeled all
+965 `decision_outcomes` rows for that date — now a realistic mix of
+outcomes instead of a forced sweep. 07-14 decisions stay NO_DATA
+regardless (candle-archive bug that day, unrelated, unfixable
+retroactively). Suite still 777 green. **Any future SELL-side
+`decision_outcomes` that looks too clean (~all `STOP_HIT`/`WIN` at
+exactly +1.000R) means this regressed — check `_invert_for_short` is
+still wired into the decision-log path.**
+
+### Pacing-cost replay shipped + run (brain `ff8109c`, `scripts/pacing_cost.py`)
+Counterfactual-audit §5 was a placeholder ("heavier lift than inline
+SQL") — built it as a real, reusable script instead of one-off SQL,
+reusing `decision_outcomes.py`'s existing candle walk-forward rather than
+duplicating it. Also hit and fixed a silent PostgREST 1000-row page cap
+truncating full-day queries in both this script and (implicitly)
+anywhere else doing an unpaginated `brain_decisions` scan — worth
+remembering if another script starts under-counting.
+
+**Result on 2026-07-22 (only date with both deferred signals AND
+candle data — 07-14's 115 deferrals are permanently NO_DATA):**
+
+| Gate | n | total R | ~₹ (approx) | Verdict |
+|---|---|---|---|---|
+| HOURLY_PACE | 10 | −6.917 | −₹327.54 | **Helped** — blocked a net loser (1W/9L) |
+| SYMBOL_DAY_CAP | 12 | +1.800 | +₹85.24 | Cost — blocked a net winner (7W/5L) |
+| CYCLE_LIMIT | 8 | +1.353 | +₹64.07 | Cost — blocked a net winner (3W/4L) |
+
+Net across all three: −3.764R (~−₹178) — as a group, deferred signals
+that day would have lost money if let through; pacing helped on net,
+almost entirely via HOURLY_PACE. n is small (8-12 per gate, one day) —
+**not enough to touch the pacing knobs on this alone**, same LOW-CONFIDENCE
+bar as the rest of the counterfactual audit. Rupee column is approximate:
+this system sizes via Kelly, not flat 1%, so ₹/R isn't constant — used
+07-22's own realized avg risk/trade (₹47.35) as the closest available
+conversion. Re-run `scripts/pacing_cost.py` after each future clean
+session; it accumulates evidence the same way the rest of the audit does.
+
+### Still open from 07-22 (unchanged, carried forward)
+**Token not pasted yet this week** — nothing runs until a fresh enc_token
+goes in before 09:15 IST. Once it does: watch trade count holds up under
+pacing, confirm official advisor run fires ~09:45, and re-run
+`/counterfactual-audit` (now with a working pacing-cost step) once 2-3
+more clean sessions land.
+
+---
+
+## Historical: CURRENT STATE as of 2026-07-22
 
 ### Week-long gap 07-15 → 07-21: enc_token never repasted, watchdog alert never reached the phone
 User away/busy a week; nobody pasted a fresh token, so the system correctly

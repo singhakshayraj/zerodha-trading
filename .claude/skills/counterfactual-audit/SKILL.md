@@ -70,18 +70,34 @@ what a time-stop would cut. Note MFE: `mfe_r` high + pnl low = gave it back
 
 ## 5. Pacing cost (data-richness gates)
 
-```sql
-select unnest(skip_reasons) reason, count(*) n
-from brain_decisions
-where created_at::date >= '2026-07-14'
-  and skip_reasons::text like '%ENTRY_DEFERRED%'
-group by 1 order by n desc;
-```
-For deferred BUY/SELL signals, estimate foregone outcome from the symbol's
-same-day price path (candles table, 5minute) between decision time and close:
-would the deferred entry have hit its stop or target first? Report rupees
-foregone/saved per gate (HOURLY_PACE, SYMBOL_DAY_CAP, CONCURRENT_CAP,
-DAILY_TRADE_BUDGET) — this prices what pacing costs in exchange for spread.
+`python3 scripts/pacing_cost.py <date> [<date> ...]` (zerodha-brain repo,
+needs a venv with `requirements.txt` installed — no live token needed,
+reads only `brain_decisions`/`decision_outcomes`/`trades`). For each
+`ENTRY_DEFERRED:<reason>` decision, joins its Track C `decision_outcomes`
+row (stop/target walked forward through the candle archive from decision
+time to close — see `decision_outcomes.py`) and sums R by reason. Needs
+`scripts/label_decisions.py <date>` run first if that date isn't labeled
+yet (full-day queries there and here paginate around a PostgREST 1000-row
+/ payload-size cap — don't drop the pagination if you touch either
+script). Dates before the candle-archive fix (< 2026-07-15) label
+NO_DATA and are excluded, reported separately.
+
+**Known trap (fixed 2026-07-23, brain `6948767`):** for SELL decisions,
+`brain_decisions.indicators.stop_loss/target` used to be logged in LONG
+orientation (signal_engine's raw output) instead of the SHORT orientation
+`_open_short` actually trades — corrupting every SHORT counterfactual
+label since Track C shipped (07-15) into an auto-win. Real trades were
+never affected, only the logged decision snapshot. If a future date's
+SELL-side `decision_outcomes` looks too clean (~all `STOP_HIT`/`WIN` at
+exactly `+1.000R`), that bug (or a regression of it) is back — check
+`brain.py::_invert_for_short` is still wired into the decision-log path,
+not just `_open_short`.
+
+Rupee conversion is approximate: this system sizes via Kelly
+(`risk_manager.calculate_position_size`), not a flat 1% of capital, so
+there's no fixed ₹-per-R. The script uses each date's own realized avg
+risk/trade (from `trades`) as the closest available estimate — R-multiples
+are the exact number, ₹ is a rough overlay.
 
 ## 6. LIMIT_WOULD_STOP counterfactual
 
