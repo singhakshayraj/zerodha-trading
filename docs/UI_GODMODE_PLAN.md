@@ -28,7 +28,15 @@ effort → built first.
 - Surface both in the "Is this working?" strip, with the go/kill thresholds
   as context and the small-sample caveat honored (n shown; no verdict at low n).
 
-## Task 1 — Live risk gauges on `/trading` ⬜
+## Task 1 — Live risk gauges on `/trading` ✅ DONE 2026-07-23
+Shipped as `components/RiskMeter.tsx` (reusable — Task 3 will reuse it): one
+horizontal track from the −maxLoss% hard floor to the +maxProfit% ceiling,
+with the 3R operational stop and zero marked and the live session P&L as a
+marker + headline ("₹X before the hard floor" / "past the 3R stop" / "₹X
+before the ceiling"). Wired into `/trading` below the status bar. Math
+hand-verified across loss/profit/zero; typecheck + build pass. Below is the
+original spec.
+
 **The defining daily contract is invisible.** VISION §4c centers the day on
 the 3R operational stop, the −5% hard floor, and the +7% ceiling. The trading
 page shows Session P&L as a number and a static "Max Loss −₹X"; nothing shows

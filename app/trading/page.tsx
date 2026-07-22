@@ -10,6 +10,7 @@ import type { TradingSession, Trade } from "@/lib/db";
 import { BrainStatus } from "@/components/BrainStatus";
 import BrainActivityFeed from "@/components/BrainActivityFeed";
 import { OpenPositions } from "@/components/OpenPositions";
+import { RiskMeter } from "@/components/RiskMeter";
 import {
   Play, Square, AlertTriangle, CheckCircle2,
   Clock, ChevronDown, ChevronRight,
@@ -616,6 +617,16 @@ export default function TradingPage() {
                   {c.value}
                 </div>
               ))}
+            </div>
+
+            {/* Daily risk meter — live P&L against the §4c boundaries */}
+            <div className="shrink-0">
+              <RiskMeter
+                pnl={displayPnl}
+                capital={(liveSessionConfig?.capitalDeployed as number | undefined) ?? config.capital}
+                maxLossPct={(liveSessionConfig?.maxLossPercent as number | undefined) ?? config.maxLossPct}
+                maxProfitPct={(liveSessionConfig?.maxProfitPercent as number | undefined) ?? config.maxProfitPct}
+              />
             </div>
 
             {/* P&L Chart */}
