@@ -93,10 +93,40 @@ backtest_smoke.py`, INFY 07-22, resampled to 15m/1h) — 0 trades that day
 (insufficient prior history for indicators, correctly gated, not a bug).
 
 **What's NOT done and can't be from here**: an actual gate #6 result
-needs 2020/2021/2022 historical candles, which needs the official Kite
-Connect historical API subscription (VISION §3c) — external/account
-decision, same category as the auth-automation item declined earlier
-this session. The harness is ready the moment that data exists.
+needs historical candles, which needs an account-level decision only the
+user can make. Evaluated alternatives this session: TradingView (no
+official bulk API, only ToS-violating scrapers — ruled out), Fyers
+(genuinely free API, but same 100-day-per-request chunking as Kite —
+no real advantage once you're already building the chunked puller),
+free daily-only sources (NSE bhavcopy/yfinance — insufficient, gate #6's
+strategy is intraday). **Decided: Kite Connect** (₹500/mo, no static IP
+needed since this is data-only not order placement — confirmed against
+Zerodha's current docs) — mainly because it's zero new integration
+work given `kite_client.py` already has `get_historical_data()`, and
+it's the same auth path VISION already plans for live trading (§3c)
+regardless.
+
+**Scope decided: pull everything available, not just 2020/2021/2022.**
+Those three were VISION's stated *minimum* (crash/bull/chop coverage,
+§5 gate 6's "≥" is a floor not a ceiling) — since the marginal cost of
+pulling more years is near-zero once the chunked puller exists, going
+back to Kite's actual retention ceiling (unconfirmed — the 100/200/400
+day numbers found are the per-request chunk size, not total depth; needs
+one empirical test call once a key exists) is worth it. Decided
+**against** writing this into the live Supabase `candles` table — tens
+of millions of rows expected across the full universe/years/intervals,
+real cost/quota risk, and it'd mix backtest data with live paper-session
+data. Land it as local Parquet/CSV on the Mac instead, matching VISION's
+own "heavy work runs on the Mac, never touches live infra" principle.
+
+**Parked until the user has Kite API credentials** (`api_key`/
+`api_secret`/`access_token` from developers.kite.trade — needs the ₹500/mo
+subscription). Next session, once keys exist: build the chunked
+historical-data puller (auto-detect the true retention ceiling by walking
+backward until empty, don't hardcode a start date), backfill the liquid
+universe to local Parquet, then actually run `backtest.py` for a real
+gate #6 result. Nothing else is blocking this — harness, cost model,
+archetype/exit-style comparisons all ready and waiting.
 
 ### Still open from 07-22 (unchanged, carried forward)
 **Token not pasted yet this week** — nothing runs until a fresh enc_token
