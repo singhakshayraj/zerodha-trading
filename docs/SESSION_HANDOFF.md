@@ -187,11 +187,17 @@ a "Portfolio-level:" digest section (silent on a clean book), stored to
 non-fatal. Suite 799→806. Verified with a realistic red-book render
 (flagged a 91% bank-sector over-concentration + ₹1.04L harvestable).
 
+**Dashboard surfacing DONE (dash `bb9fefe`):** `/api/advisor` now returns
+`portfolioRisk` (read from `app_config portfolio_risk_latest`, gated to the
+displayed run_date), and the `/advisor` page renders a "Portfolio-level
+risk" panel above the holdings (concentration flags + tax-loss-harvest
+tally, hidden when the book is clean). typecheck + next build pass; the live
+visual render just needs the next token-driven official advisor run to
+repopulate the config in the new shape.
+
 **NEXT on the advisor:** pillars 1 (calibration) and 3 (regime-conditional
 weights) both wait on graded outcomes — so the gating item is simply
 **running `scripts/grade_advice.py` from 07-24** to accumulate them.
-Dashboard surfacing of `portfolio_risk_latest` (the `/advisor` page reading
-the new app_config JSON) is a small zerodha-trading follow-up, not yet done.
 Earnings/event-risk flag folds under pillar 2's risk layer when a calendar
 data source is picked.
 
