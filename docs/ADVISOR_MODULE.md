@@ -158,7 +158,29 @@ Aggregated on `/advisor` track-record tile:
 | **Avg Alpha %** | On average, by how much did your calls beat/lose to the Nifty? |
 | **₹ Saved** | Total rupees your SELL/TRIM calls freed up to redeploy vs sitting still |
 
-First outcomes land ~10 trading days after first advice rows (early call: 2026-07-12 → outcomes ~late July 2026). Nothing to check before then — let price action accrue.
+First outcomes land ~10 trading days after first advice rows (early call: 2026-07-12 → outcomes ~2026-07-24). Nothing to check before then — let price action accrue.
+
+### Grading & factor attribution (brain `eac5bee`, 2026-07-23)
+
+Two gaps in the accountability loop closed:
+
+- **Grading was scheduler-coupled** — `run_backtest_pass` only fired inside
+  the official-advisor path, so a verdict coming due on a day no token was
+  live could silently never get judged. `scripts/grade_advice.py` grades
+  every due row on demand (run it any day a token exists — read-only candle
+  access, no order path). The report half (`--attrib-only`) needs no token.
+- **The 7 scoring weights were never validated.** `advisor_backtest.factor_attribution()`
+  buckets graded calls by each factor (EMA200 side, EMA50 side, trend
+  consistency, relative strength, RSI zone, ADX regime, trigger type,
+  volume trend) and reports the hit-rate spread between each factor's
+  buckets. A factor that predicts shows a wide gap; one that doesn't earn
+  its weight shows near-zero. **This is the evidence to reweight on** —
+  VISION §7's "change on evidence, never hand-tune," applied to the advisor
+  the same way Track C applies it to the trading engine.
+
+Run `python3 scripts/grade_advice.py` from **2026-07-24** onward (first
+batch matures) to accumulate the track record; once ~30-50 calls are
+graded, the attribution ranking says which factors to up/down-weight.
 
 ## Telegram Notifications
 

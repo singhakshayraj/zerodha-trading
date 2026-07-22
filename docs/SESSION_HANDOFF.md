@@ -128,6 +128,32 @@ universe to local Parquet, then actually run `backtest.py` for a real
 gate #6 result. Nothing else is blocking this — harness, cost model,
 archetype/exit-style comparisons all ready and waiting.
 
+### Advisor: accountability loop closed (brain `eac5bee`)
+Audited the advisor as the "make it god-mode" first step. Key finding: **80
+official calls made, 0 ever graded** — partly not-yet-due (10-trading-day
+MICRO / 30-day MACRO horizons; oldest 07-12 batch matures ~07-24), partly a
+real fragility (grading only ran inside the scheduler's official-advisor
+path, so a verdict due on a tokenless day silently never got judged). The
+deeper point: the 7 scoring weights are hand-picked priors **never checked
+against outcomes** — "god mode" on unvalidated weights is just fancier
+guessing. Built the fix (same discipline as Track C / gate #6):
+- `scripts/grade_advice.py` — grades every due row on demand, runnable any
+  day a token exists (read-only, no order path); `--attrib-only` needs no
+  token.
+- `advisor_backtest.factor_attribution()` — buckets graded calls by each
+  factor and ranks them by hit-rate separation, i.e. which factors actually
+  predict vs which don't earn their weight. The evidence to reweight on.
+- Suite 788→792. Wiring verified live (`--attrib-only` against prod returns
+  the correct 0-graded empty state).
+
+**NEXT (from 2026-07-24):** run `python3 scripts/grade_advice.py` (in a venv
+w/ requirements, needs a pasted token for the candle reads) to start
+accumulating the track record. Once ~30-50 calls graded, the attribution
+ranking tells us which weights to raise/cut — that's the actual god-mode
+upgrade. Steps 2 (weekly-timeframe confluence factor) and 3 (earnings/
+event-risk + tax-loss flags for the red book) are queued behind it — build
+after the loop can grade them.
+
 ### Still open from 07-22 (unchanged, carried forward)
 **Token not pasted yet this week** — nothing runs until a fresh enc_token
 goes in before 09:15 IST. Once it does: watch trade count holds up under
