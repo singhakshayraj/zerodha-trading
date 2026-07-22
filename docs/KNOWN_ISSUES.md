@@ -4,7 +4,7 @@ Living document. Full-application scans land findings here; fixes move items
 to the Resolved log at the bottom. Re-scan cadence: after every major feature
 ship, or when `/post-session-check` flags something new.
 
-Last full scan: **2026-07-14** (post data-richness ship, pre first full-day run).
+Last full scan: **2026-07-23** (advisor bug-list audit — see Resolved log).
 **Backlog cleared 2026-07-14** — all P1–P6 resolved same day (brain `cf8a628`,
 dashboard `1944f45`); details in the Resolved log. New findings start fresh
 below.
@@ -22,25 +22,24 @@ below.
 ### W1. Cycle duration with all-day analysis
 Analysis no longer breaks at trade caps → every cycle analyzes ~39 stocks
 (0.5s pacing + candle fetches each). QA: 27 stocks ≈ 42s. Prod budget is the
-300s interval. **Check the first full day's `Cycle N complete in Xs` lines**
-— if X approaches 300, drop per-stock sleep or thin the universe.
+300s interval. **Still unverified 2026-07-23** — Railway's log buffer had
+already rotated past both 07-14's and 07-22's market hours by the time this
+was checked, so `Cycle N complete in Xs` lines weren't available either time.
+Not a regression, just never caught the log before rotation. If this needs
+answering with confidence, log cycle duration to a DB column instead of
+print-only, so it survives past the log buffer.
 
 ### W2. brain_decisions growth
-~5.5k rows = 7.3MB today; full-day analysis ≈ 2–3k rows/day → ~50–100MB/month
-(indicators jsonb dominates). Free-tier DB is 500MB. Fine for the month-long
-run; revisit retention (or strip bulky jsonb after N days) if the run extends.
+38MB total DB size after 2 full-data-richness days (07-14, 07-22) — on pace
+with the original ~50-100MB/month estimate, well inside free-tier's 500MB.
+Fine for the month-long run; revisit retention (or strip bulky jsonb after
+N days) if the run extends.
 
-### W3. Advisor watch / bot restart semantics
+### W3. Advisor watch / bot restart semantics — accepted, not a pending bug
 In-memory intraday-alert dedup may repeat one alert after a redeploy (safe
 direction, accepted). Pacing counters (`_symbol_trades_today`, `_hour_trades`)
 also reset on a mid-session restart — caps loosen slightly for the rest of
 that day (accepted).
-
-### W4. First live validation of 09:45 smoothed run
-The session-boundary smoothing fix ships before its first 09:45 production
-run. Verify on the first trading morning: `[advisor]` logs shouldn't show
-absurd verdict prices vs the Kite app, and `INSUFFICIENT`/bars counts should
-match prior days.
 
 ---
 
@@ -78,7 +77,28 @@ match prior days.
   (send fails → whole digest silently lost) → capped at the worst 12 calls +
   "…and K more on /advisor"; decision keyboard mirrors the cap.
 
-**2026-07-13 scan:** 6 items (smoothing session-boundary, decision freeze
-after evaluation, durable bot offset, preflight log, inplay diagnostics,
-stock_profile dormancy) — all fixed same evening, brain `00cc4df`. Details:
-`docs/ADVISOR_BUGS_PENDING.md`.
+**2026-07-13 scan:** 6 items, all fixed same evening (brain `00cc4df`),
+**re-verified against current code 2026-07-23** (all still present, no
+regressions — file the details lived in (`ADVISOR_BUGS_PENDING.md`) removed
+as redundant, folded in here):
+- `smoothed_last_price` blended a prior session's close into the verdict
+  price (worst on gap days) → strictly filters to today's bars now
+  (`portfolio_advisor.py::smoothed_last_price`).
+- A stale Telegram tap could rewrite `user_decision` on an already-backtested
+  row, moving it between accepted/declined track-record buckets after the
+  fact → `record_advice_decision` scoped to `evaluated_at IS NULL`.
+- Bot `getUpdates` offset was in-memory, a redeploy could replay processed
+  taps → persisted to `app_config 'advisor_bot_offset'`.
+- Preflight logged "alerting" even with no Telegram creds set → log line
+  moved inside the creds guard (`advisor_watch.py::start_advisor_watch`).
+- Zero-lock in-play days were unexplainable from logs → now log threshold +
+  scanned count + top-3 RVOLs; root-caused as working-as-designed (quiet
+  tape, not a bug).
+- `stock_profile` never populated (Mac cron never installed) → extracted
+  into `data_jobs.build_weekly_profiles`, scheduler runs it on the first
+  advisor pass of each ISO week.
+
+**2026-07-23 audit (this session):** closed W4 — two real official advisor
+runs since (07-14, 07-22) both show 20/20 holdings, zero `INSUFFICIENT`,
+sane price ranges (₹2358.60, ₹2307.72 avg) — the smoothed-run fix is
+validated in production, not just in theory.
