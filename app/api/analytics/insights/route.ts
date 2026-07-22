@@ -120,6 +120,25 @@ export async function GET() {
     const verdictLabel = avgR > 0.05 ? "PROFITABLE EDGE" : avgR >= -0.05 ? "MARGINAL" : "LOSING EDGE";
     const confidence = closed < 30 ? "thin" : closed < 120 ? "limited" : "reasonable";
 
+    // Go/no-go gate metrics (VISION §6.1): profit factor and max drawdown are
+    // the two numbers real money is gated on — PF >1.3 go / <1.1 kill, max DD
+    // <10% go / >15% kill. Both net of costs (pnl already folds them in).
+    const grossProfit = winners.reduce((a, t) => a + (t.pnl ?? 0), 0);
+    const grossLoss = Math.abs(losers.reduce((a, t) => a + Math.min(0, t.pnl ?? 0), 0));
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : null; // null = no losses yet
+    // Max drawdown = largest peak-to-trough of the cumulative equity curve.
+    // Reported in R (capital-independent, the system's native unit) and ₹.
+    let peakR = 0, maxDrawdownR = 0, peakPnl = 0, maxDrawdownInr = 0;
+    let runR = 0, runPnl = 0;
+    for (const t of trades) {
+      runR += t.r_multiple ?? 0;
+      runPnl += t.pnl ?? 0;
+      peakR = Math.max(peakR, runR);
+      peakPnl = Math.max(peakPnl, runPnl);
+      maxDrawdownR = Math.max(maxDrawdownR, peakR - runR);
+      maxDrawdownInr = Math.max(maxDrawdownInr, peakPnl - runPnl);
+    }
+
     // Cumulative curve (₹ over all closed; R where present)
     let cumPnl = 0, cumR = 0;
     const equityCurve = trades.map((t, i) => {
@@ -195,6 +214,12 @@ export async function GET() {
         text: `Win rate ${winRate.toFixed(0)}% vs the ${breakevenWinRate.toFixed(0)}% you'd need to break even at the current payoff ratio.`,
       });
     }
+    if (closed >= 20 && profitFactor != null) {
+      findings.push({
+        tone: profitFactor >= 1.3 ? "good" : profitFactor >= 1.1 ? "warn" : "bad",
+        text: `Profit factor ${profitFactor.toFixed(2)} (gross profit ÷ gross loss, net of costs). The real-money gate is >1.3 to go, <1.1 to reject — but this is a ${confidence}-confidence sample, not the backtest that actually decides.`,
+      });
+    }
     const worstRegime = byRegime.filter((r) => r.trades >= 15).sort((a, b) => a.winRate - b.winRate)[0];
     if (worstRegime && worstRegime.winRate < 25) {
       findings.push({
@@ -236,6 +261,9 @@ export async function GET() {
         totalPnl,
         closed,
         confidence,
+        profitFactor,
+        maxDrawdownR,
+        maxDrawdownInr,
       },
       findings,
       equityCurve,

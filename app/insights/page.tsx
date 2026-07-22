@@ -18,7 +18,7 @@ import {
 type Finding = { text: string; tone: "bad" | "warn" | "good" | "info" };
 type Insights = {
   scale: { sessions: number; trades: number; decisions: number; candles: number; totalDeployed: number };
-  verdict: { label: string; expectancyR: number; winRate: number; breakevenWinRate: number; totalPnl: number; closed: number; confidence: string };
+  verdict: { label: string; expectancyR: number; winRate: number; breakevenWinRate: number; totalPnl: number; closed: number; confidence: string; profitFactor: number | null; maxDrawdownR: number; maxDrawdownInr: number };
   findings: Finding[];
   equityCurve: { i: number; date: string | null; cumPnl: number; cumR: number }[];
   daily: { day: string; decisions: number; trades: number; candles: number }[];
@@ -216,16 +216,26 @@ export default function InsightsPage() {
                     <p className="text-3xl font-bold tracking-tight" style={{ color: toneColor[verdictTone] }}>{v.label}</p>
                     <p className="text-[11px] text-[#666] mt-2">{v.closed} closed trades · {v.confidence} confidence at this sample size</p>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 flex-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 flex-1">
                     <div>
                       <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Expectancy</p>
                       <p className="text-2xl font-semibold tabular-nums" style={{ color: v.expectancyR >= 0 ? GREEN : RED }}>{v.expectancyR >= 0 ? "+" : ""}{v.expectancyR.toFixed(2)}R</p>
                       <p className="text-[10px] text-[#555] mt-0.5">per trade</p>
                     </div>
+                    <div title="Gross profit ÷ gross loss, net of costs. Real-money gate (VISION §6.1): >1.3 to go, <1.1 to reject.">
+                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Profit factor</p>
+                      <p className="text-2xl font-semibold tabular-nums" style={{ color: v.profitFactor == null ? MUTE : v.profitFactor >= 1.3 ? GREEN : v.profitFactor >= 1.1 ? AMBER : RED }}>{v.profitFactor == null ? "—" : v.profitFactor.toFixed(2)}</p>
+                      <p className="text-[10px] text-[#555] mt-0.5">gate &gt;1.3 · kill &lt;1.1</p>
+                    </div>
                     <div>
                       <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Win rate</p>
                       <p className="text-2xl font-semibold tabular-nums text-[#f5f5f5]">{v.winRate.toFixed(0)}%</p>
                       <p className="text-[10px] mt-0.5" style={{ color: v.winRate >= v.breakevenWinRate ? GREEN : RED }}>need {v.breakevenWinRate.toFixed(0)}% to break even</p>
+                    </div>
+                    <div title="Largest peak-to-trough decline of the cumulative-R equity curve. Real-money gate (VISION §6.1): <10% (of capital) to go, >15% to reject; shown in R here.">
+                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Max drawdown</p>
+                      <p className="text-2xl font-semibold tabular-nums" style={{ color: v.maxDrawdownR <= 3 ? GREEN : v.maxDrawdownR <= 6 ? AMBER : RED }}>−{v.maxDrawdownR.toFixed(1)}R</p>
+                      <p className="text-[10px] text-[#555] mt-0.5">{INR(v.maxDrawdownInr)} peak-to-trough</p>
                     </div>
                     <div>
                       <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Total P&L</p>
