@@ -86,6 +86,27 @@ Navigate to `/advisor` page:
    - Avg alpha % (how much better/worse than just holding Nifty)
    - ₹ value saved (rupees your exit calls freed up to redeploy)
 
+## Portfolio-Level Risk View (brain `f5e7858`, 2026-07-23)
+
+Per-name scoring is structurally blind to whole-book risk. After the daily
+verdicts, `portfolio_risk()` reads the book as a system:
+
+- **Single-name concentration** — one position ≥ 25% of book value.
+- **Sector concentration** — a sector ≥ 35% across ≥ 2 names, the cheap
+  robust proxy for correlation: same-sector names move together, so three
+  banks is closer to one bet at 3× size than three independent positions.
+  (A true return-correlation matrix is a v2 refinement.)
+- **Tax-loss harvesting** — underwater names the advisor *already* flags to
+  exit (SELL/TRIM). Selling both acts on the weak trend and realizes a
+  capital loss that offsets gains elsewhere — real rupees for a red book.
+  (India: STT-paid equity losses offset capital gains; the short/long-term
+  split depends on holding period, which the advisor does not assert.)
+
+Surfaced in a "Portfolio-level:" section of the Telegram digest (silent
+when the book is clean — no push noise), and stored to `app_config`
+`portfolio_risk_latest` (JSON) for the dashboard to read. Official run
+only, not the intraday lite re-score. Non-fatal — never blocks verdicts.
+
 ## Market Regime Filter
 
 Before scoring anything, the advisor classifies the **Nifty 50 tape** (14-period ADX, 14-period ATR as % of price, distance from 20-day EMA) into one of five regimes — and adapts:

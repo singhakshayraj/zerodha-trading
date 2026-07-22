@@ -164,10 +164,36 @@ dark-flag discipline): it's logged (`indicators.daily_weekly_alignment`) and
 `factor_attribution` now grades it, so step 1's loop decides whether it
 earns a score weight. Holdings-only (no universe-scan cost). Suite 792→799.
 
-**Step 3 still queued** (earnings/event-risk + tax-loss-harvest flags for the
-red book) — build after the grading loop can measure step 2's effect. Once
-graded calls accumulate, the promote-to-score decision for weekly is
-evidence-based, not another hand-picked weight.
+### Advisor god-mode plan — reframed into 3 world-class-system pillars (2026-07-23)
+Reassessed "make it best in the world." Honest framing (VISION §7a.2): a
+solo retail-data advisor can't out-predict institutions on raw signal.
+The winnable game is a world-class **decision** system — the three pillars
+of any serious forecasting system:
+1. **Probability calibration** — make `confidence` a real probability
+   (stated 72% → right 72% of the time), measured off the grading loop.
+   Blocked on graded data (~50+ calls, from 07-24).
+2. **Portfolio-level risk view** — ✅ SHIPPED this session (below).
+3. **Regime-conditional factor weighting** — which factors predict *in which
+   regime*; the self-improving flywheel. Blocked on graded data + days/regime.
+
+### Advisor pillar 2 SHIPPED: portfolio-level risk + tax-loss harvesting (brain `f5e7858`)
+The advisor scored every holding in isolation — blind to whole-book risk.
+`portfolio_risk()` adds single-name concentration, sector concentration (a
+correlation proxy — 3 banks ≈ one bet at 3× size), and **tax-loss-harvest**
+candidates (underwater names already flagged SELL/TRIM — selling realizes
+capital losses that offset gains, real rupees for a red book). Surfaced in
+a "Portfolio-level:" digest section (silent on a clean book), stored to
+`app_config portfolio_risk_latest` for the dashboard. Official-run only,
+non-fatal. Suite 799→806. Verified with a realistic red-book render
+(flagged a 91% bank-sector over-concentration + ₹1.04L harvestable).
+
+**NEXT on the advisor:** pillars 1 (calibration) and 3 (regime-conditional
+weights) both wait on graded outcomes — so the gating item is simply
+**running `scripts/grade_advice.py` from 07-24** to accumulate them.
+Dashboard surfacing of `portfolio_risk_latest` (the `/advisor` page reading
+the new app_config JSON) is a small zerodha-trading follow-up, not yet done.
+Earnings/event-risk flag folds under pillar 2's risk layer when a calendar
+data source is picked.
 
 ### Still open from 07-22 (unchanged, carried forward)
 **Token not pasted yet this week** — nothing runs until a fresh enc_token
