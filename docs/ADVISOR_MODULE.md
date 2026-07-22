@@ -32,6 +32,27 @@ Every holding scored on:
 
 **Score range:** −100 (extreme weakness) to +100 (extreme strength)
 
+### Weekly (higher-timeframe) confluence (brain `cd92317`, 2026-07-23)
+
+The 7 factors above are all **daily-timeframe**. A daily uptrend *inside a
+weekly downtrend* (a countertrend bounce) and a daily uptrend *inside a
+weekly uptrend* (a durable hold) score identically but are opposite
+decisions. The advisor now also reads the **weekly** structure —
+`resample_weekly` (daily bars → weekly OHLCV, free/in-memory) +
+`weekly_trend` (price vs the ~30-week EMA, 10-week fallback, plus 8-week
+momentum → UP/DOWN/SIDEWAYS). `daily_weekly_alignment` classifies the
+relationship and it's **surfaced in the reasons**:
+
+- **CONFLICT** (daily up, weekly down) → a countertrend warning: "lower-
+  conviction bounce, not a durable hold; honor the stop tightly."
+- **ALIGNED_UP / ALIGNED_DOWN** → a higher-conviction note.
+
+**Not folded into the numeric score yet — by design.** Its weight is
+unproven, so it follows the same dark-flag discipline as the trading
+engine: computed, logged on every row (`indicators.daily_weekly_alignment`),
+and graded by `factor_attribution` (see below) before it earns a score
+weight. Runs holdings-only, not the 500-name universe scan → no scan cost.
+
 ### Verdict Thresholds
 
 | Score | Verdict |

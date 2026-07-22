@@ -150,9 +150,24 @@ guessing. Built the fix (same discipline as Track C / gate #6):
 w/ requirements, needs a pasted token for the candle reads) to start
 accumulating the track record. Once ~30-50 calls graded, the attribution
 ranking tells us which weights to raise/cut — that's the actual god-mode
-upgrade. Steps 2 (weekly-timeframe confluence factor) and 3 (earnings/
-event-risk + tax-loss flags for the red book) are queued behind it — build
-after the loop can grade them.
+upgrade.
+
+### Advisor step 2 shipped: weekly (higher-timeframe) confluence (brain `cd92317`)
+The scorer was daily-only — blind to the single most decision-relevant
+cross-timeframe fact: a daily uptrend *inside a weekly downtrend* (sell the
+rip) vs *inside a weekly uptrend* (hold the dip) looked identical. Added a
+weekly structure read (`resample_weekly` + `weekly_trend`: price vs ~30-week
+EMA + 8-week momentum) and `daily_weekly_alignment`, surfaced in the
+advice reasons — a countertrend WARNING on CONFLICT, a conviction note on
+agreement. Kept OUT of the numeric score deliberately (unproven weight →
+dark-flag discipline): it's logged (`indicators.daily_weekly_alignment`) and
+`factor_attribution` now grades it, so step 1's loop decides whether it
+earns a score weight. Holdings-only (no universe-scan cost). Suite 792→799.
+
+**Step 3 still queued** (earnings/event-risk + tax-loss-harvest flags for the
+red book) — build after the grading loop can measure step 2's effect. Once
+graded calls accumulate, the promote-to-score decision for weekly is
+evidence-based, not another hand-picked weight.
 
 ### Still open from 07-22 (unchanged, carried forward)
 **Token not pasted yet this week** — nothing runs until a fresh enc_token
