@@ -573,7 +573,7 @@ infra debugging with holes in the dataset.
 | 3 | Compliant auth live (§3c): Kite Connect API key + VM static IP registered + daily OAuth token flow automated or hard pre-open alert | Token dies daily; one forgotten morning = dataset hole. **Supersedes the enctoken/TOTP question** — the compliant path removes the account-risk dimension; only the daily-renewal operational risk remains |
 | 4 | External heartbeat watchdog with alerting | Watchdog on the VM dies with the VM; must be external |
 | 5 | Market-hours auto start/stop + holiday calendar | No manual session starts for a month |
-| 6 | Backtest executed across regimes (≥ 2020 crash, 2021 bull, 2022 chop) on the **deterministic pipeline** (in-play filter → §4.3b tells → signals → trade plan), with the LLM layer's backtestability resolved per §8. Must compare **(a) entry archetypes**: opening-range breakout vs indicator-confluence pullback, and **(b) exit styles**: fixed 1.5R structure target vs ATR trailing stop held to close on trend days — the documented ORB edge ran ~17% win rate with rare large winners carrying everything; fixed targets may cap exactly those winners | Establishes the edge baseline; defines the §2.2 kill decision; settles the target-vs-trail question with data, not preference |
+| 6 | Backtest executed across regimes (≥ 2020 crash, 2021 bull, 2022 chop) on the **deterministic pipeline** (in-play filter → §4.3b tells → signals → trade plan), with the LLM layer's backtestability resolved per §8. Must compare **(a) entry archetypes**: opening-range breakout vs indicator-confluence pullback, and **(b) exit styles**: fixed 1.5R structure target vs ATR trailing stop held to close on trend days — the documented ORB edge ran ~17% win rate with rare large winners carrying everything; fixed targets may cap exactly those winners. 🔨 **Harness built 2026-07-23** (`backtest.py`, both archetypes/exit styles supported, decision-fidelity interface in place) — **blocked on data**: needs the official Kite Connect historical API subscription (§3c) for actual 2020-2022 candles, nothing else remaining is code | Establishes the edge baseline; defines the §2.2 kill decision; settles the target-vs-trail question with data, not preference |
 | 7 | Realistic cost model in paper fills | ✅ done — without it paper P&L is fantasy |
 | 8 | Railway decommissioned | Exactly one brain writing `active_session_id` |
 | 9 | Decision-logging completeness verified (SKIP/HOLD with full indicator snapshots) | A decision not logged is a training example lost |
@@ -798,18 +798,11 @@ Decisions made (and why), so we don't re-litigate them:
 | Auth path | Official Kite Connect API (₹500/mo) + VM static IP; enctoken retired for order placement | SEBI retail algo framework in force since Apr 2026: static IP mandatory for API orders, enctoken sidesteps traceability = account risk. Kite Connect includes historical data, resolving gate #6's data source (§3c) |
 | Order type compliance | All market orders carry `market_protection` (start: -1) | Unprotected market orders via API are rejected under the framework; also a free slippage bound (§3c) |
 | Regulatory lane | Stay under 10 orders/sec = regular API user; no strategy registration or Algo-ID needed | 2–3 trades/day is orders of magnitude below the threshold; never design toward it (§3c) |
+| LLM Brain backtestability (gate #6) | Moot as of 2026-07-23: grepped the whole codebase, zero LLM/Anthropic/OpenAI calls anywhere. The "Market Brain macro/sector read" this decision anticipated was never built — regime_detector is 100% mechanical (ADX + Nifty direction + multi-timeframe). Decided (b) anyway for when one IS added: mechanical §4.3b tells are backtestable, any live LLM-vs-tells divergence gets logged, not silently trusted | The open question assumed a component that doesn't exist yet; no decision was actually blocking gate #6 on this axis |
+| Backtest harness design (gate #6) | Built (brain `c311f35`, `backtest.py`) — replays in-play filter → §4.3b tells → signal_engine/ORB entry → stop/target/time-stop/EOD exit bar-by-bar using the SAME production modules live trading calls, not a re-implementation. `regime_detector`/`signal_engine` gained an optional `now` override (brain `c311f35`) so historical bars replay through the real intraday-clock gates instead of the wall clock. Runs on the Mac. Decision-fidelity interface: `backtest.decision_fidelity_replay()`. **Still blocked on data**: multi-year 2020-2022 candles need the official Kite Connect historical API subscription (§3c, external/account decision) — nothing in the harness substitutes for having the data | Gate #6 needs the same code path replayed, not a lookalike, or decision-fidelity (§6.2) is meaningless; harness existing separately from data access means the gate can close the moment data does |
 
 Open (decide before the relevant gate):
 
-- **LLM Brain backtestability (blocks gate #6 design).** The Market Brain's
-  macro/sector reads cannot be replayed for 2020–2022 — the news context is
-  gone and LLM output isn't reproducible. Options: (a) backtest only the
-  deterministic pipeline and accept that the paper month's decision-fidelity
-  check covers the LLM layer separately; (b) replace the LLM regime call
-  with the §4.3b mechanical tells for backtesting and treat any live
-  LLM-vs-tells divergence as logged, measurable behavior. Leaning (b) — the
-  tells already override the Brain for entry permission, so the backtest
-  would test the binding constraint.
 - **Docker vs bare python+systemd on the VM** — Docker daemon costs ~60MB of
   a ~500MB box; systemd is leaner but loses image reproducibility. Currently
   proceeding with Docker; revisit if memory pressure shows.
@@ -820,9 +813,6 @@ Open (decide before the relevant gate):
   re-registered.
 - **Where the external watchdog lives** (gate #4) — Vercel cron, GitHub
   Actions schedule, or UptimeRobot-style service reading `brain_heartbeat`.
-- **Backtest harness design** (gate #6) — reuse the deterministic pipeline
-  directly on Kite historical candles; runs on the Mac, never the VM. Must
-  implement the decision-fidelity replay interface used in §6.2.
 - **Time-stop N and +2R lock-in behavior** (§4.2, §4.7) — starting values
   40 min and hard-stop-after-+2R; tune only via the §7 loop, one change at
   a time.

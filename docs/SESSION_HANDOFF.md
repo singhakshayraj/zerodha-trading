@@ -64,6 +64,40 @@ this system sizes via Kelly, not flat 1%, so ₹/R isn't constant — used
 conversion. Re-run `scripts/pacing_cost.py` after each future clean
 session; it accumulates evidence the same way the rest of the audit does.
 
+### Gate #6 backtest harness built (brain `c311f35`) — code done, data blocked
+Went after VISION's biggest unstarted gate. Two real findings before any
+harness code got written:
+- `regime_detector.detect()` always read the wall clock for its intraday
+  gates (opening window / no-new-entries / lunch) — meaning a historical
+  replay would silently apply TODAY's real time to a simulated 2020 bar.
+  Fixed: `regime_detector`/`signal_engine` now take an optional `now`
+  override (defaults to wall clock — live behavior unchanged). This was
+  a real prerequisite, not scope creep: without it, decision-fidelity
+  replay would have been quietly wrong.
+- The §8 "LLM Brain backtestability" open question turned out to be moot
+  — grepped the whole codebase, zero LLM/Anthropic/OpenAI calls anywhere.
+  `regime_detector` is 100% mechanical (ADX + Nifty direction +
+  multi-timeframe). Decided (b) from the two options anyway, for if one
+  gets built later. Moved from VISION §8 Open to the decision log.
+
+`backtest.py` replays in-play filter → §4.3b tells → signal_engine/ORB
+entry → stop/target/time-stop/EOD exit bar-by-bar, reusing the actual
+production modules (not a lookalike — decision-fidelity requires shared
+code). Supports both entry archetypes (CONFLUENCE, ORB) and both exit
+styles (FIXED_TARGET, TRAIL_TO_CLOSE) per gate #6's required comparisons.
+Costs via the real Zerodha MIS charge model, sizing via the fixed-1%-risk
+path. 11 new tests (walk-forward exit priority, time-stop, trailing-stop
+ratchet, PF/drawdown math, regime-period classification, ORB end-to-end).
+Suite 777 → 788. Validated against real archived candles (`scripts/
+backtest_smoke.py`, INFY 07-22, resampled to 15m/1h) — 0 trades that day
+(insufficient prior history for indicators, correctly gated, not a bug).
+
+**What's NOT done and can't be from here**: an actual gate #6 result
+needs 2020/2021/2022 historical candles, which needs the official Kite
+Connect historical API subscription (VISION §3c) — external/account
+decision, same category as the auth-automation item declined earlier
+this session. The harness is ready the moment that data exists.
+
 ### Still open from 07-22 (unchanged, carried forward)
 **Token not pasted yet this week** — nothing runs until a fresh enc_token
 goes in before 09:15 IST. Once it does: watch trade count holds up under
