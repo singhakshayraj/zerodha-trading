@@ -28,15 +28,18 @@ real orders). Paper mode swaps only the execution layer.
 
 ---
 
-## Phase 0 — Fix money-path bugs (zerodha-trading) — IN PROGRESS
+## Phase 0 — Fix money-path bugs (zerodha-trading) — DONE (verified 2026-07-23)
 
-Bugs found in the earlier audit that corrupt results if left in during the run:
+Bugs found in the earlier audit that corrupt results if left in during the run.
+Checkboxes were never ticked when these shipped; re-verified against current
+code this session — all 5 fixed, each with an inline comment at the fix site
+still explaining the original bug:
 
-- [ ] `updateSessionPnl` double-counts delta → guardrails trigger at half the limit (`lib/store.ts`)
-- [ ] `endSession` writes `"STOPPED"`, not a valid `SessionStatus` (`lib/db/index.ts`)
-- [ ] `closeTrade` NaN P&L when `entry_price` null; `updateStockScore` throw after trade already closed (`lib/db/index.ts`)
-- [ ] Session-restore reads wrong `session_config` keys (`app/trading/page.tsx`)
-- [ ] `/api/trade/stop` never clears `active_session_id` → stopped session resurrects on refresh
+- [x] `updateSessionPnl` double-counts delta → guardrails trigger at half the limit (`lib/store.ts`) — state already includes delta after `set()`, guardrail check doesn't re-add it
+- [x] `endSession` writes `"STOPPED"`, not a valid `SessionStatus` (`lib/db/index.ts`) — writes `"COMPLETED"` now
+- [x] `closeTrade` NaN P&L when `entry_price` null; `updateStockScore` throw after trade already closed (`lib/db/index.ts`) — null entry_price throws before computing P&L; updateStockScore wrapped in try/catch so a scoring failure can't un-close an already-closed trade
+- [x] Session-restore reads wrong `session_config` keys (`app/trading/page.tsx`) — maps brain's key names (capitalDeployed, maxLossPercent, …) to the UI's TradingConfig shape
+- [x] `/api/trade/stop` never clears `active_session_id` → stopped session resurrects on refresh — route is signal-only now (`brain_status=STOP`); the brain itself owns teardown and clears `active_session_id`, avoiding the old race where this route also wrote stats and raced the brain's own square-off
 
 Deferred (not blocking paper run): auth hardening, token encryption at rest,
 IST hour bucket, Axiom log volume.
