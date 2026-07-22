@@ -150,6 +150,37 @@ earlier days — any cycle with a holdings∩nifty50 overlap lost its batch.
 
 ---
 
+## 2026-07-22 (post-close) — First full session post-gap + counterfactual audit round 2 (n=80, 2 days)
+
+**Session**: COMPLETED, squared off 15:21 IST. 66 trades (15W/51L), −₹1,277.75.
+Pacing fix (see box above) confirmed working under real load: 4.7× the
+07-14 trade volume from the same signal pipeline. Candle-archive fix also
+confirmed: 3,266 candles captured today across 46 symbols, 0-row bug fully
+resolved. `/post-session-check`: all clean, zero new findings.
+
+**`/counterfactual-audit` re-run (80 closed trades now, 2 days — up from
+n=14/1 day on 07-14):**
+
+| Flag | Trades affected | Effect | Verdict |
+|---|---|---|---|
+| Trend-tells gate | 66 blocked / 14 permitted | Blocked-bucket avg −₹16.5/trade vs permitted −₹16.1/trade — **converged**, no longer distinct (07-14 alone looked like −₹34.69 vs −₹2.08) | **WAIT** — single-day signal didn't hold at n=80 |
+| Market-direction | 0 informative (LONG+SHORT, both days: `market_context.direction`=SIDEWAYS 100% of the time) | Unmeasurable — still zero trending days | **WAIT** — needs an actual non-SIDEWAYS session before this can be judged at all |
+| Time-stop | SESSION_END exits n=7, avg_r −0.46, avg hold 85min | Directionally plausible (long-held losers) but n too small | **WAIT** — same call as 07-14 (n=5 then) |
+| Pacing gates (data-richness) | CONCURRENT_CAP 98, CYCLE_LIMIT 25, SYMBOL_DAY_CAP 12, HOURLY_PACE 10 (2-day totals) | Not yet priced — needs a price-path replay against `candles` (now populated) to compute rupees foregone/saved; not done this pass, heavier lift than inline SQL | Deferred — good candidate for a dedicated script now that candle data exists |
+| LIMIT_WOULD_STOP (data-collection mode's own effect) | 07-14: recovered from −₹163 (marker) to −₹36.77 final. **07-22: got worse** — from −₹803 (DAILY_STOP_3R marker, trade 40) to −₹1,277.75 final | **Direction flipped between the two days** — 07-14 says continuing past the old caps helped, 07-22 says it hurt | **WAIT** — do not read this as settled either way; the two-day sample disagrees with itself |
+
+**Bottom line: nothing crosses the enable bar yet.** The one flag that looked
+promising on a single day (trend-tells) washed out at 2× the sample; the
+strongest prior candidate (market-direction) still has zero informative
+days; and data-collection mode's own net effect on P&L reversed direction
+between the two days measured, so no verdict there either — keep it on
+for the data value, but don't cite 07-14's recovery as a demonstrated
+benefit anymore now that 07-22 contradicts it. Re-run again after 2-3 more
+clean sessions, and ideally after a genuinely trending (non-SIDEWAYS) day
+lands so market-direction becomes measurable at all.
+
+---
+
 ## Historical: CURRENT STATE as of 2026-07-12
 
 ### What shipped this session (brain suite 496 → 588; all pushed to `main`)
