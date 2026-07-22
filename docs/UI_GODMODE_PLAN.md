@@ -48,7 +48,16 @@ the machine."
   floor, to the +7% ceiling. Colour shifts as each is approached.
 - Build the gauge as a reusable component — Task 3 reuses it.
 
-## Task 3 — Command-center landing page ⬜
+## Task 3 — Command-center landing page ✅ DONE 2026-07-23
+Shipped: `app/page.tsx` (was a 5-line redirect) is now a command center —
+paper-engine status + today P&L, real portfolio health, the advisor's single
+top action, a full-width RiskMeter (reused from task 1), portfolio-level risk
+flags, and quick-nav cards. Added a "Home" item to the sidebar. All data
+fetches degrade gracefully (dead token → empty/loading states, no crash).
+Verified with a real smoke test (next start + curl → HTTP 200, renders
+Command Center / Paper engine / Daily risk / nav). Live data-populated view
+awaits a real token. Below is the original spec.
+
 **System state is scattered across four pages.** `app/page.tsx` is a 5-line
 redirect to `/connect`. No single screen shows paper-engine status + live
 risk, real portfolio health, and the advisor's #1 action today. God-mode

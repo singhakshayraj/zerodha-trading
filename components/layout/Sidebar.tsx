@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Zap, Briefcase, Bot, LineChart, Compass, LogOut } from "lucide-react";
+import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const navItems = [
+  { href: "/",          label: "Home",       icon: LayoutDashboard },
   { href: "/connect",   label: "Connect",    icon: Zap },
   { href: "/portfolio", label: "Portfolio",  icon: Briefcase },
   { href: "/trading",   label: "Auto Trade", icon: Bot },
