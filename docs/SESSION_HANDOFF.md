@@ -10,6 +10,45 @@ fast-moving state.
 
 ## ⭐ CURRENT STATE as of 2026-07-23 — READ THIS FIRST
 
+### Post-close 07-23 audits (session COMPLETED clean, 51 trades 12W/39L −₹1,582)
+Ran `/post-session-check` + `/counterfactual-audit` + `pacing_cost.py` (first
+audits with the SELL-orientation fix + weekly-confluence live).
+
+**`/post-session-check`: ALL CLEAN.** 1,472 decisions (0 nulls), 51 trades (0
+stuck / 0 null-pnl), 2,300 candles, advisor 20/20 rows carry weekly_trend
+(confluence live). **W1 RESOLVED** — cycle cadence is measurable from
+`brain_activity` CYCLE_START gaps (32 cycles, ~459s consistent, under the 300s
+budget); no new column needed. No new findings.
+
+**`/counterfactual-audit` (n=131, 3 days): nothing crosses the enable bar —
+and the reason matters.** The strategy is a **net loser across all buckets**
+(PF 0.33 on Insights). In a losing strategy every trade-blocking gate "looks
+good" simply because the average trade loses — so gate wins here are NOT edge
+evidence:
+- **Trend-tells gate**: anti-selective — the bucket it would PERMIT (avg
+  −0.537R) is *worse* than the bucket it would BLOCK (−0.413R). Don't enable.
+- **Market-direction**: still unmeasurable, but **07-23 showed the first
+  non-SIDEWAYS readings (BEARISH appeared)** — the tape is starting to trend.
+  Still no counter-direction trades to price it. WAIT (closest it's been to
+  measurable).
+- **Time-stop**: SESSION_END long-held losers present (n=10, −0.333R, 74min)
+  — directionally plausible, n small. WAIT.
+- **Pacing (HOURLY_PACE)**: "helped" both full days (−6.9R / −18R blocked) but
+  that's the net-loss artifact above, not smart selection — do NOT read as
+  "add more pacing."
+- **Data-collection mode (3R-stop override) is now measurably costing money**:
+  on BOTH full-volume days, continuing past the DAILY_STOP_3R marker bled more
+  (07-22 −803→−1,278; 07-23 −888→−1,582). 07-14's lone "recovery" was the
+  14-trade day. The 3R stop is doing its job on paper; volume-over-discipline
+  has a rising rupee cost — revisit once the data-volume goal is met.
+
+**The through-line: no dark-flag tuning fixes a no-edge strategy. Gate #6
+(historical backtest, blocked on Kite data) is the real verdict on whether
+edge exists at all — that's the priority, not flag-flipping.**
+
+Fixed the counterfactual-audit skill's stale SQL (trend_tells/market_context
+are nested in `indicators` jsonb; permit key is `permits_entry`).
+
 Everything below this box is historical log. This box is the live summary —
 start here, dip into the log only for the "why."
 

@@ -16,10 +16,12 @@ docs; this is the "come back to it" index.
    pulls latest `main` (includes `f5e7858` + all later). Market-hours deploys
    are forbidden (VISION §3b.6), so this waits for close. **Verify after:**
    `portfolio_risk_latest` in `app_config` populates on the next advisor run.
-2. **Run the post-session audits** — `/post-session-check` and
-   `/counterfactual-audit` on today's session (first full session since the
-   SELL-fix + weekly-confluence went live). Re-run `scripts/pacing_cost.py`
-   for today too.
+2. ~~**Run the post-session audits**~~ ✅ DONE 2026-07-23 night — all clean
+   (`/post-session-check` PASS, W1 resolved), `/counterfactual-audit` (n=131):
+   nothing enables, strategy is net-losing (PF 0.33) so gate wins aren't edge;
+   data-collection 3R-stop override now measurably costs money on losing days.
+   `pacing_cost.py` run for 07-22/07-23. Full verdict in `SESSION_HANDOFF.md`
+   current-state box.
 
 ## 🟡 Do tomorrow (2026-07-24) — first graded data
 
@@ -38,7 +40,11 @@ docs; this is the "come back to it" index.
 - **Weekly confluence verified live** — every advice row carries
   `weekly_trend` + `daily_weekly_alignment` (RVNL/NBCC/ITC = ALIGNED_DOWN
   high-conviction sells). ✅ working.
-- **Candle archive healthy** — 138 candles by 11:14, no 0-row regression. ✅
+- **Candle archive healthy** — 2,300 candles for the full day, no regression. ✅
+- **Session closed clean** — COMPLETED/MARKET_CLOSED 15:21 IST, 51 trades, 0 stuck. ✅
+- **First non-SIDEWAYS tape** — 07-23 logged BEARISH market_context (first since
+  data-richness began); market-direction flag is closest it's been to measurable.
+- **counterfactual-audit skill had stale SQL** — fixed (nested `indicators` paths). ✅
 - *(monitoring appends below)*
 
 ---

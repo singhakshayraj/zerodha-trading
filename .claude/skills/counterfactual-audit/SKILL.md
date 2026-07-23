@@ -28,12 +28,16 @@ LOW-CONFIDENCE, and do NOT recommend enabling anything.
 ## 2. Trend-tells gate effect
 
 ```sql
-select (d.trend_tells->>'would_permit') permit,
+-- NOTE: trend_tells + market_context are nested in the `indicators` jsonb,
+-- NOT top-level columns; the trend-tells permit key is `permits_entry`
+-- (verified against schema 2026-07-23 — earlier `d.trend_tells->>'would_permit'`
+-- was stale and errored).
+select (d.indicators->'trend_tells'->>'permits_entry') permit,
        count(*) n, sum(t.pnl) pnl, avg(t.r_multiple) avg_r,
        sum(case when t.pnl > 0 then 1 else 0 end) wins
 from brain_decisions d join trades t on t.id = d.trade_id
 where t.status='CLOSED' and t.pnl is not null
-  and d.trend_tells is not null
+  and d.indicators ? 'trend_tells'
   and d.created_at::date >= '2026-07-14'
 group by 1;
 ```
@@ -44,8 +48,9 @@ missed.
 ## 3. Market-direction effect (strongest prior candidate)
 
 ```sql
+-- market_context is nested in `indicators` jsonb (see §2 note).
 select t.position_type,
-       d.market_context->>'direction' mkt_dir,
+       d.indicators->'market_context'->>'direction' mkt_dir,
        count(*) n, sum(t.pnl) pnl, avg(t.r_multiple) avg_r
 from brain_decisions d join trades t on t.id = d.trade_id
 where t.status='CLOSED' and t.pnl is not null
