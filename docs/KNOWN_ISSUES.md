@@ -19,15 +19,17 @@ below.
 
 ## Watchlist — monitor, no action yet
 
-### W1. Cycle duration with all-day analysis
-Analysis no longer breaks at trade caps → every cycle analyzes ~39 stocks
-(0.5s pacing + candle fetches each). QA: 27 stocks ≈ 42s. Prod budget is the
-300s interval. **Still unverified 2026-07-23** — Railway's log buffer had
-already rotated past both 07-14's and 07-22's market hours by the time this
-was checked, so `Cycle N complete in Xs` lines weren't available either time.
-Not a regression, just never caught the log before rotation. If this needs
-answering with confidence, log cycle duration to a DB column instead of
-print-only, so it survives past the log buffer.
+### W1. Cycle duration with all-day analysis — RESOLVED 2026-07-23 (measurable from DB)
+Analysis no longer breaks at trade caps → every cycle analyzes ~46 stocks.
+Prod budget is the 300s interval. Previously unverifiable (Railway log buffer
+rotated before the check each time). **Resolved via `brain_activity`
+CYCLE_START timestamps** — no new column needed: the gap between consecutive
+CYCLE_START events is the full cycle cadence (analysis + the 300s inter-cycle
+sleep). 2026-07-23 full session: 32 cycles, avg 459s / min 442s / max 486s —
+tight and consistent, so analysis is ~160s (gap − 300s sleep), comfortably
+under the 300s budget and NOT ballooning. Re-check any session with:
+`select gap between consecutive CYCLE_START in brain_activity`. Only revisit
+if the cadence starts drifting toward 600s+.
 
 ### W2. brain_decisions growth
 38MB total DB size after 2 full-data-richness days (07-14, 07-22) — on pace
