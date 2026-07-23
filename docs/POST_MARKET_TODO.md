@@ -45,6 +45,10 @@ docs; this is the "come back to it" index.
 - **First non-SIDEWAYS tape** — 07-23 logged BEARISH market_context (first since
   data-richness began); market-direction flag is closest it's been to measurable.
 - **counterfactual-audit skill had stale SQL** — fixed (nested `indicators` paths). ✅
+- **label_decisions full-day payload limit** — hit twice this week, needed a
+  scratchpad workaround each time. Fixed properly (brain: paginate
+  `get_directional_decisions_for_date` by hour); `label_decisions.py` now
+  handles full days directly. ✅
 - *(monitoring appends below)*
 
 ---
