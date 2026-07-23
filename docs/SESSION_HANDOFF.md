@@ -13,6 +13,29 @@ fast-moving state.
 Everything below this box is historical log. This box is the live summary —
 start here, dip into the log only for the "why."
 
+### UI god-mode pass — 3 tasks shipped (dash `0d655c8`, `dd06eba`, `b02822a`)
+Full-app UI scan (plan in `docs/UI_GODMODE_PLAN.md`). Regression-checked
+today's earlier brain work first: clean (806 tests, typecheck/build pass, SELL
+decision-log fix contained to Track C, `_open_short` byte-identical). Then
+shipped the three decision-support gaps found — each surfaced a number the
+system is built around but hid:
+1. **`/insights`: profit factor + max drawdown** — the literal VISION §6.1
+   go/no-go metrics were missing. Now colour-coded tiles vs the go/kill
+   thresholds. Live values: PF 0.33, max DD 55.5R/₹3,343 (honestly a losing
+   paper edge — what the page is for).
+2. **`/trading`: live daily-risk meter** (`components/RiskMeter.tsx`, reusable)
+   — the §4c floor/3R-stop/ceiling contract made visible; live P&L marker +
+   "₹X before the floor" headline. Was only a static "Max Loss −₹X" before.
+3. **Command-center landing page** (`app/page.tsx`, was a redirect) — one
+   glance: paper-engine state, real portfolio health, advisor's top action,
+   the RiskMeter, portfolio-risk flags, quick-nav. Sidebar gained a "Home".
+   Smoke-tested (next start + curl → 200, renders).
+
+**Caveat:** the risk meter + command center render correctly (build + smoke
+test) but their live *data-populated* view awaits a pasted token (fetches
+degrade gracefully to empty meanwhile). Honorable-mention UI items (brain
+"current stance" panel; advisor calibration surface) left in the plan doc.
+
 ### Track C bug found + fixed: SELL decisions logged wrong-direction stop/target (brain `6948767`)
 While building the pacing-cost replay script (below), found `decision_outcomes`
 (Track C, shipped 07-15) was silently mislabeling almost every SELL/SHORT
