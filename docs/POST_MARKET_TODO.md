@@ -9,13 +9,20 @@ docs; this is the "come back to it" index.
 
 ## 🔴 Do post-close TODAY (2026-07-23, after 15:30 IST)
 
-1. **Redeploy the brain** — it's running `cd92317`, one commit behind
-   `f5e7858`. That means **portfolio-risk + tax-loss-harvest code is NOT
-   live**, so today's advisor run did not write `portfolio_risk_latest` and
-   the command-center / advisor risk panels stay empty. A post-close deploy
-   pulls latest `main` (includes `f5e7858` + all later). Market-hours deploys
-   are forbidden (VISION §3b.6), so this waits for close. **Verify after:**
-   `portfolio_risk_latest` in `app_config` populates on the next advisor run.
+1. ~~**Redeploy the brain**~~ ✅ DONE 2026-07-23 23:58 IST. `railway up` from
+   local `420eec7` (clean, `f5e7858` in history) → deployment `19b6ac0e`
+   SUCCESS, new instance `88faa9af` started clean (both advisor daemons up,
+   token preflight OK, no errors), brain ONLINE + heartbeating. Deploys here
+   are manual `railway up` (service is NOT GitHub-connected), .git is in the
+   tarball so `config.GIT_SHA` = deployed checkout = `420eec75826d`.
+   **Note:** an earlier 02:08 auto-attempt FAILED, which is why the brain sat
+   on `cd92317` all day. **Remaining verification is automatic tomorrow**
+   (couldn't do tonight without corrupting today's advice): on 07-24's first
+   session the `trading_sessions.git_sha` should read `420eec7...`, and on the
+   09:45 advisor run `portfolio_risk_latest` should populate + the
+   command-center / advisor risk panels light up. Did NOT trigger a manual
+   advisor run tonight — it would overwrite today's official 11:09 advice with
+   stale midnight prices.
 2. ~~**Run the post-session audits**~~ ✅ DONE 2026-07-23 night — all clean
    (`/post-session-check` PASS, W1 resolved), `/counterfactual-audit` (n=131):
    nothing enables, strategy is net-losing (PF 0.33) so gate wins aren't edge;
