@@ -8,6 +8,11 @@ fast-moving state.
 
 ---
 
+> **➡️ LATEST CHECKPOINT: `docs/HANDOFF_2026-07-25.md`** — start there. It
+> covers 07-24's close, the verified portfolio-risk deploy, the first 21
+> graded advice calls, the `git_sha=unknown` open regression, and the
+> post-market-analysis next step. The box below is the 07-23 snapshot.
+
 ## ⭐ CURRENT STATE as of 2026-07-23 — READ THIS FIRST
 
 ### Post-close 07-23 audits (session COMPLETED clean, 51 trades 12W/39L −₹1,582)
