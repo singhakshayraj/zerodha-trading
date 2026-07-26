@@ -1,9 +1,8 @@
 # Vision — Zerodha Auto-Trading System
 
-**The single source of truth for what we're building, why, and what "done" means.**
-Read this first when returning to the project. Companions:
-`docs/PAPER_TRADING_ROADMAP.md` (tactical phases) · `docs/SESSION_HANDOFF.md`
-(session-to-session state).
+**The durable "why" — what we're building and what "done" means.** Companions:
+`docs/STATUS.md` (current state) · `docs/ROADMAP.md` (what's next) ·
+`docs/README.md` (doc index). This file changes rarely; those track the state.
 
 ---
 
@@ -716,7 +715,7 @@ etc., untouched) — it was the data-collection pacing knobs
 already-qualifying signals as `ENTRY_DEFERRED` counterfactuals that day.
 Raised all of them (brain `aabce55`, Railway env vars) to convert more of
 the strategy's own real signals into executed trades — pure throughput,
-zero change to what counts as a signal. See `SESSION_HANDOFF.md` for the
+zero change to what counts as a signal. See `STATUS.md` for the
 exact numbers; they'll keep moving as data accrues.
 
 Two things explicitly reaffirmed in that conversation, now written down so
@@ -842,7 +841,7 @@ Open (decide before the relevant gate):
 
 This doc changes only when the *plan* changes — new gate, changed threshold,
 decided open question — not for day-to-day progress (that's
-`SESSION_HANDOFF.md`). When a gate passes, mark it here. When a decision
+`STATUS.md`). When a gate passes, mark it here. When a decision
 closes, move it from "Open" to the decision log with its why.
 
 ## 10. Guiding principles

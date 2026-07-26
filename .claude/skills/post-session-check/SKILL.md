@@ -116,7 +116,7 @@ start maturing (~late July 2026 for MICRO, ~late Aug for MACRO).
 
 ## 7. Known parked items (don't re-flag)
 
-Check `docs/KNOWN_ISSUES.md` — the living backlog. Items already parked
+Check `docs/reference/KNOWN_ISSUES.md` — the living backlog. Items already parked
 (P1–P6) or on the watchlist (W1–W4) are reported as "known", not new
 findings. NEW findings get appended there (Parked or Watchlist section)
 with the same format: where, why it matters, fix sketch. If a parked item

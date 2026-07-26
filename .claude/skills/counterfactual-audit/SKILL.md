@@ -126,5 +126,5 @@ directionally consistent across ≥2 days AND ≥15 affected trades. Enablement
 order on wins: MARKET_DIRECTION_ENABLED → trend-tells → TIME_STOP_ENABLED →
 REENTRY_COOLDOWN_ENABLED — one flag at a time, one day of measurement
 between flips (set env post-close only; brain redeploys mid-market are
-forbidden). Append the day's verdict to docs/KNOWN_ISSUES.md watchlist or a
-FLAG_ENABLEMENT_LOG section in docs/SESSION_HANDOFF.md.
+forbidden). Append the day's verdict to docs/reference/KNOWN_ISSUES.md watchlist or a
+FLAG_ENABLEMENT_LOG section in docs/STATUS.md.
