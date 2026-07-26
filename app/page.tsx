@@ -29,6 +29,7 @@ type PortfolioRisk = {
   concentration_flags: string[];
   tax_loss_harvest: { symbol: string }[];
   harvestable_loss_inr: number;
+  correlation?: { effective_bets: number | null; names_covered: number } | null;
 };
 
 const VERDICT_META: Record<string, { color: string; icon: React.ElementType; label: string }> = {
@@ -198,7 +199,7 @@ export default function CommandCenter() {
           </div>
 
           {/* portfolio-level risk flags, if any */}
-          {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0) && (
+          {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <Layers className="w-4 h-4 text-[#888]" />
@@ -210,6 +211,11 @@ export default function CommandCenter() {
                   <ShieldAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" /><span>{f}</span>
                 </div>
               ))}
+              {risk.correlation && risk.correlation.effective_bets != null && (
+                <p className="text-[11px] text-[#888] mt-1">
+                  🎯 Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered} <span className="text-[#555]">(correlation-adjusted)</span>
+                </p>
+              )}
               {risk.tax_loss_harvest.length > 0 && (
                 <p className="text-[11px] text-[#22c55e] mt-1">
                   🧾 {INR(risk.harvestable_loss_inr)} in tax-loss harvest available across {risk.tax_loss_harvest.length} names

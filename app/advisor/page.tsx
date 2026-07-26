@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -67,6 +67,14 @@ type PortfolioRisk = {
   concentration_flags: string[];
   tax_loss_harvest: { symbol: string; unrealized_loss_inr: number; verdict: string; pnl_percent: number | null }[];
   harvestable_loss_inr: number;
+  correlation: {
+    lookback_days: number;
+    window_returns: number;
+    names_covered: number;
+    effective_bets: number | null;
+    clusters: { symbols: string[]; weight_pct: number; avg_corr: number }[];
+    top_pairs: { symbols: string[]; corr: number }[];
+  } | null;
 };
 
 export default function AdvisorPage() {
@@ -170,7 +178,7 @@ export default function AdvisorPage() {
             </div>
           )}
 
-          {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0) && (
+          {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <Layers className="w-4 h-4 text-[#888]" />
@@ -185,6 +193,30 @@ export default function AdvisorPage() {
                       <span>{f}</span>
                     </div>
                   ))}
+                </div>
+              )}
+              {risk.correlation && risk.correlation.effective_bets != null && (
+                <div className="border-t border-[#1f1f1f] pt-3 mb-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Network className="w-3.5 h-3.5 text-[#888]" />
+                    <span className="text-[12px] text-[#f5f5f5] font-medium">
+                      Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered}
+                    </span>
+                    <span className="text-[11px] text-[#555]">{risk.correlation.lookback_days}-day return correlation</span>
+                  </div>
+                  <p className="text-[11px] text-[#888] leading-relaxed mb-2">
+                    Correlation-adjusted count of independent positions — names that move together collapse toward one bet, so the book is less diversified than the raw count suggests.
+                  </p>
+                  {risk.correlation.clusters.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {risk.correlation.clusters.map((c, i) => (
+                        <span key={i} className="text-[11px] px-2 py-0.5 rounded-md bg-[#f59e0b0d] text-[#e5e5e5]">
+                          {c.symbols.join(" + ")}
+                          <span className="text-[#666]"> · corr {c.avg_corr.toFixed(2)} · {c.weight_pct}%</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               {risk.tax_loss_harvest.length > 0 && (
