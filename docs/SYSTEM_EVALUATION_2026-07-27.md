@@ -206,10 +206,22 @@ Tags: 🔴 blocking · 🟠 high · 🟡 medium · ⚪ low. Owner: [me]=buildabl
 
 ## PART 3 — SEQUENCED ROADMAP (do in this order)
 
-**Sprint 0 — safety + truth (this week, mostly me):**
-1. 🔴 SE1 token redaction + RLS audit [me] · you rotate the bot token.
-2. 🔴 M1 "edge unverified" banner [me] — 20 min, keeps us honest.
-3. 🟠 T2 re-enable the 3R hard stop [me].
+**Sprint 0 — safety + truth — ✅ DONE 2026-07-27 (brain `71b8848`, dashboard `37f87dd`):**
+1. ✅ SE1 — Telegram token scrubbed from logs (`_safe`). **RLS was worse than
+   the lint implied:** 8 tables (incl `app_config`, which stores the enc_token)
+   had a policy named "Service role full access" actually granted to `{public}`
+   with `USING(true)` — i.e. the *public/anon* key (bundled in the dashboard JS)
+   had full read/write. Rescoped all 8 to `service_role`; `performance_daily`
+   view set `security_invoker`; `anon` EXECUTE on `rls_auto_enable` revoked;
+   3 functions' `search_path` pinned. Advisor lint: the 8 always-true WARNs +
+   the DEFINER-view ERROR cleared; dashboard API verified still working.
+   ⏳ **You: rotate the Telegram bot token** via @BotFather (it was in logs) +
+   update the Railway var. Consider rotating the Supabase anon key too.
+2. ✅ M1 — "EDGE UNVERIFIED" banner on the command center (clears when
+   `app_config.gate6_result` exists).
+3. ✅ T2 — `-3R` daily stop now HARD even in data-collection
+   (`ENFORCE_DAILY_STOP_3R`, default on). Note: sessions now halt at `-3R`
+   (fewer trades/day, no bleed); set the env `false` to revert to fully-soft.
 
 **Sprint 1 — answer the question (needs your ₹500 call):**
 4. 🔴 T1/T3 Kite historical → puller → **run gate #6** [you decision → me build].

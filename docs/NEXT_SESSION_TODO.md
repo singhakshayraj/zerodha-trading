@@ -28,7 +28,16 @@ Brain live on **`8edb746`** (GIT_SHA `8edb746d9edb`); dashboard on Vercel.
   - `select key from app_config where key in ('portfolio_risk_latest','advisor_calibration_latest');`
   - `select phase, count(*) from stock_observations where observed_at::date = current_date group by phase;`
 
-## ③ DECISIONS — you (each unblocks a build)
+## ③ SECURITY — you (do soon; a secret was exposed)
+
+- [ ] **Rotate the Telegram bot token** via @BotFather (`/revoke` → new token),
+      update the `ADVISOR_TELEGRAM_BOT_TOKEN` (and any other) Railway var. The old
+      token was printed in Railway logs (now scrubbed in code, `71b8848`).
+- [ ] Consider rotating the **Supabase anon key** — it was effectively a full
+      read/write key until today's RLS fix (8 tables incl `app_config`/enc_token
+      were public). Fixed now, but the key sat exposed in the client bundle.
+
+## ④ DECISIONS — you (each unblocks a build)
 
 - [ ] **Fundamentals data source** (agent P3): free scrape (screener.in / NSE) vs paid
       API. → unblocks per-stock fundamentals (currently a null slot).
