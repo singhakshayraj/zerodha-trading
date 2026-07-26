@@ -72,9 +72,10 @@ docs; this is the "come back to it" index.
 - **Advisor step 3 — earnings/event-risk flag** ("you report Thursday,
   lighten up"). Needs an earnings-calendar data source — pick one.
 - ~~**portfolio_risk v2 — true return-correlation matrix**~~ ✅ DONE 2026-07-26
-  (brain `b919a84`; correlation clusters + effective_bets, supersedes sector
-  proxy). Pending manual `railway up` deploy. Follow-up: surface the
-  `correlation` block on /advisor + command center (stored, not yet rendered).
+  (brain `b919a84`, deployed + GIT_SHA set; correlation clusters +
+  effective_bets, supersedes sector proxy). ✅ UI surfaced (dashboard
+  `c77030d`, /advisor + command center). Lights up on Monday's first live
+  advisor run. Dashboard commit local — push to Vercel is user's call.
 - **Weekly confluence on rotation candidates** — don't rotate INTO a name in a
   weekly downtrend (currently weekly runs holdings-only).
 - **UI honorable mentions** (`docs/UI_GODMODE_PLAN.md`): brain "current stance"
