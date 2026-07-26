@@ -236,9 +236,16 @@ Tags: 🔴 blocking · 🟠 high · 🟡 medium · ⚪ low. Owner: [me]=buildabl
    `railway up` + GIT_SHA stamp in one atomic command, killing the hand-bump that
    caused the "unknown" regression. Use it for every future brain deploy.
 6. 🟠 SE3 TOTP auto-login [you setup → me wire] — still pending your Zerodha side.
-7. 🟡 SE4 module split — **DEFERRED** to a focused session. It's a 1,500-line file
-   imported by scheduler/grade_advice/tests; a careful split (advisor/ package)
-   is worth its own low-risk session, not the tail of a long one. Not urgent.
+7. 🟡 SE4 module split — **PART 1 DONE 2026-07-27** (brain `4e22301`).
+   `portfolio_advisor.py` 1,600 → 1,147 lines via facade extraction (re-exported
+   so no caller/test-patch target changed, 828 green): `advisor_risk.py`
+   (portfolio_risk + correlation + risk-line builder) and `advisor_digest.py`
+   (build_digest + keyboard + send_daily_digest). Deployed via the new
+   `deploy.sh`. **Remaining:** scoring/`advise` + the `run_*` loops touch the
+   patched namespace (`score_universe`/`news_sentiment`/`weekly_trend`/`_sleep`),
+   so splitting them needs test-patch-target rewrites — left for a focused
+   session. pa <600 not reached (the runners must stay); the maintainability win
+   is the point, not the number.
 
 **Sprint 3 — make the advisor genuinely advisory (after edge verdict):**
 8. 🟠 FA2 fundamentals provider (agent P3) [you source → me build].
