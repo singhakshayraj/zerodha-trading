@@ -245,7 +245,19 @@ export async function GET() {
       findings.push({ tone: "info", text: `${((holdCount / totalDec) * 100).toFixed(0)}% of ${totalDec.toLocaleString()} decisions are HOLD — the engine acts on a small, selective slice.` });
     }
 
+    // Gate #6 (historical backtest) result, if it has ever run. Its ABSENCE is
+    // the point: paper metrics above are NOT an edge verdict until this exists.
+    let gate6 = null;
+    try {
+      const { data: g } = await supabaseServer
+        .from("app_config").select("value").eq("key", "gate6_result").single();
+      if (g?.value) gate6 = JSON.parse(g.value as string);
+    } catch {
+      /* absent = not run yet — the banner keys off exactly this */
+    }
+
     return NextResponse.json({
+      gate6,
       scale: {
         sessions: sessCount.count ?? 0,
         trades: tradeCount.count ?? 0,

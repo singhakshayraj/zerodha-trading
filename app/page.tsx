@@ -52,6 +52,7 @@ export default function CommandCenter() {
   const [runDate, setRunDate] = useState<string | null>(null);
   const [changeCount, setChangeCount] = useState(0);
   const [edge, setEdge] = useState<{ profitFactor: number | null; maxDrawdownR: number; expectancyR: number; label: string; closed: number } | null>(null);
+  const [edgeVerified, setEdgeVerified] = useState<boolean | null>(null); // null=loading, false=gate #6 not run, true=run
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -70,8 +71,10 @@ export default function CommandCenter() {
       setChangeCount((a.changes ?? []).length);
     } catch { /* */ }
     try {
-      const v = (await api.get("/analytics/insights")).data?.verdict;
+      const ins = (await api.get("/analytics/insights")).data;
+      const v = ins?.verdict;
       if (v) setEdge({ profitFactor: v.profitFactor ?? null, maxDrawdownR: v.maxDrawdownR ?? 0, expectancyR: v.expectancyR ?? 0, label: v.label ?? "", closed: v.closed ?? 0 });
+      setEdgeVerified(ins?.gate6 ? true : false);
     } catch { /* edge strip degrades to empty */ }
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
@@ -107,6 +110,22 @@ export default function CommandCenter() {
             </div>
             <BrainStatus />
           </div>
+
+          {/* EDGE UNVERIFIED nag — clears only when gate #6 (historical
+              backtest) has run. Keeps us honest: paper metrics are not a verdict. */}
+          {edgeVerified === false && (
+            <div className="mb-4 rounded-xl border px-4 py-3 flex items-start gap-3"
+                 style={{ borderColor: `${AMBER}55`, background: `${AMBER}0d` }}>
+              <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" style={{ color: AMBER }} />
+              <p className="text-[12px] leading-relaxed text-[#bbb]">
+                <span className="font-semibold" style={{ color: AMBER }}>EDGE UNVERIFIED</span>
+                {" — the historical backtest (gate #6) hasn't run. The paper metrics here are a small, single-regime sample, "}
+                <span className="text-[#e5e5e5]">not an edge verdict</span>
+                {". Treat every result as provisional until gate #6 has a number. "}
+                <Link href="/insights" className="text-[#60a5fa] hover:underline">why this matters →</Link>
+              </p>
+            </div>
+          )}
 
           {/* top row: paper engine · portfolio · advisor action */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
