@@ -9,6 +9,7 @@ picture; everything else is stable reference or dated history.
 |---|---|---|
 | **[STATUS.md](STATUS.md)** | *Where are we right now?* — deployed versions, live subsystems, open items, verify-list. **The single source of truth for current state.** | every session |
 | **[ROADMAP.md](ROADMAP.md)** | *What's next?* — the gate-#6 hinge, sprints, priorities, T4 findings. | when priorities change |
+| **[PIPELINE.md](PIPELINE.md)** | *What's moving?* — the live kanban board; where feedback becomes tracked items and daily work is pulled from. | continuously (the feedback loop) |
 | **[VISION.md](VISION.md)** | *Why?* — mission, trading fundamentals, risk limits, the pre-run gates + go/no-go criteria (§6.1, §7). The durable reference. | rarely |
 | this **README** | *Where is everything?* | when docs move |
 

@@ -67,6 +67,14 @@ in [ROADMAP.md](ROADMAP.md) T4.
 - `stock_observations` filling — incl a PRE_OPEN + POST_CLOSE row/day.
 - `/advisor` renders calibration card, correlation, "What changed" diff.
 
+## Feedback loop (live)
+Project-level flywheel (mirrors VISION §7): REVIEW → TRIAGE → [PIPELINE.md](PIPELINE.md)
+→ DO daily → VERIFY. Two scheduled cloud agents keep it timely:
+- **Post-session review** — weekdays 16:30 IST — drains shipped items, adds findings.
+- **Weekly review** — Sundays 10:00 IST — re-measures gate metrics + verifies impact.
+
+The board is [PIPELINE.md](PIPELINE.md): pull the top **Ready** item each session.
+
 ## Routine
 - Post-session audits: `/post-session-check`, `/counterfactual-audit` skills.
 - Advisor grading: `zerodha-brain/scripts/grade_advice.py [--attrib-only]`.
