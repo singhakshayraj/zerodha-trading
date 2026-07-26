@@ -84,6 +84,23 @@ Tags: 🔴 blocking · 🟠 high · 🟡 medium · ⚪ low. Owner: [me]=buildabl
   graded like the advisor factors before it ever filters live.
 - Effort: ~half day (analysis script). **Measure:** expectancy-by-bucket table;
   identify buckets with n≥30 and negative expectancy.
+- **FIRST READ DONE 2026-07-27** (192 closed trades w/ R, 05-20→07-24; LOW-CONF,
+  one broad regime). Expectancy(R) by bucket:
+  - ⭐ **hour 09 (open): +0.107R, PF 1.22, 47% win (n=15) — the ONLY positive
+    bucket.** Expectancy then falls monotonically through the day: 11:00 −0.35,
+    12:00 −0.53, 13:00 −0.59, 14:00 −0.54. The (possible) edge lives at the open;
+    the afternoon bleeds.
+  - **LONG −0.576R (n=71) worse than SHORT −0.368R (n=121)** — longs got killed
+    in the bearish tape.
+  - **regime WEAK_TREND −0.84R (n=18)** = worst; TRENDING −0.40R (n=174).
+  - 🔴 **exit STOP_LOSS_HIT averages −1.59R (n=19)** — stops are being *blown
+    through* (should cap ~−1R); ~60% extra loss = slippage/gap. Execution bug,
+    fixable independent of edge (stop-limit vs market / size-down).
+  - exit BRAIN_SIGNAL: 0% win, −0.71R (n=20) — discretionary signal-exits all lost.
+  - **Testable hypotheses (need gate #6 to confirm across regimes):** (1) trade
+    only the opening window; (2) suppress LONGs / afternoon entries; (3) fix the
+    stop execution. Next: dark-flag a time-of-day/setup quality gate, grade it,
+    enable only on evidence (VISION §7).
 
 ### FINANCIAL-ADVISOR FINDINGS
 
