@@ -71,8 +71,10 @@ docs; this is the "come back to it" index.
   shows `daily_weekly_alignment` predicts (currently dark/logged only).
 - **Advisor step 3 — earnings/event-risk flag** ("you report Thursday,
   lighten up"). Needs an earnings-calendar data source — pick one.
-- **portfolio_risk v2 — true return-correlation matrix** (beyond the sector
-  proxy shipped in `f5e7858`).
+- ~~**portfolio_risk v2 — true return-correlation matrix**~~ ✅ DONE 2026-07-26
+  (brain `b919a84`; correlation clusters + effective_bets, supersedes sector
+  proxy). Pending manual `railway up` deploy. Follow-up: surface the
+  `correlation` block on /advisor + command center (stored, not yet rendered).
 - **Weekly confluence on rotation candidates** — don't rotate INTO a name in a
   weekly downtrend (currently weekly runs holdings-only).
 - **UI honorable mentions** (`docs/UI_GODMODE_PLAN.md`): brain "current stance"
