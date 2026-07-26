@@ -62,8 +62,14 @@ docs; this is the "come back to it" index.
 
 ## 🔵 Feature ideas / backlog (revisit, not urgent)
 
-- **Advisor pillar 1 — probability calibration**: make `confidence` a measured
-  probability (score-bucket → empirical hit-rate). Blocked on graded data.
+- **Advisor pillar 1 — probability calibration**: ✅ INFRA BUILT 2026-07-26
+  (brain `296f8c7`, DARK) — `calibration_curve` (confidence→empirical hit-rate
+  reliability curve, Beta shrinkage, ECE + monotonicity) + `calibrated_confidence`
+  lookup; daily run rebuilds/stores `advisor_calibration_latest` + dark-attaches
+  to rows. Live confidence UNCHANGED. Real n=21: ECE 47.9pp, monotonic False,
+  inverted — correctly shows the heuristic isn't usable yet. **Promotion still
+  blocked on graded-data volume + a monotonic curve.** Follow-up: UI surface;
+  measure calibrated-vs-raw as n grows.
 - **Advisor pillar 3 — regime-conditional factor weighting**: per-regime
   factor attribution → regime-aware weights (the self-improving flywheel).
   Blocked on graded data + days-per-regime.
