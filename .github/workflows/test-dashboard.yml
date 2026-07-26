@@ -1,0 +1,40 @@
+name: Test zerodha-trading
+
+# Gate every push/PR on typecheck + lint + build. Vercel auto-deploys on push
+# regardless, so this is the safety net that turns a broken build into a red
+# check instead of a broken deploy.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        env:
+          # Placeholders — lib/supabase.ts tolerates these; every route is
+          # force-dynamic and only touches real env at request time (Vercel).
+          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
+          SUPABASE_SERVICE_ROLE_KEY: "placeholder-service-key"
+        run: npm run build
