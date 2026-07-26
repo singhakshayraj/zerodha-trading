@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
 import {
   Database, TrendingUp, Layers, Activity, RefreshCw, Gauge,
@@ -165,7 +166,11 @@ export default function InsightsPage() {
           </div>
 
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}
-          {!data && loading && <p className="text-sm text-[#555]">Loading…</p>}
+          {!data && loading && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
+            </div>
+          )}
 
           {guideOpen && <GuideModal onClose={() => setGuideOpen(false)} />}
 

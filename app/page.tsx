@@ -14,6 +14,7 @@ import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BrainStatus } from "@/components/BrainStatus";
 import { RiskMeter } from "@/components/RiskMeter";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, Briefcase, Compass, ArrowRight, TrendingUp, TrendingDown, Scissors, Hourglass, ShieldAlert, Layers, Gauge, History } from "lucide-react";
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
@@ -142,7 +143,7 @@ export default function CommandCenter() {
                 <Link href="/portfolio" className="ml-auto text-[10px] text-[#555] hover:text-[#888]">open →</Link>
               </div>
               {holdings === null ? (
-                <p className="text-[11px] text-[#444]">Loading…</p>
+                <div className="flex gap-4"><Skeleton className="h-7 w-20" /><Skeleton className="h-7 w-16" /><Skeleton className="h-7 w-12" /></div>
               ) : holdings.length === 0 ? (
                 <p className="text-[11px] text-[#444]">No holdings found.</p>
               ) : (
@@ -175,7 +176,7 @@ export default function CommandCenter() {
                 <Link href="/advisor" className="ml-auto text-[10px] text-[#555] hover:text-[#888]">open →</Link>
               </div>
               {advice === null ? (
-                <p className="text-[11px] text-[#444]">Loading…</p>
+                <div className="space-y-2"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-40" /></div>
               ) : !topAction ? (
                 <p className="text-[12px] text-[#888]">No action needed{runDate ? ` · ${runDate}` : ""} — holdings all clear.</p>
               ) : (() => {

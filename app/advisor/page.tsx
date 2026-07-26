@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History } from "lucide-react";
 
 type Advice = {
@@ -151,7 +152,11 @@ export default function AdvisorPage() {
           <p className="text-[11px] text-[#4a4a4a] mb-6">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
 
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}
-          {!rows && loading && <p className="text-sm text-[#555]">Loading…</p>}
+          {!rows && loading && (
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 w-full" />)}
+            </div>
+          )}
 
           {rows && rows.length === 0 && (
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
