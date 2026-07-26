@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -77,6 +77,17 @@ type PortfolioRisk = {
   } | null;
 };
 
+type Calibration = {
+  graded_calls: number;
+  base_rate_pct: number | null;
+  ece_pct: number | null;
+  monotonic: boolean | null;
+  bins: {
+    label: string; n: number; predicted_pct: number;
+    empirical_hit_pct: number; calibrated_pct: number; low_n: boolean;
+  }[];
+};
+
 export default function AdvisorPage() {
   const router = useRouter();
   const { isConnected, hydrateFromStorage } = useAppStore();
@@ -86,6 +97,7 @@ export default function AdvisorPage() {
   const [isOfficial, setIsOfficial] = useState<boolean | null>(null);
   const [track, setTrack] = useState<TrackRecord | null>(null);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
+  const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,6 +111,7 @@ export default function AdvisorPage() {
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
       setRisk(r.portfolioRisk ?? null);
+      setCalibration(r.calibration ?? null);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
     try {
@@ -240,6 +253,41 @@ export default function AdvisorPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {calibration && calibration.graded_calls > 0 && (
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <Gauge className="w-4 h-4 text-[#888]" />
+                <h3 className="text-sm font-semibold text-[#f5f5f5]">Confidence calibration</h3>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b0d] text-[#f59e0b] uppercase tracking-wide">Dark · not used for decisions</span>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] mb-3">
+                <span className="text-[#888]">Base rate <span className="text-[#e5e5e5]">{calibration.base_rate_pct}%</span></span>
+                <span className="text-[#888]">Calibration error <span className="text-[#e5e5e5]">{calibration.ece_pct}pp</span></span>
+                <span className="text-[#888]">Reliable? {calibration.monotonic
+                  ? <span className="text-[#22c55e]">monotonic ✓</span>
+                  : <span className="text-[#f59e0b]">not monotonic — unusable yet</span>}</span>
+                <span className="text-[#555]">n={calibration.graded_calls}</span>
+              </div>
+              <div className="space-y-1.5">
+                {calibration.bins.map((b) => (
+                  <div key={b.label} className="flex items-center gap-2 text-[11px]">
+                    <span className="w-12 text-[#888] tabular-nums">{b.label}</span>
+                    <span className="w-9 text-[#666] tabular-nums">n={b.n}</span>
+                    <span className="w-20 text-[#888] tabular-nums">pred {b.predicted_pct}%</span>
+                    <div className="flex-1 h-1.5 rounded bg-[#1f1f1f] overflow-hidden min-w-[40px]">
+                      <div className="h-full bg-[#3b82f6]" style={{ width: `${Math.min(100, Math.max(0, b.empirical_hit_pct))}%` }} />
+                    </div>
+                    <span className="w-16 text-right text-[#e5e5e5] tabular-nums">emp {b.empirical_hit_pct}%</span>
+                    <span className="w-24 text-right text-[#888] tabular-nums">calib {b.calibrated_pct}%{b.low_n ? " ·low-n" : ""}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-[#888] leading-relaxed mt-3">
+                A usable confidence needs the empirical hit-rate (bar) to rise with predicted confidence (monotonic) on enough calls. <span className="text-[#e5e5e5]">Calibrated</span> is the empirical rate shrunk toward the base rate so small buckets don&apos;t mislead. Logged only — it never changes a verdict until it earns promotion.
+              </p>
             </div>
           )}
 

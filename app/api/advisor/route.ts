@@ -50,12 +50,28 @@ export async function GET() {
       /* risk view is additive — never blocks the advice payload */
     }
 
+    // Confidence calibration reliability curve (DARK diagnostic — the advisor
+    // does NOT use it for decisions yet). A rolling read over the graded track
+    // record, valid regardless of today's run, so it's surfaced whenever set.
+    let calibration = null;
+    try {
+      const { data: cal } = await supabaseServer
+        .from("app_config")
+        .select("value")
+        .eq("key", "advisor_calibration_latest")
+        .single();
+      if (cal?.value) calibration = JSON.parse(cal.value as string);
+    } catch {
+      /* diagnostic — never blocks the advice payload */
+    }
+
     return NextResponse.json({
       runDate,
       runAt: latest?.[0]?.created_at ?? null,
       isOfficial: latest?.[0]?.is_official ?? null,
       rows: rows ?? [],
       portfolioRisk,
+      calibration,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
