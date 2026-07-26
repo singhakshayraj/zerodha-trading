@@ -30,7 +30,7 @@ type Advice = {
   rotation_buy_qty?: number | null;
   rotation_buy_price?: number | null;
   user_decision?: "accept" | "decline" | null;
-  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number } | null;
+  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean } | null;
 };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
@@ -98,6 +98,7 @@ export default function AdvisorPage() {
   const [track, setTrack] = useState<TrackRecord | null>(null);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
+  const [filterVerdict, setFilterVerdict] = useState<Advice["verdict"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -293,22 +294,39 @@ export default function AdvisorPage() {
 
           {rows && rows.length > 0 && (
             <div className="space-y-6">
-              {/* summary strip */}
+              {/* summary strip — click a verdict to filter the cards below */}
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                 {(Object.keys(VERDICT_META) as Advice["verdict"][]).map((v) => {
                   const m = VERDICT_META[v]; const Icon = m.icon;
+                  const n = counts[v] ?? 0;
+                  const active = filterVerdict === v;
                   return (
-                    <div key={v} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                    <button
+                      key={v}
+                      type="button"
+                      disabled={n === 0}
+                      onClick={() => setFilterVerdict(active ? null : v)}
+                      aria-pressed={active}
+                      title={n === 0 ? `No ${m.label} calls` : active ? "Show all" : `Show only ${m.label}`}
+                      className={`text-left bg-[#111111] border rounded-xl p-4 transition-colors ${n === 0 ? "opacity-40 cursor-default" : "cursor-pointer hover:border-[#333]"}`}
+                      style={{ borderColor: active ? m.color : "#1f1f1f" }}
+                    >
                       <div className="flex items-center gap-2 mb-1"><Icon className="w-4 h-4" style={{ color: m.color }} /><span className="text-[11px] text-[#666] uppercase tracking-wide">{m.label}</span></div>
-                      <p className="text-2xl font-semibold tabular-nums" style={{ color: counts[v] ? m.color : "#333" }}>{counts[v] ?? 0}</p>
-                    </div>
+                      <p className="text-2xl font-semibold tabular-nums" style={{ color: n ? m.color : "#333" }}>{n}</p>
+                    </button>
                   );
                 })}
               </div>
+              {filterVerdict && (
+                <div className="flex items-center gap-2 text-[11px] text-[#888]">
+                  <span>Showing {counts[filterVerdict] ?? 0} {VERDICT_META[filterVerdict].label} call{(counts[filterVerdict] ?? 0) === 1 ? "" : "s"}</span>
+                  <button type="button" onClick={() => setFilterVerdict(null)} className="text-[#60a5fa] hover:underline">clear filter</button>
+                </div>
+              )}
 
               {/* cards, worst-first (API sorts by trend_score asc) */}
               <div className="space-y-3">
-                {rows.map((r) => {
+                {(filterVerdict ? rows.filter((r) => r.verdict === filterVerdict) : rows).map((r) => {
                   const m = VERDICT_META[r.verdict]; const Icon = m.icon;
                   const pnl = r.pnl_percent ?? 0;
                   return (
@@ -327,6 +345,11 @@ export default function AdvisorPage() {
                             <p style={{ color: pnl >= 0 ? GREEN : RED }}>{pnl >= 0 ? "+" : ""}{pnl?.toFixed(1)}%{(r.breakeven_gain_pct ?? 0) > 0 ? <span className="text-[#666]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span> : null}</p>
                             <p className="text-[#555]">
                               trend {r.trend_score > 0 ? "+" : ""}{r.trend_score} · confidence {r.confidence}%
+                              {r.indicators?.calibrated_confidence != null && (
+                                <span className="text-[#666]" title="Measured hit-rate for this confidence bucket from the graded track record — DARK, not used for the verdict yet">
+                                  {" "}· calib ~{Math.round(r.indicators.calibrated_confidence)}%{r.indicators.calibration_low_n ? " (low-n)" : ""}
+                                </span>
+                              )}
                               {r.trigger_type && (
                                 <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide align-middle"
                                       style={{ background: "#ffffff0d", color: r.trigger_type === "MACRO" ? "#a78bfa" : "#60a5fa" }}
