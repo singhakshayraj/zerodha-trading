@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -99,6 +99,7 @@ export default function AdvisorPage() {
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [filterVerdict, setFilterVerdict] = useState<Advice["verdict"] | null>(null);
+  const [diff, setDiff] = useState<{ priorRunDate: string | null; changes: { symbol: string; from: Advice["verdict"]; to: Advice["verdict"] }[]; newNames: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,6 +114,7 @@ export default function AdvisorPage() {
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
       setRisk(r.portfolioRisk ?? null);
       setCalibration(r.calibration ?? null);
+      setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
     try {
@@ -189,6 +191,35 @@ export default function AdvisorPage() {
                 {REGIME_META[rows[0].market_regime].label}
               </span>
               <span className="text-[11px] text-[#666]">{REGIME_META[rows[0].market_regime].blurb}</span>
+            </div>
+          )}
+
+          {diff?.priorRunDate && (
+            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <History className="w-4 h-4 text-[#888]" />
+                <h3 className="text-sm font-semibold text-[#f5f5f5]">What changed</h3>
+                <span className="text-[11px] text-[#555]">vs the {diff.priorRunDate} run</span>
+              </div>
+              {diff.changes.length === 0 && diff.newNames.length === 0 ? (
+                <p className="text-[12px] text-[#888]">No verdict changes — every holding&apos;s call is the same as the last run.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {diff.changes.map((c) => (
+                    <span key={c.symbol} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
+                      <span className="text-[#e5e5e5] font-medium">{c.symbol}</span>{" "}
+                      <span style={{ color: VERDICT_META[c.from]?.color ?? MUTE }}>{VERDICT_META[c.from]?.label ?? c.from}</span>
+                      <span className="text-[#666]"> → </span>
+                      <span style={{ color: VERDICT_META[c.to]?.color ?? MUTE }} className="font-semibold">{VERDICT_META[c.to]?.label ?? c.to}</span>
+                    </span>
+                  ))}
+                  {diff.newNames.map((s) => (
+                    <span key={s} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
+                      <span className="text-[#e5e5e5] font-medium">{s}</span> <span className="text-[#60a5fa]">new</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

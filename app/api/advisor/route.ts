@@ -65,6 +65,38 @@ export async function GET() {
       /* diagnostic — never blocks the advice payload */
     }
 
+    // Day-over-day verdict diff: what changed vs the last run on an earlier
+    // date. A daily user cares about the flips (ATGL HOLD->TRIM) and new
+    // names, not re-reading 20 unchanged cards. Additive — never blocks.
+    let priorRunDate: string | null = null;
+    const changes: { symbol: string; from: string; to: string }[] = [];
+    const newNames: string[] = [];
+    try {
+      const { data: prior } = await supabaseServer
+        .from("portfolio_advice")
+        .select("run_id, run_date")
+        .lt("run_date", runDate)
+        .order("run_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const priorRunId = prior?.[0]?.run_id ?? null;
+      priorRunDate = prior?.[0]?.run_date ?? null;
+      if (priorRunId) {
+        const { data: priorRows } = await supabaseServer
+          .from("portfolio_advice")
+          .select("symbol, verdict")
+          .eq("run_id", priorRunId);
+        const prev = new Map((priorRows ?? []).map((r) => [r.symbol as string, r.verdict as string]));
+        for (const r of rows ?? []) {
+          const was = prev.get(r.symbol);
+          if (was === undefined) newNames.push(r.symbol);
+          else if (was !== r.verdict) changes.push({ symbol: r.symbol, from: was, to: r.verdict });
+        }
+      }
+    } catch {
+      /* diff is additive — never blocks the advice payload */
+    }
+
     return NextResponse.json({
       runDate,
       runAt: latest?.[0]?.created_at ?? null,
@@ -72,6 +104,9 @@ export async function GET() {
       rows: rows ?? [],
       portfolioRisk,
       calibration,
+      priorRunDate,
+      changes,
+      newNames,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
