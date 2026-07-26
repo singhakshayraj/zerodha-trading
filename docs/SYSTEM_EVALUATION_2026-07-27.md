@@ -227,10 +227,18 @@ Tags: 🔴 blocking · 🟠 high · 🟡 medium · ⚪ low. Owner: [me]=buildabl
 4. 🔴 T1/T3 Kite historical → puller → **run gate #6** [you decision → me build].
    *This is the hinge. Nothing else matters as much.*
 
-**Sprint 2 — de-risk the ops (me, parallel-safe):**
-5. 🟠 SE2 CI pipeline (tests-gate-deploy + auto GIT_SHA) [me].
-6. 🟠 SE3 TOTP auto-login [you setup → me wire].
-7. 🟡 SE4 module split [me].
+**Sprint 2 — de-risk the ops:**
+5. ✅ SE2 CI — DONE 2026-07-27. Discovery: brain had 6 unpushed commits (whole
+   session local-only, no backup) — pushed. Brain already had `test-brain.yml`
+   (py3.11 = prod, full pytest + 70% cov gate); added `test-dashboard.yml`
+   (tsc + lint + build). **Both CIs verified green.** Also fixes SE5 (CI runs on
+   prod py3.11, not local 3.9). Added `scripts/deploy.sh` (brain `181682a`) —
+   `railway up` + GIT_SHA stamp in one atomic command, killing the hand-bump that
+   caused the "unknown" regression. Use it for every future brain deploy.
+6. 🟠 SE3 TOTP auto-login [you setup → me wire] — still pending your Zerodha side.
+7. 🟡 SE4 module split — **DEFERRED** to a focused session. It's a 1,500-line file
+   imported by scheduler/grade_advice/tests; a careful split (advisor/ package)
+   is worth its own low-risk session, not the tail of a long one. Not urgent.
 
 **Sprint 3 — make the advisor genuinely advisory (after edge verdict):**
 8. 🟠 FA2 fundamentals provider (agent P3) [you source → me build].
