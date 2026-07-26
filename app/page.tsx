@@ -14,7 +14,7 @@ import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BrainStatus } from "@/components/BrainStatus";
 import { RiskMeter } from "@/components/RiskMeter";
-import { Activity, Briefcase, Compass, ArrowRight, TrendingUp, TrendingDown, Scissors, Hourglass, ShieldAlert, Layers } from "lucide-react";
+import { Activity, Briefcase, Compass, ArrowRight, TrendingUp, TrendingDown, Scissors, Hourglass, ShieldAlert, Layers, Gauge, History } from "lucide-react";
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
 const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
@@ -49,6 +49,8 @@ export default function CommandCenter() {
   const [advice, setAdvice] = useState<Advice[] | null>(null);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [runDate, setRunDate] = useState<string | null>(null);
+  const [changeCount, setChangeCount] = useState(0);
+  const [edge, setEdge] = useState<{ profitFactor: number | null; maxDrawdownR: number; expectancyR: number; label: string; closed: number } | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
@@ -64,7 +66,12 @@ export default function CommandCenter() {
     try {
       const a = (await api.get("/advisor")).data;
       setAdvice(a.rows ?? []); setRisk(a.portfolioRisk ?? null); setRunDate(a.runDate ?? null);
+      setChangeCount((a.changes ?? []).length);
     } catch { /* */ }
+    try {
+      const v = (await api.get("/analytics/insights")).data?.verdict;
+      if (v) setEdge({ profitFactor: v.profitFactor ?? null, maxDrawdownR: v.maxDrawdownR ?? 0, expectancyR: v.expectancyR ?? 0, label: v.label ?? "", closed: v.closed ?? 0 });
+    } catch { /* edge strip degrades to empty */ }
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
 
@@ -76,9 +83,8 @@ export default function CommandCenter() {
   const dayPnl = (holdings ?? []).reduce((s, h) => s + h.day_change * h.quantity, 0);
 
   // advisor top action: worst actionable call today
-  const topAction = (advice ?? [])
-    .filter((r) => ACTIONABLE.has(r.verdict) || r.rotation_target_symbol)
-    .sort((a, b) => (a.trend_score ?? 0) - (b.trend_score ?? 0))[0];
+  const actionable = (advice ?? []).filter((r) => ACTIONABLE.has(r.verdict) || r.rotation_target_symbol);
+  const topAction = [...actionable].sort((a, b) => (a.trend_score ?? 0) - (b.trend_score ?? 0))[0];
 
   const cfg = sess?.config ?? {};
   const capital = (cfg.capitalDeployed as number) ?? 25000;
@@ -190,8 +196,47 @@ export default function CommandCenter() {
                   </div>
                 );
               })()}
+              {advice !== null && advice.length > 0 && (actionable.length > 1 || changeCount > 0) && (
+                <p className="text-[10px] text-[#555] mt-2 flex items-center gap-1.5">
+                  <span>{actionable.length} action{actionable.length === 1 ? "" : "s"} today</span>
+                  {changeCount > 0 && (
+                    <span className="flex items-center gap-1 text-[#60a5fa]"><History className="w-3 h-3" />{changeCount} changed</span>
+                  )}
+                </p>
+              )}
             </div>
           </div>
+
+          {/* Edge (paper) — the go/no-go metric (VISION §6.1), the whole point */}
+          {edge && edge.closed > 0 && (
+            <Link href="/insights" className="group flex flex-wrap items-center gap-x-6 gap-y-2 bg-[#111111] border border-[#1f1f1f] hover:border-[#333] rounded-xl p-4 mb-4 transition-colors">
+              <div className="flex items-center gap-2">
+                <Gauge className="w-4 h-4 text-[#888]" />
+                <span className="text-sm font-semibold text-[#f5f5f5]">Edge (paper)</span>
+                <span className="text-[10px] text-[#555]">{edge.closed} closed trades</span>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#555] uppercase tracking-wide">Profit factor</p>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: edge.profitFactor == null ? MUTE : edge.profitFactor >= 1.3 ? GREEN : edge.profitFactor >= 1.1 ? AMBER : RED }}>
+                  {edge.profitFactor == null ? "—" : edge.profitFactor.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#555] uppercase tracking-wide">Max drawdown</p>
+                <p className="text-lg font-semibold tabular-nums text-[#f5f5f5]">{edge.maxDrawdownR.toFixed(1)}R</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#555] uppercase tracking-wide">Expectancy</p>
+                <p className="text-lg font-semibold tabular-nums" style={{ color: edge.expectancyR >= 0 ? GREEN : RED }}>
+                  {edge.expectancyR >= 0 ? "+" : ""}{edge.expectancyR.toFixed(2)}R
+                </p>
+              </div>
+              <div className="ml-auto flex items-center gap-2 text-[11px] text-[#888]">
+                <span className="px-2 py-0.5 rounded-full bg-[#ffffff08]">{edge.label}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#444] group-hover:text-[#888] transition-colors" />
+              </div>
+            </Link>
+          )}
 
           {/* daily risk meter (full width) */}
           <div className="mb-4">
