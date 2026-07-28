@@ -5,7 +5,7 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-07-27 · Burn-down this week: 6 shipped / 3 ready / 4 blocked._
+_Last updated: 2026-07-28 · Burn-down this week: 6 shipped / 4 ready / 4 blocked._
 
 ---
 
@@ -49,10 +49,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - **[P-05] Fix stop execution — STOP_LOSS_HIT avg −1.59R.** [me] · *done =* stops
   cap near −1R (stop-limit vs market / size-down); re-measure the bucket. ·
   *source:* T4. _Fixable independent of edge — highest ready value._
+  _07-28: still unfixed — bucket measured −1.87R (6 trades), worse than baseline._
 - **[P-06] Module split part 2 (scoring/`advise` + `run_*` loops).** [me] · *done
   =* no file >600 lines, 828 green. · *source:* SE4.
 - **[P-07] Dark-flag the "trade-only-open" filter.** [me] · *done =* logged +
   graded (not enforced) per session. · *source:* T4 (open is the only +EV bucket).
+- **[P-15] `stock_observations` missing PRE_OPEN/POST_CLOSE rows.** [me] · *done
+  =* a session-day shows `phase` values other than `INTRADAY` (at least one
+  PRE_OPEN + one POST_CLOSE per symbol). · *source:* post-session review
+  07-28 — queried all 20 rows in the table (all-time), 100% `INTRADAY`, despite
+  P2 scheduler (commit `77ab595`) claiming pre-open/hourly/post-close capture.
 
 ## 🔨 IN PROGRESS
 
