@@ -70,6 +70,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - **[P-12] Agent P4 — per-stock timeline UI** (sparkline + verdict path). [me]
 - **[P-13] Activate Marketaux news key** → `news.sentiment` populates. [you→me]
 
+## ⏸️ PARKED — explicitly deferred, revisit when raised
+
+- **[P-14] Advisor active-testing "enhancer".** [both] · parked 2026-07-28 by user
+  — "build a system to actively test the advisor page." Not scoped yet: does
+  "test" mean (a) synthetic/adversarial holdings to probe `advise()` edge cases,
+  (b) a live shadow-mode harness that re-runs the advisor against historical
+  price paths to check verdicts hold up, (c) UI/E2E test coverage for
+  `/advisor`, or (d) something else. **Do not build until re-raised** —
+  surface it next time the advisor is discussed.
+
 ## ✅ DONE (recent — for burn-down + verify)
 
 _2026-07-27:_ Sprint 0 (token scrub, RLS hole closed, EDGE-UNVERIFIED banner,
