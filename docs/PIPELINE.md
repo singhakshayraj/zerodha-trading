@@ -5,7 +5,7 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-07-29 · Burn-down this week: 6 shipped / 5 ready / 4 blocked._
+_Last updated: 2026-07-29 · Burn-down this week: 6 shipped / 6 ready / 4 blocked._
 
 ---
 
@@ -67,6 +67,24 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   review 07-29 — `DAILY_STOP_3R` fired 2/2 recent sessions (07-28, 07-29,
   both tagged TRENDING); 07-29 win rate 12.5% (4/32) vs 30.8% on 07-28, PF 0.18
   (worst of the 5 measured sessions).
+- **[P-17] Advisor gate fired ~5h late on 07-28.** [me] · *found:* the 09:45
+  gate + a manual `advisor_run_now` force at 10:06 IST both sat unconsumed
+  through 2+ scheduler cycles (confirmed live: cycles ~82s of work, ~8.5min
+  apart, engine otherwise healthy — trades/decisions logging normally); the
+  official run finally fired at **14:41:42 IST**. Same window showed
+  recurring `400 InputException` on `/quote/ltp` for several symbols (WIPRO,
+  TITAN, TCS, HINDUNILVR, HINDALCO) — kite_client fails fast on 400s (no
+  retry/hang per code), so this alone doesn't explain a 5h stall, but is a
+  plausible correlated symptom. **07-29 update: advisor ran clean, no repeat**
+  — may have been a one-off, but still worth hardening. Leading hypothesis:
+  `_advisor_running` (in-memory flag, `scheduler.py`) got stuck `True` from an
+  early wedged attempt and only cleared on a restart/timeout — untested.
+  *done =* add a log line at the top of `_maybe_run_advisor` (gate evaluated:
+  forced/official/lite/skip + reason) so a stall is diagnosable from logs
+  alone next time, and add a staleness self-heal (reset `_advisor_running` if
+  a thread has been "running" longer than e.g. 10 min). *source:* live
+  investigation 2026-07-28, missed by the scheduled review (which only checks
+  run-happened, not timing).
 
 ## 🔨 IN PROGRESS
 
