@@ -5,7 +5,7 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-07-29 · Burn-down this week: 6 shipped / 6 ready / 4 blocked._
+_Last updated: 2026-07-30 · Burn-down this week: 8 shipped / 4 ready / 4 blocked._
 
 ---
 
@@ -54,12 +54,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   =* no file >600 lines, 828 green. · *source:* SE4.
 - **[P-07] Dark-flag the "trade-only-open" filter.** [me] · *done =* logged +
   graded (not enforced) per session. · *source:* T4 (open is the only +EV bucket).
-- **[P-15] `stock_observations` missing PRE_OPEN/POST_CLOSE rows.** [me] · *done
-  =* a session-day shows `phase` values other than `INTRADAY` (at least one
-  PRE_OPEN + one POST_CLOSE per symbol). · *source:* post-session review
-  07-28 — queried all 20 rows in the table (all-time), 100% `INTRADAY`, despite
-  P2 scheduler (commit `77ab595`) claiming pre-open/hourly/post-close capture.
-  _07-29: still unfixed — now 80/80 rows (100% all-time) `INTRADAY`._
 - **[P-16] Regime-conditional read — TRENDING sessions look worse.** [me] · *done
   =* a T4-style breakdown of PF/expectancy/win-rate by `trades.regime` across
   the 5 measured sessions, checking whether TRENDING is systematically worse
@@ -67,25 +61,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   review 07-29 — `DAILY_STOP_3R` fired 2/2 recent sessions (07-28, 07-29,
   both tagged TRENDING); 07-29 win rate 12.5% (4/32) vs 30.8% on 07-28, PF 0.18
   (worst of the 5 measured sessions).
-- **[P-17] Advisor gate fired ~5h late on 07-28.** [me] · *found:* the 09:45
-  gate + a manual `advisor_run_now` force at 10:06 IST both sat unconsumed
-  through 2+ scheduler cycles (confirmed live: cycles ~82s of work, ~8.5min
-  apart, engine otherwise healthy — trades/decisions logging normally); the
-  official run finally fired at **14:41:42 IST**. Same window showed
-  recurring `400 InputException` on `/quote/ltp` for several symbols (WIPRO,
-  TITAN, TCS, HINDUNILVR, HINDALCO) — kite_client fails fast on 400s (no
-  retry/hang per code), so this alone doesn't explain a 5h stall, but is a
-  plausible correlated symptom. **07-29 update: advisor ran clean, no repeat**
-  — may have been a one-off, but still worth hardening. Leading hypothesis:
-  `_advisor_running` (in-memory flag, `scheduler.py`) got stuck `True` from an
-  early wedged attempt and only cleared on a restart/timeout — untested.
-  *done =* add a log line at the top of `_maybe_run_advisor` (gate evaluated:
-  forced/official/lite/skip + reason) so a stall is diagnosable from logs
-  alone next time, and add a staleness self-heal (reset `_advisor_running` if
-  a thread has been "running" longer than e.g. 10 min). *source:* live
-  investigation 2026-07-28, missed by the scheduled review (which only checks
-  run-happened, not timing).
-
 ## 🔨 IN PROGRESS
 
 - _(none — Sprint 0/2 just shipped)_
@@ -113,6 +88,19 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-07-30_ (brain `e81f706`, deployed):
+- **[P-15] pre/post timeline capture fixed** — root cause: `_capture_stock_timeline`
+  deduped on a rolling 1h window, so the 15:35 POST_CLOSE snapshot was deduped
+  against the ~15:2X intraday refresh and never inserted. Fix = phase-aware dedup
+  (INTRADAY hourly; PRE_OPEN/POST_CLOSE once-per-phase-per-day). _VERIFY next
+  session: `stock_observations` shows POST_CLOSE rows (+ PRE_OPEN when the token
+  is live before 09:14)._
+- **[P-17] advisor stall hardened** — staleness self-heal (reset `_advisor_running`
+  after >10min) + gate-decision logging (running / skip:no-token). _VERIFY: a
+  future stall shows `[SCHEDULER] advisor gate → …` in logs + self-recovers._
+  Note: PRE_OPEN still needs the token live before 09:14 — the real cure is the
+  daily-token dependency ([P-03] TOTP), which both 07-28/07-29 incidents argue for.
 
 _2026-07-27:_ Sprint 0 (token scrub, RLS hole closed, EDGE-UNVERIFIED banner,
 −3R hard stop) · Sprint 2 (CI both repos, `deploy.sh`, module split part 1) ·
