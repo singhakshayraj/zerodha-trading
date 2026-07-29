@@ -5,7 +5,7 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-07-28 · Burn-down this week: 6 shipped / 4 ready / 4 blocked._
+_Last updated: 2026-07-29 · Burn-down this week: 6 shipped / 5 ready / 4 blocked._
 
 ---
 
@@ -59,6 +59,14 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   PRE_OPEN + one POST_CLOSE per symbol). · *source:* post-session review
   07-28 — queried all 20 rows in the table (all-time), 100% `INTRADAY`, despite
   P2 scheduler (commit `77ab595`) claiming pre-open/hourly/post-close capture.
+  _07-29: still unfixed — now 80/80 rows (100% all-time) `INTRADAY`._
+- **[P-16] Regime-conditional read — TRENDING sessions look worse.** [me] · *done
+  =* a T4-style breakdown of PF/expectancy/win-rate by `trades.regime` across
+  the 5 measured sessions, checking whether TRENDING is systematically worse
+  than SIDEWAYS/BEARISH or this is small-sample noise. · *source:* post-session
+  review 07-29 — `DAILY_STOP_3R` fired 2/2 recent sessions (07-28, 07-29,
+  both tagged TRENDING); 07-29 win rate 12.5% (4/32) vs 30.8% on 07-28, PF 0.18
+  (worst of the 5 measured sessions).
 
 ## 🔨 IN PROGRESS
 
