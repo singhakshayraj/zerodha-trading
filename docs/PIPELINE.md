@@ -5,7 +5,7 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-07-30 · Burn-down this week: 8 shipped / 4 ready / 4 blocked._
+_Last updated: 2026-07-31 · Burn-down this week: 8 shipped / 4 ready / 4 blocked._
 
 ---
 
@@ -41,6 +41,10 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   `stock_observations.payload.fundamentals` non-null. · *blocked on:* source pick.
 - **[P-03] TOTP headless auto-login (SE3).** [you→me] · *done =* a session starts
   with no manual token paste. · *blocked on:* Zerodha API/TOTP setup.
+  _07-31 review: the manual-paste dependency just cost 2 consecutive trading
+  days (07-30, 07-31 — both regular NSE sessions) — brain online + heartbeating
+  but no START command, zero sessions/trades/advisor runs either day. Sharpens
+  priority on this item once unblocked._
 - **[P-04] Rotate Telegram bot token + Supabase anon key.** [you] · *done =* new
   creds live; old ones dead. · *source:* Sprint 0 security fix (were exposed).
 

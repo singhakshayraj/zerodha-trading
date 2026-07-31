@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-07-29._
+_Last updated: 2026-07-31._
 
 ---
 
@@ -63,7 +63,15 @@ worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
 
 ## ⏳ Open — needs the USER (each unblocks work)
 1. **Paste enc_token before 09:15 IST** each session (daily; TOTP auto-login is
-   built-but-dormant — see [ROADMAP.md](ROADMAP.md) SE3).
+   built-but-dormant — see [ROADMAP.md](ROADMAP.md) SE3). 🔴 **Missed 2
+   consecutive trading days (07-30, 07-31)** — both confirmed regular NSE
+   sessions (not holidays), yet zero `trading_sessions` rows, zero `trades`,
+   zero advisor runs either day. `brain_heartbeat` shows the brain ONLINE and
+   pinging (last: 07-31 11:07 UTC) but stuck at `current_cycle=0,
+   "Waiting for START command"` — the process is alive, nothing kicked it off.
+   Last real activity of any kind: 07-29 (session + advisor run + heartbeat
+   activity log). Two full paper-trading days lost off the gate-#6 validation
+   clock.
 2. 🔴 **Rotate the Telegram bot token** (was exposed in logs; scrubbed in code
    but rotate via @BotFather) + consider rotating the **Supabase anon key**
    (was effectively public until the 07-27 RLS fix).
