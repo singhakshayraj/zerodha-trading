@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-07-31._
+_Last updated: 2026-08-02._
 
 ---
 
@@ -20,10 +20,20 @@ user decision)**. Alongside the trader is a **portfolio advisor** (daily HOLD/SE
 on real holdings) which is where most recent work has gone.
 
 ## Deployed versions
-- **Brain:** `c177baeb157f` (seen live in the 07-28 session; STATUS previously
-  tracked `4e2230113d7a` — redeployed between sessions, brain-repo commits not
-  visible from this repo's `git log`).
+- **Brain:** `642ed9415c02` (deployed 08-02 via `zerodha-brain/scripts/deploy.sh`;
+  GIT_SHA env set to match). Chain since 07-29: `c177bae` (07-29 session) →
+  `e81f706` (07-30, P-15/P-17 fixes) → `642ed94` (08-02, P-19 fix).
 - **Dashboard:** auto-deploys from `main` on Vercel. CI gates both repos on push.
+
+## Recent fixes — DEPLOYED but NOT yet verified live (no session since 07-29)
+- **[P-15]** per-stock PRE_OPEN/POST_CLOSE capture — phase-aware dedup fix
+  (POST_CLOSE was being hourly-deduped by the ~15:2X intraday refresh). `e81f706`.
+- **[P-17]** advisor scheduler stall — staleness self-heal + gate logging. `e81f706`.
+- **[P-19]** killed the `/quote/ltp` 400-InputException log spam on every paper
+  fill (retail token can't use /quote; hint_price was always the real path). `642ed94`.
+- **git_sha fix** — validated once (07-28/29 sessions stamped a real SHA, not
+  `unknown`). Next session should stamp `642ed9415c02`.
+_All three carry over to the next real session for verification (see below)._
 
 ## The 5 measured sessions (edge evidence)
 | Date | Trades | P&L | PF | Expectancy |
@@ -62,16 +72,15 @@ worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
   /trading (RiskMeter).
 
 ## ⏳ Open — needs the USER (each unblocks work)
-1. **Paste enc_token before 09:15 IST** each session (daily; TOTP auto-login is
-   built-but-dormant — see [ROADMAP.md](ROADMAP.md) SE3). 🔴 **Missed 2
-   consecutive trading days (07-30, 07-31)** — both confirmed regular NSE
-   sessions (not holidays), yet zero `trading_sessions` rows, zero `trades`,
-   zero advisor runs either day. `brain_heartbeat` shows the brain ONLINE and
-   pinging (last: 07-31 11:07 UTC) but stuck at `current_cycle=0,
-   "Waiting for START command"` — the process is alive, nothing kicked it off.
-   Last real activity of any kind: 07-29 (session + advisor run + heartbeat
-   activity log). Two full paper-trading days lost off the gate-#6 validation
-   clock.
+1. 🔴🔴 **THE binding constraint right now — no sessions are running.** Paste the
+   enc_token before 09:15 IST to start a session (or set up TOTP, item 5). **Zero
+   sessions since 07-29** — 07-30 + 07-31 were regular NSE trading days but no
+   token was pasted, so nothing started (brain is ONLINE + heartbeating, stuck at
+   `current_cycle=0, "Waiting for START command"`). Every code bug is fixed and
+   deployed, but the whole pipeline (P-15/P-17/P-19 verification, P-05/P-07/P-16
+   data, calibration accrual) is **starved because no sessions run.** This is 4
+   sessions now degraded/lost to the manual-token SPOF (07-28 stall, 07-29 late,
+   07-30/31 missed) — the strongest possible case for TOTP (item 5).
 2. 🔴 **Rotate the Telegram bot token** (was exposed in logs; scrubbed in code
    but rotate via @BotFather) + consider rotating the **Supabase anon key**
    (was effectively public until the 07-27 RLS fix).
@@ -79,19 +88,15 @@ worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
 4. **Fundamentals data source** pick (screener/NSE vs paid) → unblocks agent P3.
 5. **Zerodha TOTP/API setup** → lets me wire headless auto-login (SE3).
 
-## ✅ Verify next session (after the ~09:20 advisor run)
-- `trading_sessions.git_sha` populated (not `unknown`) — ✅ 07-29 (`c177baeb157f`,
-  unchanged from 07-28).
+## ✅ Verify on the NEXT real session (the P-15/P-17/P-19 fixes are untested live)
+- `trading_sessions.git_sha` = **`642ed9415c02`** (not `unknown`).
+- `stock_observations` now shows **POST_CLOSE** rows (and PRE_OPEN if the token is
+  live before 09:14) — was 100% `INTRADAY`; the [P-15] fix should change that.
+- Session logs show no `[PAPER] LTP fetch failed … 400` spam ([P-19] fix).
+- If the advisor ever stalls: logs show `[SCHEDULER] advisor gate → …` and it
+  self-recovers within 10 min ([P-17]).
 - `app_config.portfolio_risk_latest.correlation` + `advisor_calibration_latest`
-  populated — ✅ 07-29 (updated 06:29 UTC).
-- `stock_observations` filling — incl a PRE_OPEN + POST_CLOSE row/day — ❌
-  still failing. 07-29: all 80 rows (100% all-time, up from 20) are
-  `phase='INTRADAY'`; zero PRE_OPEN or POST_CLOSE despite P2 scheduler marked
-  shipped. See [P-15] in [PIPELINE.md](PIPELINE.md).
-- `/advisor` renders calibration card, correlation, "What changed" diff —
-  not verified this run (dashboard API host unreachable from this session's
-  network policy again — `curl` connection error; underlying data confirmed
-  populated via Supabase directly).
+  refresh on the advisor run.
 
 ## Feedback loop (live)
 Project-level flywheel (mirrors VISION §7): REVIEW → TRIAGE → [PIPELINE.md](PIPELINE.md)
