@@ -137,7 +137,10 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 - **[P-08] FA1 client-profile layer** (horizon/risk/tax → advice conditioned on
   the person). [both]
-- **[P-09] FA4 position-sizing / entry-quality on rotation targets.** [me]
+- **[P-09] FA4 entry-quality on rotation targets — DARK, shipped 08-03** (brain,
+  see Done). Weekly-downtrend refusal + single-name weight cap live as dark
+  counterfactuals; correlated-cluster lever deferred (no cluster membership for
+  non-held names yet). [me]
 - **[P-10] FA3 regime-conditional factor weights (Pillar 3).** [me] · needs graded
   data across regimes.
 - **[P-11] Promote daily/weekly alignment into the score** once it's gradeable
@@ -156,6 +159,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-03_ (brain — code + suite green at 852; **pending deploy + live verify**):
+- **[P-09] FA4 rotation entry-quality (DARK).** A rotation into a stronger score
+  still needs to be a quality ENTRY. `rotation_entry_quality()` computes, per
+  chosen target: weekly-downtrend (countertrend entry → `would_block`) + single-
+  name weight vs `ROTATION_MAX_SINGLE_NAME_PCT` (over-concentration →
+  `would_resize`). Plumbed `weekly` through score_universe → find_rotation_candidate
+  → target. Flags stash on `indicators.rotation_entry_quality` (jsonb, migration-
+  free, gradeable) + logged; only refuse/resize when `ROTATION_QUALITY_ENABLED`
+  (default off — measure first, VISION §7). Correlated-cluster lever deferred
+  (no cluster membership for non-held names). +5 tests.
 
 _2026-08-03_ (dashboard, auto-deploys from main on Vercel):
 - **[P-12] Per-stock timeline UI.** The agent's `stock_observations` (price /
