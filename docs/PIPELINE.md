@@ -108,12 +108,14 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   cosmetic-reward teardowns of the LIVE engine, not clean splits:
   • brain.py 2211 — one monolithic `TradingBrain` class; methods share `self`,
     so a split needs mixins/surgery on the trade engine.
-  • database.py 1359 — even the CORE (client + sessions + trades + decisions,
-    L1–770) is itself >600, so <600 forces splitting the shared-Supabase-client
-    foundation across ~4 modules (circular-import-sensitive; 33 `patch('database.
-    supabase')` + 8 `patch('database.get_config')` sites pin those to the
-    `database` module). Domain fns aren't patched by name, so domain modules are
-    safe — but they alone can't get core under 600.
+  • database.py 1359 → **905** (08-03, brain `9e370ac`): first increment done —
+    stock/observation/universe/level/advice-snapshot access (28 fns) extracted →
+    `db_stocks.py` 479, referencing `database.supabase`/`_now_iso` at call time
+    so the 33 `patch('database.supabase')` sites still bite (verified); facade
+    re-export keeps all `db.<name>` callers unchanged. Suite 852, cov 88%. To
+    reach <600 the CORE itself (client + sessions + trades + decisions, still
+    >600) needs a further session/trade/candle split — safe via the same pattern,
+    its own increment.
   • scheduler.py 854 — 64 `patch('scheduler.db')` + dense monkeypatching → any
     extraction risks mass patch-repointing.
   • config.py 632 — flat flag declarations, exempt.
