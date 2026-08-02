@@ -5,7 +5,7 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-02 · Burn-down this week: 0 shipped / 5 ready / 4 blocked._
+_Last updated: 2026-08-02 · Burn-down this week: 1 shipped / 5 ready / 4 blocked._
 
 ---
 
@@ -140,6 +140,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-02_ (brain `642ed94`, deployed):
+- **[P-19] Killed the `/quote/ltp` 400-InputException spam.** The paper broker
+  called `/quote/ltp` on every fill, but that endpoint 400s on a retail enctoken
+  (same reason as `TRADING_MODE_FORCE=HOLDINGS_ONLY`) — so it always failed and
+  the fill fell back to `hint_price` anyway, leaving a guaranteed-failing HTTP
+  call + a `[PAPER] LTP fetch failed … 400` log line per fill flooding session
+  logs. Fix: `config.PAPER_QUOTE_LTP_ENABLED` (default off) skips the doomed
+  call; zero behaviour change (hint_price was already the effective path). +2
+  tests, suite 834 green. _source: live log investigation 07-28._
 
 _2026-07-30_ (brain `e81f706`, deployed):
 - **[P-15] pre/post timeline capture fixed** — root cause: `_capture_stock_timeline`
