@@ -89,15 +89,18 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 - **[P-06] Module split part 2 — IN PROGRESS (scoring half done).** [me] · *done
   =* no file >600 lines, suite green. · *source:* SE4.
-  _08-02 shipped (brain `4cb62ce`): scoring/`advise` extracted →
-  `advisor_scoring.py` (554 lines), mirroring the part-1 advisor_risk/digest
-  facade. **portfolio_advisor 1155 → 635**, behaviour-identical, suite 847 green,
-  F-lint clean. Hazard handled: `advise` calls `weekly_trend` internally, so the
-  one test patching it now targets `advisor_scoring.weekly_trend` (`news_sentiment`
-  patch stayed valid — its callers are in the orchestration half). **Remaining
-  to close the item:** pa still 635 (extract a `run_*` loop for the last ~40),
-  plus brain.py 2211, database.py 1359, scheduler.py 854 — each its own
-  increment; brain.py is the big one (patched-test namespace, do carefully)._
+  _08-02–03 shipped: the **entire advisor family is now split and all <600** —
+  `advisor_scoring.py` 554 (scoring/`advise`, brain `4cb62ce`) + `advisor_rotation.py`
+  59 (rotation helpers, brain `a89b82d`), on top of part-1's advisor_risk/digest.
+  **portfolio_advisor 1155 → 587**, behaviour-identical, suite 847 green, F-lint
+  clean throughout. Patch-namespace hazards handled per split (weekly_trend
+  repointed to advisor_scoring; rotation/news_sentiment untouched-safe).
+  **Remaining to fully close (each its own DELIBERATE pass, higher risk / cosmetic
+  reward, do only when there's appetite):** brain.py 2211 (monolithic
+  TradingBrain class on the LIVE trade engine — hardest), database.py 1359
+  (73 fns share one Supabase client → a circular-import-sensitive db_core +
+  domain-module restructure, needs ~760 lines out across 2–3 modules),
+  scheduler.py 854. config.py 632 is flat flag declarations — treat as exempt._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
   ECE recomputed once graded_calls ≥ 50 (currently 22, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input

@@ -41,11 +41,12 @@ decision)**. Verdict thresholds (VISION §6.1): **PF > 1.3 = go, < 1.1 = reject.
   setup, then I wire + test headless daily token refresh. **Now the single
   highest-leverage unblock**: the manual-paste SPOF has cost 4+ sessions
   (07-28 stall, 07-29 late, 07-30/31 missed) and starved the whole pipeline.
-- ⏳ **Module split part 2 (P-06)** — IN PROGRESS. Scoring/`advise` half shipped
-  08-02 (brain `4cb62ce`): `advisor_scoring.py` (554), portfolio_advisor 1155 →
-  635, behaviour-identical, 847 green. Remaining: pa's last ~40 (a `run_*` loop),
-  then brain.py 2211 (careful — patched-test namespace), database.py 1359,
-  scheduler.py 854. Each its own increment.
+- ⏳ **Module split part 2 (P-06)** — IN PROGRESS. **Advisor family fully split
+  + all <600** (08-02–03): `advisor_scoring.py` 554 + `advisor_rotation.py` 59;
+  portfolio_advisor 1155 → 587, behaviour-identical, 847 green. Remaining files
+  are large structural refactors of the LIVE engine/data layer — deliberate
+  passes only: brain.py 2211 (monolithic class), database.py 1359 (shared-client
+  restructure), scheduler.py 854. config.py 632 = flat declarations, exempt.
 
 **T4 hypotheses — 2 of 3 now landed (2026-08-02, dark/execution):**
 - ✅ **fix stop execution (P-05)** — resting-stop fill cap, worst ≈−1.25R vs
