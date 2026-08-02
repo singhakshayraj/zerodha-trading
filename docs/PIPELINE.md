@@ -95,12 +95,24 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   **portfolio_advisor 1155 → 587**, behaviour-identical, suite 847 green, F-lint
   clean throughout. Patch-namespace hazards handled per split (weekly_trend
   repointed to advisor_scoring; rotation/news_sentiment untouched-safe).
-  **Remaining to fully close (each its own DELIBERATE pass, higher risk / cosmetic
-  reward, do only when there's appetite):** brain.py 2211 (monolithic
-  TradingBrain class on the LIVE trade engine — hardest), database.py 1359
-  (73 fns share one Supabase client → a circular-import-sensitive db_core +
-  domain-module restructure, needs ~760 lines out across 2–3 modules),
-  scheduler.py 854. config.py 632 is flat flag declarations — treat as exempt._
+  **Recommendation (08-03): cap the "<600" measure at the advisor family and
+  treat the 3 core files as exempt.** Investigated each — all are high-risk /
+  cosmetic-reward teardowns of the LIVE engine, not clean splits:
+  • brain.py 2211 — one monolithic `TradingBrain` class; methods share `self`,
+    so a split needs mixins/surgery on the trade engine.
+  • database.py 1359 — even the CORE (client + sessions + trades + decisions,
+    L1–770) is itself >600, so <600 forces splitting the shared-Supabase-client
+    foundation across ~4 modules (circular-import-sensitive; 33 `patch('database.
+    supabase')` + 8 `patch('database.get_config')` sites pin those to the
+    `database` module). Domain fns aren't patched by name, so domain modules are
+    safe — but they alone can't get core under 600.
+  • scheduler.py 854 — 64 `patch('scheduler.db')` + dense monkeypatching → any
+    extraction risks mass patch-repointing.
+  • config.py 632 — flat flag declarations, exempt.
+  _Verdict: the advisor split delivered the maintainability value; forcing the
+  engine/data-layer under 600 is disproportionate risk for a line count. Do them
+  only if a genuine need arises (e.g. a file becomes a real merge-conflict/nav
+  pain), one carefully-verified pass at a time._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
   ECE recomputed once graded_calls ≥ 50 (currently 22, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
