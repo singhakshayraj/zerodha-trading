@@ -142,7 +142,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   data across regimes.
 - **[P-11] Promote daily/weekly alignment into the score** once it's gradeable
   (~early Aug) AND attribution shows it predicts. [me]
-- **[P-12] Agent P4 — per-stock timeline UI** (sparkline + verdict path). [me]
+- ~~**[P-12] Agent P4 — per-stock timeline UI**~~ ✅ SHIPPED 08-03 (see Done).
 - **[P-13] Activate Marketaux news key** → `news.sentiment` populates. [you→me]
 
 ## ⏸️ PARKED — explicitly deferred, revisit when raised
@@ -156,6 +156,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-03_ (dashboard, auto-deploys from main on Vercel):
+- **[P-12] Per-stock timeline UI.** The agent's `stock_observations` (price /
+  trend_score / verdict per capture) were collected since P1/P2 shipped but
+  never surfaced. New `/advisor/timeline` page + `/api/advisor/timeline` route:
+  per-holding card with an inline-SVG price sparkline + a verdict-dot path
+  (oldest→newest, same verdict palette as /advisor), sorted freshest-observed
+  first. Sidebar nav link added. No new deps; tsc + lint + `next build` clean;
+  data-shape verified against prod (every symbol has price+verdict+score points).
 
 _2026-08-02_ (code written + suite green locally at 847; **pending commit + deploy + live verify**):
 - **[P-05] Stop-execution fill cap.** Root cause of the −1.62R STOP_LOSS_HIT

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard } from "lucide-react";
+import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/trading",   label: "Auto Trade", icon: Bot },
   { href: "/insights",  label: "Insights",   icon: LineChart },
   { href: "/advisor",   label: "Advisor",    icon: Compass },
+  { href: "/advisor/timeline", label: "Timeline", icon: Activity },
 ];
 
 export function Sidebar() {
