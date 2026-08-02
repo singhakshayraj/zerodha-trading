@@ -5,7 +5,8 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-02 · Burn-down this week: 1 shipped / 5 ready / 4 blocked._
+_Last updated: 2026-08-02 · Burn-down this week: 4 shipped / 2 ready / 4 blocked.
+(P-19 + P-05 + P-07 shipped, P-16 resolved as no-op — see Done.)_
 
 ---
 
@@ -86,25 +87,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-05] Fix stop execution — STOP_LOSS_HIT avg −1.59R.** [me] · *done =* stops
-  cap near −1R (stop-limit vs market / size-down); re-measure the bucket. ·
-  *source:* T4. _Fixable independent of edge — highest ready value._
-  _07-28: still unfixed — bucket measured −1.87R (6 trades), worse than baseline._
-  _08-02: still unfixed. All-time `STOP_LOSS_HIT` bucket (28 trades since
-  inception) avg **−1.62R** — confirms priority; no new sessions this week to
-  move the number either way._
 - **[P-06] Module split part 2 (scoring/`advise` + `run_*` loops).** [me] · *done
-  =* no file >600 lines, 828 green. · *source:* SE4.
-- **[P-07] Dark-flag the "trade-only-open" filter.** [me] · *done =* logged +
-  graded (not enforced) per session. · *source:* T4 (open is the only +EV bucket).
-- **[P-16] Regime-conditional read — TRENDING sessions look worse.** [me] · *done
-  =* a T4-style breakdown of PF/expectancy/win-rate by `trades.regime` across
-  the 5 measured sessions, checking whether TRENDING is systematically worse
-  than SIDEWAYS/BEARISH or this is small-sample noise. · *source:* post-session
-  review 07-29 — `DAILY_STOP_3R` fired 2/2 recent sessions (07-28, 07-29,
-  both tagged TRENDING); 07-29 win rate 12.5% (4/32) vs 30.8% on 07-28, PF 0.18
-  (worst of the 5 measured sessions). _08-02: no new session data this week —
-  still open, unchanged._
+  =* no file >600 lines, suite green. · *source:* SE4. _08-02: NOT a batch-tail
+  task — needs its own focused session (as ROADMAP flags). Offenders: brain.py
+  2211, database.py 1359, portfolio_advisor.py 1155, scheduler.py 854. Hazard
+  confirmed: `advise` calls `news_sentiment` and a test does
+  `patch.object(pa, 'news_sentiment')` — a naive facade split breaks that patch,
+  so the whole scoring cluster must move together AND the ~2 cross-module patch
+  targets relocate. Plan: extract scoring+`advise` (pa L64–583) → `advisor_scoring.py`,
+  update the 2 patch points; then brain `run_*` loops separately._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
   ECE recomputed once graded_calls ≥ 50 (currently 22, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
@@ -140,6 +131,36 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-02_ (code written + suite green locally at 847; **pending commit + deploy + live verify**):
+- **[P-05] Stop-execution fill cap.** Root cause of the −1.62R STOP_LOSS_HIT
+  bucket = poll latency: the ~30s exit checker fills at whatever price the poll
+  caught, already drifted past the stop. Fix models a resting broker-side
+  stop-market order: `config.PAPER_STOP_SLIPPAGE_CAP_R` (default 0.25) caps the
+  stop-exit fill a bounded band past the stop → worst STOP_LOSS_HIT ≈ −1.25R,
+  genuine slippage inside the band kept, no fill ever better than the stop, MAE
+  stays honest (real low recorded before the capped fill). Only STOP_LOSS_HIT
+  is capped (target/time-stop/cover untouched). +8 tests (`test_stop_fill_cap.py`),
+  2 exit-latency tests updated to pin cap=0. _VERIFY next session: re-measure
+  the STOP_LOSS_HIT R bucket — should move from −1.62R toward ≈−1.25R._
+- **[P-07] Trade-only-open dark flag.** `_open_window_gate` mirrors the
+  cooldown dark-flag pattern: every entry after the open window (default 10:15
+  IST, `OPEN_WINDOW_END_*`) logs an `OUTSIDE_OPEN_WOULD_BLOCK` counterfactual
+  (deduped per symbol); only blocks when `TRADE_ONLY_OPEN_ENABLED`. Wired into
+  both BUY + SHORT entry paths. +5 tests. _VERIFY: next session's activity feed
+  shows WOULD_BLOCK rows; counterfactual-audit can then rank it._
+- **[P-16] Regime read — RESOLVED as a no-op (premise false).** Ran the
+  breakdown: `trades.regime` comes from `regime_detector.py`, whose vocabulary
+  is only TRENDING/WEAK_TREND/UNKNOWN — **SIDEWAYS/BEARISH can never tag a
+  trade** (that's the separate market-level `market_regime.py`). So "TRENDING
+  vs SIDEWAYS/BEARISH" is untestable: the strategy enters on ADX>threshold =
+  TRENDING by construction (268/289 trades TRENDING, 21 WEAK_TREND, 0 other).
+  TRENDING PF 0.42 / −0.384R vs WEAK_TREND PF 0.17 / −0.712R (n=21, small).
+  The 07-28 (PF 0.65) vs 07-29 (PF 0.18) gap that seeded this is **both
+  TRENDING** — within-regime variance (per-session PF spans 0.04→1.03), not a
+  regime effect. DAILY_STOP_3R firing on consecutive TRENDING sessions is the
+  base case, not a signal. No live action; a real regime-conditional test needs
+  the market-level labels + multi-regime history = gate #6 ([P-01]).
 
 _2026-08-02_ (brain `642ed94`, deployed):
 - **[P-19] Killed the `/quote/ltp` 400-InputException spam.** The paper broker

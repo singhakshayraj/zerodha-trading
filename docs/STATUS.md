@@ -35,6 +35,20 @@ on real holdings) which is where most recent work has gone.
   `unknown`). Next session should stamp `642ed9415c02`.
 _All three carry over to the next real session for verification (see below)._
 
+## Implemented 08-02 — code + tests green (847), NOT yet committed/deployed
+- **[P-05]** stop-execution fill cap — `PAPER_STOP_SLIPPAGE_CAP_R` (0.25) caps
+  STOP_LOSS_HIT fills a bounded band past the stop (models a resting stop-market
+  order vs the naive ~30s poll-and-sell that booked the poll-latency tail as
+  loss). Worst stop ≈ −1.25R vs the measured −1.62R. Only STOP_LOSS_HIT capped;
+  MAE stays honest. +8 tests.
+- **[P-07]** trade-only-open DARK flag — `_open_window_gate` logs
+  `OUTSIDE_OPEN_WOULD_BLOCK` per post-open entry (default window end 10:15 IST);
+  enforces only under `TRADE_ONLY_OPEN_ENABLED`. +5 tests.
+- **[P-16]** resolved as a no-op — `trades.regime` only ever = TRENDING/WEAK_TREND;
+  SIDEWAYS/BEARISH can't tag a trade, so the "TRENDING is worse" premise is
+  untestable. Docs-only, no code. See PIPELINE Done.
+_Next: commit both repos + `deploy.sh`, then verify below._
+
 ## The 5 measured sessions (edge evidence)
 | Date | Trades | P&L | PF | Expectancy |
 |---|---|---|---|---|
@@ -97,6 +111,10 @@ worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
   self-recovers within 10 min ([P-17]).
 - `app_config.portfolio_risk_latest.correlation` + `advisor_calibration_latest`
   refresh on the advisor run.
+- **[P-05]** re-measure the `STOP_LOSS_HIT` R bucket — should move from −1.62R
+  toward ≈−1.25R; watch for `[stop_cap]` log lines on stop fills.
+- **[P-07]** activity feed shows `OUTSIDE_OPEN_WOULD_BLOCK` rows for post-10:15
+  entries → counterfactual-audit can rank the trade-only-open filter.
 
 ## Feedback loop (live)
 Project-level flywheel (mirrors VISION §7): REVIEW → TRIAGE → [PIPELINE.md](PIPELINE.md)
