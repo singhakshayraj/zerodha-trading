@@ -82,8 +82,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   (08-01/08-02 are weekend), so the day-count hasn't grown, but the pipeline
   has now produced zero fresh data for a full calendar week — blocking VERIFY
   on [P-05], [P-07], [P-16] and the P-15/P-17 fixes below alike._
-- **[P-04] Rotate Telegram bot token + Supabase anon key.** [you] · *done =* new
-  creds live; old ones dead. · *source:* Sprint 0 security fix (were exposed).
+- **[P-04] Rotate Telegram bot token (+ anon key = unnecessary).** [you] · *done
+  =* new Telegram token live, old dead. · *source:* Sprint 0 security fix.
+  _08-03 audit ([reference/CRED_ROTATION.md](reference/CRED_ROTATION.md)):
+  repos + full git history are clean (no secret ever committed); RLS verified
+  airtight (sensitive tables service_role-only, rest deny-all, no rls_disabled
+  errors). So the anon key is safe-by-design → **skip rotating it** (rotation
+  would force a JWT-secret regen that also breaks service_role, for ~zero gain).
+  The ONE real action is the **Telegram token** (was in Railway logs pre-scrub):
+  BotFather → revoke → `railway variables --set TELEGRAM_BOT_TOKEN=… --service
+  zerodha-brain`. Runbook has exact steps. Reduced from a 2-cred task to 1._
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
