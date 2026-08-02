@@ -5,7 +5,7 @@
 [VISION.md](VISION.md). Full three-lens system evaluation (2026-07-27) that
 seeded this plan: [archive/SYSTEM_EVALUATION_2026-07-27.md](archive/SYSTEM_EVALUATION_2026-07-27.md).
 
-_Last updated: 2026-07-27._
+_Last updated: 2026-08-02._
 
 ---
 
@@ -37,10 +37,26 @@ decision)**. Verdict thresholds (VISION §6.1): **PF > 1.3 = go, < 1.1 = reject.
 - CI on both repos (brain py3.11 + coverage gate; dashboard tsc/lint/build).
 - `zerodha-brain/scripts/deploy.sh` — `railway up` + GIT_SHA in one command.
 - Module split part 1: `advisor_risk.py` + `advisor_digest.py` extracted.
-- ⏳ **SE3 TOTP auto-login** — built-but-dormant; needs user's Zerodha setup,
-  then I wire + test headless daily token refresh (kills the daily-paste SPOF).
-- Deferred: module split part 2 (scoring/`advise` + `run_*` loops — touch the
-  patched test namespace; a focused low-risk session).
+- ⏳ **SE3 TOTP auto-login (P-03)** — built-but-dormant; needs user's Zerodha
+  setup, then I wire + test headless daily token refresh. **Now the single
+  highest-leverage unblock**: the manual-paste SPOF has cost 4+ sessions
+  (07-28 stall, 07-29 late, 07-30/31 missed) and starved the whole pipeline.
+- ⏳ **Module split part 2 (P-06)** — IN PROGRESS. Scoring/`advise` half shipped
+  08-02 (brain `4cb62ce`): `advisor_scoring.py` (554), portfolio_advisor 1155 →
+  635, behaviour-identical, 847 green. Remaining: pa's last ~40 (a `run_*` loop),
+  then brain.py 2211 (careful — patched-test namespace), database.py 1359,
+  scheduler.py 854. Each its own increment.
+
+**T4 hypotheses — 2 of 3 now landed (2026-08-02, dark/execution):**
+- ✅ **fix stop execution (P-05)** — resting-stop fill cap, worst ≈−1.25R vs
+  measured −1.62R. Deployed brain `96dddf4`; verify the bucket next session.
+- ✅ **trade only the open (P-07)** — dark-flagged (`OUTSIDE_OPEN_WOULD_BLOCK`),
+  logged-not-enforced; counterfactual-audit ranks it before any enable.
+- ⏳ **suppress LONGs / afternoon** — not yet dark-flagged; lower priority than
+  the two above, and gate #6 should confirm the direction/time effects first.
+- Note [P-16] (regime-conditional read) came back a **no-op**: `trades.regime`
+  is only ever TRENDING/WEAK_TREND, so there's no non-trending group to compare
+  — a real regime test needs market-level labels + multi-regime history (= gate #6).
 
 **Sprint 3 — make the advisor genuinely advisory (after the edge verdict):**
 - **FA2 fundamentals provider** (agent P3) — needs the source pick, then P/E,

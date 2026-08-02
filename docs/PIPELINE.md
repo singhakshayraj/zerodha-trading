@@ -5,8 +5,8 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-02 · Burn-down this week: 4 shipped / 2 ready / 4 blocked.
-(P-19 + P-05 + P-07 shipped, P-16 resolved as no-op — see Done.)_
+_Last updated: 2026-08-02 · Burn-down this week: 4 shipped + 1 in-progress / 1 ready / 4 blocked.
+(P-19 + P-05 + P-07 shipped, P-16 resolved as no-op, P-06 scoring half done — see Done.)_
 
 ---
 
@@ -87,15 +87,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-06] Module split part 2 (scoring/`advise` + `run_*` loops).** [me] · *done
-  =* no file >600 lines, suite green. · *source:* SE4. _08-02: NOT a batch-tail
-  task — needs its own focused session (as ROADMAP flags). Offenders: brain.py
-  2211, database.py 1359, portfolio_advisor.py 1155, scheduler.py 854. Hazard
-  confirmed: `advise` calls `news_sentiment` and a test does
-  `patch.object(pa, 'news_sentiment')` — a naive facade split breaks that patch,
-  so the whole scoring cluster must move together AND the ~2 cross-module patch
-  targets relocate. Plan: extract scoring+`advise` (pa L64–583) → `advisor_scoring.py`,
-  update the 2 patch points; then brain `run_*` loops separately._
+- **[P-06] Module split part 2 — IN PROGRESS (scoring half done).** [me] · *done
+  =* no file >600 lines, suite green. · *source:* SE4.
+  _08-02 shipped (brain `4cb62ce`): scoring/`advise` extracted →
+  `advisor_scoring.py` (554 lines), mirroring the part-1 advisor_risk/digest
+  facade. **portfolio_advisor 1155 → 635**, behaviour-identical, suite 847 green,
+  F-lint clean. Hazard handled: `advise` calls `weekly_trend` internally, so the
+  one test patching it now targets `advisor_scoring.weekly_trend` (`news_sentiment`
+  patch stayed valid — its callers are in the orchestration half). **Remaining
+  to close the item:** pa still 635 (extract a `run_*` loop for the last ~40),
+  plus brain.py 2211, database.py 1359, scheduler.py 854 — each its own
+  increment; brain.py is the big one (patched-test namespace, do carefully)._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
   ECE recomputed once graded_calls ≥ 50 (currently 22, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
