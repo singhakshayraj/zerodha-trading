@@ -13,8 +13,11 @@ below.
 
 ## Parked — needs a decision or a design
 
-### P7. Full-day sessions starve the advisor intraday refresh + timeline capture
-**Found 2026-08-03 `/post-session-check`.** `_maybe_run_advisor` and
+### P7. Full-day sessions starve the advisor intraday refresh + timeline capture — RESOLVED 2026-08-04 (brain `9bd59ad`, [P-20])
+Fix: `_maybe_run_advisor` + `_maybe_capture_timeline` now also fire once per cycle
+inside the inner trading loop (`scheduler.py`), not only the outer idle loop.
+Verify next full-day session that `portfolio_advice` keeps refreshing past midday.
+**Original finding (2026-08-03 `/post-session-check`):** `_maybe_run_advisor` and
 `_maybe_capture_timeline` are called only from the scheduler's **outer** (idle)
 loop — never the **inner** trading loop (`scheduler.py` ~742+). Until 08-03,
 sessions ended at −3R by ~11am, so the brain sat in the outer loop all afternoon

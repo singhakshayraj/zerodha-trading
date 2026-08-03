@@ -97,13 +97,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-20] Full-day sessions starve the advisor intraday refresh.** [me] · *done =*
-  `_maybe_run_advisor` + `_maybe_capture_timeline` fire during an active session,
-  not only in the outer idle loop; `portfolio_advice` refreshes through the
-  afternoon on a full-day-session day. · *source:* 08-03 `/post-session-check`
-  (KNOWN_ISSUES P7). _Surfaced by the −3R-soft change: sessions now run 09:30→
-  15:21 in the inner loop, so advisor stopped refreshing at 11:50 on 08-03.
-  Low-risk (gates are idempotent + daemon-threaded)._
 
 - **[P-06] Module split part 2 — IN PROGRESS (scoring half done).** [me] · *done
   =* no file >600 lines, suite green. · *source:* SE4.
@@ -171,6 +164,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-04_ (brain `9bd59ad`, deployed):
+- **[P-20] Advisor refresh + timeline capture now run inside the trading loop.**
+  `_maybe_run_advisor` + `_maybe_capture_timeline` were outer-idle-loop only, so
+  full-day sessions (post −3R-soft) starved the advisor for the whole session
+  (08-03 last refresh 11:50). Now called once per cycle in the inner loop too —
+  daemon-threaded + interval-gated, so no trade-loop impact. +1 test, suite 853.
+  Resolves KNOWN_ISSUES P7. _Verify next full-day session: `portfolio_advice`
+  keeps refreshing past midday._
 
 _2026-08-03 / 08-04 — VERIFY pass, first live verification since 07-29:_
 Two sessions ran 08-03 (morning `3fe00787` DAILY_STOP_3R, afternoon `1ef3f27f`
