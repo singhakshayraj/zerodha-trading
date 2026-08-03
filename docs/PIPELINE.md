@@ -5,8 +5,10 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-02 · Burn-down this week: 4 shipped + 1 in-progress / 1 ready / 4 blocked.
-(P-19 + P-05 + P-07 shipped, P-16 resolved as no-op, P-06 scoring half done — see Done.)_
+_Last updated: 2026-08-03 (post-session) · Burn-down this week: 5 shipped + verified live
++ 1 in-progress / 1 ready / 4 blocked. (P-19 + P-05 + P-07 shipped, P-15/P-05/P-07 got
+their first live verification on 08-03's two sessions; P-16 resolved as no-op, P-06
+scoring half done — see Done.)_
 
 ---
 
@@ -161,6 +163,28 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   surface it next time the advisor is discussed.
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-03_ (post-session review — first live verification since 07-29):
+Two sessions ran today (morning `3fe00787` DAILY_STOP_3R, afternoon `1ef3f27f`
+MARKET_CLOSED under the new soft-stop config), giving the pending fixes their
+first real data:
+- **[P-15]** confirmed — `stock_observations` today: PRE_OPEN 20 / POST_CLOSE
+  20 / INTRADAY 40 (was 100% INTRADAY).
+- **[P-07]** confirmed — 24 `OUTSIDE_OPEN_WOULD_BLOCK` rows logged.
+- **[P-05]** directionally confirmed — `STOP_LOSS_HIT` −1.34R (11 trades),
+  moved from −1.62R toward the ≈−1.25R target; small sample, keep watching.
+- **Soft daily-stop config change** confirmed working as designed — 11
+  `LIMIT_WOULD_STOP` counterfactual fires in the afternoon session, which ran
+  to `MARKET_CLOSED` instead of cutting at `DAILY_STOP_3R`.
+- git_sha stamped `9e370ac719df` on both sessions (not `unknown`).
+- Gate metrics re-based on 447 closed trades (up from 370): PF 0.376→0.405,
+  expectancy −0.408R→−0.394R, max drawdown ≈−₹6,697→≈−₹13,668 (expected — the
+  soft-stop change lets sessions bleed further by design). No gate flip.
+- **[P-17]** and **[P-19]** not falsified but also not exercised/checked this
+  pass (no stall occurred; no log-table access to the LTP-400 count) — carry
+  over.
+- **[P-18]** unchanged — advisor recomputed today but still 22 graded calls /
+  ECE 48.5%; stays watch-only per its measure-of-done (≥50 graded calls).
 
 _2026-08-03_ (brain — code + suite green at 852; **pending deploy + live verify**):
 - **[P-09] FA4 rotation entry-quality (DARK).** A rotation into a stronger score

@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-02._
+_Last updated: 2026-08-03 (post-session review)._
 
 ---
 
@@ -13,38 +13,49 @@ _Last updated: 2026-08-02._
 Month-long **paper-trading** validation of an intraday auto-trader (brain =
 `~/Desktop/GITHUB/zerodha-brain`, Python on Railway; dashboard = `zerodha-trading`,
 Next.js on Vercel; data in Supabase prod `gilmuwmtdpjccibfhqtx`). **The strategy
-has no proven edge** — paper PF ≈ 0.35 avg over 5 measured sessions; that's a
-valid outcome (VISION §7b), not a bug. The real edge verdict is **gate #6** (a
-historical backtest), built but **blocked on Kite historical data (₹500/mo — a
-user decision)**. Alongside the trader is a **portfolio advisor** (daily HOLD/SELL
-on real holdings) which is where most recent work has gone.
+has no proven edge** — paper PF ≈ 0.40 cumulative over 447 closed trades / 7
+measured sessions; that's a valid outcome (VISION §7b), not a bug. The real
+edge verdict is **gate #6** (a historical backtest), built but **blocked on
+Kite historical data (₹500/mo — a user decision)**. Alongside the trader is a
+**portfolio advisor** (daily HOLD/SELL on real holdings) which is where most
+recent work has gone.
 
-## ⚙️ Live config change 2026-08-03 (read before interpreting today's sessions)
+## ⚙️ Live config change 2026-08-03 — both sessions now COMPLETE, verified live
 - **`ENFORCE_DAILY_STOP_3R=false`** set on Railway — the −3R daily stop is now a
   **soft counterfactual** (`LIMIT_WOULD_STOP`), not a hard cut, restoring true
   full-day data collection (user's stated goal). Reverts the 07-27 hard carve-out.
 - Session params raised **25k→100k capital, 10→40 maxTrades**.
-- **Two sessions today (08-03):** morning `3fe00787` 09:30–10:18 ended
-  `DAILY_STOP_3R` (−₹4,037, 30 trades — this was BEFORE the flag flip); afternoon
-  `1ef3f27f` started 11:53 manually, runs to EOD with −3R soft. Expect the
-  afternoon to bleed **past −3R by design** — that's the full-day data, not a
-  regression. All 08-02/08-03 fixes verified live (see PIPELINE Done / below).
+- **Two sessions ran 08-03, both COMPLETED:** morning `3fe00787` 04:00–04:48 UTC
+  ended `DAILY_STOP_3R` (−₹4,037, 30 trades, PF 0.23, −0.51R — before the flag
+  flip); afternoon `1ef3f27f` 06:23–09:51 UTC ended `MARKET_CLOSED` (−₹1,639, 47
+  trades, PF 0.66, −0.23R) — **confirmed working as designed**: 11
+  `LIMIT_WOULD_STOP` counterfactual fires logged (would've hard-stopped under
+  the old flag) but the session ran the full day to close instead of cutting
+  early. Combined today: 77 trades, −₹5,676, PF 0.44, −0.34R avg.
 
 ## Deployed versions
-- **Brain:** `642ed9415c02` (deployed 08-02 via `zerodha-brain/scripts/deploy.sh`;
-  GIT_SHA env set to match). Chain since 07-29: `c177bae` (07-29 session) →
-  `e81f706` (07-30, P-15/P-17 fixes) → `642ed94` (08-02, P-19 fix).
+- **Brain:** `9e370ac719df` (git_sha stamped live on both 08-03 sessions —
+  confirms the git_sha fix still holds). Chain since 07-29: `c177bae` (07-29) →
+  `e81f706` (07-30, P-15/P-17) → `642ed94` (08-02, P-19) → `96dddf4` (P-05/P-07)
+  → `9e370ac` (08-03, database split increment).
 - **Dashboard:** auto-deploys from `main` on Vercel. CI gates both repos on push.
 
-## Recent fixes — DEPLOYED but NOT yet verified live (no session since 07-29)
-- **[P-15]** per-stock PRE_OPEN/POST_CLOSE capture — phase-aware dedup fix
-  (POST_CLOSE was being hourly-deduped by the ~15:2X intraday refresh). `e81f706`.
-- **[P-17]** advisor scheduler stall — staleness self-heal + gate logging. `e81f706`.
-- **[P-19]** killed the `/quote/ltp` 400-InputException log spam on every paper
-  fill (retail token can't use /quote; hint_price was always the real path). `642ed94`.
-- **git_sha fix** — validated once (07-28/29 sessions stamped a real SHA, not
-  `unknown`). Next session should stamp `642ed9415c02`.
-_All three carry over to the next real session for verification (see below)._
+## Recent fixes — VERIFIED LIVE on today's 08-03 sessions
+- **[P-15]** per-stock PRE_OPEN/POST_CLOSE capture — **confirmed**:
+  `stock_observations` today shows PRE_OPEN 20 / POST_CLOSE 20 / INTRADAY 40
+  (was 100% INTRADAY pre-fix).
+- **[P-07]** trade-only-open dark flag — **confirmed live**: 24
+  `OUTSIDE_OPEN_WOULD_BLOCK` counterfactual rows logged today, ready for
+  `/counterfactual-audit` to rank.
+- **[P-05]** stop-execution fill cap — **directionally confirmed**: today's
+  `STOP_LOSS_HIT` bucket averaged **−1.34R** (11 trades), moved from the
+  pre-fix −1.62R baseline toward the ≈−1.25R target. Not fully there yet and
+  still a small sample — keep tracking each session.
+- **[P-17]** advisor scheduler — no stall occurred today (both advisor runs
+  completed normally, `advisor_calibration_latest`/`portfolio_risk_latest`
+  refreshed 04:53 UTC), so the self-heal path itself remains unexercised.
+- **[P-19]** git_sha fix reconfirmed (`9e370ac719df`, not `unknown`); LTP-spam
+  absence not directly checked this pass (no log-table access to the 400 count).
 
 ## Implemented 08-02 — code + tests green (847), NOT yet committed/deployed
 - **[P-05]** stop-execution fill cap — `PAPER_STOP_SLIPPAGE_CAP_R` (0.25) caps
@@ -60,7 +71,7 @@ _All three carry over to the next real session for verification (see below)._
   untestable. Docs-only, no code. See PIPELINE Done.
 _Next: commit both repos + `deploy.sh`, then verify below._
 
-## The 5 measured sessions (edge evidence)
+## The 7 measured sessions (edge evidence)
 | Date | Trades | P&L | PF | Expectancy |
 |---|---|---|---|---|
 | 07-22 | 66 | −₹1,277 | 0.39 | −0.44R |
@@ -68,17 +79,19 @@ _Next: commit both repos + `deploy.sh`, then verify below._
 | 07-24 | 8 (short) | −₹144 | 0.22 | −0.43R |
 | 07-28 | 65 | −₹709 | 0.65 | −0.24R |
 | 07-29 | 32 (short — daily stop) | −₹918 | 0.18 | −0.52R |
+| 08-03 AM | 30 (daily stop, pre-flag-flip) | −₹4,037 | 0.23 | −0.51R |
+| 08-03 PM | 47 (full day, soft stop) | −₹1,639 | 0.66 | −0.23R |
 
-Cumulative ≈ −91.3R (was −74.6R); 07-29 tape tagged TRENDING throughout (32/32
-trades), win rate 12.5% (4/32) vs 30.8% on 07-28 — **worst PF of the 5
-measured sessions.** Session ended via `DAILY_STOP_3R`, the 2nd consecutive
-session to hit the hard stop (07-28 also did) — the −3R cap is doing its job
-capping losses, but two early cutoffs in a row is worth a regime-conditional
-look (see [P-16]). **Standing conclusion unchanged: no edge yet → gate #6 is
-the priority.** Trade-quality first read (T4): the **opening hour is the only
-+EV window**; stops are blown through — 07-28's STOP_LOSS_HIT bucket (6 trades)
-averaged **−1.87R** (07-29: 3 trades, −1.33R, small sample — session cut short),
-worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
+Cumulative (all-time, 447 closed trades) ≈ **−144.1R**, PF **0.405**,
+expectancy **−0.394R avg** — measured directly from `trades.r_multiple` this
+pass (supersedes the earlier approximate −91.3R figure). Today's two sessions
+added 77 trades / −26.2R combined; no gate flip (still deep reject zone, PF
+gate is >1.3 go / <1.1 reject). **Standing conclusion unchanged: no edge yet →
+gate #6 is the priority.** Max drawdown (peak-to-trough equity, all-time) is
+now **≈−₹13,668** (was ≈−₹6,697) — expected under the 08-03 config change
+(soft daily-stop now lets a session bleed past −3R by design rather than
+hard-cutting), not treated as a new regression. Trade-quality first read (T4):
+the **opening hour is the only +EV window**; detail in
 [ROADMAP.md](ROADMAP.md) T4.
 
 ## Live subsystems (all shipped + deployed)
@@ -97,15 +110,12 @@ worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
   /trading (RiskMeter).
 
 ## ⏳ Open — needs the USER (each unblocks work)
-1. 🔴🔴 **THE binding constraint right now — no sessions are running.** Paste the
-   enc_token before 09:15 IST to start a session (or set up TOTP, item 5). **Zero
-   sessions since 07-29** — 07-30 + 07-31 were regular NSE trading days but no
-   token was pasted, so nothing started (brain is ONLINE + heartbeating, stuck at
-   `current_cycle=0, "Waiting for START command"`). Every code bug is fixed and
-   deployed, but the whole pipeline (P-15/P-17/P-19 verification, P-05/P-07/P-16
-   data, calibration accrual) is **starved because no sessions run.** This is 4
-   sessions now degraded/lost to the manual-token SPOF (07-28 stall, 07-29 late,
-   07-30/31 missed) — the strongest possible case for TOTP (item 5).
+1. 🔴 **Manual-token SPOF still open (item 5, TOTP).** 08-03 had two sessions
+   (token pasted manually twice — morning + afternoon), so the pipeline is no
+   longer starved and the P-15/P-05/P-07 fixes got their first live verification
+   today (see above). But 07-30/07-31 were still lost to missed manual pastes,
+   and today required two manual interventions in one day — the SPOF risk is
+   unchanged until TOTP (item 5) lands.
 2. 🔴 **Rotate the Telegram bot token** (was exposed in logs; scrubbed in code
    but rotate via @BotFather) + consider rotating the **Supabase anon key**
    (was effectively public until the 07-27 RLS fix).
@@ -113,19 +123,24 @@ worse than the T4 baseline of −1.59R, so [P-05] has not yet landed. Detail in
 4. **Fundamentals data source** pick (screener/NSE vs paid) → unblocks agent P3.
 5. **Zerodha TOTP/API setup** → lets me wire headless auto-login (SE3).
 
-## ✅ Verify on the NEXT real session (the P-15/P-17/P-19 fixes are untested live)
-- `trading_sessions.git_sha` = **`642ed9415c02`** (not `unknown`).
-- `stock_observations` now shows **POST_CLOSE** rows (and PRE_OPEN if the token is
-  live before 09:14) — was 100% `INTRADAY`; the [P-15] fix should change that.
-- Session logs show no `[PAPER] LTP fetch failed … 400` spam ([P-19] fix).
-- If the advisor ever stalls: logs show `[SCHEDULER] advisor gate → …` and it
-  self-recovers within 10 min ([P-17]).
-- `app_config.portfolio_risk_latest.correlation` + `advisor_calibration_latest`
-  refresh on the advisor run.
-- **[P-05]** re-measure the `STOP_LOSS_HIT` R bucket — should move from −1.62R
-  toward ≈−1.25R; watch for `[stop_cap]` log lines on stop fills.
-- **[P-07]** activity feed shows `OUTSIDE_OPEN_WOULD_BLOCK` rows for post-10:15
-  entries → counterfactual-audit can rank the trade-only-open filter.
+## ✅ Verified live on 08-03 (first real session since 07-29)
+- `trading_sessions.git_sha` = `9e370ac719df` on both sessions (not `unknown`). ✅
+- `stock_observations`: PRE_OPEN 20 / POST_CLOSE 20 / INTRADAY 40 today — was
+  100% `INTRADAY`; **[P-15] confirmed.** ✅
+- **[P-05]** `STOP_LOSS_HIT` bucket = −1.34R today (11 trades), moved from
+  −1.62R toward the ≈−1.25R target — directionally confirmed, not yet fully
+  there; re-check next session. 🟡
+- **[P-07]** 24 `OUTSIDE_OPEN_WOULD_BLOCK` rows logged today — **confirmed**,
+  ready for `/counterfactual-audit` to rank. ✅
+- `app_config.portfolio_risk_latest` + `advisor_calibration_latest` both
+  refreshed 04:53 UTC on today's advisor run. ✅ (calibration itself unchanged:
+  still 22 graded calls / ECE 48.5% — no new gradeable outcomes yet, [P-18]
+  stays watch-only.)
+- **[P-17]** no stall occurred today — advisor ran cleanly both times, so the
+  self-heal path is still unexercised (not falsified, just untested). 🟡
+- **[P-19]** not directly checked this pass (no log-table access to the 400
+  count from these tools); git_sha continuing to stamp correctly is an
+  indirect signal the same deploy path is healthy.
 
 ## Feedback loop (live)
 Project-level flywheel (mirrors VISION §7): REVIEW → TRIAGE → [PIPELINE.md](PIPELINE.md)
