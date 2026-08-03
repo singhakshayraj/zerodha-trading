@@ -19,6 +19,17 @@ historical backtest), built but **blocked on Kite historical data (₹500/mo —
 user decision)**. Alongside the trader is a **portfolio advisor** (daily HOLD/SELL
 on real holdings) which is where most recent work has gone.
 
+## ⚙️ Live config change 2026-08-03 (read before interpreting today's sessions)
+- **`ENFORCE_DAILY_STOP_3R=false`** set on Railway — the −3R daily stop is now a
+  **soft counterfactual** (`LIMIT_WOULD_STOP`), not a hard cut, restoring true
+  full-day data collection (user's stated goal). Reverts the 07-27 hard carve-out.
+- Session params raised **25k→100k capital, 10→40 maxTrades**.
+- **Two sessions today (08-03):** morning `3fe00787` 09:30–10:18 ended
+  `DAILY_STOP_3R` (−₹4,037, 30 trades — this was BEFORE the flag flip); afternoon
+  `1ef3f27f` started 11:53 manually, runs to EOD with −3R soft. Expect the
+  afternoon to bleed **past −3R by design** — that's the full-day data, not a
+  regression. All 08-02/08-03 fixes verified live (see PIPELINE Done / below).
+
 ## Deployed versions
 - **Brain:** `642ed9415c02` (deployed 08-02 via `zerodha-brain/scripts/deploy.sh`;
   GIT_SHA env set to match). Chain since 07-29: `c177bae` (07-29 session) →
