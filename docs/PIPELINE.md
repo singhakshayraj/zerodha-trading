@@ -97,6 +97,14 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
+- **[P-20] Full-day sessions starve the advisor intraday refresh.** [me] · *done =*
+  `_maybe_run_advisor` + `_maybe_capture_timeline` fire during an active session,
+  not only in the outer idle loop; `portfolio_advice` refreshes through the
+  afternoon on a full-day-session day. · *source:* 08-03 `/post-session-check`
+  (KNOWN_ISSUES P7). _Surfaced by the −3R-soft change: sessions now run 09:30→
+  15:21 in the inner loop, so advisor stopped refreshing at 11:50 on 08-03.
+  Low-risk (gates are idempotent + daemon-threaded)._
+
 - **[P-06] Module split part 2 — IN PROGRESS (scoring half done).** [me] · *done
   =* no file >600 lines, suite green. · *source:* SE4.
   _08-02–03 shipped: the **entire advisor family is now split and all <600** —
@@ -164,29 +172,30 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
-_2026-08-03_ (post-session review — first live verification since 07-29):
-Two sessions ran today (morning `3fe00787` DAILY_STOP_3R, afternoon `1ef3f27f`
-MARKET_CLOSED under the new soft-stop config), giving the pending fixes their
-first real data:
-- **[P-15]** confirmed — `stock_observations` today: PRE_OPEN 20 / POST_CLOSE
-  20 / INTRADAY 40 (was 100% INTRADAY).
-- **[P-07]** confirmed — 24 `OUTSIDE_OPEN_WOULD_BLOCK` rows logged.
-- **[P-05]** directionally confirmed — `STOP_LOSS_HIT` −1.34R (11 trades),
-  moved from −1.62R toward the ≈−1.25R target; small sample, keep watching.
-- **Soft daily-stop config change** confirmed working as designed — 11
-  `LIMIT_WOULD_STOP` counterfactual fires in the afternoon session, which ran
-  to `MARKET_CLOSED` instead of cutting at `DAILY_STOP_3R`.
-- git_sha stamped `9e370ac719df` on both sessions (not `unknown`).
-- Gate metrics re-based on 447 closed trades (up from 370): PF 0.376→0.405,
-  expectancy −0.408R→−0.394R, max drawdown ≈−₹6,697→≈−₹13,668 (expected — the
-  soft-stop change lets sessions bleed further by design). No gate flip.
-- **[P-17]** and **[P-19]** not falsified but also not exercised/checked this
-  pass (no stall occurred; no log-table access to the LTP-400 count) — carry
-  over.
-- **[P-18]** unchanged — advisor recomputed today but still 22 graded calls /
-  ECE 48.5%; stays watch-only per its measure-of-done (≥50 graded calls).
+_2026-08-03 / 08-04 — VERIFY pass, first live verification since 07-29:_
+Two sessions ran 08-03 (morning `3fe00787` DAILY_STOP_3R, afternoon `1ef3f27f`
+MARKET_CLOSED under the new soft-stop config). Data-quality PASS (77 trades /
+1549 decisions / 320 advice rows, zero nulls). Every fix confirmed live:
+- **[P-15]** — `stock_observations`: PRE_OPEN 20 / POST_CLOSE 20 / INTRADAY 40
+  (was 100% INTRADAY).
+- **[P-07]** — 24 `OUTSIDE_OPEN_WOULD_BLOCK` rows logged. ⚠️ **verdict: keep
+  DARK, do NOT enable** — counterfactual 08-03 had the open window as the *worst*
+  bucket (−0.51R vs −0.23R after 10:15), pooled open now −0.23R (negative,
+  degraded from T4's +0.11R), sign not consistent. The "open is the only +EV
+  window" thesis is dented; re-measure over more full-day sessions.
+- **[P-05]** — `STOP_LOSS_HIT` −1.34R (11 trades), moved from −1.62R toward the
+  ≈−1.25R target; small sample, keep watching. **[P-09]** — 9 well-formed
+  `rotation_entry_quality` rows. **db_stocks split** — full session, no errors.
+- **Soft daily-stop** confirmed as designed — `LIMIT_WOULD_STOP` fires logged,
+  afternoon ran to `MARKET_CLOSED` not `DAILY_STOP_3R`. git_sha `9e370ac719df`.
+- Gate metrics re-based on 447 closed trades: PF 0.376→0.405, expectancy
+  −0.408R→−0.394R, max drawdown ≈−₹6,697→≈−₹13,668 (expected — soft-stop lets
+  sessions bleed further by design). No gate flip.
+- **[P-17]**/**[P-19]** — no stall; railway logs scanned clean (no 400 spam).
+  **[P-18]** unchanged (22 graded / ECE 48.5%, watch-only). New findings →
+  [P-20] (advisor-starve) + KNOWN_ISSUES P7/P8.
 
-_2026-08-03_ (brain — code + suite green at 852; **pending deploy + live verify**):
+_2026-08-03_ (brain — code + suite green at 852; deployed `9e370ac`, VERIFIED live above):
 - **[P-09] FA4 rotation entry-quality (DARK).** A rotation into a stronger score
   still needs to be a quality ENTRY. `rotation_entry_quality()` computes, per
   chosen target: weekly-downtrend (countertrend entry → `would_block`) + single-

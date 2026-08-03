@@ -13,7 +13,28 @@ below.
 
 ## Parked — needs a decision or a design
 
-*(empty — next scan or `/post-session-check` findings land here)*
+### P7. Full-day sessions starve the advisor intraday refresh + timeline capture
+**Found 2026-08-03 `/post-session-check`.** `_maybe_run_advisor` and
+`_maybe_capture_timeline` are called only from the scheduler's **outer** (idle)
+loop — never the **inner** trading loop (`scheduler.py` ~742+). Until 08-03,
+sessions ended at −3R by ~11am, so the brain sat in the outer loop all afternoon
+and the advisor refreshed hourly. Now that `ENFORCE_DAILY_STOP_3R=false` lets
+sessions run 09:30→15:21, the brain is in the inner loop the whole session, so
+**`portfolio_advice` stopped refreshing at 11:50 on 08-03** (the last outer-loop
+moment before the 11:53 session) — no intraday advisor time series for the full
+afternoon. **Why it matters:** the /advisor page shows a stale mid-morning read
+all day, and the intraday advice dataset is empty on full-day-session days
+(exactly the days we now run). **Fix sketch:** call `_maybe_run_advisor` +
+`_maybe_capture_timeline` from inside the inner trading loop too (they're already
+daemon-threaded + idempotent-gated, so it's low-risk), or move them onto the
+heartbeat thread. Not a regression in the fixes — a surfaced consequence of the
+−3R-soft change. See [[data-collection-mode]].
+
+### P8. inplay_list not locked on 08-03 (likely benign — verify)
+`inplay_list` last locked 07-29; 08-03 sessions ran but no lock. `maybe_lock_inplay`
+has a legit zero-lock path (no candidate clears `RVOL_THRESHOLD`), so this is
+probably a quiet-tape day, not a bug — but confirm on a day with RVOL qualifiers
+that it locks (rules out the 08-03 db_stocks split touching `lock_inplay_list`).
 
 ---
 
