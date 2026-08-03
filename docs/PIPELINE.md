@@ -106,26 +106,24 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   **portfolio_advisor 1155 → 587**, behaviour-identical, suite 847 green, F-lint
   clean throughout. Patch-namespace hazards handled per split (weekly_trend
   repointed to advisor_scoring; rotation/news_sentiment untouched-safe).
-  **Recommendation (08-03): cap the "<600" measure at the advisor family and
-  treat the 3 core files as exempt.** Investigated each — all are high-risk /
-  cosmetic-reward teardowns of the LIVE engine, not clean splits:
+  **Status (08-04): advisor family + database.py all <600.** Remaining offenders
+  are the two highest-risk files + config (exempt):
   • brain.py 2211 — one monolithic `TradingBrain` class; methods share `self`,
     so a split needs mixins/surgery on the trade engine.
-  • database.py 1359 → **905** (08-03, brain `9e370ac`): first increment done —
-    stock/observation/universe/level/advice-snapshot access (28 fns) extracted →
-    `db_stocks.py` 479, referencing `database.supabase`/`_now_iso` at call time
-    so the 33 `patch('database.supabase')` sites still bite (verified); facade
-    re-export keeps all `db.<name>` callers unchanged. Suite 852, cov 88%. To
-    reach <600 the CORE itself (client + sessions + trades + decisions, still
-    >600) needs a further session/trade/candle split — safe via the same pattern,
-    its own increment.
-  • scheduler.py 854 — 64 `patch('scheduler.db')` + dense monkeypatching → any
-    extraction risks mass patch-repointing.
-  • config.py 632 — flat flag declarations, exempt.
-  _Verdict: the advisor split delivered the maintainability value; forcing the
-  engine/data-layer under 600 is disproportionate risk for a line count. Do them
-  only if a genuine need arises (e.g. a file becomes a real merge-conflict/nav
-  pain), one carefully-verified pass at a time._
+  • database.py 1359 → 905 → **561 (now <600 ✅)** — two increments (brain
+    `9e370ac` + `4f8cff7`): `db_stocks.py` 479 (stock/observation/universe/level/
+    advice-snapshot, 28 fns) + `db_records.py` 362 (decisions/quotes/candles/news/
+    tradebook/advice-grading + `_fetch_all`, 17 fns). Same call-time
+    `database.supabase` pattern so the 33 `patch('database.supabase')` sites still
+    bite (verified each time); nothing in either block is patched by name. Suite
+    855, cov 88.6%. **database.py is DONE.**
+  • scheduler.py 868 — 64 `patch('scheduler.db')` + dense monkeypatching → any
+    extraction risks mass patch-repointing. Highest-risk of the three.
+  • config.py 644 — flat flag declarations, exempt.
+  _Verdict: advisor family + database.py done via the safe facade pattern. brain.py
+  + scheduler.py remain disproportionate risk for a line count (live engine, dense
+  monkeypatching) — do only if a file becomes a real merge-conflict/nav pain, one
+  carefully-verified pass at a time. config.py exempt._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
   ECE recomputed once graded_calls ≥ 50 (currently 22, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
