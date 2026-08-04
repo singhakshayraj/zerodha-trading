@@ -29,7 +29,7 @@ export function Sidebar() {
   return (
     <>
       {/* ─── Desktop sidebar ──────────────────────────────────────────── */}
-      <aside className="hidden md:flex w-56 bg-[#111111] border-r border-[#1f1f1f] flex-col h-screen sticky top-0 shrink-0">
+      <aside className="hidden md:flex w-56 bg-[#111111] border-r border-[#1f1f1f] flex-col h-dvh sticky top-0 shrink-0">
         <div className="p-5 border-b border-[#1f1f1f]">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#3b82f6]/10 flex items-center justify-center">

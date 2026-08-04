@@ -128,7 +128,7 @@ export default function AdvisorPage() {
   const counts = (rows ?? []).reduce<Record<string, number>>((acc, r) => { acc[r.verdict] = (acc[r.verdict] ?? 0) + 1; return acc; }, {});
 
   return (
-    <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
+    <div className="flex flex-col md:flex-row md:h-dvh bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
       <main className="flex-1 md:overflow-auto p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto">

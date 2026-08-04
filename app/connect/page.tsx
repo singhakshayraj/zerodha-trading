@@ -90,7 +90,7 @@ export default function ConnectPage() {
   // flashing the paste form on phones that never saw the morning paste.
   if (restoring && !isConnected) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+      <div className="min-h-dvh bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
         <Loader2 className="w-6 h-6 text-[#3b82f6] animate-spin mb-3" />
         <p className="text-sm text-[#888]">Checking for an active session…</p>
       </div>
@@ -101,7 +101,7 @@ export default function ConnectPage() {
   if (isConnected) {
     const brainOnline = brainStatus === "online" || brainStatus === "running";
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+      <div className="min-h-dvh bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#111111] border border-[#1f1f1f] mb-4">
@@ -284,7 +284,7 @@ export default function ConnectPage() {
   const connected = successSteps.length === STATUS_STEPS.length;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
+    <div className="min-h-dvh bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">

@@ -61,7 +61,15 @@
   }
   html, body {
     overflow-x: hidden;
-    max-width: 100vw;
+    max-width: 100%;
+    width: 100%;
+  }
+  /* Android Chrome grows/shrinks the layout viewport as the URL bar hides;
+     100vh over-reports the visible height there (unlike iOS Safari), causing
+     phantom vertical scroll + a jumping fixed bottom nav. dvh tracks the
+     dynamic viewport so mobile height stays honest. */
+  body {
+    min-height: 100dvh;
   }
 }
 

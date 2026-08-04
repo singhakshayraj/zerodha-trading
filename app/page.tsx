@@ -98,7 +98,7 @@ export default function CommandCenter() {
   const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short" });
 
   return (
-    <div className="flex flex-col md:flex-row md:h-screen bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
+    <div className="flex flex-col md:flex-row md:h-dvh bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
       <main className="flex-1 md:overflow-y-auto p-4 md:p-6">
         <div className="max-w-[1100px] w-full mx-auto">

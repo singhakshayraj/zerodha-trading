@@ -11,7 +11,7 @@ import { ValidationsPanel } from "../trading/validations";
 
 export default function MockValidationsPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-dvh bg-[#0a0a0a]">
       <div className="w-full bg-amber-400 text-black flex flex-wrap items-center justify-center gap-3 text-xs md:text-sm font-bold py-2 px-4 tracking-wide">
         <span>🧪 MOCK ENVIRONMENT — validation suite, staging data only</span>
       </div>

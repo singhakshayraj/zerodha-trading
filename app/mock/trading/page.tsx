@@ -362,9 +362,9 @@ export default function MockTradingPage() {
   return (
     // Single screen-height column: banner + validations stay pinned at the
     // top (shrink-0), the trading layout fills the REMAINING height and does
-    // its own internal scrolling — previously the inner div was md:h-screen
+    // its own internal scrolling — previously the inner div was md:h-dvh
     // itself, pushing total height past the viewport and clipping the bars.
-    <div className="flex flex-col md:h-screen bg-[#0a0a0a]">
+    <div className="flex flex-col md:h-dvh bg-[#0a0a0a]">
       {/* MOCK banner — unmistakable so screenshots/screen-shares can never be
           confused with production. Seed/Reset trigger the staging-only seed
           route (/mock/api/seed); they never touch production. */}
