@@ -34,7 +34,10 @@ recent work has gone.
   early. Combined today: 77 trades, −₹5,676, PF 0.44, −0.34R avg.
 
 ## Deployed versions
-- **Brain:** `9e370ac719df` (git_sha stamped live on both 08-03 sessions —
+- **Brain:** `c689ed44cbf1` (08-04 night: [P-20] advisor-in-trading-loop +
+  database.py split to <600 + pa restored <600 — all behaviour-identical, suite
+  855 green, deployed, brain idle; verify live on the 08-04 session). Prior:
+- **Brain (08-03):** `9e370ac719df` (git_sha stamped live on both 08-03 sessions —
   confirms the git_sha fix still holds). Chain since 07-29: `c177bae` (07-29) →
   `e81f706` (07-30, P-15/P-17) → `642ed94` (08-02, P-19) → `96dddf4` (P-05/P-07)
   → `9e370ac` (08-03, database split increment).

@@ -151,6 +151,24 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - ~~**[P-12] Agent P4 — per-stock timeline UI**~~ ✅ SHIPPED 08-03 (see Done).
 - **[P-13] Activate Marketaux news key** → `news.sentiment` populates. [you→me]
 
+## 💡 PROPOSED — high-value, awaiting user greenlight
+
+- **[P-21] Mine the collected decision→outcome data to FIND the edge (or prove
+  there isn't one).** [me] · *the highest-leverage idea on the board.* We've spent
+  weeks COLLECTING — `decision_outcomes` (Track C walk-forward stop/target labels
+  per decision, since 07-15) + `brain_decisions` with full feature context
+  (trend_score, regime, hour, ADX/DI, RSI, rel-strength, trend_tells, market
+  direction/breadth, ORB, level proximity, news) × ~15 sessions / 1,500+
+  decisions a day. Nobody has ANALYZED it. *done =* a feature→outcome study:
+  which features actually separate winners from losers (by realized R), a ranked
+  importance, and a data-derived entry score fit on the labels — then shipped
+  DARK and graded against the same outcomes. **Why it's amazing:** flips the
+  project from "hand-tune a fixed strategy + hope" to "let the data reveal the
+  edge" (VISION §7 made real). Needs **no Kite ₹500, no user gate** — pure
+  collected data. Either it finds a signal (the edge candidate) or proves
+  decisively there's none (redirects the whole project honestly). Connects
+  [[llm-learning-project]] Track C. _Proposed 08-04; greenlight to start._
+
 ## ⏸️ PARKED — explicitly deferred, revisit when raised
 
 - **[P-14] Advisor active-testing "enhancer".** [both] · parked 2026-07-28 by user
