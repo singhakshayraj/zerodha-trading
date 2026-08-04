@@ -5,10 +5,10 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-03 (post-session) · Burn-down this week: 5 shipped + verified live
-+ 1 in-progress / 1 ready / 4 blocked. (P-19 + P-05 + P-07 shipped, P-15/P-05/P-07 got
-their first live verification on 08-03's two sessions; P-16 resolved as no-op, P-06
-scoring half done — see Done.)_
+_Last updated: 2026-08-04 (post-session) · Burn-down this week: 7 shipped + verified live
+/ 0 in-progress / 2 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20
+shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20 verified live on
+08-04's full-day session (42 advisor runs, no stall); P-16 resolved as no-op.)_
 
 ---
 
@@ -181,14 +181,24 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+_2026-08-04 post-session — VERIFY pass, single full-day session:_
+Session `1042e121` 04:00–09:51 UTC, `COMPLETED`/`MARKET_CLOSED`, brain
+`c689ed44cbf1` (git_sha stamped). 90 trades, −₹10,827, PF 0.16, −0.64R avg —
+no gate flip, still deep reject zone. **[P-20] verified** (see below). Gate
+metrics re-based on 521 closed trades: PF 0.405→0.310, expectancy
+−0.394R→−0.442R, max drawdown ≈−₹13,668→≈−₹23,200 (expected — soft-stop +
+one weak session). Open-window vs after converged to both-negative
+(reinforces [P-07] SKIP). Full detail in [STATUS.md](STATUS.md).
+
 _2026-08-04_ (brain `9bd59ad`, deployed):
 - **[P-20] Advisor refresh + timeline capture now run inside the trading loop.**
   `_maybe_run_advisor` + `_maybe_capture_timeline` were outer-idle-loop only, so
   full-day sessions (post −3R-soft) starved the advisor for the whole session
   (08-03 last refresh 11:50). Now called once per cycle in the inner loop too —
   daemon-threaded + interval-gated, so no trade-loop impact. +1 test, suite 853.
-  Resolves KNOWN_ISSUES P7. _Verify next full-day session: `portfolio_advice`
-  keeps refreshing past midday._
+  Resolves KNOWN_ISSUES P7. **VERIFIED live 08-04**: session `1042e121`
+  (04:00–09:51 UTC) got 42 advisor runs spanning 04:23→09:45 UTC, no midday
+  stall (was starving past ~11:50 pre-fix on 08-03).
 
 _2026-08-03 / 08-04 — VERIFY pass, first live verification since 07-29:_
 Two sessions ran 08-03 (morning `3fe00787` DAILY_STOP_3R, afternoon `1ef3f27f`

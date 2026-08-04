@@ -4,7 +4,8 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-04 (verify pass + counterfactual-audit; merges 08-03 post-session review)._
+_Last updated: 2026-08-04 close (post-session review: single full-day session, brain
+`c689ed44cbf1` confirmed live, P-20 verified; merges earlier 08-04 verify pass)._
 
 ---
 
@@ -13,7 +14,7 @@ _Last updated: 2026-08-04 (verify pass + counterfactual-audit; merges 08-03 post
 Month-long **paper-trading** validation of an intraday auto-trader (brain =
 `~/Desktop/GITHUB/zerodha-brain`, Python on Railway; dashboard = `zerodha-trading`,
 Next.js on Vercel; data in Supabase prod `gilmuwmtdpjccibfhqtx`). **The strategy
-has no proven edge** — paper PF ≈ 0.40 cumulative over 447 closed trades / 7
+has no proven edge** — paper PF ≈ 0.31 cumulative over 521 closed trades / 8
 measured sessions; that's a valid outcome (VISION §7b), not a bug. The real
 edge verdict is **gate #6** (a historical backtest), built but **blocked on
 Kite historical data (₹500/mo — a user decision)**. Alongside the trader is a
@@ -33,10 +34,28 @@ recent work has gone.
   the old flag) but the session ran the full day to close instead of cutting
   early. Combined today: 77 trades, −₹5,676, PF 0.44, −0.34R avg.
 
+## 📈 2026-08-04 post-session — single full-day session, [P-20] verified live
+Session `1042e121` 04:00–09:51 UTC, `COMPLETED`/`MARKET_CLOSED`, git_sha
+`c689ed44cbf1` (first live run of the 08-04 night deploy). 90 trades, −₹10,827,
+PF **0.158**, avg **−0.64R** — a weak day, inside the already-established
+per-session PF range (0.04–1.03, see [P-16]). **[P-20] advisor-in-trading-loop
+confirmed**: 42 advisor runs 04:23→09:45 UTC spanning the whole session, no
+midday stall (was starving past ~11:50 pre-fix on 08-03). `stock_observations`
+phases held: PRE_OPEN 20 / INTRADAY 120 / POST_CLOSE 20. Dark counterfactuals
+fired: `REENTRY_WOULD_BLOCK` 56, `TIME_STOP_WOULD_FIRE` 40,
+`OUTSIDE_OPEN_WOULD_BLOCK` 27, `LIMIT_WOULD_STOP` 7 (soft daily-stop fired but
+the session still ran to `MARKET_CLOSED`, not `DAILY_STOP_3R` — soft-stop
+still working as designed). Open-window (≤10:15 IST) vs after: **−0.63R
+(n=10) vs −0.64R (n=80)** — converged, both negative; further dents the T4
+open-window thesis (see FLAG log). `STOP_LOSS_HIT` **−1.40R** (13 trades) —
+still above the ≈−1.25R [P-05] target, slightly worse than 08-03's −1.34R but
+far below the −1.62R pre-fix baseline; small samples, keep watching.
+
 ## Deployed versions
 - **Brain:** `c689ed44cbf1` (08-04 night: [P-20] advisor-in-trading-loop +
   database.py split to <600 + pa restored <600 — all behaviour-identical, suite
-  855 green, deployed, brain idle; verify live on the 08-04 session). Prior:
+  855 green, deployed. **Confirmed live 08-04**: git_sha stamped on session
+  `1042e121`, P-20 verified — see below). Prior:
 - **Brain (08-03):** `9e370ac719df` (git_sha stamped live on both 08-03 sessions —
   confirms the git_sha fix still holds). Chain since 07-29: `c177bae` (07-29) →
   `e81f706` (07-30, P-15/P-17) → `642ed94` (08-02, P-19) → `96dddf4` (P-05/P-07)
@@ -70,6 +89,8 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
   degraded from T4's original +0.11R and **not directionally consistent** (08-03
   flipped the sign). The "open is the only +EV window" thesis no longer holds;
   do NOT enable. Re-measure as more full-day sessions accrue.
+  _08-04: open (−0.63R, n=10) and after-open (−0.64R, n=80) converged — both
+  negative, no exploitable spread either way. Reinforces SKIP, no new signal._
 - Circuit-breaker (consec-loss): both 08-03 sessions lost more past it — WAIT
   (1 day; and data-collection intentionally logs-not-enforces it).
 
@@ -83,24 +104,26 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 07-29 | 32 (short — daily stop) | −₹918 | 0.18 | −0.52R |
 | 08-03 AM | 30 (−3R hard cut) | −₹4,037 | 0.23 | −0.51R |
 | 08-03 PM | 47 (full-day, −3R soft) | −₹1,639 | 0.66 | −0.23R |
+| 08-04 | 90 (full-day, −3R soft) | −₹10,827 | 0.16 | −0.64R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
 still no edge. AM (in the "+EV" open window) was the **worst** bucket, PM (after
 10:15) the best — inverting the T4 open-window thesis (see FLAG log)._
 
-Cumulative (all-time, 447 closed trades) ≈ **−144.1R**, PF **0.405**,
-expectancy **−0.394R avg** — measured directly from `trades.r_multiple` this
-pass (supersedes the earlier approximate −91.3R figure). Today's two sessions
-added 77 trades / −26.2R combined; no gate flip (still deep reject zone, PF
-gate is >1.3 go / <1.1 reject). **Standing conclusion unchanged: no edge yet →
-gate #6 is the priority.** Max drawdown (peak-to-trough equity, all-time) is
-now **≈−₹13,668** (was ≈−₹6,697) — expected under the 08-03 config change
-(soft daily-stop now lets a session bleed past −3R by design rather than
-hard-cutting), not treated as a new regression. Trade-quality note (T4): the
-"opening hour is the only +EV window" thesis is now **dented** — the 08-03
-counterfactual has the open window as the *worst* bucket and pooled open at
-−0.23R (negative). See the FLAG log; re-measure over more full-day sessions.
+Cumulative (all-time, 521 closed trades) ≈ **−230.2R**, PF **0.310**,
+expectancy **−0.442R avg** — measured directly from `trades.r_multiple` this
+pass. 08-04's single full-day session added 90 trades / −₹10,827 (a weak day,
+within the established per-session PF spread); no gate flip (still deep
+reject zone, PF gate is >1.3 go / <1.1 reject). **Standing conclusion
+unchanged: no edge yet → gate #6 is the priority.** Max drawdown (peak-to-
+trough equity, all-time) is now **≈−₹23,200** (was ≈−₹13,668) — expected
+under the soft daily-stop config (a session can bleed past −3R by design
+rather than hard-cutting) plus today's weak session, not treated as a new
+regression. Trade-quality note (T4): the "opening hour is the only +EV
+window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R vs
+−0.64R) converged to both-negative, no spread left to exploit either way. See
+the FLAG log; re-measure over more full-day sessions.
 
 ## Live subsystems (all shipped + deployed)
 - **Advisor** — daily HOLD/SELL on real holdings; `/advisor` + command center.
