@@ -75,12 +75,16 @@ New, advisory-only, zero real orders (mirrors `paper_broker`).
 - **Done =** equity curve accrues daily; every verdict maps to a paper action;
   wins/losses queryable by source + verdict type.
 
-## Phase 3 — accountability dashboard (feedback surface; "later")
+## Phase 3 — accountability dashboard (SHIPPED 2026-08-05)
 
-`/advisor/accountability` + API: equity curve (advisor vs do-nothing vs Nifty),
-cumulative win/loss record, win-rate by verdict + by source, biggest wins/losses,
-open paper positions, and the existing factor-attribution reused. Lightweight
-first; deepen once Phase 2 data accrues.
+`/advisor/accountability` ("Advisor scorecard") + `api/advisor/accountability`.
+Per book: equity curve (advisor vs do-nothing baseline, dual-line inline SVG),
+total return vs baseline (alpha), realized win/loss record + win-rate, breakdown
+by verdict + by source, best/worst trade, open-position count. Empty-state until
+Phase 2 data accrues. Sidebar nav link added (Trophy). Verified end-to-end with
+throwaway fixtures (alpha + win/loss aggregation correct), then cleaned up;
+`next build` clean. Deepen (factor-attribution reuse, per-symbol drill-down) once
+real snapshots accumulate.
 
 ## Guardrails
 - Advisory-only; no real orders ever. Ship DARK (VISION §7) — **no advisor

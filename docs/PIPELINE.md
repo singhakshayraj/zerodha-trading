@@ -185,8 +185,11 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
     HOLD/SELL/TRIM/rotation, baseline=frozen holdings) + PICKING (₹100k cash,
     buys rotation/scan targets, horizon close, baseline=Nifty B&H). Advisory-only,
     +10 tests, suite 867. *done =* both books seed + snapshot on the next official run.
-  - ⏳ **Phase 3 (later):** `/advisor/accountability` dashboard — equity curves
-    vs baseline, win/loss by verdict + source.
+  - ✅ **Phase 3 (dashboard, auto-deploys Vercel):** `/advisor/accountability`
+    ("Advisor scorecard") + API — per-book equity curve vs baseline (alpha),
+    realized win/loss record + win-rate, by verdict + source, best/worst trade.
+    Empty-state until data accrues; verified end-to-end with fixtures, `next
+    build` clean. *done =* page live; fills in as Phase 2 snapshots land.
 
 ## ⏸️ PARKED — explicitly deferred, revisit when raised
 
