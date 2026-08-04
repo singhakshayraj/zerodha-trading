@@ -6,7 +6,7 @@ import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -89,6 +89,41 @@ type Calibration = {
   }[];
 };
 
+// ── small presentational atoms ───────────────────────────────────────────────
+
+function StatTile({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
+  return (
+    <div className="rounded-lg bg-[#0d0d0d] border border-[#1c1c1c] px-3 py-2.5">
+      <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">{label}</p>
+      <p className="text-lg font-semibold tabular-nums mt-0.5 leading-none" style={{ color: color ?? "#f5f5f5" }}>{value}</p>
+      {sub && <p className="text-[10px] text-[#5a5a5a] mt-1 leading-tight">{sub}</p>}
+    </div>
+  );
+}
+
+function Metric({ label, value, color, title }: { label: string; value: string; color?: string; title?: string }) {
+  return (
+    <span title={title} className="inline-flex items-baseline gap-1 px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1c1c1c]">
+      <span className="text-[9px] text-[#7a7a7a] uppercase tracking-wide">{label}</span>
+      <span className="text-[11px] font-medium tabular-nums" style={{ color: color ?? "#d5d5d5" }}>{value}</span>
+    </span>
+  );
+}
+
+function Section({ icon: Icon, title, note, children, defaultOpen = false }: { icon: React.ElementType; title: string; note?: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+  return (
+    <details open={defaultOpen} className="group bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden">
+      <summary className="flex items-center gap-2 p-4 cursor-pointer list-none select-none hover:bg-[#141414] transition-colors">
+        <Icon className="w-4 h-4 text-[#888] shrink-0" />
+        <h3 className="text-sm font-semibold text-[#f5f5f5]">{title}</h3>
+        {note && <span className="text-[11px] text-[#6a6a6a] min-w-0 truncate">{note}</span>}
+        <ChevronDown className="w-4 h-4 text-[#666] ml-auto shrink-0 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="px-4 pb-4">{children}</div>
+    </details>
+  );
+}
+
 export default function AdvisorPage() {
   const router = useRouter();
   const { isConnected, hydrateFromStorage } = useAppStore();
@@ -126,312 +161,326 @@ export default function AdvisorPage() {
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
 
   const counts = (rows ?? []).reduce<Record<string, number>>((acc, r) => { acc[r.verdict] = (acc[r.verdict] ?? 0) + 1; return acc; }, {});
+  const regimeKey = rows && rows.length > 0 ? rows[0].market_regime ?? null : null;
+  const regime = regimeKey ? REGIME_META[regimeKey] : null;
+  const shown = rows ? (filterVerdict ? rows.filter((r) => r.verdict === filterVerdict) : rows) : [];
 
   return (
-    <div className="flex flex-col md:flex-row md:h-dvh bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
+    <div className="flex flex-col md:flex-row md:h-dvh bg-[#0a0a0a] text-[#f5f5f5] md:overflow-hidden pb-24 md:pb-0">
       <Sidebar />
-      <main className="flex-1 md:overflow-auto p-5 md:p-8">
+      <main className="flex-1 md:overflow-auto p-4 sm:p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <div>
+
+          {/* ── header ─────────────────────────────────────────────── */}
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <div className="min-w-0">
               <h1 className="text-xl font-semibold text-[#f5f5f5]">Portfolio Advisor</h1>
-              <p className="text-xs text-[#555] mt-1">
+              <p className="text-xs text-[#8a8a8a] mt-1">
                 Daily hold/sell read on your long-term holdings — direction first, entry price is sunk cost
                 {runAt ? (
-                  <> · updated <span className="text-[#888]">
+                  <> · updated <span className="text-[#c5c5c5]">
                     {new Date(runAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })} IST
                   </span>
-                  {isOfficial === false ? <span className="text-[#666]"> (intraday refresh)</span> : null}</>
-                ) : runDate ? <> · run <span className="text-[#888]">{runDate}</span></> : null}
+                  {isOfficial === false ? <span className="text-[#6a6a6a]"> (intraday refresh)</span> : null}</>
+                ) : runDate ? <> · run <span className="text-[#c5c5c5]">{runDate}</span></> : null}
               </p>
             </div>
-            <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#888] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] transition-colors">
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+            <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#aaa] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] hover:border-[#333] transition-colors shrink-0 min-h-[40px]">
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
-          <p className="text-[11px] text-[#4a4a4a] mb-6">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
+          <p className="text-[11px] text-[#5a5a5a] mb-5">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
 
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}
           {!rows && loading && (
             <div className="space-y-3">
-              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 w-full" />)}
+              <Skeleton className="h-24 w-full rounded-xl bg-[#111]" />
+              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 w-full rounded-xl bg-[#111]" />)}
             </div>
           )}
 
           {rows && rows.length === 0 && (
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
               <div className="flex items-center gap-2 mb-2"><Compass className="w-4 h-4 text-[#888]" /><h3 className="text-sm font-semibold text-[#f5f5f5]">No advice yet</h3></div>
-              <p className="text-[12px] text-[#888] leading-relaxed">
+              <p className="text-[12px] text-[#8a8a8a] leading-relaxed">
                 The advisor runs automatically once per day after <span className="text-[#f5f5f5] font-mono">09:45 IST</span> (past the opening-bell noise) whenever a live enctoken exists — independent of trading sessions. Paste today&apos;s token and the analysis appears here within a few minutes.
               </p>
             </div>
           )}
 
-          {track && track.evaluatedCalls > 0 && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6 flex flex-wrap items-center gap-x-8 gap-y-2">
-              <div>
-                <p className="text-[10px] text-[#666] uppercase tracking-wide">Track record</p>
-                <p className="text-[11px] text-[#555]">{track.evaluatedCalls} calls judged vs what actually happened next</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[#666] uppercase tracking-wide">Hit rate</p>
-                <p className="text-lg font-semibold tabular-nums" style={{ color: (track.hitRatePct ?? 0) >= 50 ? GREEN : RED }}>{track.hitRatePct?.toFixed(1)}%</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[#666] uppercase tracking-wide">Avg alpha vs Nifty</p>
-                <p className="text-lg font-semibold tabular-nums" style={{ color: (track.avgAlphaPct ?? 0) >= 0 ? GREEN : RED }}>{track.avgAlphaPct !== null ? `${track.avgAlphaPct >= 0 ? "+" : ""}${track.avgAlphaPct.toFixed(2)}pp` : "—"}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-[#666] uppercase tracking-wide">Exit calls saved you</p>
-                <p className="text-lg font-semibold tabular-nums" style={{ color: track.adviceValueInr >= 0 ? GREEN : RED }}>{INR(track.adviceValueInr)}</p>
-              </div>
-            </div>
-          )}
+          {rows && rows.length > 0 && (
+            <div className="space-y-5">
 
-          {rows && rows.length > 0 && rows[0].market_regime && REGIME_META[rows[0].market_regime] && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
-              <span className="text-[10px] text-[#666] uppercase tracking-wide">Market regime</span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
-                    style={{ background: `${REGIME_META[rows[0].market_regime].color}1a`, color: REGIME_META[rows[0].market_regime].color }}>
-                {REGIME_META[rows[0].market_regime].label}
-              </span>
-              <span className="text-[11px] text-[#666]">{REGIME_META[rows[0].market_regime].blurb}</span>
-            </div>
-          )}
-
-          {diff?.priorRunDate && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <History className="w-4 h-4 text-[#888]" />
-                <h3 className="text-sm font-semibold text-[#f5f5f5]">What changed</h3>
-                <span className="text-[11px] text-[#555]">vs the {diff.priorRunDate} run</span>
-              </div>
-              {diff.changes.length === 0 && diff.newNames.length === 0 ? (
-                <p className="text-[12px] text-[#888]">No verdict changes — every holding&apos;s call is the same as the last run.</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {diff.changes.map((c) => (
-                    <span key={c.symbol} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
-                      <span className="text-[#e5e5e5] font-medium">{c.symbol}</span>{" "}
-                      <span style={{ color: VERDICT_META[c.from]?.color ?? MUTE }}>{VERDICT_META[c.from]?.label ?? c.from}</span>
-                      <span className="text-[#666]"> → </span>
-                      <span style={{ color: VERDICT_META[c.to]?.color ?? MUTE }} className="font-semibold">{VERDICT_META[c.to]?.label ?? c.to}</span>
-                    </span>
-                  ))}
-                  {diff.newNames.map((s) => (
-                    <span key={s} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
-                      <span className="text-[#e5e5e5] font-medium">{s}</span> <span className="text-[#60a5fa]">new</span>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Layers className="w-4 h-4 text-[#888]" />
-                <h3 className="text-sm font-semibold text-[#f5f5f5]">Portfolio-level risk</h3>
-                <span className="text-[11px] text-[#555]">the whole book, not one name at a time</span>
-              </div>
-              {risk.concentration_flags.length > 0 && (
-                <div className="space-y-1.5 mb-3">
-                  {risk.concentration_flags.map((f, i) => (
-                    <div key={i} className="flex items-start gap-2 text-[12px] text-[#f59e0b] leading-relaxed">
-                      <ShieldAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                      <span>{f}</span>
+              {/* ── AT A GLANCE: regime + track record ──────────────── */}
+              {(regime || (track && track.evaluatedCalls > 0)) && (
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  {regime && (
+                    <div className="flex items-center gap-2.5 flex-wrap mb-3">
+                      <span className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">Market regime</span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
+                            style={{ background: `${regime.color}1a`, color: regime.color }}>
+                        {regime.label}
+                      </span>
+                      <span className="text-[11px] text-[#8a8a8a] min-w-0">{regime.blurb}</span>
                     </div>
-                  ))}
+                  )}
+                  {track && track.evaluatedCalls > 0 && (
+                    <>
+                      <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2">
+                        Track record <span className="text-[#5a5a5a] normal-case">· {track.evaluatedCalls} calls judged vs what actually happened next</span>
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        <StatTile label="Hit rate" value={track.hitRatePct != null ? `${track.hitRatePct.toFixed(1)}%` : "—"} color={(track.hitRatePct ?? 0) >= 50 ? GREEN : RED} />
+                        <StatTile label="Avg alpha vs Nifty" value={track.avgAlphaPct != null ? `${track.avgAlphaPct >= 0 ? "+" : ""}${track.avgAlphaPct.toFixed(2)}pp` : "—"} color={(track.avgAlphaPct ?? 0) >= 0 ? GREEN : RED} />
+                        <StatTile label="Exit calls saved you" value={INR(track.adviceValueInr)} color={track.adviceValueInr >= 0 ? GREEN : RED} />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
-              {risk.correlation && risk.correlation.effective_bets != null && (
-                <div className="border-t border-[#1f1f1f] pt-3 mb-3">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Network className="w-3.5 h-3.5 text-[#888]" />
-                    <span className="text-[12px] text-[#f5f5f5] font-medium">
-                      Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered}
-                    </span>
-                    <span className="text-[11px] text-[#555]">{risk.correlation.lookback_days}-day return correlation</span>
+
+              {/* ── VERDICT DISTRIBUTION (primary filter) ───────────── */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">Today&apos;s calls · tap to filter</p>
+                  {filterVerdict && (
+                    <button type="button" onClick={() => setFilterVerdict(null)} className="text-[11px] text-[#60a5fa] hover:underline">clear filter</button>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                  {(Object.keys(VERDICT_META) as Advice["verdict"][]).map((v) => {
+                    const m = VERDICT_META[v]; const Icon = m.icon;
+                    const n = counts[v] ?? 0;
+                    const active = filterVerdict === v;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        disabled={n === 0}
+                        onClick={() => setFilterVerdict(active ? null : v)}
+                        aria-pressed={active}
+                        title={n === 0 ? `No ${m.label} calls` : active ? "Show all" : `Show only ${m.label}`}
+                        className={`text-left bg-[#111111] border rounded-xl p-3 transition-all ${n === 0 ? "opacity-40 cursor-default" : "cursor-pointer hover:border-[#333]"}`}
+                        style={{ borderColor: active ? m.color : "#1f1f1f", background: active ? `${m.color}12` : undefined }}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1"><Icon className="w-3.5 h-3.5 shrink-0" style={{ color: m.color }} /><span className="text-[10px] text-[#8a8a8a] uppercase tracking-wide truncate">{m.label}</span></div>
+                        <p className="text-2xl font-semibold tabular-nums leading-none" style={{ color: n ? m.color : "#333" }}>{n}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ── WHAT CHANGED ────────────────────────────────────── */}
+              {diff?.priorRunDate && (
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <History className="w-4 h-4 text-[#888]" />
+                    <h3 className="text-sm font-semibold text-[#f5f5f5]">What changed</h3>
+                    <span className="text-[11px] text-[#6a6a6a]">vs the {diff.priorRunDate} run</span>
                   </div>
-                  <p className="text-[11px] text-[#888] leading-relaxed mb-2">
-                    Correlation-adjusted count of independent positions — names that move together collapse toward one bet, so the book is less diversified than the raw count suggests.
-                  </p>
-                  {risk.correlation.clusters.length > 0 && (
+                  {diff.changes.length === 0 && diff.newNames.length === 0 ? (
+                    <p className="text-[12px] text-[#8a8a8a]">No verdict changes — every holding&apos;s call is the same as the last run.</p>
+                  ) : (
                     <div className="flex flex-wrap gap-2">
-                      {risk.correlation.clusters.map((c, i) => (
-                        <span key={i} className="text-[11px] px-2 py-0.5 rounded-md bg-[#f59e0b0d] text-[#e5e5e5]">
-                          {c.symbols.join(" + ")}
-                          <span className="text-[#666]"> · corr {c.avg_corr.toFixed(2)} · {c.weight_pct}%</span>
+                      {diff.changes.map((c) => (
+                        <span key={c.symbol} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
+                          <span className="text-[#e5e5e5] font-medium">{c.symbol}</span>{" "}
+                          <span style={{ color: VERDICT_META[c.from]?.color ?? MUTE }}>{VERDICT_META[c.from]?.label ?? c.from}</span>
+                          <span className="text-[#666]"> → </span>
+                          <span style={{ color: VERDICT_META[c.to]?.color ?? MUTE }} className="font-semibold">{VERDICT_META[c.to]?.label ?? c.to}</span>
+                        </span>
+                      ))}
+                      {diff.newNames.map((s) => (
+                        <span key={s} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
+                          <span className="text-[#e5e5e5] font-medium">{s}</span> <span className="text-[#60a5fa]">new</span>
                         </span>
                       ))}
                     </div>
                   )}
                 </div>
               )}
-              {risk.tax_loss_harvest.length > 0 && (
-                <div className="border-t border-[#1f1f1f] pt-3">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Receipt className="w-3.5 h-3.5 text-[#22c55e]" />
-                    <span className="text-[12px] text-[#f5f5f5] font-medium">
-                      Tax-loss harvest: {INR(risk.harvestable_loss_inr)} in realizable losses
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#888] leading-relaxed mb-2">
-                    Weak names already flagged to exit — selling books these losses to offset capital gains elsewhere. Short- vs long-term treatment depends on how long you&apos;ve held.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {risk.tax_loss_harvest.map((h) => (
-                      <span key={h.symbol} className="text-[11px] px-2 py-0.5 rounded-md bg-[#22c55e0d] text-[#e5e5e5]">
-                        {h.symbol} <span className="text-[#ef4444]">{INR(-Math.abs(h.unrealized_loss_inr))}</span>
-                        <span className="text-[#666]"> · {h.verdict}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
-          {calibration && calibration.graded_calls > 0 && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 mb-6">
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <Gauge className="w-4 h-4 text-[#888]" />
-                <h3 className="text-sm font-semibold text-[#f5f5f5]">Confidence calibration</h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b0d] text-[#f59e0b] uppercase tracking-wide">Dark · not used for decisions</span>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] mb-3">
-                <span className="text-[#888]">Base rate <span className="text-[#e5e5e5]">{calibration.base_rate_pct}%</span></span>
-                <span className="text-[#888]">Calibration error <span className="text-[#e5e5e5]">{calibration.ece_pct}pp</span></span>
-                <span className="text-[#888]">Reliable? {calibration.monotonic
-                  ? <span className="text-[#22c55e]">monotonic ✓</span>
-                  : <span className="text-[#f59e0b]">not monotonic — unusable yet</span>}</span>
-                <span className="text-[#555]">n={calibration.graded_calls}</span>
-              </div>
-              <div className="space-y-1.5">
-                {calibration.bins.map((b) => (
-                  <div key={b.label} className="flex items-center gap-2 text-[11px]">
-                    <span className="w-12 text-[#888] tabular-nums">{b.label}</span>
-                    <span className="w-9 text-[#666] tabular-nums">n={b.n}</span>
-                    <span className="w-20 text-[#888] tabular-nums">pred {b.predicted_pct}%</span>
-                    <div className="flex-1 h-1.5 rounded bg-[#1f1f1f] overflow-hidden min-w-[40px]">
-                      <div className="h-full bg-[#3b82f6]" style={{ width: `${Math.min(100, Math.max(0, b.empirical_hit_pct))}%` }} />
-                    </div>
-                    <span className="w-16 text-right text-[#e5e5e5] tabular-nums">emp {b.empirical_hit_pct}%</span>
-                    <span className="w-24 text-right text-[#888] tabular-nums">calib {b.calibrated_pct}%{b.low_n ? " ·low-n" : ""}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[11px] text-[#888] leading-relaxed mt-3">
-                A usable confidence needs the empirical hit-rate (bar) to rise with predicted confidence (monotonic) on enough calls. <span className="text-[#e5e5e5]">Calibrated</span> is the empirical rate shrunk toward the base rate so small buckets don&apos;t mislead. Logged only — it never changes a verdict until it earns promotion.
-              </p>
-            </div>
-          )}
-
-          {rows && rows.length > 0 && (
-            <div className="space-y-6">
-              {/* summary strip — click a verdict to filter the cards below */}
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                {(Object.keys(VERDICT_META) as Advice["verdict"][]).map((v) => {
-                  const m = VERDICT_META[v]; const Icon = m.icon;
-                  const n = counts[v] ?? 0;
-                  const active = filterVerdict === v;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      disabled={n === 0}
-                      onClick={() => setFilterVerdict(active ? null : v)}
-                      aria-pressed={active}
-                      title={n === 0 ? `No ${m.label} calls` : active ? "Show all" : `Show only ${m.label}`}
-                      className={`text-left bg-[#111111] border rounded-xl p-4 transition-colors ${n === 0 ? "opacity-40 cursor-default" : "cursor-pointer hover:border-[#333]"}`}
-                      style={{ borderColor: active ? m.color : "#1f1f1f" }}
-                    >
-                      <div className="flex items-center gap-2 mb-1"><Icon className="w-4 h-4" style={{ color: m.color }} /><span className="text-[11px] text-[#666] uppercase tracking-wide">{m.label}</span></div>
-                      <p className="text-2xl font-semibold tabular-nums" style={{ color: n ? m.color : "#333" }}>{n}</p>
-                    </button>
-                  );
-                })}
-              </div>
-              {filterVerdict && (
-                <div className="flex items-center gap-2 text-[11px] text-[#888]">
-                  <span>Showing {counts[filterVerdict] ?? 0} {VERDICT_META[filterVerdict].label} call{(counts[filterVerdict] ?? 0) === 1 ? "" : "s"}</span>
-                  <button type="button" onClick={() => setFilterVerdict(null)} className="text-[#60a5fa] hover:underline">clear filter</button>
-                </div>
-              )}
-
-              {/* cards, worst-first (API sorts by trend_score asc) */}
+              {/* ── HOLDINGS (the core) ─────────────────────────────── */}
               <div className="space-y-3">
-                {(filterVerdict ? rows.filter((r) => r.verdict === filterVerdict) : rows).map((r) => {
+                {filterVerdict && (
+                  <p className="text-[11px] text-[#8a8a8a]">Showing {counts[filterVerdict] ?? 0} {VERDICT_META[filterVerdict].label} call{(counts[filterVerdict] ?? 0) === 1 ? "" : "s"}</p>
+                )}
+                {shown.map((r) => {
                   const m = VERDICT_META[r.verdict]; const Icon = m.icon;
                   const pnl = r.pnl_percent ?? 0;
+                  const hasPlan = !!(r.exit_target || r.stop_level || r.rotation_target_symbol || (r.rotation_buy_qty != null && r.rotation_freed_inr != null) || r.user_decision);
                   return (
-                    <div key={r.symbol} className="bg-[#111111] border rounded-xl p-5" style={{ borderColor: `${m.color}33` }}>
-                      <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                        <div className="lg:w-56 shrink-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-semibold text-[#f5f5f5]">{r.symbol}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide" style={{ background: `${m.color}1a`, color: m.color }}>
-                              <Icon className="w-3 h-3 inline mr-1 -mt-0.5" />{m.label}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-[#555] mt-1">{m.blurb}</p>
-                          <div className="mt-3 space-y-1 text-[11px] text-[#888]">
-                            <p>{r.quantity} × avg {INR(r.avg_price)} → now {INR(r.last_price)}</p>
-                            <p style={{ color: pnl >= 0 ? GREEN : RED }}>{pnl >= 0 ? "+" : ""}{pnl?.toFixed(1)}%{(r.breakeven_gain_pct ?? 0) > 0 ? <span className="text-[#666]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span> : null}</p>
-                            <p className="text-[#555]">
-                              trend {r.trend_score > 0 ? "+" : ""}{r.trend_score} · confidence {r.confidence}%
-                              {r.indicators?.calibrated_confidence != null && (
-                                <span className="text-[#666]" title="Measured hit-rate for this confidence bucket from the graded track record — DARK, not used for the verdict yet">
-                                  {" "}· calib ~{Math.round(r.indicators.calibrated_confidence)}%{r.indicators.calibration_low_n ? " (low-n)" : ""}
-                                </span>
-                              )}
-                              {r.trigger_type && (
-                                <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide align-middle"
-                                      style={{ background: "#ffffff0d", color: r.trigger_type === "MACRO" ? "#a78bfa" : "#60a5fa" }}
-                                      title={r.trigger_type === "MACRO" ? "Long-term structure call — judged at 30 trading days" : "Short-term signal call — judged at 10 trading days"}>
-                                  {r.trigger_type}
-                                </span>
-                              )}
-                            </p>
-                          </div>
+                    <article key={r.symbol} className="bg-[#111111] border rounded-xl overflow-hidden" style={{ borderColor: `${m.color}33` }}>
+                      {/* card header: symbol + verdict + P&L */}
+                      <div className="flex items-center justify-between gap-3 p-4 border-b border-[#1a1a1a]" style={{ background: `${m.color}0a` }}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide shrink-0" style={{ background: `${m.color}1a`, color: m.color }}>
+                            <Icon className="w-3 h-3 inline mr-1 -mt-0.5" />{m.label}
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="text-right shrink-0">
+                          <p className="text-base font-semibold tabular-nums leading-none" style={{ color: pnl >= 0 ? GREEN : RED }}>{pnl >= 0 ? "+" : ""}{pnl.toFixed(1)}%</p>
+                          <p className="text-[10px] text-[#6a6a6a] mt-1">P&amp;L</p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 grid gap-4 md:grid-cols-[210px_1fr]">
+                        {/* left: rationale one-liner + economics + metric chips */}
+                        <aside className="space-y-3 min-w-0">
+                          <p className="text-[11px] text-[#7a7a7a] leading-relaxed">{m.blurb}</p>
+                          <div className="text-[11px] text-[#9a9a9a] space-y-0.5">
+                            <p>{r.quantity} × avg {INR(r.avg_price)} → <span className="text-[#d5d5d5]">now {INR(r.last_price)}</span></p>
+                            {(r.breakeven_gain_pct ?? 0) > 0 && <p className="text-[#6a6a6a]">needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</p>}
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            <Metric label="trend" value={`${r.trend_score > 0 ? "+" : ""}${r.trend_score}`} color={r.trend_score > 0 ? GREEN : r.trend_score < 0 ? RED : MUTE} />
+                            <Metric label="conf" value={`${r.confidence}%`} />
+                            {r.indicators?.calibrated_confidence != null && (
+                              <Metric label="calib" value={`~${Math.round(r.indicators.calibrated_confidence)}%${r.indicators.calibration_low_n ? " ·low-n" : ""}`}
+                                title="Measured hit-rate for this confidence bucket from the graded track record — DARK, not used for the verdict yet" />
+                            )}
+                            {r.trigger_type && (
+                              <Metric label="type" value={r.trigger_type} color={r.trigger_type === "MACRO" ? "#a78bfa" : "#60a5fa"}
+                                title={r.trigger_type === "MACRO" ? "Long-term structure call — judged at 30 trading days" : "Short-term signal call — judged at 10 trading days"} />
+                            )}
+                          </div>
+                        </aside>
+
+                        {/* right: reasons + plan */}
+                        <div className="min-w-0">
                           <ul className="space-y-1.5">
                             {(r.reasons ?? []).map((reason, i) => (
-                              <li key={i} className="text-[12px] text-[#bbb] leading-relaxed flex gap-2">
-                                <span className="mt-1.5 h-1 w-1 rounded-full bg-[#444] shrink-0" />{reason}
+                              <li key={i} className="text-[12px] text-[#c5c5c5] leading-relaxed flex gap-2">
+                                <span className="mt-1.5 h-1 w-1 rounded-full bg-[#555] shrink-0" />{reason}
                               </li>
                             ))}
                           </ul>
-                          {(r.stop_level || r.exit_target || r.rotation_target_symbol) && (
-                            <div className="flex flex-wrap gap-2 mt-3 text-[11px]">
-                              {r.exit_target && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#f5f5f5]">sell near <span style={{ color: AMBER }}>{INR(r.exit_target)}</span></span>}
-                              {r.stop_level && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#f5f5f5]">exit below <span style={{ color: RED }}>{INR(r.stop_level)}</span></span>}
-                              {r.rotation_target_symbol && (
-                                <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#f5f5f5]" style={{ borderColor: `${GREEN}44` }}>
-                                  rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
-                                  <span className="text-[#666]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
-                                </span>
-                              )}
-                              {r.rotation_buy_qty != null && r.rotation_freed_inr != null && (
-                                <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#f5f5f5]">
-                                  sell {r.rotation_sell_qty} → <span style={{ color: GREEN }}>{INR(r.rotation_freed_inr)}</span> frees ~{r.rotation_buy_qty} @ {INR(r.rotation_buy_price ?? 0)}
-                                </span>
-                              )}
-                              {r.user_decision && (
-                                <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-[10px]" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
-                                  you {r.user_decision === "accept" ? "accepted ✓" : "declined ✗"}
-                                </span>
-                              )}
+                          {hasPlan && (
+                            <div className="mt-3">
+                              <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1.5">Plan</p>
+                              <div className="flex flex-wrap gap-2 text-[11px]">
+                                {r.exit_target && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">sell near <span style={{ color: AMBER }}>{INR(r.exit_target)}</span></span>}
+                                {r.stop_level && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">exit below <span style={{ color: RED }}>{INR(r.stop_level)}</span></span>}
+                                {r.rotation_target_symbol && (
+                                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#d5d5d5]" style={{ borderColor: `${GREEN}44` }}>
+                                    rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
+                                    <span className="text-[#6a6a6a]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
+                                  </span>
+                                )}
+                                {r.rotation_buy_qty != null && r.rotation_freed_inr != null && (
+                                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">
+                                    sell {r.rotation_sell_qty} → <span style={{ color: GREEN }}>{INR(r.rotation_freed_inr)}</span> frees ~{r.rotation_buy_qty} @ {INR(r.rotation_buy_price ?? 0)}
+                                  </span>
+                                )}
+                                {r.user_decision && (
+                                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-[10px]" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
+                                    you {r.user_decision === "accept" ? "accepted ✓" : "declined ✗"}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>
+
+              {/* ── DEEPER ANALYTICS (collapsible) ──────────────────── */}
+              {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
+                <Section icon={Layers} title="Portfolio-level risk" note="the whole book, not one name at a time">
+                  {risk.concentration_flags.length > 0 && (
+                    <div className="space-y-1.5 mb-3">
+                      {risk.concentration_flags.map((f, i) => (
+                        <div key={i} className="flex items-start gap-2 text-[12px] text-[#f59e0b] leading-relaxed">
+                          <ShieldAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {risk.correlation && risk.correlation.effective_bets != null && (
+                    <div className="border-t border-[#1f1f1f] pt-3 mb-3">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <Network className="w-3.5 h-3.5 text-[#888]" />
+                        <span className="text-[12px] text-[#f5f5f5] font-medium">
+                          Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered}
+                        </span>
+                        <span className="text-[11px] text-[#6a6a6a]">{risk.correlation.lookback_days}-day return correlation</span>
+                      </div>
+                      <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-2">
+                        Correlation-adjusted count of independent positions — names that move together collapse toward one bet, so the book is less diversified than the raw count suggests.
+                      </p>
+                      {risk.correlation.clusters.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {risk.correlation.clusters.map((c, i) => (
+                            <span key={i} className="text-[11px] px-2 py-0.5 rounded-md bg-[#f59e0b0d] text-[#e5e5e5]">
+                              {c.symbols.join(" + ")}
+                              <span className="text-[#6a6a6a]"> · corr {c.avg_corr.toFixed(2)} · {c.weight_pct}%</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {risk.tax_loss_harvest.length > 0 && (
+                    <div className="border-t border-[#1f1f1f] pt-3">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <Receipt className="w-3.5 h-3.5 text-[#22c55e]" />
+                        <span className="text-[12px] text-[#f5f5f5] font-medium">
+                          Tax-loss harvest: {INR(risk.harvestable_loss_inr)} in realizable losses
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-2">
+                        Weak names already flagged to exit — selling books these losses to offset capital gains elsewhere. Short- vs long-term treatment depends on how long you&apos;ve held.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {risk.tax_loss_harvest.map((h) => (
+                          <span key={h.symbol} className="text-[11px] px-2 py-0.5 rounded-md bg-[#22c55e0d] text-[#e5e5e5]">
+                            {h.symbol} <span className="text-[#ef4444]">{INR(-Math.abs(h.unrealized_loss_inr))}</span>
+                            <span className="text-[#6a6a6a]"> · {h.verdict}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </Section>
+              )}
+
+              {calibration && calibration.graded_calls > 0 && (
+                <Section icon={Gauge} title="Confidence calibration" note={<span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b0d] text-[#f59e0b] uppercase tracking-wide">Dark · not used</span>}>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] mb-3">
+                    <span className="text-[#8a8a8a]">Base rate <span className="text-[#e5e5e5]">{calibration.base_rate_pct}%</span></span>
+                    <span className="text-[#8a8a8a]">Calibration error <span className="text-[#e5e5e5]">{calibration.ece_pct}pp</span></span>
+                    <span className="text-[#8a8a8a]">Reliable? {calibration.monotonic
+                      ? <span className="text-[#22c55e]">monotonic ✓</span>
+                      : <span className="text-[#f59e0b]">not monotonic — unusable yet</span>}</span>
+                    <span className="text-[#6a6a6a]">n={calibration.graded_calls}</span>
+                  </div>
+                  {/* mobile-safe reliability rows: label + n on top, bar + numbers below */}
+                  <div className="space-y-2.5">
+                    {calibration.bins.map((b) => (
+                      <div key={b.label}>
+                        <div className="flex items-center justify-between text-[11px] mb-1">
+                          <span className="text-[#c5c5c5] tabular-nums font-medium">{b.label} <span className="text-[#6a6a6a] font-normal">· n={b.n}{b.low_n ? " · low-n" : ""}</span></span>
+                          <span className="text-[#8a8a8a] tabular-nums">pred {b.predicted_pct}% · <span className="text-[#e5e5e5]">emp {b.empirical_hit_pct}%</span> · calib {b.calibrated_pct}%</span>
+                        </div>
+                        <div className="relative h-2 rounded bg-[#1a1a1a] overflow-hidden">
+                          <div className="h-full bg-[#3b82f6]" style={{ width: `${Math.min(100, Math.max(0, b.empirical_hit_pct))}%` }} />
+                          {/* predicted marker */}
+                          <span className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-[#e5e5e5]/70" style={{ left: `calc(${Math.min(100, Math.max(0, b.predicted_pct))}% - 1px)` }} title={`predicted ${b.predicted_pct}%`} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
+                    Bar = empirical hit-rate; the light tick = predicted confidence. A usable confidence needs the bar to rise with the tick (monotonic) on enough calls. <span className="text-[#e5e5e5]">Calibrated</span> is the empirical rate shrunk toward the base rate so small buckets don&apos;t mislead. Logged only — it never changes a verdict until it earns promotion.
+                  </p>
+                </Section>
+              )}
             </div>
           )}
         </div>
