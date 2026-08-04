@@ -169,15 +169,28 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   decisively there's none (redirects the whole project honestly). Connects
   [[llm-learning-project]] Track C. _Proposed 08-04; greenlight to start._
 
+## 🔨 IN PROGRESS
+
+- **[P-14] Advisor accountability / paper-trade system.** [me] · re-raised +
+  scoped 2026-08-05 (was parked 2026-07-28): paper-trade every advisor verdict,
+  store outcomes, measure wins/losses → feedback loop. Scope: **two books**,
+  track **everything** (holdings + rotation + Nifty-500 scan). Spec:
+  [reference/ADVISOR_ACCOUNTABILITY.md](reference/ADVISOR_ACCOUNTABILITY.md).
+  - ✅ **Phase 1 (brain `91a48361`):** grading no longer starves — runs on every
+    session start + loud `queued/graded/not_due/errors` log; `ADVISOR_BACKTEST_ENABLED=true`
+    set on Railway (defaulted false — 2nd starvation cause). *done =* the 38
+    matured-but-ungraded rows grade next session.
+  - ✅ **Phase 2 (brain `a2d9881`):** `advisor_paper.py` + tables
+    `advisor_paper_positions`/`advisor_paper_equity`. MANAGEMENT (holdings +
+    HOLD/SELL/TRIM/rotation, baseline=frozen holdings) + PICKING (₹100k cash,
+    buys rotation/scan targets, horizon close, baseline=Nifty B&H). Advisory-only,
+    +10 tests, suite 867. *done =* both books seed + snapshot on the next official run.
+  - ⏳ **Phase 3 (later):** `/advisor/accountability` dashboard — equity curves
+    vs baseline, win/loss by verdict + source.
+
 ## ⏸️ PARKED — explicitly deferred, revisit when raised
 
-- **[P-14] Advisor active-testing "enhancer".** [both] · parked 2026-07-28 by user
-  — "build a system to actively test the advisor page." Not scoped yet: does
-  "test" mean (a) synthetic/adversarial holdings to probe `advise()` edge cases,
-  (b) a live shadow-mode harness that re-runs the advisor against historical
-  price paths to check verdicts hold up, (c) UI/E2E test coverage for
-  `/advisor`, or (d) something else. **Do not build until re-raised** —
-  surface it next time the advisor is discussed.
+- _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
 
