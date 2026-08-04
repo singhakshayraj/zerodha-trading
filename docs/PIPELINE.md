@@ -189,6 +189,16 @@ metrics re-based on 521 closed trades: PF 0.405→0.310, expectancy
 −0.394R→−0.442R, max drawdown ≈−₹13,668→≈−₹23,200 (expected — soft-stop +
 one weak session). Open-window vs after converged to both-negative
 (reinforces [P-07] SKIP). Full detail in [STATUS.md](STATUS.md).
+- **[P-05] stop-fill cap — RE-OPENED then RE-FIXED** (brain `b09904fe55fb`). The
+  first live re-measure showed the bucket got *worse* (−1.40R avg / −1.60R worst,
+  short stops −1.44R under `COVER_SHORT`). Root cause via `execution.exit`: the cap
+  clamped the *reference/hint* to −1.25R but `PaperBroker._fill` re-applied
+  `PAPER_SLIPPAGE_PCT`+charges on top. Fix: `model_stop` flag from both exit paths
+  skips the double slippage on stop exits (charges kept). +3 test assertions,
+  suite 856 green. _VERIFY next session: STOP_LOSS_HIT ≈ −1.25R − charges._
+- **Mobile (dashboard):** Chrome-Android scroll/alignment fix — `100vh`/`100vw`
+  → `dvh`/`100%` (URL-bar dynamic-viewport jank; iOS Safari was unaffected).
+  `next build` clean, auto-deployed via Vercel.
 
 _2026-08-04_ (brain `9bd59ad`, deployed):
 - **[P-20] Advisor refresh + timeline capture now run inside the trading loop.**

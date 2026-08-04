@@ -48,14 +48,24 @@ the session still ran to `MARKET_CLOSED`, not `DAILY_STOP_3R` — soft-stop
 still working as designed). Open-window (≤10:15 IST) vs after: **−0.63R
 (n=10) vs −0.64R (n=80)** — converged, both negative; further dents the T4
 open-window thesis (see FLAG log). `STOP_LOSS_HIT` **−1.40R** (13 trades) —
-still above the ≈−1.25R [P-05] target, slightly worse than 08-03's −1.34R but
-far below the −1.62R pre-fix baseline; small samples, keep watching.
+still above the ≈−1.25R [P-05] target, slightly worse than 08-03's −1.34R.
+**Root-caused + re-fixed post-session:** the cap correctly clamped the stop
+*reference/hint* to −1.25R (`execution.exit.reference_price`), but the paper
+broker then re-applied `PAPER_SLIPPAGE_PCT`+charges on top of it, re-widening
+the realized fill to −1.4/−1.6R (short stops hid the same under `COVER_SHORT`).
+Fixed brain `b09904fe55fb` (`model_stop` flag skips the double slippage on
+STOP_LOSS_HIT exits, charges kept). **Re-verify next session** → ≈−1.25R − charges.
 
 ## Deployed versions
+- **Brain:** `b09904fe55fb` (08-04 post-session: **P-05 double-slippage fix** —
+  `model_stop` flag skips the broker's re-applied slippage on STOP_LOSS_HIT exits
+  (the resting-stop cap already models it), charges kept. Suite 856 green,
+  deployed, brain idle; **verify STOP_LOSS_HIT bucket next session** → ≈−1.25R −
+  charges). Prior:
 - **Brain:** `c689ed44cbf1` (08-04 night: [P-20] advisor-in-trading-loop +
   database.py split to <600 + pa restored <600 — all behaviour-identical, suite
-  855 green, deployed. **Confirmed live 08-04**: git_sha stamped on session
-  `1042e121`, P-20 verified — see below). Prior:
+  855 green. **Confirmed live 08-04**: git_sha stamped on session
+  `1042e121`, P-20 verified). Prior:
 - **Brain (08-03):** `9e370ac719df` (git_sha stamped live on both 08-03 sessions —
   confirms the git_sha fix still holds). Chain since 07-29: `c177bae` (07-29) →
   `e81f706` (07-30, P-15/P-17) → `642ed94` (08-02, P-19) → `96dddf4` (P-05/P-07)

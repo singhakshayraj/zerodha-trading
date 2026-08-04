@@ -67,9 +67,29 @@ direction, accepted). Pacing counters (`_symbol_trades_today`, `_hour_trades`)
 also reset on a mid-session restart — caps loosen slightly for the rest of
 that day (accepted).
 
+### W5. Telegram `getUpdates` 409 Conflict in logs (08-04)
+`[telegram] get_updates failed: 409 Client Error: Conflict … /getUpdates` — two
+pollers hitting the same bot token's long-poll (only one getUpdates consumer
+allowed per bot). Benign to trading/data (advisor_bot only records taps, no order
+path), but decision-recording taps may split/drop between consumers. Likely a
+lingering poller from a prior deploy overlapping the new instance. No action until
+the Telegram token is finalized ([P-04]); re-check after a clean single-instance
+restart. Ties to [[rotation-advisor]].
+
 ---
 
 ## Resolved log
+
+**2026-08-04 post-session (brain `b09904fe55fb`):**
+- **P-05 double-counted slippage on STOP_LOSS_HIT fills.** The resting-stop cap
+  clamped the stop-exit *hint* to −1.25R (`execution.exit.reference_price`), but
+  `PaperBroker._fill` re-applied `PAPER_SLIPPAGE_PCT`+charges on top, re-widening
+  realized fills to −1.40R avg / −1.60R worst (short stops hid the same under
+  `COVER_SHORT`). Fix: `model_stop` flag threaded from both exit paths into the
+  broker skips the double slippage on stop exits; charges kept. +3 test assertions,
+  suite 856 green. **Verify next session's `STOP_LOSS_HIT` bucket ≈ −1.25R − charges.**
+- **P7** (advisor-starve, brain `9bd59ad`/[P-20]) verified fixed live on the 08-04
+  session — advisor refreshed to 15:15 IST, timeline PRE 20 / INTRA 120 / POST 20.
 
 **2026-07-14 backlog clear (brain `cf8a628`, dashboard `1944f45`):**
 - P1: `DATA_MAX_CONCURRENT_POSITIONS=8` joined the entry gate (data mode
