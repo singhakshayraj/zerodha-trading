@@ -9,12 +9,12 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/",          label: "Home",       icon: LayoutDashboard },
   { href: "/connect",   label: "Connect",    icon: Zap },
-  { href: "/portfolio", label: "Portfolio",  icon: Briefcase },
-  { href: "/trading",   label: "Auto Trade", icon: Bot },
+  { href: "/portfolio", label: "Portfolio",  icon: Briefcase,   short: "Folio" },
+  { href: "/trading",   label: "Auto Trade", icon: Bot,         short: "Trade" },
   { href: "/insights",  label: "Insights",   icon: LineChart },
   { href: "/advisor",   label: "Advisor",    icon: Compass },
-  { href: "/advisor/timeline", label: "Timeline", icon: Activity },
-  { href: "/advisor/accountability", label: "Scorecard", icon: Trophy },
+  { href: "/advisor/timeline", label: "Timeline", icon: Activity, short: "Time" },
+  { href: "/advisor/accountability", label: "Scorecard", icon: Trophy, short: "Score" },
 ];
 
 export function Sidebar() {
@@ -103,20 +103,21 @@ export function Sidebar() {
       {/* order-last → sits below the scrollable main in the flex column (flow,
           not fixed) so no content is ever hidden behind it. */}
       <nav className="md:hidden order-last shrink-0 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
-        <div className="grid grid-cols-5">
-          {navItems.map(({ href, label, icon: Icon }) => {
+        {/* single row of 8 — short labels so nothing wraps at ~49px/cell */}
+        <div className="grid grid-cols-8">
+          {navItems.map(({ href, label, short, icon: Icon }) => {
             const active = pathname === href;
             return (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] min-h-[56px]",
+                  "flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 min-h-[52px]",
                   active ? "text-[#3b82f6]" : "text-[#555] active:text-[#f5f5f5]"
                 )}
               >
-                <Icon className="w-5 h-5" />
-                {label}
+                <Icon className="w-[18px] h-[18px] shrink-0" />
+                <span className="text-[9px] leading-none truncate max-w-full">{short ?? label}</span>
               </Link>
             );
           })}
