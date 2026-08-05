@@ -4,8 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-04 close (post-session review: single full-day session, brain
-`c689ed44cbf1` confirmed live, P-20 verified; merges earlier 08-04 verify pass)._
+_Last updated: 2026-08-05 close (post-session review: full-day session, PF 0.554/
+−0.230R, back in normal range; brain git_sha still `c689ed44cbf1` — the P-05
+re-fix deploy is unconfirmed, re-verify pending)._
 
 ---
 
@@ -55,6 +56,22 @@ broker then re-applied `PAPER_SLIPPAGE_PCT`+charges on top of it, re-widening
 the realized fill to −1.4/−1.6R (short stops hid the same under `COVER_SHORT`).
 Fixed brain `b09904fe55fb` (`model_stop` flag skips the double slippage on
 STOP_LOSS_HIT exits, charges kept). **Re-verify next session** → ≈−1.25R − charges.
+
+## 📈 2026-08-05 post-session — normal-range day, P-05 re-fix STILL unverified
+Session `3903c7e1` 06:16–09:51 UTC, `COMPLETED`. 41 trades, **−₹1,604**, PF
+**0.554**, avg **−0.230R** — back inside the established per-session PF range
+(0.04–1.03), a rebound from 08-04's weak 0.158. **⚠️ git_sha stamped
+`c689ed44cbf1`** — same build as 08-04, **not** `b09904fe55fb` (the P-05
+double-slippage re-fix STATUS recorded as deployed post-08-04). Either the
+Railway deploy didn't actually go live or the stamp is stale — either way
+the re-fix is **still unverified**: only 1 `STOP_LOSS_HIT` fired today
+(−1.157R, n=1 — too small to read either way). Re-check the Railway deploy
+before next session ([P-23]). Advisor ran normally: 540 advice rows, last
+09:45 UTC (no stall, [P-20] still holding). Grading: 28 graded calls (was
+21), 39.3% hit (was 42.9%) — still DARK/small-n, [P-18] watch-only.
+⚠️ **New gap:** `advisor_paper_equity`/`advisor_paper_positions` are **0
+rows** — today was the first official session since [P-14] Phase 2 shipped,
+which should have seeded/snapshotted both books ([P-22]).
 
 ## Deployed versions
 - **Brain:** `b09904fe55fb` (08-04 post-session: **P-05 double-slippage fix** —
@@ -115,25 +132,25 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 08-03 AM | 30 (−3R hard cut) | −₹4,037 | 0.23 | −0.51R |
 | 08-03 PM | 47 (full-day, −3R soft) | −₹1,639 | 0.66 | −0.23R |
 | 08-04 | 90 (full-day, −3R soft) | −₹10,827 | 0.16 | −0.64R |
+| 08-05 | 41 (full-day, −3R soft) | −₹1,604 | 0.55 | −0.23R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
 still no edge. AM (in the "+EV" open window) was the **worst** bucket, PM (after
 10:15) the best — inverting the T4 open-window thesis (see FLAG log)._
 
-Cumulative (all-time, 521 closed trades) ≈ **−230.2R**, PF **0.310**,
-expectancy **−0.442R avg** — measured directly from `trades.r_multiple` this
-pass. 08-04's single full-day session added 90 trades / −₹10,827 (a weak day,
-within the established per-session PF spread); no gate flip (still deep
-reject zone, PF gate is >1.3 go / <1.1 reject). **Standing conclusion
-unchanged: no edge yet → gate #6 is the priority.** Max drawdown (peak-to-
-trough equity, all-time) is now **≈−₹23,200** (was ≈−₹13,668) — expected
-under the soft daily-stop config (a session can bleed past −3R by design
-rather than hard-cutting) plus today's weak session, not treated as a new
-regression. Trade-quality note (T4): the "opening hour is the only +EV
-window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R vs
-−0.64R) converged to both-negative, no spread left to exploit either way. See
-the FLAG log; re-measure over more full-day sessions.
+Cumulative (all-time, 562 closed trades) ≈ PF **0.334**, expectancy
+**−0.424R avg** — measured directly from `trades.r_multiple` this pass.
+08-05 added 41 trades / −₹1,604 (PF 0.554, back in-range after 08-04's weak
+day); no gate flip (still deep reject zone, PF gate is >1.3 go / <1.1
+reject). **Standing conclusion unchanged: no edge yet → gate #6 is the
+priority.** Max drawdown (peak-to-trough equity, all-time) is now
+**≈−₹24,879** (was ≈−₹23,200) — deeper, consistent with the soft daily-stop
+design (a session can bleed past −3R rather than hard-cutting), not treated
+as a new regression. Trade-quality note (T4): the "opening hour is the only
++EV window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R
+vs −0.64R) converged to both-negative, no spread left to exploit either way.
+See the FLAG log; re-measure over more full-day sessions.
 
 ## Live subsystems (all shipped + deployed)
 - **Advisor** — daily HOLD/SELL on real holdings; `/advisor` + command center.

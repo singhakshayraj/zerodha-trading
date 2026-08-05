@@ -5,10 +5,13 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-04 (post-session) · Burn-down this week: 7 shipped + verified live
-/ 0 in-progress / 2 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20
-shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20 verified live on
-08-04's full-day session (42 advisor runs, no stall); P-16 resolved as no-op.)_
+_Last updated: 2026-08-05 (post-session) · Burn-down this week: 9 shipped + verified live
+/ 0 in-progress / 4 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20 +
+P-14 phases 1-3 shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20
+verified live on 08-04 + 08-05 (no advisor stall either day); P-16 resolved as no-op.
+New 08-05 findings: P-14 Phase 2 snapshot tables still 0 rows after the first official
+session since shipping (→ [P-22]); brain git_sha mismatch, P-05 re-fix still unconfirmed
+live (→ [P-23]).)_
 
 ---
 
@@ -125,12 +128,27 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   monkeypatching) — do only if a file becomes a real merge-conflict/nav pain, one
   carefully-verified pass at a time. config.py exempt._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
-  ECE recomputed once graded_calls ≥ 50 (currently 22, most bins low-n);
+  ECE recomputed once graded_calls ≥ 50 (currently 28, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
   before it holds. · *source:* weekly review 08-02 gate re-measure — first
-  recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`
-  (unchanged since, no new advisor runs this week). DARK signal, no live
-  impact yet — watch only.
+  recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`.
+  _08-05: graded_calls 21→28, hit rate 42.9%→39.3% — still small-n, DARK,
+  watch only._
+- **[P-22] advisor_paper snapshot tables empty since shipping.** [me] · *done
+  =* `advisor_paper_equity`/`advisor_paper_positions` show ≥1 row after an
+  official session. · *source:* 08-05 post-session review. [P-14] Phase 2
+  (brain `a2d9881`) said "done = both books seed + snapshot on the next
+  official run" — 08-05's session (`3903c7e1`, 06:16–09:51 UTC) was the
+  first official run since Phase 2 shipped (pre-market 08-05), but both
+  tables are still **0 rows total**. Either the seed/snapshot call never
+  fires or errors silently — check brain-side logs next session.
+- **[P-23] Confirm brain `b09904fe55fb` (P-05 re-fix) actually deployed.**
+  [me] · *done =* a session stamps `git_sha` ≥ `b09904fe55fb`. · *source:*
+  08-05 post-session review. STATUS recorded `b09904fe55fb` as deployed
+  post-08-04, but 08-05's session (`3903c7e1`) stamped `c689ed44cbf1` — the
+  prior build. [P-05]'s `STOP_LOSS_HIT` re-verify (target ≈−1.25R) stays
+  blocked until a session actually runs on the new commit (08-05's n=1
+  sample, −1.157R, is uninformative either way).
 
 ## 🔨 IN PROGRESS
 
@@ -180,16 +198,22 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
     session start + loud `queued/graded/not_due/errors` log; `ADVISOR_BACKTEST_ENABLED=true`
     set on Railway (defaulted false — 2nd starvation cause). *done =* the 38
     matured-but-ungraded rows grade next session.
-  - ✅ **Phase 2 (brain `a2d9881`):** `advisor_paper.py` + tables
+  - ⚠️ **Phase 2 (brain `a2d9881`):** `advisor_paper.py` + tables
     `advisor_paper_positions`/`advisor_paper_equity`. MANAGEMENT (holdings +
     HOLD/SELL/TRIM/rotation, baseline=frozen holdings) + PICKING (₹100k cash,
     buys rotation/scan targets, horizon close, baseline=Nifty B&H). Advisory-only,
-    +10 tests, suite 867. *done =* both books seed + snapshot on the next official run.
+    +10 tests, suite 867. *done =* both books seed + snapshot on the next official run —
+    **NOT yet met: 08-05's session was the first official run since shipping and
+    both tables are still 0 rows** (see [P-22]).
   - ✅ **Phase 3 (dashboard, auto-deploys Vercel):** `/advisor/accountability`
     ("Advisor scorecard") + API — per-book equity curve vs baseline (alpha),
     realized win/loss record + win-rate, by verdict + source, best/worst trade.
     Empty-state until data accrues; verified end-to-end with fixtures, `next
-    build` clean. *done =* page live; fills in as Phase 2 snapshots land.
+    build` clean. *done =* page live; fills in as Phase 2 snapshots land
+    (still empty-state — blocked on [P-22]).
+  - ✅ **UX redesign (dashboard `99fe9a7`, 08-05):** reworked `/advisor` page
+    for scannability + mobile, content unchanged. `next build` clean, auto-
+    deployed.
 
 ## ⏸️ PARKED — explicitly deferred, revisit when raised
 
