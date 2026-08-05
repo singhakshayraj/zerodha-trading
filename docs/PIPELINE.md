@@ -171,21 +171,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 💡 PROPOSED — high-value, awaiting user greenlight
 
-- **[P-21] Mine the collected decision→outcome data to FIND the edge (or prove
-  there isn't one).** [me] · *the highest-leverage idea on the board.* We've spent
-  weeks COLLECTING — `decision_outcomes` (Track C walk-forward stop/target labels
-  per decision, since 07-15) + `brain_decisions` with full feature context
-  (trend_score, regime, hour, ADX/DI, RSI, rel-strength, trend_tells, market
-  direction/breadth, ORB, level proximity, news) × ~15 sessions / 1,500+
-  decisions a day. Nobody has ANALYZED it. *done =* a feature→outcome study:
-  which features actually separate winners from losers (by realized R), a ranked
-  importance, and a data-derived entry score fit on the labels — then shipped
-  DARK and graded against the same outcomes. **Why it's amazing:** flips the
-  project from "hand-tune a fixed strategy + hope" to "let the data reveal the
-  edge" (VISION §7 made real). Needs **no Kite ₹500, no user gate** — pure
-  collected data. Either it finds a signal (the edge candidate) or proves
-  decisively there's none (redirects the whole project honestly). Connects
-  [[llm-learning-project]] Track C. _Proposed 08-04; greenlight to start._
+- _(none)_
 
 ## 🔨 IN PROGRESS
 
@@ -220,6 +206,20 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-06_ — **[P-21] Edge study: decision-feature mining → decisive NO-edge.**
+Mined 1,597 walk-forward-labeled decisions (`decision_outcomes` ⋈ `brain_decisions`).
+In-sample (07-22/23) a clean rule appeared — SHORT + before 13:00 IST + STRONG
+trend = +0.44R/57% (n=655). **Out-of-sample it collapsed** (backfilled 07-24→08-05
+labels): every bucket converges to ~+0.2R/54%, no exploitable spread; per-day the
+rule even goes negative (07-29). The apparent edge was regime luck from two
+down-days. Firm negatives: `confidence_score` doesn't predict; the `trend_tells`
+gate is anti-predictive + sign-unstable (keep dark/off). **No feature-based entry
+edge — do not ship one live; the edge verdict still rests on gate #6.** Full
+writeup: [reference/EDGE_STUDY_P21.md](reference/EDGE_STUDY_P21.md). Side-fix:
+decision labeling was starving (manual, unrun since 07-23) → now auto-runs every
+session (brain `c5fd525`) + backfilled, so the study re-runs for free as data grows.
+
 
 _2026-08-04 post-session — VERIFY pass, single full-day session:_
 Session `1042e121` 04:00–09:51 UTC, `COMPLETED`/`MARKET_CLOSED`, brain
