@@ -43,7 +43,7 @@ const ACTIONABLE = new Set(["SELL", "SELL_ON_BOUNCE", "TRIM"]);
 
 export default function CommandCenter() {
   const router = useRouter();
-  const { isConnected, hydrateFromStorage } = useAppStore();
+  const { isConnected, hydrated, hydrateFromStorage } = useAppStore();
 
   const [sess, setSess] = useState<{ pnl: number; trades: number; active: boolean; config: Record<string, unknown> | null } | null>(null);
   const [holdings, setHoldings] = useState<Holding[] | null>(null);
@@ -55,7 +55,7 @@ export default function CommandCenter() {
   const [edgeVerified, setEdgeVerified] = useState<boolean | null>(null); // null=loading, false=gate #6 not run, true=run
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
-  useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
+  useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
   const load = useCallback(async () => {
     try {

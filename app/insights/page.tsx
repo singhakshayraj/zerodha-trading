@@ -123,7 +123,7 @@ function Stat({ icon: Icon, label, value, tint, sub }: { icon: React.ElementType
 // ─── page ───────────────────────────────────────────────────────────────────────
 export default function InsightsPage() {
   const router = useRouter();
-  const { isConnected, hydrateFromStorage } = useAppStore();
+  const { isConnected, hydrated, hydrateFromStorage } = useAppStore();
   const [data, setData] = useState<Insights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +131,7 @@ export default function InsightsPage() {
   const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
-  useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
+  useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);

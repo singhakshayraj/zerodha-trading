@@ -77,7 +77,7 @@ const REFRESH_INTERVAL = 30;
 
 export default function PortfolioPage() {
   const router = useRouter();
-  const { isConnected, hydrateFromStorage } = useAppStore();
+  const { isConnected, hydrated, hydrateFromStorage } = useAppStore();
 
   const [holdings, setHoldings]   = useState<Holding[]>([]);
   const [positions, setPositions] = useState<{ net: Position[]; day: Position[] }>({ net: [], day: [] });
@@ -95,7 +95,7 @@ export default function PortfolioPage() {
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
-  useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
+  useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
   const fetchAll = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);

@@ -126,7 +126,7 @@ function Section({ icon: Icon, title, note, children, defaultOpen = false }: { i
 
 export default function AdvisorPage() {
   const router = useRouter();
-  const { isConnected, hydrateFromStorage } = useAppStore();
+  const { isConnected, hydrated, hydrateFromStorage } = useAppStore();
   const [rows, setRows] = useState<Advice[] | null>(null);
   const [runDate, setRunDate] = useState<string | null>(null);
   const [runAt, setRunAt] = useState<string | null>(null);
@@ -140,7 +140,7 @@ export default function AdvisorPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
-  useEffect(() => { if (!isConnected) router.push("/connect"); }, [isConnected, router]);
+  useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);

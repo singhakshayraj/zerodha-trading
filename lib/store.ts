@@ -61,6 +61,9 @@ interface AppState {
   // auth
   token: string | null;
   isConnected: boolean;
+  hydrated: boolean; // true once hydrateFromStorage has run — gates the
+                     // /connect redirect so a cold load doesn't bounce before
+                     // the stored token is read
   userProfile: UserProfile | null;
   sessionExpiry: string | null;
 
@@ -106,6 +109,7 @@ const defaultSession: TradingSession = {
 export const useAppStore = create<AppState>((set, get) => ({
   token: null,
   isConnected: false,
+  hydrated: false,
   userProfile: null,
   sessionExpiry: null,
   brainStatus: "OFFLINE",
@@ -136,6 +140,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       const token = localStorage.getItem("enc_token") || sessionStorage.getItem("enc_token");
       if (token) set({ token, isConnected: true, sessionExpiry: "6:00 AM tomorrow" });
     }
+    // Mark hydration complete regardless of outcome, so the redirect guard
+    // only fires after the stored token has had its chance to load.
+    set({ hydrated: true });
   },
 
   startSession: (config, startTime) => {
