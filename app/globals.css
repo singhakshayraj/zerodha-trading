@@ -71,6 +71,12 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
+  /* The app shell scrolls inside <main>, not the body. Contain the scroll so it
+     doesn't chain to the (non-scrolling) body — no rubber-band / pull-through on
+     Android when you fling past the top or bottom. */
+  main {
+    overscroll-behavior: contain;
+  }
   /* Android Chrome grows/shrinks the layout viewport as the URL bar hides;
      100vh over-reports the visible height there (unlike iOS Safari), causing
      phantom vertical scroll + a jumping fixed bottom nav. dvh tracks the

@@ -21,6 +21,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { userProfile, clearSession } = useAppStore();
+  const activeLabel = navItems.find((i) => i.href === pathname)?.label ?? "Zerodha Trader";
 
   function handleDisconnect() {
     clearSession();
@@ -48,6 +49,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              aria-current={pathname === href ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
                 pathname === href
@@ -85,9 +87,9 @@ export function Sidebar() {
           URL bar stays put and the bar never overlaps content. */}
       <header className="md:hidden order-first shrink-0 bg-[#111111] border-b border-[#1f1f1f] pt-safe">
         <div className="h-12 flex items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-[#3b82f6]" fill="#3b82f6" />
-            <p className="text-xs font-semibold text-[#f5f5f5]">Zerodha Trader</p>
+          <div className="flex items-center gap-2 min-w-0">
+            <Zap className="w-4 h-4 text-[#3b82f6] shrink-0" fill="#3b82f6" />
+            <p className="text-sm font-semibold text-[#f5f5f5] truncate">{activeLabel}</p>
           </div>
           <button
             onClick={handleDisconnect}
@@ -111,6 +113,7 @@ export function Sidebar() {
               <Link
                 key={href}
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 min-h-[52px]",
                   active ? "text-[#3b82f6]" : "text-[#555] active:text-[#f5f5f5]"
