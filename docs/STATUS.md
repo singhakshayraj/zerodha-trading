@@ -4,9 +4,10 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-05 close (post-session review: full-day session, PF 0.554/
-−0.230R, back in normal range; brain git_sha still `c689ed44cbf1` — the P-05
-re-fix deploy is unconfirmed, re-verify pending)._
+_Last updated: 2026-08-06 (deploy incident root-caused + fixed — brain now on
+`c5fd525`, deploy = git push; [P-21] edge study = decisive no-edge; grading
+cold-cache + Track C starvation fixed; dashboard redirect fix. Next-session
+verify: P-14 paper books seed, grading backfill drains, P-05 clean sample)._
 
 ---
 
@@ -73,12 +74,37 @@ before next session ([P-23]). Advisor ran normally: 540 advice rows, last
 rows** — today was the first official session since [P-14] Phase 2 shipped,
 which should have seeded/snapshotted both books ([P-22]).
 
+## 🛠️ 2026-08-06 — deploy incident root-caused + fixed, P-21 edge study, fixes
+- **Deploy pipeline was broken (root cause of the 08-05 git_sha mismatch).** The
+  brain service **auto-deploys from GitHub**, but `deploy.sh` only did `railway
+  up` (local tarball) and never pushed — so a GitHub rebuild reverted to
+  `c689ed4` and the P-05 + paper commits ran nowhere ([P-23]). **Fixed:** pushed
+  (git_sha confirmed `a2d9881` live mid-session), then `deploy.sh` reworked to
+  push-based + hard-abort on unpushed/dirty/non-main. **Deploy = `git push` now.**
+- **Grading was starving on a real bug, not just cadence.** The session-start
+  catch-up built a **cold** MarketData → `get_candles` fell back to `/quote`
+  (400s on a retail token) → no candles → rows wrongly "not-due". **Fixed** by
+  warming holdings (`489d6b5`); backfill drains next session.
+- **[P-21] edge study — decisive NO-edge** (needs no token). In-sample a strong
+  rule appeared (SHORT+morning+STRONG +0.44R) but **collapsed out-of-sample** —
+  no feature-based entry edge; `confidence_score` + `trend_tells` gate don't
+  predict. Edge verdict still rests on gate #6.
+  [reference/EDGE_STUDY_P21.md](reference/EDGE_STUDY_P21.md).
+- **Track C labeling unstarved** — was manual/unrun since 07-23; now auto-runs
+  each session (`c5fd525`) + backfilled 07-24→08-05.
+- **Dashboard:** hard-refresh redirect bounce fixed (`hydrated` gate, `edf72d7`);
+  advisor page redesigned for scannability/mobile (earlier).
+
 ## Deployed versions
+- **Brain:** `c5fd525` (08-06: auto-label decisions each session — Track C
+  unstarve). Chain today: `b09904` (P-05 re-fix) → `91a4836` (grade-on-session-
+  start) → `a2d9881` (paper-portfolio P-14·2) → `489d6b5` (holdings-warm grading
+  fix) → `5b910a2` (deploy.sh push-based) → `c5fd525`. **All confirmed live** via
+  git_sha `a2d9881` on the 08-05 session (later commits deployed same day, brain
+  idle). Prior:
 - **Brain:** `b09904fe55fb` (08-04 post-session: **P-05 double-slippage fix** —
   `model_stop` flag skips the broker's re-applied slippage on STOP_LOSS_HIT exits
-  (the resting-stop cap already models it), charges kept. Suite 856 green,
-  deployed, brain idle; **verify STOP_LOSS_HIT bucket next session** → ≈−1.25R −
-  charges). Prior:
+  (the resting-stop cap already models it), charges kept. Suite 856 green). Prior:
 - **Brain:** `c689ed44cbf1` (08-04 night: [P-20] advisor-in-trading-loop +
   database.py split to <600 + pa restored <600 — all behaviour-identical, suite
   855 green. **Confirmed live 08-04**: git_sha stamped on session

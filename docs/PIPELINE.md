@@ -134,21 +134,24 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`.
   _08-05: graded_calls 21→28, hit rate 42.9%→39.3% — still small-n, DARK,
   watch only._
-- **[P-22] advisor_paper snapshot tables empty since shipping.** [me] · *done
-  =* `advisor_paper_equity`/`advisor_paper_positions` show ≥1 row after an
-  official session. · *source:* 08-05 post-session review. [P-14] Phase 2
-  (brain `a2d9881`) said "done = both books seed + snapshot on the next
-  official run" — 08-05's session (`3903c7e1`, 06:16–09:51 UTC) was the
-  first official run since Phase 2 shipped (pre-market 08-05), but both
-  tables are still **0 rows total**. Either the seed/snapshot call never
-  fires or errors silently — check brain-side logs next session.
-- **[P-23] Confirm brain `b09904fe55fb` (P-05 re-fix) actually deployed.**
-  [me] · *done =* a session stamps `git_sha` ≥ `b09904fe55fb`. · *source:*
-  08-05 post-session review. STATUS recorded `b09904fe55fb` as deployed
-  post-08-04, but 08-05's session (`3903c7e1`) stamped `c689ed44cbf1` — the
-  prior build. [P-05]'s `STOP_LOSS_HIT` re-verify (target ≈−1.25R) stays
-  blocked until a session actually runs on the new commit (08-05's n=1
-  sample, −1.157R, is uninformative either way).
+- **[P-22] advisor_paper tables empty — ROOT-CAUSED + fixed 08-06, verify next
+  session.** [me] · *done =* `advisor_paper_*` ≥1 row after a clean official run.
+  _Two causes, both fixed: (1) **timing** — 08-05's official advisor ran 11:51:57
+  IST, ~3s **before** the git_sha-fix redeploy (`5df81c31`, 11:52), so it ran the
+  OLD build (no paper engine), and the once-daily dedup then blocked the new code
+  from re-running it. (2) **cold-cache MTM** — the paper engine's candle fetch
+  would 400 on a retail token from a cold MarketData; fixed by warming holdings
+  (brain `489d6b5`, same fix as grading). Next session runs the new code from the
+  start → both books seed + snapshot. Carry the verify._
+- **[P-23] git_sha mismatch / P-05 re-fix undeployed — ROOT-CAUSED + FIXED 08-06.**
+  [me] · *done =* a session stamps `git_sha` ≥ the P-05 fix. _Root cause: the
+  brain service **auto-deploys from GitHub**, but `deploy.sh` only did `railway
+  up` (local tarball) and the commits were never pushed — so a GitHub rebuild
+  reverted to `c689ed4` and three commits (P-05 `b09904` + paper) ran nowhere.
+  Fixed live 08-06: pushed → `git_sha` confirmed `a2d9881` mid-session; then
+  `deploy.sh` reworked to push-based + hard-abort on unpushed/dirty/non-main so
+  it can't recur. [P-05] `STOP_LOSS_HIT` re-verify still wants a clean full
+  session on the fix (08-05 n=1 @ −1.157R is uninformative)._
 
 ## 🔨 IN PROGRESS
 
