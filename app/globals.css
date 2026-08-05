@@ -64,6 +64,13 @@
     max-width: 100%;
     width: 100%;
   }
+  /* Android Chrome auto-inflates font sizes in some blocks ("font boosting"),
+     which misaligns layouts there but not on iOS Safari / desktop / emulation.
+     Pin it so text renders at the sizes we set, everywhere. */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   /* Android Chrome grows/shrinks the layout viewport as the URL bar hides;
      100vh over-reports the visible height there (unlike iOS Safari), causing
      phantom vertical scroll + a jumping fixed bottom nav. dvh tracks the

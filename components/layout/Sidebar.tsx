@@ -79,7 +79,11 @@ export function Sidebar() {
       </aside>
 
       {/* ─── Mobile top bar ───────────────────────────────────────────── */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-40 bg-[#111111] border-b border-[#1f1f1f] pt-safe">
+      {/* In normal flow (order-first) inside the page's h-dvh flex column — NOT
+          position:fixed. Fixed bars over a scrolling body jank on Android Chrome
+          as the URL bar hides; here the body never scrolls (main does), so the
+          URL bar stays put and the bar never overlaps content. */}
+      <header className="md:hidden order-first shrink-0 bg-[#111111] border-b border-[#1f1f1f] pt-safe">
         <div className="h-12 flex items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-[#3b82f6]" fill="#3b82f6" />
@@ -96,7 +100,9 @@ export function Sidebar() {
       </header>
 
       {/* ─── Mobile bottom nav ────────────────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
+      {/* order-last → sits below the scrollable main in the flex column (flow,
+          not fixed) so no content is ever hidden behind it. */}
+      <nav className="md:hidden order-last shrink-0 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
         <div className="grid grid-cols-5">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
@@ -117,8 +123,6 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* Spacers so content isn't hidden under fixed top/bottom bars on mobile */}
-      <div aria-hidden className="md:hidden h-12 shrink-0" />
     </>
   );
 }

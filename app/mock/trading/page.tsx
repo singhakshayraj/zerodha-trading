@@ -364,7 +364,7 @@ export default function MockTradingPage() {
     // top (shrink-0), the trading layout fills the REMAINING height and does
     // its own internal scrolling — previously the inner div was md:h-dvh
     // itself, pushing total height past the viewport and clipping the bars.
-    <div className="flex flex-col md:h-dvh bg-[#0a0a0a]">
+    <div className="flex flex-col h-dvh bg-[#0a0a0a]">
       {/* MOCK banner — unmistakable so screenshots/screen-shares can never be
           confused with production. Seed/Reset trigger the staging-only seed
           route (/mock/api/seed); they never touch production. */}
@@ -423,10 +423,10 @@ export default function MockTradingPage() {
           Validations →
         </Link>
       </div>
-    <div className="flex flex-col md:flex-row md:flex-1 md:min-h-0 bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
+    <div className="flex flex-col md:flex-row md:flex-1 md:min-h-0 bg-[#0a0a0a] overflow-hidden">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0 md:overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
         {/* Header */}
         <div className="min-h-14 border-b border-[#1f1f1f] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0 md:sticky md:top-0 bg-[#0a0a0a] z-10">
           <div className="flex items-center gap-3">

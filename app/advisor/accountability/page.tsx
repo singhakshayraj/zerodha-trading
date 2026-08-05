@@ -212,9 +212,9 @@ export default function AccountabilityPage() {
   }, [load]);
 
   return (
-    <div className="flex flex-col md:flex-row md:h-dvh bg-[#0a0a0a] md:overflow-hidden pb-24 md:pb-0">
+    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] overflow-hidden">
       <Sidebar />
-      <main className="flex-1 md:overflow-auto p-5 md:p-8">
+      <main className="flex-1 min-h-0 overflow-y-auto p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
