@@ -39,6 +39,18 @@ export function Sidebar() {
     router.push("/connect");
   }
 
+  // Tapping the tab you're already on scrolls the content back to top (the
+  // native-app pattern) instead of a no-op navigation. main is the app-shell
+  // scroll container; if it's already at the top, let the link behave normally.
+  function handleNavClick(e: React.MouseEvent, href: string) {
+    if (pathname !== href) return;
+    const scroller = document.querySelector("main");
+    if (scroller && scroller.scrollTop > 0) {
+      e.preventDefault();
+      scroller.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
   return (
     <>
       {/* ─── Desktop sidebar ──────────────────────────────────────────── */}
@@ -60,6 +72,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={(e) => handleNavClick(e, href)}
               aria-current={pathname === href ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
@@ -124,6 +137,7 @@ export function Sidebar() {
               <Link
                 key={href}
                 href={href}
+                onClick={(e) => handleNavClick(e, href)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 min-h-[52px]",
