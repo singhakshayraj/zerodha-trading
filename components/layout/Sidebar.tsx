@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy } from "lucide-react";
@@ -22,6 +23,13 @@ export function Sidebar() {
   const router = useRouter();
   const { userProfile, clearSession } = useAppStore();
   const activeLabel = navItems.find((i) => i.href === pathname)?.label ?? "Zerodha Trader";
+
+  // Reflect the current section in the browser tab so multiple open tabs are
+  // distinguishable (the static layout metadata makes every tab read the same).
+  useEffect(() => {
+    const active = navItems.find((i) => i.href === pathname)?.label;
+    document.title = active ? `${active} · Zerodha Trader` : "Zerodha Trader";
+  }, [pathname]);
 
   function handleDisconnect() {
     clearSession();
