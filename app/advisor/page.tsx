@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
+import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown } from "lucide-react";
@@ -159,6 +160,7 @@ export default function AdvisorPage() {
     } catch { /* track record is additive — never blocks the page */ }
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
+  useRefreshOnVisible(load);
 
   const counts = (rows ?? []).reduce<Record<string, number>>((acc, r) => { acc[r.verdict] = (acc[r.verdict] ?? 0) + 1; return acc; }, {});
   const regimeKey = rows && rows.length > 0 ? rows[0].market_regime ?? null : null;

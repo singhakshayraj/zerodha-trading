@@ -32,6 +32,9 @@ export function Sidebar() {
   }, [pathname]);
 
   function handleDisconnect() {
+    // Guard the one-tap logout — it clears the saved enctoken, and an accidental
+    // tap (the icon is a small target on mobile) means pasting the token again.
+    if (!window.confirm("Disconnect and clear your saved token? You'll need to paste it again to reconnect.")) return;
     clearSession();
     router.push("/connect");
   }

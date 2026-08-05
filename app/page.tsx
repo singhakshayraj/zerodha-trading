@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
+import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BrainStatus } from "@/components/BrainStatus";
 import { RiskMeter } from "@/components/RiskMeter";
@@ -78,6 +79,7 @@ export default function CommandCenter() {
     } catch { /* edge strip degrades to empty */ }
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
+  useRefreshOnVisible(load);
 
   // portfolio health
   const totalCurrent = (holdings ?? []).reduce((s, h) => s + h.last_price * h.quantity, 0);

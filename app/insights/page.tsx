@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
+import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import {
   Database, TrendingUp, Layers, Activity, RefreshCw, Gauge,
   AlertTriangle, CheckCircle2, Info, XCircle, BookOpen,
@@ -140,6 +141,7 @@ export default function InsightsPage() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
+  useRefreshOnVisible(load);
 
   const v = data?.verdict;
   const verdictTone: Finding["tone"] = !v ? "info" : v.expectancyR > 0.05 ? "good" : v.expectancyR >= -0.05 ? "warn" : "bad";
