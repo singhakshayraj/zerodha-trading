@@ -146,6 +146,29 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
   negative, no exploitable spread either way. Reinforces SKIP, no new signal._
 - Circuit-breaker (consec-loss): both 08-03 sessions lost more past it — WAIT
   (1 day; and data-collection intentionally logs-not-enforces it).
+- **Full counterfactual audit 2026-08-06 (444 closed trades / 9 days):**
+  - **Trend-tells gate → WAIT (strongest, but defensive-only).** The trades it
+    would BLOCK (`permits_entry=false`) average −0.456R vs the KEEP bucket
+    (`true`) −0.264R, **directionally consistent 8 of 9 days** (only 07-23
+    inverts) — a real, stable loss-separator on live trades. BUT the kept bucket
+    is **still negative** almost every day (only 08-05 +0.13R) → it *reduces
+    bleed, doesn't create edge*, and enabling blocks **81%** (358/444) of trades,
+    blinding the data collection that's the current mode's whole purpose. #1
+    filter to enable for a live-money phase / once data-collection ends; **not
+    now.** (Note: this sign is opposite [P-21]'s walk-forward-label result —
+    real-taken-trades vs all-hypothetical-decisions are different populations.)
+  - **Market-direction → SKIP (no-op).** The tape is ~all `SIDEWAYS` (no BULLISH;
+    only 6 BEARISH shorts), so there's nothing counter-direction to suppress —
+    same dead-end as [P-16].
+  - **Time-stop → SKIP.** The cleanly time-cuttable bucket (`SESSION_END` losers,
+    n=50) is small + mild (−₹1,097, −0.21R, mfe +0.33); the real losers are
+    `BRAIN_SIGNAL` (−0.63R, mfe +0.04 — wrong from entry) + `STOP_LOSS_HIT`
+    (−1.43R, the pre-P-05-fix double-slippage), neither time-cuttable.
+  - **Soft −3R:** continuing past the −3R marker **lost more every day** (07-22
+    −₹474, 07-23 −₹695, 08-04 −₹7,809 after the marker) — the hard stop has real
+    trading value, but soft is the deliberate DATA choice. No flag flip.
+  - **Net: no flag earns ENABLE.** Reinforces [P-21] — no feature *creates* edge;
+    trend-tells only *reduces* loss. The edge verdict stays on gate #6.
 
 ## The measured sessions (edge evidence)
 | Date | Trades | P&L | PF | Expectancy |
