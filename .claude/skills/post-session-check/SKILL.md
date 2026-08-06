@@ -12,6 +12,31 @@ one row per check, PASS / WARN / FAIL, with the number that proves it.
 Use `mcp__supabase__execute_sql` for queries. "Today" = `current_date` in IST —
 if run after midnight IST, substitute the session date explicitly.
 
+**Run this only AFTER market close (~10:00 UTC / 15:30 IST).** Auditing a live
+session misreports — half the day's rows do not exist yet.
+
+## 0. The VERIFY ledger — run this FIRST
+
+[docs/reference/VERIFY.md](../../../docs/reference/VERIFY.md) is the list of
+open checks that shipped fixes registered. **This is the point of the audit** —
+the rest of the scorecard is standing hygiene, but these are the questions
+someone is actually waiting on an answer to.
+
+1. Run every check under **🔵 OPEN**, plus every **♾️ STANDING INVARIANT**.
+2. Report each as **PASS / FAIL / NOT-YET** (no data to judge on) with the
+   number that proves it.
+3. Write the result back into VERIFY.md:
+   - PASS → move it to **✅ PASSED** with the date + evidence, and move the
+     matching item to Done in [PIPELINE.md](../../../docs/PIPELINE.md).
+   - FAIL → leave it OPEN, record the failing number, and move the PIPELINE
+     item back to **🟢 READY** with that number in the item.
+   - NOT-YET → leave it, note why (e.g. zero stop-outs today).
+4. Record the session's reading for each **👁️ WATCH** line. Never act on a
+   single reading — the thresholds are written into each watch item.
+
+A fix that shipped without a row in VERIFY.md is a gap: add one, or state
+explicitly why it can't be checked from data.
+
 ## 1. Table freshness sweep
 
 ```sql
@@ -114,15 +139,24 @@ Informational: `queued` grows daily until rows hit their horizon (MICRO 10
 trading days, MACRO 30). `judged_today` > 0 expected only once horizons
 start maturing (~late July 2026 for MICRO, ~late Aug for MACRO).
 
-## 7. Known parked items (don't re-flag)
+## 7. Known items (don't re-flag)
 
-Check `docs/reference/KNOWN_ISSUES.md` — the living backlog. Items already parked
-(P1–P6) or on the watchlist (W1–W4) are reported as "known", not new
-findings. NEW findings get appended there (Parked or Watchlist section)
-with the same format: where, why it matters, fix sketch. If a parked item
-stops reproducing, move it to the Resolved log. Watchlist items with a
-check attached (W1 cycle duration, W4 first smoothed run) should actually
-be checked during this audit.
+[docs/reference/KNOWN_ISSUES.md](../../../docs/reference/KNOWN_ISSUES.md) is the
+living backlog. Read its section headers rather than trusting a list hard-coded
+here — the sets change. As of 2026-08-07: **Parked** `K7`–`K8`, **Watchlist**
+`W1`–`W3`/`W5`, plus dated finding batches (`A1`–`A4` = 08-06 mid-session,
+`B1`–`B4` = 08-06 post-session). Anything already there is reported as
+**known**, not as a new finding.
+
+Note the two ID namespaces are deliberately distinct: `K`/`W`/`A`/`B` are
+KNOWN_ISSUES findings; `P-01`…`P-28` are PIPELINE work items. A finding gets a
+`P-nn` only when it becomes tracked work.
+
+NEW findings get appended to KNOWN_ISSUES in the same format (where, why it
+matters, fix sketch). If a parked item stops reproducing, move it to the
+Resolved log. Watchlist items carrying a check (W1 cycle duration) get checked
+during this audit; anything with a *pass condition* belongs in VERIFY.md §0
+instead, not here.
 
 ## 8. Railway log errors
 
@@ -135,8 +169,30 @@ Also confirm the three advisor daemons logged startup since last deploy:
 `advisor_watch] started`, `advisor_bot] started`, and (mornings) `token
 preflight OK`.
 
-## Report format
+## Report format + where output lands
 
-End with a scorecard table (check | status | evidence), a one-line overall
-verdict, and any NEW findings appended to `docs/ADVISOR_BUGS_PENDING.md`
-(committed + pushed). Update memory only if something structural changed.
+End with **two** tables:
+
+1. **VERIFY** (from §0) — check | PASS/FAIL/NOT-YET | evidence. Put this
+   first; it is what the board is waiting on.
+2. **Scorecard** (§1–§8) — check | PASS/WARN/FAIL | the number that proves it.
+
+Then a one-line overall verdict.
+
+**Writes — do all of these, then commit + push (`chore(review): …`):**
+
+| What | Goes to |
+|---|---|
+| VERIFY results (PASS/FAIL/NOT-YET, watch readings) | `docs/reference/VERIFY.md` |
+| Items closed or reopened by those results | `docs/PIPELINE.md` |
+| NEW findings (root cause, why it matters, fix sketch) | `docs/reference/KNOWN_ISSUES.md` |
+| One-paragraph state + the START HERE block | `docs/STATUS.md` |
+
+A finding that lands in KNOWN_ISSUES but nowhere else is untracked work —
+if it deserves a fix, give it a `P-nn` in PIPELINE. If a fix ships, it owes
+VERIFY a row. That cycle is the whole point; don't skip a leg.
+
+Do **not** write to `docs/ADVISOR_BUGS_PENDING.md` — that file was removed on
+2026-07-23 and folded into KNOWN_ISSUES.
+
+Update memory only if something structural changed.

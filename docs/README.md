@@ -1,7 +1,28 @@
 # Docs — start here
 
-Map of the project's documentation. **Four living docs** carry the current
+Map of the project's documentation. **Five living docs** carry the current
 picture; everything else is stable reference or dated history.
+
+## The loop these docs form
+
+Nothing here is a filing cabinet — each doc is one leg of a cycle, and the
+cycle is what keeps work from being silently dropped:
+
+```
+KNOWN_ISSUES  →  PIPELINE  →  (ship)  →  VERIFY  →  PIPELINE
+  a finding      gets a P-nn            owes a       PASS → Done
+  (K/W/A/B id)   + measurable done      runnable     FAIL → Ready
+                                        check
+```
+
+`/post-session-check` drives it every market day: it runs the **VERIFY** ledger
+first, then the data-quality scorecard, then appends new findings to
+**KNOWN_ISSUES** and updates **PIPELINE** + **STATUS**. `/counterfactual-audit`
+feeds the flag-watch tables in VERIFY.
+
+**Two ID namespaces, deliberately distinct:** `K7`/`W2`/`A1`/`B3` are
+KNOWN_ISSUES *findings*; `P-01`…`P-28` are PIPELINE *work items*. `K7` is not
+`P-07`. A finding earns a `P-nn` only when it becomes tracked work.
 
 ## 🟢 Living docs (read/update these)
 
@@ -10,6 +31,7 @@ picture; everything else is stable reference or dated history.
 | **[STATUS.md](STATUS.md)** | *Where are we right now?* — deployed versions, live subsystems, open items, verify-list. **The single source of truth for current state.** | every session |
 | **[ROADMAP.md](ROADMAP.md)** | *What's next?* — the gate-#6 hinge, sprints, priorities, T4 findings. | when priorities change |
 | **[PIPELINE.md](PIPELINE.md)** | *What's moving?* — the live kanban board; where feedback becomes tracked items and daily work is pulled from. | continuously (the feedback loop) |
+| **[reference/VERIFY.md](reference/VERIFY.md)** | *Did the fixes actually work?* — the open-checks ledger. Every shipped fix registers runnable SQL + its pass number here; `/post-session-check` executes them. | every session |
 | **[VISION.md](VISION.md)** | *Why?* — mission, trading fundamentals, risk limits, the pre-run gates + go/no-go criteria (§6.1, §7). The durable reference. | rarely |
 | this **README** | *Where is everything?* | when docs move |
 
@@ -19,7 +41,8 @@ picture; everything else is stable reference or dated history.
 ## 📘 reference/ — stable technical specs
 - [reference/ENGINEERING_SPEC.md](reference/ENGINEERING_SPEC.md) — system architecture + REQ list.
 - [reference/ADVISOR_MODULE.md](reference/ADVISOR_MODULE.md) — the portfolio advisor design.
-- [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) — tracked bugs/quirks.
+- [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) — tracked bugs/quirks (findings: `K`/`W`/`A`/`B`).
+- [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md) — the paste-block for starting a new session.
 - [reference/TEST_COVERAGE.md](reference/TEST_COVERAGE.md) — what the suite covers.
 
 ## 🗄️ archive/ — history + superseded (kept for the record)

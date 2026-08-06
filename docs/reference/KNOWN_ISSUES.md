@@ -13,7 +13,7 @@ below.
 
 ## Parked — needs a decision or a design
 
-### P7. Full-day sessions starve the advisor intraday refresh + timeline capture — RESOLVED 2026-08-04 (brain `9bd59ad`, [P-20])
+### K7. Full-day sessions starve the advisor intraday refresh + timeline capture — RESOLVED 2026-08-04 (brain `9bd59ad`, [P-20])
 Fix: `_maybe_run_advisor` + `_maybe_capture_timeline` now also fire once per cycle
 inside the inner trading loop (`scheduler.py`), not only the outer idle loop.
 Verify next full-day session that `portfolio_advice` keeps refreshing past midday.
@@ -33,11 +33,15 @@ daemon-threaded + idempotent-gated, so it's low-risk), or move them onto the
 heartbeat thread. Not a regression in the fixes — a surfaced consequence of the
 −3R-soft change. See [[data-collection-mode]].
 
-### P8. inplay_list not locked on 08-03 (likely benign — verify)
-`inplay_list` last locked 07-29; 08-03 sessions ran but no lock. `maybe_lock_inplay`
-has a legit zero-lock path (no candidate clears `RVOL_THRESHOLD`), so this is
-probably a quiet-tape day, not a bug — but confirm on a day with RVOL qualifiers
-that it locks (rules out the 08-03 db_stocks split touching `lock_inplay_list`).
+### K8. inplay_list not locked on 08-03 — RESOLVED 2026-08-07 (no fix needed)
+Closed on evidence: it has locked on **every session since** — 08-05 06:17 UTC
+(7 names), 08-06 04:26 UTC (10 names). The 08-03 gap was the legitimate
+zero-lock path (nothing cleared `RVOL_THRESHOLD` on a quiet tape), not the
+08-03 `db_stocks` split breaking `lock_inplay_list`. Now watched continuously by
+VERIFY.md **I-4**, which warns only on two consecutive session days with no lock.
+**Original finding:** `inplay_list` last locked 07-29; 08-03 sessions ran but no
+lock. `maybe_lock_inplay` has a legit zero-lock path, so this was probably a
+quiet-tape day, not a bug — but needed confirming on a day with RVOL qualifiers.
 
 ---
 
@@ -88,7 +92,7 @@ restart. Ties to [[rotation-advisor]].
   `COVER_SHORT`). Fix: `model_stop` flag threaded from both exit paths into the
   broker skips the double slippage on stop exits; charges kept. +3 test assertions,
   suite 856 green. **Verify next session's `STOP_LOSS_HIT` bucket ≈ −1.25R − charges.**
-- **P7** (advisor-starve, brain `9bd59ad`/[P-20]) verified fixed live on the 08-04
+- **K7** (advisor-starve, brain `9bd59ad`/[P-20]) verified fixed live on the 08-04
   session — advisor refreshed to 15:15 IST, timeline PRE 20 / INTRA 120 / POST 20.
 
 **2026-07-14 backlog clear (brain `cf8a628`, dashboard `1944f45`):**

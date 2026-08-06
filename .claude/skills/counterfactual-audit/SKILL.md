@@ -126,5 +126,20 @@ directionally consistent across ≥2 days AND ≥15 affected trades. Enablement
 order on wins: MARKET_DIRECTION_ENABLED → trend-tells → TIME_STOP_ENABLED →
 REENTRY_COOLDOWN_ENABLED — one flag at a time, one day of measurement
 between flips (set env post-close only; brain redeploys mid-market are
-forbidden). Append the day's verdict to docs/reference/KNOWN_ISSUES.md watchlist or a
-FLAG_ENABLEMENT_LOG section in docs/STATUS.md.
+forbidden).
+
+**Where the verdict lands — one place, every time:** append the session's
+number to the matching **👁️ WATCH** table in
+[docs/reference/VERIFY.md](../../../docs/reference/VERIFY.md) (`W-A` is the
+trend-tells kept-bucket). That table is what turns "positive again this
+session" into a countable streak instead of a thing someone has to remember —
+the ENABLE thresholds above are checked against it, not against recollection.
+
+Add a new WATCH row for any flag this audit starts tracking. Only when a flag
+crosses its threshold does it become a PIPELINE item (`P-nn`) to actually
+enable — and enabling it then owes VERIFY an OPEN check that it moved the
+number it promised to move.
+
+(There is no `FLAG_ENABLEMENT_LOG` section in STATUS.md — earlier versions of
+this skill pointed at one that was never created, so verdicts had nowhere to
+accumulate.)

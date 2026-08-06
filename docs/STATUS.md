@@ -23,14 +23,18 @@ a false alarm (MACRO 30d horizon). Brain now `8c875df`.)_
 Pull in this order. Full board in [PIPELINE.md](PIPELINE.md); resume prompt in
 [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
 
-**1. VERIFY [P-27] + [P-28] on the next session** (shipped 08-07 pre-market,
-brain `8c875df`) — three checks, all in KNOWN_ISSUES §B1–B3:
-`execution.exit.model_stop = true` on every `STOP_LOSS_HIT` (with
-`slippage_bps == charges_bps`); `STOP_LOSS_HIT`/`TARGET_HIT` now contain SHORT
-rows → **re-judge [P-05] on the pooled both-sides bucket** (the 08-06 "−1.252R
-on target" measured LONGs only and is not the answer); and `trades` ==
-`total_trades_executed` == `ORDER_PLACED` (+1 gap gone). Short-side exit_reason
-semantics changed, so buckets are **not comparable across the 08-07 boundary**.
+**1. Run [reference/VERIFY.md](reference/VERIFY.md) — the open-checks ledger.**
+New as of 08-07: every shipped fix now registers a runnable check there, and
+`/post-session-check` executes them as its §0. Open right now: **V-1/V-2**
+([P-27] — `model_stop` persisted, and short stops finally visible so [P-05] can
+be **re-judged on the pooled both-sides bucket**; the 08-06 "−1.252R on target"
+measured LONGs only and is *not* the answer), **V-3** ([P-28] phantom row),
+**V-4** ([P-24] paper-book de-dup — needs the DB repair run first). Short-side
+`exit_reason` semantics changed on 08-07, so those buckets are **not comparable
+across that boundary**. Building the ledger already closed one item on evidence:
+**[K8] inplay-lock is resolved** (locked 08-05 and 08-06; the 08-03 gap was a
+quiet tape), and every query in it was run against 08-06 data to confirm it
+executes and actually catches its bug.
 
 **2. The parked advisor work — the user asked for these explicitly (08-06):**
 - **[P-24] code fixed 08-07 (brain `f645ff3`) — the DB repair still needs you.**
@@ -50,7 +54,8 @@ get a screenshot + page + symptom before changing anything.
 
 **Watch (don't act yet):** the trend-tells kept-bucket went positive two sessions
 running for the first time (08-05 +0.134R, 08-06 +0.182R). A **third** would be a
-real signal. Still blocks 73% of trades, so not enabled.
+real signal. Still blocks 73% of trades, so not enabled. Each session's reading
+now accumulates in VERIFY.md §W-A instead of being re-remembered here.
 
 ---
 
@@ -411,8 +416,8 @@ _Deprioritized by the user (do not foreground): **P-01** Kite ₹500 historical
 Every deployed fix verified live against the 08-03 sessions (see the VERIFIED
 LIVE section at the top). Nothing pending verification. Calibration itself
 unchanged (still 22 graded calls / ECE 48.5% — no new gradeable outcomes yet,
-[P-18] stays watch-only). New findings from the 08-03 audit: **P7** (full-day
-sessions starve advisor refresh) + **P8** (inplay) in
+[P-18] stays watch-only). New findings from the 08-03 audit: **K7** (full-day
+sessions starve advisor refresh) + **K8** (inplay) in
 [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md); trade-only-open ruled
 SKIP (FLAG log above).
 

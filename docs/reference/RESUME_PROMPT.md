@@ -13,7 +13,13 @@ dashboard = ~/Desktop/GITHUB/zerodha-trading, prod Supabase gilmuwmtdpjccibfhqtx
 
 Read first, in order: docs/STATUS.md — start with the "▶️ START HERE NEXT SESSION"
 block at the top, which names the current priority and why. Then docs/PIPELINE.md
-(the board) and docs/reference/KNOWN_ISSUES.md (§A and §B are the live findings).
+(the board), docs/reference/VERIFY.md (open checks owed on shipped fixes — this is
+what the post-session audit runs first), and docs/reference/KNOWN_ISSUES.md
+(§A and §B are the live findings). docs/README.md maps how those four connect.
+
+Two ID namespaces: K/W/A/B = KNOWN_ISSUES findings, P-nn = PIPELINE work items.
+K7 is not P-07. Shipping a fix owes VERIFY.md a row with runnable SQL and the
+number that counts as a pass — a fix with no VERIFY row is unmeasured, not done.
 
 Context up front:
 - Deploy = git push origin main. The service auto-deploys from GitHub; deploy.sh

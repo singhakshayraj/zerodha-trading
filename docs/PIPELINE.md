@@ -69,10 +69,21 @@ already tracked there.
   re-measure the gate metrics (big findings). Automated via the scheduled agents
   (see §Cadence at the bottom).
 - **TRIAGE:** each finding → an item below with owner + a *measurable* done.
+  Findings live in KNOWN_ISSUES with their own IDs (`K`/`W`/`A`/`B`); a finding
+  earns a `P-nn` here only when it becomes tracked work. The two namespaces are
+  deliberately separate — `K7` is not `P-07`.
 - **DO:** each working session, pull the top **Ready** item, ship it, move it to
   **Done**, add one line to STATUS.
-- **VERIFY:** the next review checks whether shipped items moved their metric;
-  ones that didn't come back to **Ready**.
+- **VERIFY:** shipping owes a row in
+  [reference/VERIFY.md](reference/VERIFY.md) — runnable SQL plus the number
+  that counts as a pass. `/post-session-check` runs that ledger as its §0 and
+  writes the result back: **PASS** closes the item here, **FAIL** returns it to
+  **Ready** carrying the failing number.
+
+**The rule that makes the loop closed:** a fix with no VERIFY row is not
+shipped, it is *unmeasured*. [P-05] spent two days marked verified on a number
+that turned out to measure half the book — that is precisely the failure this
+ledger exists to prevent.
 
 Item format: `[ID] Title — owner · measure-of-done · source`
 Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
@@ -329,7 +340,7 @@ _2026-08-04_ (brain `9bd59ad`, deployed):
   full-day sessions (post −3R-soft) starved the advisor for the whole session
   (08-03 last refresh 11:50). Now called once per cycle in the inner loop too —
   daemon-threaded + interval-gated, so no trade-loop impact. +1 test, suite 853.
-  Resolves KNOWN_ISSUES P7. **VERIFIED live 08-04**: session `1042e121`
+  Resolves KNOWN_ISSUES K7. **VERIFIED live 08-04**: session `1042e121`
   (04:00–09:51 UTC) got 42 advisor runs spanning 04:23→09:45 UTC, no midday
   stall (was starving past ~11:50 pre-fix on 08-03).
 
@@ -354,7 +365,7 @@ MARKET_CLOSED under the new soft-stop config). Data-quality PASS (77 trades /
   sessions bleed further by design). No gate flip.
 - **[P-17]**/**[P-19]** — no stall; railway logs scanned clean (no 400 spam).
   **[P-18]** unchanged (22 graded / ECE 48.5%, watch-only). New findings →
-  [P-20] (advisor-starve) + KNOWN_ISSUES P7/P8.
+  [P-20] (advisor-starve) + KNOWN_ISSUES K7/K8.
 
 _2026-08-03_ (brain — code + suite green at 852; deployed `9e370ac`, VERIFIED live above):
 - **[P-09] FA4 rotation entry-quality (DARK).** A rotation into a stronger score
@@ -445,12 +456,33 @@ Pillar-1 calibration infra · per-stock agent P1 + P2 · 4 UI enhancements.
 
 ## Cadence (the scheduled loop)
 
-- **Per session (weekdays post-close):** an agent runs the audit skills, appends
-  any findings here as new items, moves shipped items to Done, updates STATUS.
+```
+         ┌── ships a fix ──▶ registers a check in reference/VERIFY.md
+         │                                    │
+  PIPELINE item                        (next session)
+         ▲                                    │
+         │                                    ▼
+   TRIAGE: gets a P-nn        /post-session-check §0 runs the ledger
+         ▲                          │                    │
+         │                       PASS │                  │ FAIL
+   KNOWN_ISSUES finding            │                     │
+   (K / W / A / B id)              ▼                     ▼
+         ▲                    item → Done          item → Ready
+         │                                       (with the number)
+         └──────── audit skills append findings ◀──────────┘
+```
+
+- **Per session (weekdays post-close):** an agent runs the audit skills —
+  **VERIFY ledger first**, then the data-quality scorecard, then
+  `/counterfactual-audit`. It appends findings to KNOWN_ISSUES, promotes the
+  ones worth work to items here, drains PASSed items to Done, returns FAILed
+  ones to Ready, and updates STATUS.
 - **Weekly (weekend):** an agent runs a deeper review — re-measures PF /
-  expectancy / drawdown + advisor calibration ECE, checks whether Done items
-  moved their metric (VERIFY), refreshes the burn-down, and flags anything that
-  regressed back to Ready.
+  expectancy / drawdown + advisor calibration ECE, sweeps VERIFY for checks
+  that have sat OPEN for more than a week (a check nothing ever satisfies is
+  itself a finding), refreshes the burn-down, and flags regressions.
+- **Never run the session audit before market close** (~10:00 UTC / 15:30 IST)
+  — auditing a live session misreports.
 **Live routines** (managed via `/schedule`; edit at claude.ai/code/routines):
 - **Post-session review** — `trig_01SfvoCZ5tb7kecKwU6koDrY`, weekdays 16:30 IST
   (`0 11 * * 1-5` UTC). Reads the day's metrics, drains shipped items to Done,
@@ -461,3 +493,12 @@ Pillar-1 calibration infra · per-stock agent P1 + P2 · 4 UI enhancements.
 
 Both are docs-only (never edit code) and evidence-based (no invented findings).
 They commit `chore(review): …` to main.
+
+> ⚠️ **Unconfirmed as of 2026-08-07.** These two trigger IDs are recorded here
+> but could not be verified from a local session — `CronList` only sees jobs
+> created in-session, not claude.ai routines. Check them at
+> claude.ai/code/routines. It matters: if they are not firing, this whole
+> cadence is manual, and the evidence points that way — the 08-06 audit was
+> run by hand, and the skills it would have used had a dead output path
+> (`ADVISOR_BUGS_PENDING.md`, deleted 07-23) that no automated run ever
+> complained about.
