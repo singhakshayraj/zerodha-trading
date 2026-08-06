@@ -92,8 +92,34 @@ which should have seeded/snapshotted both books ([P-22]).
   [reference/EDGE_STUDY_P21.md](reference/EDGE_STUDY_P21.md).
 - **Track C labeling unstarved** — was manual/unrun since 07-23; now auto-runs
   each session (`c5fd525`) + backfilled 07-24→08-05.
-- **Dashboard:** hard-refresh redirect bounce fixed (`hydrated` gate, `edf72d7`);
-  advisor page redesigned for scannability/mobile (earlier).
+- **Dashboard — mobile overhaul + UX polish (all shipped, Vercel auto-deploys):**
+  - **Mobile app-shell (`5c169f4`)** — root cause of the Android-Chrome scroll
+    jank + hidden content was `position:fixed` bars over a scrolling `<body>`
+    (URL-bar hide/show → jump) and a 2-row nav taller than the padding. Now the
+    app is `h-dvh overflow-hidden`, `<main>` is the sole scroll container
+    (`flex-1 min-h-0 overflow-y-auto`), and the mobile header/nav are normal-flow
+    (`order-first`/`order-last`, not fixed). Body never scrolls → URL bar stays
+    put → no jank; nav in flow → nothing hidden. **⚠️ user to re-confirm on a
+    real Android device** (emulation never reproduced it).
+  - Bottom nav slimmed to a **single row** of 8 (short labels, `45199b9`).
+  - Advisor page redesigned for scannability/mobile (collapsible analytics,
+    mobile-safe calibration bars). Hard-refresh `/connect` bounce fixed
+    (`hydrated` gate, `edf72d7`).
+  - UX: per-section browser-tab titles; refresh-on-tab-focus (home/advisor/
+    insights); confirm-before-disconnect; tap-active-tab-to-scroll-top;
+    overscroll containment; `aria-current`; Android `text-size-adjust`.
+
+## ⏳ NEXT SESSION — verify (needs a live token/session)
+1. **git_sha** on the session stamps **`c5fd525`** (or later) — confirms the
+   whole 08-06 brain chain is finally live (was silently running old `c689ed4`).
+2. **[P-14 P2] paper books seed** — `advisor_paper_positions` + `_equity` get
+   rows after the official advisor run; `/advisor/accountability` shows curves.
+   (Didn't seed 08-05 — official ran 3s before the redeploy; should self-heal.)
+3. **Advisor grading backfill drains** — the ~38 matured `portfolio_advice` rows
+   grade now that the cold-cache fetch bug is fixed (`489d6b5`); graded count
+   jumps from 28.
+4. **[P-05] STOP_LOSS_HIT ≈ −1.25R** on a clean full session (08-05 was n=1).
+5. Then `/post-session-check` + `/counterfactual-audit`.
 
 ## Deployed versions
 - **Brain:** `c5fd525` (08-06: auto-label decisions each session — Track C
