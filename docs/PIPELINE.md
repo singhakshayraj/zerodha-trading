@@ -296,6 +296,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+_2026-08-07 pre-market_ — **[P-31] Data volume + diversity boost.** Diversity
+shipped (brain `18b34f9`): sector-balanced Nifty 500 rotation, universe ~46 →
+~86, 297 distinct names over 20 sessions vs 46. Volume half is a one-command
+runbook (`scripts/session_2026-08-07_data_boost.sh`) — Railway var writes were
+blocked from the session. Evidence-led: the 08-06 `ENTRY_DEFERRED` tally showed
+`HOURLY_PACE` binding at 44 vs `CONCURRENT_CAP`/`SYMBOL_DAY_CAP` at 1 each, so
+only the caps that bind get raised. **Verify V-5 + V-6** — V-6 (cycle cadence)
+is the risk this introduces and must be checked the first session.
+
 _2026-08-07_ — **[P-29] Exit-Policy Frontier (`/autopsy`).** Replays all 180
 fixed (T, S) exit policies over the 541 closed trades carrying `mfe_r`/`mae_r`.
 **None clears breakeven under the optimistic bound** (best −0.219R vs realized

@@ -52,6 +52,26 @@ executes and actually catches its bug.
 Android mobile fix (`5c169f4`) is still unconfirmed on a real device — ask, and
 get a screenshot + page + symptom before changing anything.
 
+**⚡ 2026-08-07 pre-market — data volume + diversity boost [P-31].**
+- **Diversity (shipped, self-engaging):** brain `18b34f9` rotates **40
+  sector-balanced Nifty 500 names** into the universe each session
+  (`DATA_UNIVERSE_ROTATION_N`, data-collection mode only). Universe **~46 →
+  ~86**; dry-run on the real CSV gives all 20 sectors, max 2 per sector, and
+  **297 distinct names over 20 sessions** vs 46 today. No config needed — it
+  engages by itself on the next session.
+- **Volume (needs you, one command):** run
+  `scripts/session_2026-08-07_data_boost.sh` in the brain repo **before 09:15
+  IST**. Measured on 08-06, `HOURLY_PACE` is the only cap that binds (44
+  deferrals vs 13 for cycle, 1 each for concurrent/symbol), so it raises
+  hour 15→25, cycle 8→12, day 150→250 and deliberately leaves the other two.
+  This session was blocked from setting Railway vars.
+- **Check after close:** VERIFY **V-5** (breadth landed) and **V-6** (cycle
+  cadence did *not* blow out — this is the real risk; remedy is dropping the
+  knob to 20 or 0). Breadth only counts if `symbols × cycles` went up.
+- Expect a **bigger paper loss** — more trades at ≈−0.4R. That's the intended
+  trade-off (data is the goal, daily stop is already soft); don't read it as a
+  strategy signal.
+
 **Watch (don't act yet):** the trend-tells kept-bucket went positive two sessions
 running for the first time (08-05 +0.134R, 08-06 +0.182R). A **third** would be a
 real signal. Still blocks 73% of trades, so not enabled. Each session's reading

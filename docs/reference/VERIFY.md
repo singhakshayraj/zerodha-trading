@@ -100,6 +100,46 @@ where book = 'MANAGEMENT' and source = 'SEED' and is_open = false;
 **PASS** = `9` rows / `−39983.84`. Currently `16` / `−71512.79`.
 This is a **one-shot** check — retire it once it passes.
 
+### V-5 · [P-31] universe breadth actually widened
+Shipped: brain `DATA_UNIVERSE_ROTATION_N=40` (2026-08-07). Every session to date
+analysed the same ~46 names (holdings + Nifty 50), so 1,883 decisions on 08-06
+covered only **46 symbols**.
+
+```sql
+select count(distinct symbol) symbols, count(*) decisions,
+       round(count(*)::numeric / nullif(count(distinct symbol),0), 1) decisions_per_symbol
+from brain_decisions where created_at::date = current_date;
+```
+
+**PASS** = `symbols` ≈ **80–90** (was 46) and `decisions` ≥ the 08-06 baseline of
+1,883. **FAIL** if symbols is still ~46 → the rotation did not engage; check the
+session log for `Added N nifty500_rot stocks to universe` and that
+`data_collection_active()` is true.
+
+### V-6 · [P-31] the wider universe did NOT blow the cycle budget ⚠️
+**This is the risk the breadth change introduces, and it must be checked the
+first session.** Per-cycle analysis cost scales with universe size. W1 measured
+32 cycles at avg 459s (analysis ≈160s + 300s sleep) on 46 symbols; ~86 symbols
+should land near ~600s.
+
+```sql
+with c as (
+  select created_at, lag(created_at) over (order by created_at) prev
+  from brain_activity
+  where activity_type = 'CYCLE_START' and created_at::date = current_date
+)
+select count(*) cycles,
+       round(avg(extract(epoch from created_at - prev))) avg_gap_s,
+       round(max(extract(epoch from created_at - prev))) max_gap_s
+from c where prev is not null;
+```
+
+**PASS** = `avg_gap_s` ≤ 700 and `cycles` ≥ 25.
+**FAIL** = avg > 700s or cycles < 20 → analysis is crowding out the day. Remedy
+is one env var: drop `DATA_UNIVERSE_ROTATION_N` to 20 (or 0 to revert entirely).
+Total decisions is the real scoreboard — breadth is only worth having if
+`symbols × cycles` went **up**.
+
 ---
 
 ## 👁️ WATCH — trend lines, not pass/fail
