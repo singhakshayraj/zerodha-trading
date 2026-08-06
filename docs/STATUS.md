@@ -10,7 +10,50 @@ counterfactual-audit ran (no flag flips); two real defects found in the [P-05]
 *measurement*, not new regressions — `execution.exit.model_stop` is never
 persisted (0/77 trades) and `STOP_LOSS_HIT` is LONG-only so short stops hide
 inside `COVER_SHORT`, so the −1.252R headline can't actually be trusted as a
-P-05 verify. Tracked as new [P-27]/[P-28]._
+P-05 verify. Tracked as new [P-27]/[P-28]. Also 08-06: [P-22] + [P-23] closed
+(paper books seeded, git_sha `c5fd525` live); the advisor grading "backlog" was
+a false alarm (MACRO 30d horizon). Brain now `054f2c6`.)_
+
+---
+
+## ▶️ START HERE NEXT SESSION
+
+Pull in this order. Full board in [PIPELINE.md](PIPELINE.md); resume prompt in
+[reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
+
+**1. [P-27] — fix the [P-05] measurement before re-judging the fix.** The 08-06
+session produced what *looks* like a pass (`STOP_LOSS_HIT` avg **−1.252R**, dead
+on the −1.25R target, n=12) but the number can't be trusted:
+- **`execution.exit.model_stop` is absent from all 77 closed trades.** The flag
+  the re-fix (`b09904`) added leaves no trace, and stop fills still show ~6.4 bps
+  slippage past the stop reference. Find where it's dropped between the exit path
+  and the execution blob.
+- **`STOP_LOSS_HIT` is 100% LONG.** All 30 short exits go through `COVER_SHORT`,
+  where stop-outs pool with ordinary covers (worst **−1.356R**, past the cap and
+  invisible). The bucket measures half the book. → Tag stop-triggered covers
+  distinctly, or redefine the [P-05] bucket as "stop-triggered exits, both sides".
+- Detail: [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §B1–B2.
+
+**2. [P-28]** phantom `SQUARE_OFF_FAILED` trade row (null entry fields) — the
+source of the standing `trades` vs `total_trades_executed` +1 gap. KNOWN_ISSUES §B3.
+
+**3. The parked advisor work — the user asked for these explicitly (08-06):**
+- **[P-24]** paper book double-counts realized P&L — every rotated-out holding
+  written twice (`qty=0`/`SELL_VERDICT` + `qty=<real>`/`ROTATION_OUT`), and TRIM
+  books a full exit while leaving the position open. Reconciles to the rupee:
+  recorded −₹71,512.79 vs true −₹39,983.84. **Fix while the books are days old.**
+- **[P-25]** link the user's REAL executions to the advice (their actual ask) —
+  diff `portfolio_advice`'s per-run symbol+qty snapshots to infer fills; no new
+  capture needed.
+- **[P-26]** seed-basis decision — recommend seed-day price, not cost basis.
+
+**Also open:** [P-18] don't re-check before ~late Aug (MACRO horizon); the
+Android mobile fix (`5c169f4`) is still unconfirmed on a real device — ask, and
+get a screenshot + page + symptom before changing anything.
+
+**Watch (don't act yet):** the trend-tells kept-bucket went positive two sessions
+running for the first time (08-05 +0.134R, 08-06 +0.182R). A **third** would be a
+real signal. Still blocks 73% of trades, so not enabled.
 
 ---
 
@@ -327,7 +370,8 @@ still no edge. AM (in the "+EV" open window) was the **worst** bucket, PM (after
 10:15) the best — inverting the T4 open-window thesis (see FLAG log)._
 
 Cumulative (all-time, 574 closed trades) ≈ PF **0.371**, expectancy
-**−0.414R avg** — measured directly from `trades.r_multiple` this pass.
+**−0.414R avg**, total **−₹29,178** — measured directly from
+`trades.r_multiple` this pass (08-06 post-close).
 08-06 added 77 trades / −₹5,052 (PF 0.489, mid-range — not the weak-day 0.158
 of 08-04, not the better 0.66/0.55 of 08-03PM/08-05); no gate flip (still deep
 reject zone, PF gate is >1.3 go / <1.1 reject). **Standing conclusion
