@@ -5,13 +5,17 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-06 (mid-session verify pass) · Burn-down this week: 11 shipped +
-verified live / 0 in-progress / 2 ready / 4 blocked. **[P-22] + [P-23] both closed
+_Last updated: 2026-08-06 (post-close) · Burn-down this week: 11 shipped +
+verified live / 0 in-progress / 7 ready / 4 blocked. **[P-22] + [P-23] both closed
 08-06** (paper books seeded; git_sha `c5fd525` stamped live). The "advisor grading
 backlog" was a **false alarm** — MACRO rows sit on a 30-trading-day horizon and every
-due MICRO row grades 100%; see [P-18] for the corrected timeline. Still open from
-08-06: [P-05]'s −1.25R re-measure + both post-close audits + the Android mobile
-re-check. Prior:_
+due MICRO row grades 100%; see [P-18] for the corrected timeline. **Post-close
+post-session-check + counterfactual-audit ran** (session `16f23213`: 77 trades,
+−₹5,052, PF 0.489, −0.344R; no flag flips). Found the [P-05] re-measure was
+never actually verifiable — new **[P-27]** (`model_stop` not persisted +
+`STOP_LOSS_HIT` masks short stops in `COVER_SHORT`) and **[P-28]** (phantom
+`SQUARE_OFF_FAILED` trade row) added to Ready. Android mobile re-check still
+open. Prior:_
 _2026-08-05 (post-session) · Burn-down: 9 shipped + verified live
 / 0 in-progress / 4 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20 +
 P-14 phases 1-3 shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20
@@ -107,6 +111,27 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
+- **[P-27] [P-05] re-measure is unverifiable as currently instrumented.** [me] ·
+  *done =* `execution.exit.model_stop` present on every stop-triggered exit
+  (both `STOP_LOSS_HIT` and stop-triggered `COVER_SHORT`), and the R-bucket
+  used to judge [P-05] pools both sides. · *source:* 08-06 post-session check
+  ([reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §B1/B2).
+  _Two compounding defects found post-close on session `16f23213` (77 trades):
+  (1) `model_stop` is absent from 100% of closed trades' `execution.exit` JSON —
+  the P-05 re-fix (brain `b09904`) leaves no trace it fired, so it can't be
+  confirmed live even though the session mean landed on target (−1.252R).
+  (2) `STOP_LOSS_HIT` is 100% LONG-side; every short stop-out exits as
+  `COVER_SHORT` (n=30, worst −1.356R) and is invisible to the metric — the
+  headline describes half the book. Fix the write path + the measurement
+  before trusting any future P-05 re-verify._
+- **[P-28] Phantom `SQUARE_OFF_FAILED` trade row (null entry fields).** [me] ·
+  *done =* no trade row is written when a square-off has no matching entry (or
+  it's tagged so it's excluded from raw trade counts), and the persistent
+  `trades` vs `total_trades_executed` +1 discrepancy is gone. · *source:*
+  08-06 post-session check ([reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md)
+  §B3). _Harmless for P&L (pnl=0.00, `r_multiple` null so excluded from R
+  stats) but trips the `bad_null_entry` integrity check and inflates raw trade
+  counts (78 vs 77 vs 77 `ORDER_PLACED`)._
 - **[P-24] Advisor paper book double-counts realized P&L.** [me] · *done =*
   each closed position has **exactly one** row with the real closed qty, and
   `sum(realized_pnl)` over closed SEED rows equals the per-name sum (today:

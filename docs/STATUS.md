@@ -4,10 +4,13 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-06 (mid-session VERIFY pass — git_sha `c5fd525` confirmed
-live and paper books seeded, closing [P-22] + [P-23]; the "grading backlog" was
-a false alarm (MACRO 30d horizon, not starvation); P-05 sample + both audits
-still pending market close)._
+_Last updated: 2026-08-06 (post-close — session `16f23213` finished
+`MARKET_CLOSED`: 77 trades, −₹5,051.92, PF 0.489, −0.344R. Post-session-check +
+counterfactual-audit ran (no flag flips); two real defects found in the [P-05]
+*measurement*, not new regressions — `execution.exit.model_stop` is never
+persisted (0/77 trades) and `STOP_LOSS_HIT` is LONG-only so short stops hide
+inside `COVER_SHORT`, so the −1.252R headline can't actually be trusted as a
+P-05 verify. Tracked as new [P-27]/[P-28]._
 
 ---
 
@@ -316,21 +319,22 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 08-03 PM | 47 (full-day, −3R soft) | −₹1,639 | 0.66 | −0.23R |
 | 08-04 | 90 (full-day, −3R soft) | −₹10,827 | 0.16 | −0.64R |
 | 08-05 | 41 (full-day, −3R soft) | −₹1,604 | 0.55 | −0.23R |
+| 08-06 | 77 (full-day, −3R soft) | −₹5,052 | 0.489 | −0.344R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
 still no edge. AM (in the "+EV" open window) was the **worst** bucket, PM (after
 10:15) the best — inverting the T4 open-window thesis (see FLAG log)._
 
-Cumulative (all-time, 562 closed trades) ≈ PF **0.334**, expectancy
-**−0.424R avg** — measured directly from `trades.r_multiple` this pass.
-08-05 added 41 trades / −₹1,604 (PF 0.554, back in-range after 08-04's weak
-day); no gate flip (still deep reject zone, PF gate is >1.3 go / <1.1
-reject). **Standing conclusion unchanged: no edge yet → gate #6 is the
-priority.** Max drawdown (peak-to-trough equity, all-time) is now
-**≈−₹24,879** (was ≈−₹23,200) — deeper, consistent with the soft daily-stop
-design (a session can bleed past −3R rather than hard-cutting), not treated
-as a new regression. Trade-quality note (T4): the "opening hour is the only
+Cumulative (all-time, 574 closed trades) ≈ PF **0.371**, expectancy
+**−0.414R avg** — measured directly from `trades.r_multiple` this pass.
+08-06 added 77 trades / −₹5,052 (PF 0.489, mid-range — not the weak-day 0.158
+of 08-04, not the better 0.66/0.55 of 08-03PM/08-05); no gate flip (still deep
+reject zone, PF gate is >1.3 go / <1.1 reject). **Standing conclusion
+unchanged: no edge yet → gate #6 is the priority.** Max drawdown (peak-to-
+trough equity, all-time) is now **≈−₹29,320** (was ≈−₹24,879) — deeper,
+consistent with the soft daily-stop design (a session can bleed past −3R
+rather than hard-cutting), not treated as a new regression. Trade-quality note (T4): the "opening hour is the only
 +EV window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R
 vs −0.64R) converged to both-negative, no spread left to exploit either way.
 See the FLAG log; re-measure over more full-day sessions.
