@@ -143,6 +143,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   books are one day old** — near-zero history to migrate. Detail:
   [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §A1. **Parked to
   post-market by the user 08-06.**_
+- **[P-30] Exit-frontier phase 2 — exact resolution by candle replay.** [me] ·
+  *done =* every cell reports `resolved / intra-bar ambiguous / no data`, the
+  optimistic-pessimistic bounds are computed over the unresolved remainder only
+  (the −0.219/−0.337 gap at the best cell should collapse), and the replay is
+  validated against ground truth (trades that really did `STOP_LOSS_HIT` or
+  `TARGET_HIT`). · *source:* [P-29].
+  _Evidenced feasible: `candles` is 5-minute, 88.5% window coverage, and at the
+  decisive cell **48 of 51 ambiguous trades resolve exactly** (1 intra-bar, 2 no
+  data). Note 5-min bars narrow the ambiguity to a single bar — they do not
+  eliminate it, so keep both bounds for the remainder. Full design, algorithm
+  and acceptance criteria: [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5._
 - **[P-25] Link the user's REAL executions back to the advice.** [me] · *done =*
   a real sell/buy the user makes lands in a `user_executions` row linked to the
   advice that recommended it, and `user_decision` is stamped without any manual
@@ -290,11 +301,12 @@ fixed (T, S) exit policies over the 541 closed trades carrying `mfe_r`/`mae_r`.
 **None clears breakeven under the optimistic bound** (best −0.219R vs realized
 −0.401R); at **zero cost, 3 do** (best +0.009R), so the entries are ≈ a coin
 flip and **cost drag −0.239R is essentially the whole loss**. Needs no Kite
-data, so it lands a real verdict while [P-01] stays blocked. Numbers
-cross-checked against SQL; page rendered and inspected at desktop + mobile, all
-controls probed, zero console errors. Detail in [STATUS.md](STATUS.md).
-_Natural follow-up: resolve the both-touched ambiguity exactly via intra-trade
-candle replay — the `candles` table already holds what that needs._
+data, so it lands a real verdict while [P-01] stays blocked. Breakeven
+round-trip cost measured at **≈0.0047%**, ~1/25th of the 0.12% actually paid —
+so this is *not* a "cut costs" finding; the edge has to come from the entries.
+Numbers cross-checked against SQL; page rendered and inspected at desktop +
+mobile, all controls probed, zero console errors. **Full writeup + phase-2
+plan: [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md).**
 
 _2026-08-07 (pre-market)_ — **[P-27] + [P-28] shipped** (brain `8c875df`, suite
 870 green). **Verify on the next session, before re-judging [P-05]:**

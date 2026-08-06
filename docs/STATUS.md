@@ -82,8 +82,13 @@ stays blocked.
   The verdict is therefore immune to the one thing the data can't say.
 - **Set cost to 0 and 3 of 180 policies go positive** (best **+0.009R**). So the
   entries are ≈ a coin flip and **transaction costs are essentially the entire
-  loss**, not bad signals. That sharpens the standing "no edge" conclusion into
-  something more precise and more actionable.
+  loss**, not bad signals.
+- **But that is not a "cut costs" finding.** The breakeven round-trip cost is
+  **≈0.0047%** — ~1/25th of the 0.12% actually paid, and a fifth of sell-side
+  STT alone. No achievable cost structure at this trade frequency gets there.
+  A coin flip minus any real cost is a loss: **the edge has to come from the
+  entries.** Full writeup + the phase-2 plan:
+  [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md).
 - Structure in the surface runs almost entirely **down** the rows: stop width
   dominates, target width barely matters — the signature of no entry edge.
 - Ships with a cost dial, optimistic/pessimistic bounds, side filter, and a
