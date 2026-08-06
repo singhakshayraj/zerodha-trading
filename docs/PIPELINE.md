@@ -111,7 +111,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-24] Advisor paper book double-counts realized P&L.** [me] · *done =*
+- **[P-24] Advisor paper book double-counts realized P&L — CODE SHIPPED
+  2026-08-07 (brain `f645ff3`), DB REPAIR PENDING [you].** *Remaining:* run
+  `scripts/repair_p24_paper_books.sql` (brain repo) against prod — this session
+  was blocked from writing to the DB. Verify closed MANAGEMENT SEED rows =
+  9 / −₹39,983.84. _Note the audit's TRIM claim was wrong — ITC 40+40 and
+  SILVERBEES 213+212 are honest half-trims of 80 and 425, not full exits;
+  KNOWN_ISSUES §A1 corrected. A real second bug was there though: the rotation
+  leg read the pre-trim qty and overwrote the trim's shrink._ Original item:
+  [me] · *done =*
   each closed position has **exactly one** row with the real closed qty, and
   `sum(realized_pnl)` over closed SEED rows equals the per-name sum (today:
   −₹39,983.84, not the recorded −₹71,512.79). · *source:* 08-06 mid-session audit.

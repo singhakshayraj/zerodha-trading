@@ -19,7 +19,7 @@ Context up front:
 - Deploy = git push origin main. The service auto-deploys from GitHub; deploy.sh
   hard-aborts on unpushed/dirty/non-main. NEVER push while a session is RUNNING —
   it restarts the brain and truncates the day's data collection. Push post-close.
-- Brain is on 8c875df; dashboard auto-deploys from main on Vercel. Full suite (870)
+- Brain is on f645ff3; dashboard auto-deploys from main on Vercel. Full suite (872)
   CI-gated on push.
 - Supabase/Railway are MCP connectors — if their tools are missing they need
   reconnecting via claude.ai connector settings or /mcp. Railway CLI + npm/node/

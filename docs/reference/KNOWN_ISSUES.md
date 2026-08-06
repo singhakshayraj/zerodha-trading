@@ -157,8 +157,28 @@ _Found while validating the live session `16f23213`. All three are
 **PARKED for post-market implementation** at the user's instruction; this
 section is the root-cause record, not a fix._
 
-### A1 — Advisor paper MANAGEMENT book **double-counts realized P&L** 🔴
-The 08-06 seed wrote every rotated-out holding **twice**, same entry, same
+### A1 — Advisor paper MANAGEMENT book **double-counts realized P&L** — CODE FIXED 2026-08-07 (brain `f645ff3`); **DB repair not yet run**
+Root cause: a name can carry a SELL/TRIM verdict **and** a rotation target in
+the same run, and the legs in `_apply_management` each acted on the original
+position independently — so the rotation booked a second full exit of shares the
+SELL had already realized, then its `qty` update zeroed the closed SELL row.
+`remaining` now carries across the legs (SELL zeroes it, TRIM decrements it, the
+rotation OUT sells only `min(intended, remaining)` and is skipped when nothing
+is left); the rotation BUY still runs, since the proceeds are real.
+**Correction to the finding below: TRIM was never wrong.** `ITC` 40 open + 40
+closed and `SILVERBEES` 213 open + 212 closed are honest half-trims of 80 and
+425 — the identical `return_pct` on both halves is per-share by construction,
+not a full exit. The `-25.786%` reads as "the whole position" but the row's
+`realized_pnl` is the trimmed lot only. (A second, smaller bug *was* here: the
+rotation leg read the **pre-trim** qty and overwrote the trim's shrink, so a
+10-share holding could shed 15. Also fixed.)
+**➡️ Still to do:** run `scripts/repair_p24_paper_books.sql` (brain repo)
+against prod — it keeps the `SELL_VERDICT` row with its real closed qty and
+drops the 7 `ROTATION_OUT` duplicates. Verify: closed MANAGEMENT SEED rows
+= **9 rows / −₹39,983.84**. The prod write was blocked from this session and
+needs a human to run it.
+
+**Original finding (08-06):** The 08-06 seed wrote every rotated-out holding **twice**, same entry, same
 exit, same `realized_pnl` counted twice:
 - `04:31:06` — `qty=0`, `exit_reason=SELL_VERDICT`
 - `04:31:13` — `qty=<real>`, `exit_reason=ROTATION_OUT`

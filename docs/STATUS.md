@@ -33,10 +33,12 @@ on target" measured LONGs only and is not the answer); and `trades` ==
 semantics changed, so buckets are **not comparable across the 08-07 boundary**.
 
 **2. The parked advisor work — the user asked for these explicitly (08-06):**
-- **[P-24]** paper book double-counts realized P&L — every rotated-out holding
-  written twice (`qty=0`/`SELL_VERDICT` + `qty=<real>`/`ROTATION_OUT`), and TRIM
-  books a full exit while leaving the position open. Reconciles to the rupee:
-  recorded −₹71,512.79 vs true −₹39,983.84. **Fix while the books are days old.**
+- **[P-24] code fixed 08-07 (brain `f645ff3`) — the DB repair still needs you.**
+  Run `scripts/repair_p24_paper_books.sql` (brain repo) against prod; this
+  session was blocked from writing to Supabase. Verify: closed MANAGEMENT SEED
+  rows = **9 / −₹39,983.84** (was 16 / −₹71,512.79). The audit's "TRIM books a
+  full exit" claim was **wrong** — those are honest half-trims; KNOWN_ISSUES §A1
+  is corrected.
 - **[P-25]** link the user's REAL executions to the advice (their actual ask) —
   diff `portfolio_advice`'s per-run symbol+qty snapshots to infer fills; no new
   capture needed.
