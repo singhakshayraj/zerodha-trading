@@ -236,6 +236,40 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 - **[P-16]** stays a no-op (regime can't tag non-TRENDING). Docs-only.
 
 ## 🚩 FLAG ENABLEMENT LOG
+
+- **Counterfactual audit 2026-08-06 (522 closed trades / 10 days).** No flag
+  flips. One genuinely new signal:
+  - **Trend-tells gate → WAIT, but strengthening.** Today: blocked bucket
+    **−0.541R (n=56)** vs kept **+0.182R (n=21)**. **The kept bucket is now
+    positive two sessions running** (08-05 +0.134R, 08-06 +0.182R) — the first
+    time that's happened; the prior audit's blocker was "kept is still negative
+    almost every day". Directionally consistent **9 of 10 days** (only 07-23
+    inverts). Pooled: blocked n=414 −0.468R / −₹26,715, kept n=107 −0.177R /
+    −₹1,112. **Still not ENABLE:** it would block **73%** of today's trades
+    (56/77), blinding the data collection that is this mode's whole purpose.
+    Watch for a third consecutive positive kept-day — that would be the trigger
+    to reconsider for a live-money phase.
+  - **Market-direction → SKIP (still a no-op).** Tape remains ~all `SIDEWAYS`
+    (LONG 269 / SHORT 246); only 6 BEARISH shorts, zero BULLISH. Nothing
+    counter-direction to suppress. Unchanged from 08-06 morning.
+  - **Time-stop → SKIP (reinforced).** Today's cleanly time-cuttable bucket is
+    negligible: `SESSION_END` n=5, **−₹44**, −0.095R (mfe +0.479). Pooled n=55,
+    −₹1,141, −0.204R. The real damage is `STOP_LOSS_HIT` (−1.393R, **mfe
+    −0.609** — wrong from entry, never in profit) and `BRAIN_SIGNAL` (−0.638R,
+    mfe +0.066); neither is time-cuttable.
+  - **Soft −3R:** marker fired at 06:09 UTC with 37 trades / −₹3,258; the
+    session finished **−₹5,052**, so continuing cost a further **−₹1,793**.
+    Consistent with every prior day — the hard stop has real trading value, soft
+    is the deliberate DATA choice. No flip.
+  - **Circuit-breaker** was today's strongest counterfactual: fired at 15 trades
+    / −₹535, final −₹5,052 → continuing cost **−₹4,517**. Also `MAX_TRADES_HIT`
+    at 44 trades / −₹2,578 → cost −₹2,474. Both intentionally log-not-enforce in
+    data-collection mode.
+  - **Data-collection pacing → HELPED.** Track C labels (839 decisions labeled
+    for 08-06) put the deferred signals at **−13.8R net avoided** (~−₹2,876):
+    `CYCLE_LIMIT` −7.31R (n=13), `HOURLY_PACE` −5.47R (n=44), `CONCURRENT_CAP`
+    −1.00R; only `SYMBOL_DAY_CAP` cost anything (+0.75R blocked, n=1).
+
 - **Trade-only-open (P-07) → SKIP, keep DARK.** Counterfactual 08-03: the open
   window (≤10:15) was the *worst* bucket that day (−0.51R vs −0.23R after), and
   pooled across all clean days the open window is now **−0.23R (negative)** —

@@ -219,3 +219,60 @@ minutes** and the page does show it. The perceived lag is the intraday
 refresh interval (~6–8 min) plus needing the page to re-fetch. Options if it
 still annoys: shorten the interval, or add a "refresh holdings now" control.
 Low severity — no data is lost.
+
+---
+
+## 2026-08-06 post-session check — new findings
+
+Session `16f23213` 04:25:53→09:51:48 UTC, `COMPLETED`/`MARKET_CLOSED`,
+git_sha `c5fd5254f157`. 77 trades, −₹5,051.92, PF 0.489, −0.344R avg.
+
+### B1 — `execution.exit.model_stop` is never persisted (0 of 77 closed trades) 🔴
+The [P-05] double-slippage re-fix (brain `b09904`) added a `model_stop` flag so
+the paper broker skips re-applying `PAPER_SLIPPAGE_PCT` on stop exits. The key is
+**absent from the `execution.exit` JSON on every single closed trade today**, and
+stop fills still show ~6.3–6.4 bps of adverse slippage past the stop reference
+(AXISBANK: reference 1249.76 → fill 1248.96). Either the flag never reaches the
+broker or it is dropped before the execution blob is written.
+Consequence: **[P-05] is not verifiable from the data as it stands** — the fix
+leaves no observable trace. Check the write path in `paper_broker`/`brain` exit
+handling. _Note the session mean did land on target (−1.252R), so the effect may
+be present without the flag; the point is it cannot be confirmed either way._
+
+### B2 — `STOP_LOSS_HIT` measures LONG stops only; SHORT stops are masked 🔴
+Full-session breakdown by side:
+
+| exit_reason | side | n | avg R | worst |
+|---|---|---|---|---|
+| COVER_SHORT | SHORT | 30 | −0.318 | **−1.356** |
+| BRAIN_SIGNAL | LONG | 22 | −0.658 | −1.189 |
+| STOP_LOSS_HIT | LONG | 12 | **−1.252** | **−1.420** |
+| TARGET_HIT | LONG | 8 | +1.626 | +1.150 |
+| SESSION_END | LONG | 5 | −0.095 | −0.516 |
+
+`STOP_LOSS_HIT` is **100% LONG**. Every short stop-out exits as `COVER_SHORT` and
+is pooled with ordinary covers, so it never enters the bucket [P-05] is judged on.
+The headline "−1.252R, on target" therefore describes **half the book**. The worst
+short cover (−1.356R) is past the cap and invisible to the metric.
+**Fix the measurement before re-judging the fix** — either tag stop-triggered
+covers distinctly, or compute the [P-05] bucket as "stop-triggered exits, both
+sides". Same masking was noted after 08-04 but not quantified until now.
+
+### B3 — Phantom trade row from a failed square-off 🟡
+One row (`bd5e88ec`, INFY, LONG, `SQUARE_OFF_FAILED`) has **null
+`entry_price`/`entry_time`/`entry_order_id`** but `exit_price` 1165.50 and
+`pnl` 0.00, created 04:27:49 — two minutes after session start. This is the
+source of the persistent **+1 discrepancy** tracked all session (`trades` 78 vs
+`total_trades_executed` 77 vs `ORDER_PLACED` 77). Harmless for P&L (0.00) and
+excluded from R stats (`r_multiple` null), but it inflates raw trade counts and
+trips the `bad_null_entry` integrity check. Likely a session-start cleanup
+squaring off a position that no longer existed. Either don't write a trade row
+when the square-off has no entry, or give it its own `ORDER_FAILED`-style
+exemption.
+
+### B4 — Heartbeat write errors while idle (watch) 🟢
+45 × `[database.update_heartbeat] ERROR cycle=0` in the pre-session window, plus
+a handful of transient `Server disconnected` blips (`get_open_trades`,
+`create_trade`, `get_directional_decisions_for_date`). All pre-session or
+isolated; the session itself ran clean and no data is missing. Watch for growth —
+if a `create_trade` blip ever lands mid-session it would silently drop a trade.
