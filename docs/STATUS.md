@@ -4,10 +4,10 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-06 (deploy incident root-caused + fixed — brain now on
-`c5fd525`, deploy = git push; [P-21] edge study = decisive no-edge; grading
-cold-cache + Track C starvation fixed; dashboard redirect fix. Next-session
-verify: P-14 paper books seed, grading backfill drains, P-05 clean sample)._
+_Last updated: 2026-08-06 (mid-session VERIFY pass — git_sha `c5fd525` confirmed
+live and paper books seeded, closing [P-22] + [P-23]; the "grading backlog" was
+a false alarm (MACRO 30d horizon, not starvation); P-05 sample + both audits
+still pending market close)._
 
 ---
 
@@ -109,17 +109,48 @@ which should have seeded/snapshotted both books ([P-22]).
     insights); confirm-before-disconnect; tap-active-tab-to-scroll-top;
     overscroll containment; `aria-current`; Android `text-size-adjust`.
 
-## ⏳ NEXT SESSION — verify (needs a live token/session)
-1. **git_sha** on the session stamps **`c5fd525`** (or later) — confirms the
-   whole 08-06 brain chain is finally live (was silently running old `c689ed4`).
-2. **[P-14 P2] paper books seed** — `advisor_paper_positions` + `_equity` get
-   rows after the official advisor run; `/advisor/accountability` shows curves.
-   (Didn't seed 08-05 — official ran 3s before the redeploy; should self-heal.)
-3. **Advisor grading backfill drains** — the ~38 matured `portfolio_advice` rows
-   grade now that the cold-cache fetch bug is fixed (`489d6b5`); graded count
-   jumps from 28.
-4. **[P-05] STOP_LOSS_HIT ≈ −1.25R** on a clean full session (08-05 was n=1).
-5. Then `/post-session-check` + `/counterfactual-audit`.
+## ✅ 2026-08-06 VERIFY pass — 2 of 4 cleared, 1 was a false alarm
+Session `16f23213` started 04:25:53 UTC (09:55 IST), **still RUNNING** at the
+time of this pass (mid-session read, not a post-close audit).
+1. **git_sha ✅ CLEARED** — session stamps **`c5fd5254f157`**. The whole 08-06
+   brain chain is live; the deploy-pipeline fix ([P-23]) holds. **Closes [P-23].**
+2. **[P-14 P2] paper books ✅ CLEARED** — both books seeded at 04:31 UTC on the
+   official advisor run. `[paper] seeded MANAGEMENT: 20 holdings` + `seeded
+   PICKING: ₹100,000 cash`, then same-minute snapshots. `advisor_paper_positions`
+   42 rows (MANAGEMENT 29 = 13 open SEED + 16 closed SEED + 7 open ROTATION;
+   PICKING 6 open SCAN), `advisor_paper_equity` 2 rows:
+   **MANAGEMENT ₹618,714 vs baseline ₹620,695** (−0.32% alpha), **PICKING
+   ₹99,400 vs ₹100,000** (−0.60%). Nifty 24,627.15. **Closes [P-22]** —
+   `/advisor/accountability` now has real data instead of empty-state.
+3. **Advisor grading — ❌ premise was WRONG, there is no backlog bug.** Graded
+   went 28→31 (+3), not the predicted jump. Root cause of the *expectation*, not
+   of a defect: **~85% of advice rows are `trigger_type=MACRO`, which
+   `horizon_for()` puts on a 30-trading-day horizon, not 10.** Measured across
+   every official run: **every due MICRO row is graded, 100%, with zero
+   misses** — 07-12 1/1, 07-14 1/1, 07-22 2/2, 07-23 4/4, 07-24 3/3. Every
+   remaining "matured" row is MACRO and genuinely not due yet. Live pass log
+   confirms a clean mechanism: `queued=192 graded=3 not_due=189 errors=0`, no
+   `no instrument token`, one unrelated 400. So the "~38 matured rows" figure in
+   the 08-05/08-06 notes counted MACRO rows at a MICRO horizon. **Grading is
+   healthy; the cold-cache fix (`489d6b5`) is not falsified — it just wasn't the
+   binding constraint.** Expect the first MACRO wave ~**08-24** (the 07-12 batch,
+   19 rows) and 07-22's ~**09-02**; MICRO adds ~3/session. Practical effect:
+   **[P-18]'s ≥50-graded gate lands late August, not this week.** Diagnostic
+   hardened so this can't recur — the pass log now splits `not_due` by horizon
+   (`[10d=… 30d=…]`, brain `054f2c6`, suite 867 green, **committed not pushed**).
+4. **[P-05] STOP_LOSS_HIT ≈ −1.25R — ⏳ still pending.** Session was ~40 min old
+   with 7 trades and no closed `r_multiple` rows yet. Carry to post-close.
+5. `/post-session-check` + `/counterfactual-audit` — ⏳ pending market close
+   (10:00 UTC). Not run: auditing a live session would misreport.
+
+⚠️ **Deploy note:** brain `054f2c6` is committed but **deliberately unpushed** —
+push auto-deploys, which would restart the brain and truncate the running
+session. Push after close.
+
+⏳ **Still unverified — [me→you]:** the Android mobile scroll/hidden-content fix
+(`5c169f4`). User hasn't checked on a real device yet (asked 08-06). Re-ask; if
+still broken, get a screenshot + the specific page/symptom **before** changing
+anything — emulation never reproduced the original bug.
 
 ## Deployed versions
 - **Brain:** `c5fd525` (08-06: auto-label decisions each session — Track C

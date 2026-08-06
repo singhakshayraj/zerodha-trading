@@ -5,7 +5,14 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-05 (post-session) · Burn-down this week: 9 shipped + verified live
+_Last updated: 2026-08-06 (mid-session verify pass) · Burn-down this week: 11 shipped +
+verified live / 0 in-progress / 2 ready / 4 blocked. **[P-22] + [P-23] both closed
+08-06** (paper books seeded; git_sha `c5fd525` stamped live). The "advisor grading
+backlog" was a **false alarm** — MACRO rows sit on a 30-trading-day horizon and every
+due MICRO row grades 100%; see [P-18] for the corrected timeline. Still open from
+08-06: [P-05]'s −1.25R re-measure + both post-close audits + the Android mobile
+re-check. Prior:_
+_2026-08-05 (post-session) · Burn-down: 9 shipped + verified live
 / 0 in-progress / 4 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20 +
 P-14 phases 1-3 shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20
 verified live on 08-04 + 08-05 (no advisor stall either day); P-16 resolved as no-op.
@@ -134,8 +141,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`.
   _08-05: graded_calls 21→28, hit rate 42.9%→39.3% — still small-n, DARK,
   watch only._
-- **[P-22] advisor_paper tables empty — ROOT-CAUSED + fixed 08-06, verify next
-  session.** [me] · *done =* `advisor_paper_*` ≥1 row after a clean official run.
+  _**08-06 — timeline corrected.** 31 graded. The ≥50 gate is NOT days away:
+  ~85% of advice rows are `trigger_type=MACRO` and mature at a **30-trading-day**
+  horizon, so only ~3 MICRO rows grade per session. First MACRO wave (07-12, 19
+  rows) matures ~**08-24**; 07-22's ~**09-02**. Realistic ECE re-measure date:
+  **late August**. Don't re-open this weekly expecting movement._
+- ~~**[P-22] advisor_paper tables empty**~~ ✅ **DONE — verified live 08-06.**
+  Both books seeded on the official run at 04:31 UTC: `advisor_paper_positions`
+  42 rows, `advisor_paper_equity` 2 (MANAGEMENT ₹618,714 vs baseline ₹620,695;
+  PICKING ₹99,400 vs ₹100,000). Measure met. Original triage kept below.
+  _(was: ROOT-CAUSED + fixed 08-06)_ · *done =* `advisor_paper_*` ≥1 row after a clean official run.
   _Two causes, both fixed: (1) **timing** — 08-05's official advisor ran 11:51:57
   IST, ~3s **before** the git_sha-fix redeploy (`5df81c31`, 11:52), so it ran the
   OLD build (no paper engine), and the once-daily dedup then blocked the new code
@@ -143,8 +158,11 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   would 400 on a retail token from a cold MarketData; fixed by warming holdings
   (brain `489d6b5`, same fix as grading). Next session runs the new code from the
   start → both books seed + snapshot. Carry the verify._
-- **[P-23] git_sha mismatch / P-05 re-fix undeployed — ROOT-CAUSED + FIXED 08-06.**
-  [me] · *done =* a session stamps `git_sha` ≥ the P-05 fix. _Root cause: the
+- ~~**[P-23] git_sha mismatch / P-05 re-fix undeployed**~~ ✅ **DONE — verified
+  live 08-06.** Session `16f23213` stamps `git_sha=c5fd5254f157`, well past the
+  P-05 fix — the push-based deploy holds. Measure met. _The [P-05] **−1.25R
+  re-measure** is a separate open verify (see below), not this item._
+  Original triage: [me] · *done =* a session stamps `git_sha` ≥ the P-05 fix. _Root cause: the
   brain service **auto-deploys from GitHub**, but `deploy.sh` only did `railway
   up` (local tarball) and the commits were never pushed — so a GitHub rebuild
   reverted to `c689ed4` and three commits (P-05 `b09904` + paper) ran nowhere.
