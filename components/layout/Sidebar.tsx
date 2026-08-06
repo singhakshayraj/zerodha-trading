@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy } from "lucide-react";
+import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy, Crosshair } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const navItems = [
   { href: "/advisor",   label: "Advisor",    icon: Compass },
   { href: "/advisor/timeline", label: "Timeline", icon: Activity, short: "Time" },
   { href: "/advisor/accountability", label: "Scorecard", icon: Trophy, short: "Score" },
+  { href: "/autopsy",   label: "Exit Frontier", icon: Crosshair, short: "Exits" },
 ];
 
 export function Sidebar() {
@@ -129,8 +130,8 @@ export function Sidebar() {
       {/* order-last → sits below the scrollable main in the flex column (flow,
           not fixed) so no content is ever hidden behind it. */}
       <nav className="md:hidden order-last shrink-0 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
-        {/* single row of 8 — short labels so nothing wraps at ~49px/cell */}
-        <div className="grid grid-cols-8">
+        {/* single row of 9 — short labels so nothing wraps at ~40px/cell */}
+        <div className="grid grid-cols-9">
           {navItems.map(({ href, label, short, icon: Icon }) => {
             const active = pathname === href;
             return (

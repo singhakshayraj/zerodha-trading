@@ -285,6 +285,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+_2026-08-07_ — **[P-29] Exit-Policy Frontier (`/autopsy`).** Replays all 180
+fixed (T, S) exit policies over the 541 closed trades carrying `mfe_r`/`mae_r`.
+**None clears breakeven under the optimistic bound** (best −0.219R vs realized
+−0.401R); at **zero cost, 3 do** (best +0.009R), so the entries are ≈ a coin
+flip and **cost drag −0.239R is essentially the whole loss**. Needs no Kite
+data, so it lands a real verdict while [P-01] stays blocked. Numbers
+cross-checked against SQL; page rendered and inspected at desktop + mobile, all
+controls probed, zero console errors. Detail in [STATUS.md](STATUS.md).
+_Natural follow-up: resolve the both-touched ambiguity exactly via intra-trade
+candle replay — the `candles` table already holds what that needs._
+
 _2026-08-07 (pre-market)_ — **[P-27] + [P-28] shipped** (brain `8c875df`, suite
 870 green). **Verify on the next session, before re-judging [P-05]:**
 1. every `STOP_LOSS_HIT` trade carries `execution.exit.model_stop = true` and

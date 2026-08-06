@@ -59,6 +59,39 @@ now accumulates in VERIFY.md §W-A instead of being re-remembered here.
 
 ---
 
+## 🔬 2026-08-07 — Exit-Policy Frontier (`/autopsy`): costs are the whole loss
+
+New dashboard page. Replays **every** fixed (take-profit T, stop S) policy over
+the 541 closed trades that carry excursion data (12 sessions, 07-10→08-06),
+using `mfe_r`/`mae_r` — the best and worst unrealized R each trade reached. This
+needs **no Kite historical data**, so it answers a real question while gate #6
+stays blocked.
+
+**Result, at the 0.12% round-trip cost assumption:**
+
+| | per trade |
+|---|---|
+| Realized (net) | **−0.401R** |
+| Best achievable exit policy (T 1.00R / S 0.25R) | **−0.219R** |
+| Cost drag | **−0.239R** |
+| Realized, gross of cost | **−0.162R** |
+
+- **None of the 180 policies clears breakeven** — and that is the *optimistic*
+  bound, where every trade that touched both levels is credited with hitting the
+  target first. The extremes don't record ordering, so no tick sequence beats it.
+  The verdict is therefore immune to the one thing the data can't say.
+- **Set cost to 0 and 3 of 180 policies go positive** (best **+0.009R**). So the
+  entries are ≈ a coin flip and **transaction costs are essentially the entire
+  loss**, not bad signals. That sharpens the standing "no edge" conclusion into
+  something more precise and more actionable.
+- Structure in the surface runs almost entirely **down** the rows: stop width
+  dominates, target width barely matters — the signature of no entry edge.
+- Ships with a cost dial, optimistic/pessimistic bounds, side filter, and a
+  table view. Pessimistic best is −0.292R.
+
+**Caveat:** diagnostic on entries *already taken* — it cannot speak to regimes
+the book never traded. That is still gate #6's job.
+
 ## One-paragraph state
 
 Month-long **paper-trading** validation of an intraday auto-trader (brain =
