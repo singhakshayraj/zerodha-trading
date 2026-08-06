@@ -227,8 +227,18 @@ Low severity — no data is lost.
 Session `16f23213` 04:25:53→09:51:48 UTC, `COMPLETED`/`MARKET_CLOSED`,
 git_sha `c5fd5254f157`. 77 trades, −₹5,051.92, PF 0.489, −0.344R avg.
 
-### B1 — `execution.exit.model_stop` is never persisted (0 of 77 closed trades) 🔴
-The [P-05] double-slippage re-fix (brain `b09904`) added a `model_stop` flag so
+### B1 — `execution.exit.model_stop` is never persisted (0 of 77 closed trades) — FIXED 2026-08-07 (brain `8c875df`)
+Root cause: `model_stop` was passed *into* `PaperBroker._fill` but never returned
+in the fill dict, and `brain._fill_leg` only copies `reference_price` /
+`fill_price` / `slippage_bps` — so the flag could not reach the `execution` blob.
+The broker now returns `model_stop`, `_fill_leg` persists it on the exit leg, and
+a new `charges_bps` splits the charge component out of `slippage_bps` (the
+~6.4 bps residue on a capped stop fill is charges, not slippage — that
+conflation is what made the fix look inert). **Verify next session:** every
+`STOP_LOSS_HIT` trade has `execution.exit.model_stop = true`, and its
+`slippage_bps == charges_bps`.
+
+**Original finding (08-06):** The [P-05] double-slippage re-fix (brain `b09904`) added a `model_stop` flag so
 the paper broker skips re-applying `PAPER_SLIPPAGE_PCT` on stop exits. The key is
 **absent from the `execution.exit` JSON on every single closed trade today**, and
 stop fills still show ~6.3–6.4 bps of adverse slippage past the stop reference
@@ -239,8 +249,19 @@ leaves no observable trace. Check the write path in `paper_broker`/`brain` exit
 handling. _Note the session mean did land on target (−1.252R), so the effect may
 be present without the flag; the point is it cannot be confirmed either way._
 
-### B2 — `STOP_LOSS_HIT` measures LONG stops only; SHORT stops are masked 🔴
-Full-session breakdown by side:
+### B2 — `STOP_LOSS_HIT` measures LONG stops only; SHORT stops are masked — FIXED 2026-08-07 (brain `8c875df`)
+Root cause was broader than the stop bucket: `_cover_short` **hardcoded**
+`exit_reason='COVER_SHORT'`, so *every* short exit — stop, target, time-stop,
+EOD, session-end — collapsed into one reason. Every `exit_reason` bucket in the
+08-06 table therefore measured LONGs only. `_cover_short` now takes the reason
+from its caller (`STOP_LOSS_HIT`/`TARGET_HIT`/`TIME_STOP`/`BRAIN_SIGNAL`/
+`EOD_CLOSE`/`SESSION_END`); the side is already carried by `position_type`, so
+the reason is free to say *why*. `COVER_SHORT` remains only as the default.
+**Verify next session:** `STOP_LOSS_HIT` and `TARGET_HIT` both contain SHORT
+rows, and re-judge [P-05] on the pooled bucket. Note this **breaks comparison
+with pre-08-07 sessions** — old short exits are all `COVER_SHORT`.
+
+**Original finding (08-06)** — full-session breakdown by side:
 
 | exit_reason | side | n | avg R | worst |
 |---|---|---|---|---|
@@ -258,8 +279,17 @@ short cover (−1.356R) is past the cap and invisible to the metric.
 covers distinctly, or compute the [P-05] bucket as "stop-triggered exits, both
 sides". Same masking was noted after 08-04 but not quantified until now.
 
-### B3 — Phantom trade row from a failed square-off 🟡
-One row (`bd5e88ec`, INFY, LONG, `SQUARE_OFF_FAILED`) has **null
+### B3 — Phantom trade row from a failed square-off — FIXED 2026-08-07 (brain `8c875df`)
+The row never entered (null `entry_price`, null `quantity` — the entry path
+failed or threw before `update_trade_entry`), so `_execute_sell_by_trade` bailed
+on `qty <= 0`, `trade_still_open` stayed True, and the force-close branch wrote
+`SQUARE_OFF_FAILED` with a fabricated exit price. That branch now checks for a
+missing `entry_price` first and closes as `ORDER_FAILED` with zeros and no exit
+price — true, and already exempt from the `bad_null_entry` check.
+**Verify next session:** `trades` count == `total_trades_executed` == the
+`ORDER_PLACED` count (the standing +1 gap should be gone).
+
+**Original finding (08-06):** One row (`bd5e88ec`, INFY, LONG, `SQUARE_OFF_FAILED`) has **null
 `entry_price`/`entry_time`/`entry_order_id`** but `exit_price` 1165.50 and
 `pnl` 0.00, created 04:27:49 — two minutes after session start. This is the
 source of the persistent **+1 discrepancy** tracked all session (`trades` 78 vs

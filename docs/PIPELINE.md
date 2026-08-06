@@ -111,27 +111,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-27] [P-05] re-measure is unverifiable as currently instrumented.** [me] ·
-  *done =* `execution.exit.model_stop` present on every stop-triggered exit
-  (both `STOP_LOSS_HIT` and stop-triggered `COVER_SHORT`), and the R-bucket
-  used to judge [P-05] pools both sides. · *source:* 08-06 post-session check
-  ([reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §B1/B2).
-  _Two compounding defects found post-close on session `16f23213` (77 trades):
-  (1) `model_stop` is absent from 100% of closed trades' `execution.exit` JSON —
-  the P-05 re-fix (brain `b09904`) leaves no trace it fired, so it can't be
-  confirmed live even though the session mean landed on target (−1.252R).
-  (2) `STOP_LOSS_HIT` is 100% LONG-side; every short stop-out exits as
-  `COVER_SHORT` (n=30, worst −1.356R) and is invisible to the metric — the
-  headline describes half the book. Fix the write path + the measurement
-  before trusting any future P-05 re-verify._
-- **[P-28] Phantom `SQUARE_OFF_FAILED` trade row (null entry fields).** [me] ·
-  *done =* no trade row is written when a square-off has no matching entry (or
-  it's tagged so it's excluded from raw trade counts), and the persistent
-  `trades` vs `total_trades_executed` +1 discrepancy is gone. · *source:*
-  08-06 post-session check ([reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md)
-  §B3). _Harmless for P&L (pnl=0.00, `r_multiple` null so excluded from R
-  stats) but trips the `bad_null_entry` integrity check and inflates raw trade
-  counts (78 vs 77 vs 77 `ORDER_PLACED`)._
 - **[P-24] Advisor paper book double-counts realized P&L.** [me] · *done =*
   each closed position has **exactly one** row with the real closed qty, and
   `sum(realized_pnl)` over closed SEED rows equals the per-name sum (today:
@@ -286,6 +265,22 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-07 (pre-market)_ — **[P-27] + [P-28] shipped** (brain `8c875df`, suite
+870 green). **Verify on the next session, before re-judging [P-05]:**
+1. every `STOP_LOSS_HIT` trade carries `execution.exit.model_stop = true` and
+   `slippage_bps == charges_bps` (the whole residual adverse move is charges);
+2. `STOP_LOSS_HIT` / `TARGET_HIT` now contain SHORT rows — re-measure the
+   pooled stop bucket against the −1.25R cap; the 08-06 "−1.252R on target"
+   read only LONGs and is not the answer;
+3. `trades` == `total_trades_executed` == `ORDER_PLACED` count (+1 gap gone).
+_Root causes: `model_stop` went into the broker and never came back out, so
+`_fill_leg` had nothing to persist; `_cover_short` hardcoded
+`exit_reason='COVER_SHORT'`, collapsing **all** short exits (stop, target,
+time-stop, EOD, session-end) into one bucket; a never-filled row was
+force-closed as `SQUARE_OFF_FAILED` with a fabricated exit price instead of
+`ORDER_FAILED`. Caveat: exit_reason semantics changed, so short-side buckets
+are **not comparable across the 08-07 boundary**._
 
 _2026-08-06_ — **[P-21] Edge study: decision-feature mining → decisive NO-edge.**
 Mined 1,597 walk-forward-labeled decisions (`decision_outcomes` ⋈ `brain_decisions`).

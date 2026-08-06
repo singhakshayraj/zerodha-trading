@@ -4,15 +4,17 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-06 (post-close — session `16f23213` finished
+_Last updated: 2026-08-07 (pre-market — [P-27]/[P-28] shipped; prior entry:
+post-close 08-06 — session `16f23213` finished
 `MARKET_CLOSED`: 77 trades, −₹5,051.92, PF 0.489, −0.344R. Post-session-check +
 counterfactual-audit ran (no flag flips); two real defects found in the [P-05]
 *measurement*, not new regressions — `execution.exit.model_stop` is never
 persisted (0/77 trades) and `STOP_LOSS_HIT` is LONG-only so short stops hide
 inside `COVER_SHORT`, so the −1.252R headline can't actually be trusted as a
-P-05 verify. Tracked as new [P-27]/[P-28]. Also 08-06: [P-22] + [P-23] closed
+P-05 verify. Tracked as [P-27]/[P-28] — **both fixed 08-07 pre-market, brain
+`8c875df`, suite 870 green; awaiting live verify.** Also 08-06: [P-22] + [P-23] closed
 (paper books seeded, git_sha `c5fd525` live); the advisor grading "backlog" was
-a false alarm (MACRO 30d horizon). Brain now `054f2c6`.)_
+a false alarm (MACRO 30d horizon). Brain now `8c875df`.)_
 
 ---
 
@@ -21,23 +23,16 @@ a false alarm (MACRO 30d horizon). Brain now `054f2c6`.)_
 Pull in this order. Full board in [PIPELINE.md](PIPELINE.md); resume prompt in
 [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
 
-**1. [P-27] — fix the [P-05] measurement before re-judging the fix.** The 08-06
-session produced what *looks* like a pass (`STOP_LOSS_HIT` avg **−1.252R**, dead
-on the −1.25R target, n=12) but the number can't be trusted:
-- **`execution.exit.model_stop` is absent from all 77 closed trades.** The flag
-  the re-fix (`b09904`) added leaves no trace, and stop fills still show ~6.4 bps
-  slippage past the stop reference. Find where it's dropped between the exit path
-  and the execution blob.
-- **`STOP_LOSS_HIT` is 100% LONG.** All 30 short exits go through `COVER_SHORT`,
-  where stop-outs pool with ordinary covers (worst **−1.356R**, past the cap and
-  invisible). The bucket measures half the book. → Tag stop-triggered covers
-  distinctly, or redefine the [P-05] bucket as "stop-triggered exits, both sides".
-- Detail: [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §B1–B2.
+**1. VERIFY [P-27] + [P-28] on the next session** (shipped 08-07 pre-market,
+brain `8c875df`) — three checks, all in KNOWN_ISSUES §B1–B3:
+`execution.exit.model_stop = true` on every `STOP_LOSS_HIT` (with
+`slippage_bps == charges_bps`); `STOP_LOSS_HIT`/`TARGET_HIT` now contain SHORT
+rows → **re-judge [P-05] on the pooled both-sides bucket** (the 08-06 "−1.252R
+on target" measured LONGs only and is not the answer); and `trades` ==
+`total_trades_executed` == `ORDER_PLACED` (+1 gap gone). Short-side exit_reason
+semantics changed, so buckets are **not comparable across the 08-07 boundary**.
 
-**2. [P-28]** phantom `SQUARE_OFF_FAILED` trade row (null entry fields) — the
-source of the standing `trades` vs `total_trades_executed` +1 gap. KNOWN_ISSUES §B3.
-
-**3. The parked advisor work — the user asked for these explicitly (08-06):**
+**2. The parked advisor work — the user asked for these explicitly (08-06):**
 - **[P-24]** paper book double-counts realized P&L — every rotated-out holding
   written twice (`qty=0`/`SELL_VERDICT` + `qty=<real>`/`ROTATION_OUT`), and TRIM
   books a full exit while leaving the position open. Reconciles to the rupee:
