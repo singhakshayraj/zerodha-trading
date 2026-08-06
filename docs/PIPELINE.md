@@ -107,6 +107,40 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
+- **[P-24] Advisor paper book double-counts realized P&L.** [me] · *done =*
+  each closed position has **exactly one** row with the real closed qty, and
+  `sum(realized_pnl)` over closed SEED rows equals the per-name sum (today:
+  −₹39,983.84, not the recorded −₹71,512.79). · *source:* 08-06 mid-session audit.
+  _Every rotated-out holding was written twice (`qty=0`/`SELL_VERDICT` at
+  04:31:06 **and** `qty=<real>`/`ROTATION_OUT` at 04:31:13), same P&L both times
+  — the 7 duplicate pairs account for the −₹31,528.95 gap to the rupee. Separately
+  **TRIM books a full exit while leaving the position open** (ITC open 40 + closed
+  TRIM 40 for the whole −25.8%; SILVERBEES open 213 + closed 212). Corrupts
+  `/advisor/accountability`'s realized record + win-rate. **Fix now while the
+  books are one day old** — near-zero history to migrate. Detail:
+  [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §A1. **Parked to
+  post-market by the user 08-06.**_
+- **[P-25] Link the user's REAL executions back to the advice.** [me] · *done =*
+  a real sell/buy the user makes lands in a `user_executions` row linked to the
+  advice that recommended it, and `user_decision` is stamped without any manual
+  step. · *source:* user report 08-06 (sold NBCC, rotated into the suggested name,
+  nothing recorded).
+  _Today there is **no real-money accountability loop**: `user_decision` is only
+  ever written by the Telegram bot (blocked on [P-04] creds) — 8 rows of 2,378.
+  The paper books simulate advice; they don't record what was done. **Design needs
+  no new capture:** `portfolio_advice` already snapshots symbol+quantity+avg_price
+  every ~6 min, so diffing consecutive runs recovers real executions (NBCC 115→
+  absent = sold; the rotation buy appears as a new symbol) and grading can then
+  score what the user actually did. Detail: KNOWN_ISSUES §A3. **Parked to
+  post-market by the user 08-06.**_
+- **[P-26] Decide the paper MANAGEMENT seed basis.** [me→you] · *done =* seed
+  price rule chosen + implemented. · *source:* 08-06 audit §A2.
+  _Seeding at the holdings' **cost basis** books pre-advisor history (RVNL −46.3%,
+  NBCC +73.0%) as advisor realized results. Alpha is unaffected (baseline carries
+  it too) but the win/loss scorecard reads as advisor skill when it isn't.
+  **Recommend seeding at seed-day price** so the advisor only owns what happened
+  after it spoke. Bundle with [P-24]._
+
 
 - **[P-06] Module split part 2 — IN PROGRESS (scoring half done).** [me] · *done
   =* no file >600 lines, suite green. · *source:* SE4.

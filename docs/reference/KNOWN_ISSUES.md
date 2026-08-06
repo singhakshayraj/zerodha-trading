@@ -148,3 +148,74 @@ as redundant, folded in here):
 runs since (07-14, 07-22) both show 20/20 holdings, zero `INSUFFICIENT`,
 sane price ranges (₹2358.60, ₹2307.72 avg) — the smoothed-run fix is
 validated in production, not just in theory.
+
+---
+
+## 2026-08-06 mid-session audit — advisor/live-portfolio accountability
+
+_Found while validating the live session `16f23213`. All three are
+**PARKED for post-market implementation** at the user's instruction; this
+section is the root-cause record, not a fix._
+
+### A1 — Advisor paper MANAGEMENT book **double-counts realized P&L** 🔴
+The 08-06 seed wrote every rotated-out holding **twice**, same entry, same
+exit, same `realized_pnl` counted twice:
+- `04:31:06` — `qty=0`, `exit_reason=SELL_VERDICT`
+- `04:31:13` — `qty=<real>`, `exit_reason=ROTATION_OUT`
+
+Arithmetic proof: the 16 closed `SEED` rows sum to **−₹71,512.79**, but the
+9 *distinct* names sum to **−₹39,983.84**; the 7 duplicated pairs (ATGL,
+IREDA, ITCHOTELS, MAZDOCK, NBCC, NTPC, RVNL) sum to **exactly −₹31,528.95**
+— the difference to the rupee. The `qty=0` copy is separately wrong (a
+closed row should carry the closed quantity).
+
+**Also: TRIM is modeled as a full exit.** `ITC` has an OPEN row (qty 40) *and*
+a closed `TRIM` row (qty 40) booking the **entire** position's −₹3,963.66
+(−25.8%) — so the position is both fully closed and fully open. Same shape on
+`SILVERBEES` (open 213 + closed `TRIM` 212).
+
+Impact: `/advisor/accountability`'s realized record, win-rate and
+per-verdict/per-source breakdowns are wrong from day one. Equity/alpha are
+less affected (baseline is frozen holdings), but the scorecard is the point.
+**Cheap to fix now** — the books seeded today, so there is almost no history
+to migrate. Owner: `advisor_paper.py` (brain `a2d9881`).
+
+### A2 — Design question: day-0 seed books **legacy** P&L as advisor results 🟡
+Seeding MANAGEMENT at the holdings' **cost basis** and immediately closing
+SELL-verdict names books returns that predate the advisor entirely (RVNL
+−46.3%, NBCC +73.0%) into its realized record. Alpha stays honest (both sides
+carry it), but "realized win/loss record + win-rate" will read as advisor
+skill when it is really the user's pre-existing position history. Decide:
+seed at cost basis (current) vs. seed at **seed-day price** (advisor only
+owns what happened after it spoke). Recommend the latter.
+
+### A3 — A real executed trade is **never linked back to the advice** 🔴
+_This is the user's actual ask (08-06): "I sold NBCC and rotated into the
+suggested stock — it should record that movement so we can later judge
+whether the suggestion was a win or a loss."_
+
+`portfolio_advice.user_decision` / `decided_at` exist but are written **only**
+by the Telegram bot (`advisor_bot.py`), which is blocked on the bot creds
+([P-04]) — **8 rows out of 2,378** ever set. Nothing infers that the user
+actually executed. So there is no real-money accountability loop at all; the
+paper books are a *simulation* of advice, not a record of what was done.
+
+**Proposed design (no new capture needed):** `portfolio_advice` already
+snapshots `symbol` + `quantity` + `avg_price` for every holding on every run
+(~6-min cadence) — that is an implicit holdings time series. Diffing
+consecutive runs recovers real executions at ~6-min resolution: NBCC
+`qty 115 → absent` = sold; the rotation buy shows up as a **new** symbol with
+a fresh `avg_price`. Stamp `user_decision='accept'` on the advice row that
+recommended it and write the real fill to a new `user_executions` table
+(symbol, side, qty, price, detected_at, linked advice_id, inferred=true).
+Then grading can score **what the user actually did**, not just the paper book.
+
+### A4 — Advisor page "not immediate" — latency, **not** a staleness bug 🟢
+Verified: `app/api/advisor/route.ts:16-20` already reads the **freshest**
+batch by `created_at`, official or not. On 08-06 the official run (04:30:58)
+carried `NBCC qty 115`, and both intraday refreshes (04:36:35, 04:44:39)
+dropped it — 19 symbols, no NBCC. The sale was picked up in **under 6
+minutes** and the page does show it. The perceived lag is the intraday
+refresh interval (~6–8 min) plus needing the page to re-fetch. Options if it
+still annoys: shorten the interval, or add a "refresh holdings now" control.
+Low severity — no data is lost.

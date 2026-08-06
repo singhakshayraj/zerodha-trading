@@ -147,6 +147,49 @@ time of this pass (mid-session read, not a post-close audit).
 push auto-deploys, which would restart the brain and truncate the running
 session. Push after close.
 
+## 🔎 2026-08-06 mid-session capture validation — **PASS**
+Checked at 04:44 UTC (~20 min in), session `16f23213`. Every stream flowing,
+**zero nulls** in the fields that matter:
+- **trades** 22 (5 closed) · **brain_decisions** 133 (HOLD 61 / SELL 43 / BUY 34)
+  — 0 null `confidence_score`/`indicators`/`price_at_decision`/
+  `nifty_level_at_decision`/`time_of_day_bucket`; **22/22 entries linked to a
+  trade_id** (8 SELL + 14 BUY), so decision→trade attribution is intact.
+- **portfolio_advice** 39 (20 official + 2 intraday refreshes) · **stock_observations**
+  20 INTRADAY, 0 null price/verdict/trend_score · **candles** 276 ·
+  **level_pack** 46 · **inplay_list** 10 · **quote_snapshots** 3 · **market_context** 2.
+- **Dark counterfactuals firing:** `LIMIT_WOULD_STOP` 2, `REENTRY_WOULD_BLOCK` 2.
+  `brain_activity`: ANALYZING 138 / SIGNAL 138 / ORDER_PLACED 22 /
+  ENTRY_DEFERRED 11 / POSITION_EXIT 6.
+- **Track C labels** current through 08-05 (5,497 rows); today's label at close.
+- _Expected gaps, not faults:_ no `PRE_OPEN` observations (session started 09:55
+  IST, after the 09:14 window — the standing manual-token-paste timing), no
+  `OUTSIDE_OPEN_WOULD_BLOCK` yet (10:15 IST cutoff had just passed), `tradebook`
+  empty (paper mode).
+
+## 🅿️ PARKED to post-market 2026-08-06 — advisor vs. live portfolio
+User report: "I sold NBCC and rotated into the suggested stock; the advisor page
+didn't show it immediately, and the real trade should have been recorded so we can
+later judge whether the suggestion was a win or a loss." Root-caused read-only this
+session, **implementation deferred at the user's instruction**. Full detail in
+[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §A1–A4:
+- **[P-24] 🔴 Paper book double-counts realized P&L.** Every rotated-out holding
+  written twice (`qty=0`/`SELL_VERDICT` + `qty=<real>`/`ROTATION_OUT`), same P&L
+  both times — the 7 duplicate pairs are exactly the −₹31,528.95 gap between the
+  recorded −₹71,512.79 and the true −₹39,983.84. Plus **TRIM books a full exit
+  while leaving the position open** (ITC open 40 *and* closed 40). Corrupts the
+  `/advisor/accountability` scorecard. Fix while the books are 1 day old.
+- **[P-25] 🔴 Real executions are never linked to the advice** — the user's actual
+  ask. `user_decision` is only ever written by the Telegram bot (blocked on
+  [P-04]): 8 rows of 2,378. Proposed fix needs **no new capture** — `portfolio_advice`
+  already snapshots symbol+qty+avg_price every ~6 min, so diffing consecutive runs
+  recovers real fills and links them to the advice that recommended them.
+- **[P-26] 🟡 Seed basis** — day-0 seeding at cost basis books pre-advisor history
+  (RVNL −46.3%, NBCC +73.0%) as advisor results. Recommend seeding at seed-day price.
+- **[A4] 🟢 The page is NOT stale** — `app/api/advisor/route.ts:16-20` already reads
+  the freshest batch. Evidence: the official 04:30:58 run had NBCC qty 115; both
+  intraday refreshes (04:36:35, 04:44:39) dropped it. The sale was picked up in
+  **under 6 min**; the perceived lag is the ~6–8 min refresh interval, not staleness.
+
 ⏳ **Still unverified — [me→you]:** the Android mobile scroll/hidden-content fix
 (`5c169f4`). User hasn't checked on a real device yet (asked 08-06). Re-ask; if
 still broken, get a screenshot + the specific page/symptom **before** changing
