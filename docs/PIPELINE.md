@@ -127,8 +127,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - **[P-24] Advisor paper book double-counts realized P&L — CODE SHIPPED
   2026-08-07 (brain `f645ff3`), DB REPAIR PENDING [you].** *Remaining:* run
   `scripts/repair_p24_paper_books.sql` (brain repo) against prod — this session
-  was blocked from writing to the DB. Verify closed MANAGEMENT SEED rows =
-  9 / −₹39,983.84. _Note the audit's TRIM claim was wrong — ITC 40+40 and
+  was blocked from writing to the DB. **Code half VERIFIED LIVE 08-07** — 20
+  advisor runs / 120 rotations produced zero new duplicate pairs; all 7 dupes
+  are frozen at 08-06. ⚠️ **The 9 / −₹39,983.84 target is STALE** — the book
+  grows as advice closes out (18 / −₹77,325.36 at 08-07 close → target now
+  11 / −₹45,796.41). Derive it at run time; the invariant is the duplicate sum
+  −₹31,528.95. Script updated (brain `a06d9fe`). _Note the audit's TRIM claim was wrong — ITC 40+40 and
   SILVERBEES 213+212 are honest half-trims of 80 and 425, not full exits;
   KNOWN_ISSUES §A1 corrected. A real second bug was there though: the rotation
   leg read the pre-trim qty and overwrote the trim's shrink._ Original item:
@@ -538,11 +542,13 @@ Pillar-1 calibration infra · per-stock agent P1 + P2 · 4 UI enhancements.
 Both are docs-only (never edit code) and evidence-based (no invented findings).
 They commit `chore(review): …` to main.
 
-> ⚠️ **Unconfirmed as of 2026-08-07.** These two trigger IDs are recorded here
-> but could not be verified from a local session — `CronList` only sees jobs
-> created in-session, not claude.ai routines. Check them at
-> claude.ai/code/routines. It matters: if they are not firing, this whole
-> cadence is manual, and the evidence points that way — the 08-06 audit was
-> run by hand, and the skills it would have used had a dead output path
-> (`ADVISOR_BUGS_PENDING.md`, deleted 07-23) that no automated run ever
-> complained about.
+> ✅ **CONFIRMED LIVE 2026-08-07.** The post-session routine fired on schedule
+> and committed `08a117e chore(review): post-session 2026-08-07` at 11:19 UTC
+> (16:49 IST) — authored by Claude, syncing PIPELINE to what STATUS/VERIFY had
+> recorded. So the cadence is genuinely automated, not manual, and the earlier
+> doubt here was wrong.
+> Two things it does **not** do, which is why the manual pass still matters:
+> it works from what the docs already say rather than re-querying prod, and it
+> explicitly leaves the full `/post-session-check` + `/counterfactual-audit`
+> sweep queued. Treat it as a bookkeeping pass that keeps the board consistent
+> between real audits, and expect to rebase — it commits to main while you work.
