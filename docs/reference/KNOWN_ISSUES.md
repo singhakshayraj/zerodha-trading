@@ -246,6 +246,57 @@ Low severity — no data is lost.
 
 ---
 
+## 2026-08-07 mid-session findings — handle POST-MARKET
+
+_Session `2ddadca7` (RUNNING at time of writing, started 07:10 UTC). Recorded
+live; none of these were actioned during the session because every remedy
+restarts the brain and would truncate the day's collection._
+
+### C1 — Session started 12:40 IST, ~3h25m after the open 🔴
+Market opens 09:15 IST; the session row `started_at` is **07:10 UTC = 12:40
+IST**, leaving only ~2h50m of tape. That alone caps today's volume regardless
+of any pacing change, and it is the second-order cost of the manual
+enc_token + START dependency ([P-03], deprioritised).
+**The part worth chasing:** Railway logs show `START command received`
+repeated **~20 times** between lines 1294–1650 before the session actually
+began at line 2089. Either the scheduler polls and logs the flag on every
+tick (noisy but harmless), or ~20 start attempts genuinely failed before one
+took. Those are very different problems. Establish which by checking whether
+the repeats carry distinct timestamps at the poll interval, and whether any
+carry a failure reason. If starts were failing, this is a real reliability
+bug and outranks the pacing work.
+
+### C2 — Advisor universe scan: `invalid token` 400 on JBCHEPHARM 🟡
+`[market_data._get_historical] failed: 400 on
+/instruments/historical/441857/day: invalid token`. Token `441857` is
+**JBCHEPHARM** (`data/nifty500.csv:255`).
+**Not** a regression from the [P-31] universe rotation: JBCHEPHARM is not in
+today's rotated slice, and the `/day` interval is the **advisor's** daily-bar
+scan, not the trading loop's 5-minute path. So this is pre-existing behaviour
+in the Nifty-500 rotation scan, surfaced by reading the logs closely.
+Isolated (1 occurrence in 3,000 log lines). Likely a stale instrument token
+from the pinned CSV. Check whether other Nifty-500 names fail the same way
+across a full session, and if so regenerate via
+`scripts/build_nifty500_tokens.py`.
+
+### C3 — Cycle log mislabels rotated names as `nifty50` 🟢
+`CYCLE_START  Cycle 1 — Scanning 87 stocks (20 holdings, 67 nifty50)` — the
+67 is 27 Nifty-50 **plus** the 40 `nifty500_rot` names lumped in. Cosmetic,
+but it will mislead exactly the future audit that tries to attribute breadth,
+so fix the counter to break out `nifty500_rot` separately. Universe
+construction itself logs correctly (`Added 40 nifty500_rot stocks…`).
+
+### C4 — `CYCLE_LIMIT` is now the binding cap, not `HOURLY_PACE` 🟡
+The [P-31] breadth change moved the constraint. Pre-breadth (08-06, 46
+symbols) the tally was HOURLY_PACE 44 / CYCLE_LIMIT 13. Post-breadth, cycle 1
+alone already deferred **3 on CYCLE_LIMIT and zero on HOURLY_PACE** — with 87
+symbols each cycle surfaces more qualifying signals, so the per-cycle cap of 8
+binds first. The pre-market runbook raises it 8→12; given this, **12 may be
+too timid** — re-derive from the full-session deferral tally after close
+before setting it.
+
+---
+
 ## 2026-08-06 post-session check — new findings
 
 Session `16f23213` 04:25:53→09:51:48 UTC, `COMPLETED`/`MARKET_CLOSED`,

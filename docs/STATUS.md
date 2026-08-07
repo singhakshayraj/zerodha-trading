@@ -18,6 +18,38 @@ a false alarm (MACRO 30d horizon). Brain now `8c875df`.)_
 
 ---
 
+## 📋 POST-MARKET QUEUE — 2026-08-07 (do these after 15:30 IST / 10:00 UTC)
+
+Session `2ddadca7` ran **12:40 → close** on git_sha `30b7c64a1114`. Nothing
+below was actioned live: every remedy restarts the brain and truncates
+collection. Work in this order.
+
+1. **`/post-session-check` then `/counterfactual-audit`.** This is the first
+   session that grades a real backlog: **V-1/V-2/V-3** (yesterday's
+   `model_stop`, short exit-reasons, phantom row) get their first live read,
+   and **V-5/V-6** grade the [P-31] breadth change.
+   _Early signal: V-5 looks good — cycle 1 analysed **87 symbols** (was 46).
+   V-6 looks fine too — ~126s for 87 symbols, faster than the ~160s W1
+   measured at 46, so breadth is not costing cycles. Confirm across the full
+   session, not one cycle._
+2. **Run `scripts/session_2026-08-07_data_boost.sh`** (brain repo) — the
+   volume half never landed today, so caps are still HOURLY 15 / CYCLE 8 /
+   DAY 150. **But re-derive the numbers first:** see [C4] — breadth moved the
+   binding cap from `HOURLY_PACE` to `CYCLE_LIMIT`, so the script's 8→12 may
+   be too timid. Set it from the full-session deferral tally.
+3. **[C1] Why did the session start at 12:40 IST?** ~20 × `START command
+   received` before it took. If those were failed attempts it is a real
+   reliability bug and outranks the pacing work; if it is just poll logging,
+   close it. Decide from timestamps.
+4. **[C2]** JBCHEPHARM `/day` 400 in the advisor scan — pre-existing, not the
+   rotation. **[C3]** cycle log lumps rotated names under `nifty50`.
+5. Still open from 08-06/07: **[P-24]** DB repair
+   (`scripts/repair_p24_paper_books.sql`), **[P-26]** seed-basis decision,
+   **[P-30]** exit-frontier candle replay.
+
+**Do not read today's trade count as a verdict on [P-31]** — a 2h50m session
+caps volume regardless. Today is a clean read on *diversity*, not volume.
+
 ## ▶️ START HERE NEXT SESSION
 
 Pull in this order. Full board in [PIPELINE.md](PIPELINE.md); resume prompt in
