@@ -185,10 +185,102 @@ function BookCard({ name, subtitle, book }: { name: string; subtitle: string; bo
   );
 }
 
+type Execution = {
+  symbol: string;
+  side: "BUY" | "SELL";
+  quantity: number;
+  price: number | null;
+  price_is_estimated: boolean;
+  detected_at: string;
+  verdict_at_time: string | null;
+  followed_advice: boolean | null;
+  notes: string | null;
+};
+
+type Real = { executions: Execution[]; followed: number; diverged: number; rate: number | null };
+
+/** [P-25] What the user ACTUALLY did — inferred from consecutive holdings
+ *  snapshots, not from a tap. The books above simulate the advice; this is the
+ *  real-money record it gets judged against. */
+function RealExecutions({ real }: { real: Real | null }) {
+  if (!real) return null;
+  const { executions, followed, diverged, rate } = real;
+  return (
+    <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-5 mt-4">
+      <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
+        <h3 className="text-sm font-semibold text-[#f5f5f5]">Your real executions</h3>
+        <span className="text-[11px] text-[#71717a]">
+          inferred from holdings snapshots · no manual step
+        </span>
+      </div>
+      <p className="text-[12px] text-[#888] max-w-2xl mb-4">
+        Detected by diffing the ~8-minute holdings series the advisor already writes. A{" "}
+        <strong className="text-[#f5f5f5]">sell</strong> shows up on the next refresh; a{" "}
+        <strong className="text-[#f5f5f5]">buy</strong> only appears once it settles (T+1),
+        because the broker&apos;s holdings feed reports delivered stock only.
+      </p>
+
+      {executions.length === 0 ? (
+        <p className="text-[12px] text-[#71717a]">
+          No executions detected yet. Sell or add to a holding and it will appear here within
+          one advisor refresh.
+        </p>
+      ) : (
+        <>
+          <div className="flex gap-5 mb-3 text-[12px] tabular-nums">
+            <span className="text-[#a1a1aa]">Followed advice <strong className="text-[#22c55e]">{followed}</strong></span>
+            <span className="text-[#a1a1aa]">Diverged <strong className="text-[#f59e0b]">{diverged}</strong></span>
+            {rate !== null && (
+              <span className="text-[#a1a1aa]">Follow rate <strong className="text-[#f5f5f5]">{Math.round(rate * 100)}%</strong></span>
+            )}
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px] tabular-nums">
+              <thead>
+                <tr className="text-[#71717a] text-left">
+                  <th className="font-normal py-1 pr-3">Detected</th>
+                  <th className="font-normal py-1 pr-3">Action</th>
+                  <th className="font-normal py-1 pr-3">Qty</th>
+                  <th className="font-normal py-1 pr-3">Price</th>
+                  <th className="font-normal py-1 pr-3">Advice then</th>
+                  <th className="font-normal py-1">Followed?</th>
+                </tr>
+              </thead>
+              <tbody>
+                {executions.map((e, i) => (
+                  <tr key={i} className="border-t border-[#1f1f1f]">
+                    <td className="py-1.5 pr-3 text-[#a1a1aa]">{e.detected_at.slice(0, 16).replace("T", " ")}</td>
+                    <td className="py-1.5 pr-3">
+                      <span className={e.side === "SELL" ? "text-[#ef4444]" : "text-[#22c55e]"}>{e.side}</span>{" "}
+                      <span className="text-[#f5f5f5]">{e.symbol}</span>
+                    </td>
+                    <td className="py-1.5 pr-3 text-[#a1a1aa]">{e.quantity}</td>
+                    <td className="py-1.5 pr-3 text-[#a1a1aa]">
+                      {e.price !== null ? `\u20b9${Number(e.price).toFixed(2)}` : "—"}
+                      {e.price_is_estimated && <span className="text-[#555]" title="broker leaves avg_price unchanged on a sale, so this is the run's last price"> est</span>}
+                    </td>
+                    <td className="py-1.5 pr-3 text-[#a1a1aa]">{e.verdict_at_time ?? "—"}</td>
+                    <td className="py-1.5">
+                      {e.followed_advice === true ? <span className="text-[#22c55e]">yes</span>
+                        : e.followed_advice === false ? <span className="text-[#f59e0b]">no</span>
+                        : <span className="text-[#555]" title="the advisor had no opinion on this name">n/a</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function AccountabilityPage() {
   const [books, setBooks] = useState<Record<string, Book> | null>(null);
   const [hasData, setHasData] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [real, setReal] = useState<Real | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -200,6 +292,7 @@ export default function AccountabilityPage() {
       setBooks(data.books ?? null);
       setHasData(Boolean(data.hasData));
       setUpdatedAt(data.updatedAt ?? null);
+      setReal(data.real ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to load");
     } finally {
@@ -246,7 +339,9 @@ export default function AccountabilityPage() {
               {error}
             </div>
           ) : !hasData ? (
-            <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-5">
+            <>
+            <RealExecutions real={real} />
+            <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-5 mt-4">
               <h3 className="text-sm font-semibold text-[#f5f5f5] mb-1">No paper snapshots yet</h3>
               <p className="text-[12px] text-[#888] max-w-xl">
                 The paper-portfolio seeds from the holdings and starts both books on the next
@@ -254,6 +349,7 @@ export default function AccountabilityPage() {
                 fill in from there — one snapshot per trading day.
               </p>
             </div>
+            </>
           ) : books ? (
             <div className="grid gap-4 lg:grid-cols-2">
               <BookCard
@@ -266,6 +362,7 @@ export default function AccountabilityPage() {
                 subtitle="₹100k cash · buys rotation/scan targets, exits at horizon · baseline = Nifty B&H"
                 book={books.PICKING}
               />
+              <div className="lg:col-span-2"><RealExecutions real={real} /></div>
             </div>
           ) : null}
         </div>

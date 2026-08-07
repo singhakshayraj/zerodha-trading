@@ -160,19 +160,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   data). Note 5-min bars narrow the ambiguity to a single bar — they do not
   eliminate it, so keep both bounds for the remainder. Full design, algorithm
   and acceptance criteria: [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5._
-- **[P-25] Link the user's REAL executions back to the advice.** [me] · *done =*
-  a real sell/buy the user makes lands in a `user_executions` row linked to the
-  advice that recommended it, and `user_decision` is stamped without any manual
-  step. · *source:* user report 08-06 (sold NBCC, rotated into the suggested name,
-  nothing recorded).
-  _Today there is **no real-money accountability loop**: `user_decision` is only
-  ever written by the Telegram bot (blocked on [P-04] creds) — 8 rows of 2,378.
-  The paper books simulate advice; they don't record what was done. **Design needs
-  no new capture:** `portfolio_advice` already snapshots symbol+quantity+avg_price
-  every ~6 min, so diffing consecutive runs recovers real executions (NBCC 115→
-  absent = sold; the rotation buy appears as a new symbol) and grading can then
-  score what the user actually did. Detail: KNOWN_ISSUES §A3. **Parked to
-  post-market by the user 08-06.**_
 - **[P-26] Decide the paper MANAGEMENT seed basis.** [me→you] · *done =* seed
   price rule chosen + implemented. · *source:* 08-06 audit §A2.
   _Seeding at the holdings' **cost basis** books pre-advisor history (RVNL −46.3%,
@@ -300,6 +287,18 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+_2026-08-07_ — **[P-25] Real-money accountability SHIPPED** (brain `3489ac6`).
+Infers the user's actual executions by diffing the ~8-min `portfolio_advice`
+holdings series, links each to the advice standing at the time, and stamps
+`user_decision` with no manual step — closing the loop the Telegram bot never
+could ([P-04] stays blocked and no longer matters for this). **Validated against
+ground truth before shipping:** 177 runs / 25 symbols → exactly one detection,
+`NBCC SELL 115 @ 08-06 04:36`, the sale the user reported, zero false positives.
+Backfilled + surfaced on `/advisor/accountability`. Suite 894.
+_Documented asymmetry: SELLs land within one refresh, BUYs only T+1 (the
+holdings feed reports delivered stock), which is why the paired rotation buy was
+never captured._ Verify: **V-7** (event-driven) + invariant **I-5**.
 
 _2026-08-07 post-close_ — **[P-27] + [P-28] + [P-31] all VERIFIED LIVE**, plus
 [P-24]'s code half. Session `2ddadca7` (36 trades, −₹3,422.57): V-1 model_stop

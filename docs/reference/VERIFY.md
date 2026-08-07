@@ -57,6 +57,40 @@ Because the book keeps growing, **re-derive both numbers immediately before
 running the repair** rather than trusting any figure written here.
 One-shot — retire once it passes.
 
+### V-7 · [P-25] a real trade is captured and linked, with no manual step
+Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
+one historical execution (NBCC SELL 115, 08-06 04:36, `followed_advice=true`,
+advice stamped `accept`). This check is **event-driven, not daily**: it can only
+pass on a session where you actually trade.
+
+```sql
+select symbol, side, quantity, price, price_is_estimated, detected_at::text,
+       verdict_at_time, followed_advice, advice_id is not null linked
+from user_executions order by detected_at desc limit 10;
+```
+
+**PASS** = the next real sell/add appears within one advisor refresh (~8 min),
+`linked` is true, and the matching `portfolio_advice` row has `user_decision`
+set without anyone tapping anything.
+**NOT-YET** on any session where holdings did not change — that is the normal
+case and must not be read as a failure.
+⚠️ **A BUY will not appear same-day.** The holdings feed reports delivered stock
+only, so a purchase lands T+1 and an intraday round-trip never lands at all.
+Do not treat a missing same-day buy as a defect.
+
+### I-5 · no phantom executions on quiet days
+The failure mode that would destroy this feature's credibility is inventing
+trades. A torn holdings fetch is guarded in code; this catches it in the data.
+
+```sql
+select detected_at::date d, count(*) n, count(distinct symbol) syms
+from user_executions group by 1 order by 1 desc limit 7;
+```
+**WARN** on any day where `syms` is a large fraction of the ~20 holdings —
+real activity is a name or two; twelve at once is a torn snapshot that slipped
+the guard, not a portfolio liquidation. Cross-check against `portfolio_advice`
+run symbol counts for that day before believing it.
+
 ---
 
 ## 👁️ WATCH — trend lines, not pass/fail

@@ -22,6 +22,18 @@ type EquityRow = {
   open_positions: number | null;
 };
 
+type ExecutionRow = {
+  symbol: string;
+  side: "BUY" | "SELL";
+  quantity: number;
+  price: number | null;
+  price_is_estimated: boolean;
+  detected_at: string;
+  verdict_at_time: string | null;
+  followed_advice: boolean | null;
+  notes: string | null;
+};
+
 type PositionRow = {
   book: string;
   symbol: string;
@@ -128,13 +140,22 @@ function summarize(equity: EquityRow[], positions: PositionRow[]) {
 
 export async function GET() {
   try {
-    const [{ data: eq, error: eqErr }, { data: pos, error: posErr }] =
+    const [{ data: eq, error: eqErr }, { data: pos, error: posErr }, { data: execs }] =
       await Promise.all([
         supabaseServer
           .from("advisor_paper_equity")
           .select("*")
           .order("snapshot_date", { ascending: true }),
         supabaseServer.from("advisor_paper_positions").select("*"),
+        // [P-25] What the user ACTUALLY did, inferred from consecutive
+        // holdings snapshots. Distinct from the paper books above: those
+        // simulate the advice, this records reality. A read failure here must
+        // not blank the page, so it is deliberately not error-checked.
+        supabaseServer
+          .from("user_executions")
+          .select("*")
+          .order("detected_at", { ascending: false })
+          .limit(50),
       ]);
 
     if (eqErr) return NextResponse.json({ error: eqErr.message }, { status: 500 });
@@ -154,7 +175,23 @@ export async function GET() {
     const updatedAt =
       equity.length > 0 ? equity[equity.length - 1].snapshot_date : null;
 
-    return NextResponse.json({ books, updatedAt, hasData: equity.length > 0 });
+    const executions = (execs ?? []) as ExecutionRow[];
+    const followed = executions.filter((e) => e.followed_advice === true).length;
+    const diverged = executions.filter((e) => e.followed_advice === false).length;
+
+    return NextResponse.json({
+      books,
+      updatedAt,
+      hasData: equity.length > 0,
+      real: {
+        executions,
+        followed,
+        diverged,
+        // Only count rows where the advisor actually had an opinion —
+        // buying something it never mentioned is neither obeyed nor defied.
+        rate: followed + diverged > 0 ? followed / (followed + diverged) : null,
+      },
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: msg }, { status: 500 });
