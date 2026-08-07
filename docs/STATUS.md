@@ -20,6 +20,7 @@ Board: [PIPELINE.md](PIPELINE.md) · open checks:
 [reference/VERIFY.md](reference/VERIFY.md) · findings:
 [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) · how they connect:
 [README.md](README.md) · paste-block: [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
+**Who owes what, with exact commands: [OPEN_ITEMS.md](OPEN_ITEMS.md).**
 
 **Deployed:** brain `3489ac6` (suite 894), dashboard `c2da2d4`.
 

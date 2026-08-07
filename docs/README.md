@@ -32,6 +32,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-28` are PIPELINE *work items*. `K7` is not
 | **[ROADMAP.md](ROADMAP.md)** | *What's next?* — the gate-#6 hinge, sprints, priorities, T4 findings. | when priorities change |
 | **[PIPELINE.md](PIPELINE.md)** | *What's moving?* — the live kanban board; where feedback becomes tracked items and daily work is pulled from. | continuously (the feedback loop) |
 | **[reference/VERIFY.md](reference/VERIFY.md)** | *Did the fixes actually work?* — the open-checks ledger. Every shipped fix registers runnable SQL + its pass number here; `/post-session-check` executes them. | every session |
+| **[OPEN_ITEMS.md](OPEN_ITEMS.md)** | *Who owes what?* — the same work cut by **owner** instead of status: what's on you (with exact commands), what's on me, what's waiting on time, what's ruled out. A derived view — PIPELINE and VERIFY stay authoritative. | when ownership shifts |
 | **[VISION.md](VISION.md)** | *Why?* — mission, trading fundamentals, risk limits, the pre-run gates + go/no-go criteria (§6.1, §7). The durable reference. | rarely |
 | this **README** | *Where is everything?* | when docs move |
 
