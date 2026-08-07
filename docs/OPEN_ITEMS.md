@@ -28,6 +28,24 @@ open.
 which you deprioritised. Nothing is broken; the token is simply manual by your
 choice. Don't rebuild the TOTP path.
 
+### 🔴 The 3-minute task that makes the above nearly foolproof — do [P-04]
+
+**The alarm for this already exists and is switched off.**
+`scheduler._maybe_token_preflight()` runs **once per market day at 09:16 IST**,
+skips weekends and holidays, live-checks the token, and on failure sends you:
+
+> ⚠️ Kite session expired/missing. Paste a fresh enc_token before the … IST
+> advisor run!
+
+That is **14 minutes before** the 09:30 autostart — early enough to save the
+whole session. It did nothing on 08-07 because its **only** channel is Telegram,
+and [P-04]'s bot token has never been set.
+
+**So the single highest-leverage action available to you is [P-04] (§1.4) — and
+it takes about three minutes.** It is not a "nice to have alerts" item; it is
+the difference between losing 55% of a session silently and getting a push
+notification in time to prevent it. Prioritise it over everything else in §1.4.
+
 ---
 
 ## 1.2 Monday 2026-08-10 — PRE-MARKET (before 09:15 IST)
@@ -115,7 +133,7 @@ too), but the win/loss scorecard reads as advisor skill when it isn't.
 |---|---|---|
 | **[P-02]** Fundamentals provider | Pick a source | `stock_agent.py:74` has carried `'fundamentals': None` since P3. The advisor scores 7 factors with **zero fundamental input**. Also blocks every fundamental screen the finserv plugins offer ([FINSERV_PLUGINS](reference/FINSERV_PLUGINS.md)). |
 | **[P-13]** Marketaux API key | Set the key | `news.sentiment` populates; the collector is built and dormant. |
-| **[P-04]** Telegram token | ① @BotFather → `/mybots` → pick bot → API Token → **Revoke current token**. ② `railway variables --set "TELEGRAM_BOT_TOKEN=<new>" --service zerodha-brain`. ③ Confirm a digest lands. | The Telegram digest + intraday alerts, already built and waiting on creds. Full runbook: [reference/CRED_ROTATION.md](reference/CRED_ROTATION.md). **Reduced from 2 creds to 1** — the anon key is safe-by-design, skip it. |
+| 🔴 **[P-04]** Telegram token — **do this one first** | ① @BotFather → `/mybots` → pick bot → API Token → **Revoke current token**. ② `railway variables --set "TELEGRAM_BOT_TOKEN=<new>" --service zerodha-brain`. ③ Confirm a digest lands. | **The 09:16 IST dead-token alert (§1.1)** — already built, dormant only for want of this token; it is what would have saved 55% of the 08-07 session. Plus the digest + intraday alerts. **~3 minutes.** Runbook: [reference/CRED_ROTATION.md](reference/CRED_ROTATION.md). **1 cred, not 2** — the anon key is safe-by-design, skip it. |
 
 ## 1.5 Deprioritised by you — listed for completeness, not being raised
 
@@ -189,8 +207,8 @@ None of these are P-items yet; each is a finding with a known fix.
 
 | From | Fix |
 |---|---|
-| **[C1]** | Emit `NO_TOKEN_AT_OPEN` on the first failed autostart, so a lost morning is visible. Avoids the [P-03] decision entirely. |
-| **[C5]** | Archive the trailing bars once more in the close path. Found by [P-30]: 10 of 118 clean-exit trades exit past the last archived bar, because `candle_rows` writes only 3 trailing bars per analysis cycle and nothing revisits a symbol after it closes. Benign for [P-30], matters for anything treating `candles` as a complete path. |
+| **[C1]** | ⚠️ **Downgraded** — the alert already exists (`_maybe_token_preflight`, 09:16 IST) and is dormant only because [P-04]'s Telegram token is unset. **[P-04] is the fix; this is second-best.** Still worth writing a `NO_TOKEN_AT_OPEN` marker eventually for the *post-mortem* trace (08-07's `brain_activity` had zero rows 03:30→07:11 UTC, so the loss was invisible afterwards too) — but via `db.write_config`, since `log_brain_activity` needs a `session_id` and swallows exceptions, so a no-session insert could fail silently and look shipped. |
+| **[C5]** | Archive the day's traded symbols' tail bars **post-close, in `data_jobs.py`** — ⚠️ **not** in the close path, which is where I first wrote it. That would reintroduce the documented `archive_candles` latency regression (~7s/cycle), and a slow exit path is measured to fill stops at −2.78R instead of ≈−1R. Found by [P-30]: 10 of 118 clean-exit trades exit past the last archived bar. Benign for [P-30]; matters for anything treating `candles` as a complete path. |
 | **[C2]** | Check whether other Nifty-500 names hit `invalid token` like JBCHEPHARM; if so regenerate via `scripts/build_nifty500_tokens.py`. 1 occurrence in 3,000 log lines — low priority. |
 | pacing script | Refresh the stale header comment (numbers are fine — see §1.2). |
 
@@ -230,7 +248,9 @@ None of these are P-items yet; each is a finding with a known fix.
 
 ## The one-line summary
 
-**You:** paste the token daily; Monday = pacing script pre-market, then repair +
+**You:** do **[P-04]** first — three minutes, and it switches on a dead-token
+alarm that is already written and would have saved 55% of the 08-07 session.
+Then: paste the token daily; Monday = pacing script pre-market, then repair +
 seed decision + audits post-close. Everything else of yours is a decision with
 no deadline.
 

@@ -293,6 +293,31 @@ currently says so only in a heartbeat field. Have it emit one
 the day (and/or a Telegram ping once creds land, [P-04]) so the situation
 surfaces where it will actually be seen instead of silently costing hours.
 
+✅ **REVISED 2026-08-08 — the alert is already built; it is [P-04] that is
+missing, not code.** `scheduler._maybe_token_preflight()` (scheduler.py:84)
+already runs **once per market day at 09:16 IST**, skips weekends and
+`NSE_HOLIDAYS`, live-checks the token, and on failure sends:
+
+> ⚠️ Kite session expired/missing. Paste a fresh enc_token before the … IST
+> advisor run!
+
+It fires **14 minutes before** the 09:30 autostart — early enough to save the
+session. It did nothing on 08-07 for one reason: its **only** channel is
+Telegram, gated on `ADVISOR_TELEGRAM_BOT_TOKEN`, which [P-04] has never set.
+
+So the highest-value action here is **[P-04] — a ~3-minute BotFather rotation
+plus one `railway variables --set`** — not new code. It activates a working
+alert that has been sitting dormant.
+
+Writing `NO_TOKEN_AT_OPEN` to the DB is still worth doing eventually, for the
+**post-mortem** trace (on 08-07 `brain_activity` had zero rows 03:30→07:11 UTC,
+so the loss was invisible afterwards too). But it is second-best and should not
+be mistaken for the fix. ⚠️ If implemented, note `log_brain_activity` takes a
+required `session_id` and every existing caller passes a real one — a no-session
+insert may be rejected, and the function **swallows exceptions**, so it would
+look shipped while doing nothing. Use a channel known to be writable
+(`db.write_config`) or verify the row actually lands.
+
 ### C2 — Advisor universe scan: `invalid token` 400 on JBCHEPHARM 🟡
 `[market_data._get_historical] failed: 400 on
 /instruments/historical/441857/day: invalid token`. Token `441857` is
@@ -360,9 +385,28 @@ than to a wrong answer. It costs resolution, not correctness. It would matter
 more to any future work that treats `candles` as a complete price path — a
 backtest harness especially.
 
-**Cheap fix if it becomes worth it:** archive the trailing bars once more at
-exit, in the close path, for the symbol just closed. Not proposed as work yet —
-recorded so the next person to lean on `candles` knows its edges.
+🔴 **CORRECTED 2026-08-08 (same day) — do NOT implement the fix as first
+written.** The original note here said "archive the trailing bars once more at
+exit, in the close path". **That would reintroduce a regression this codebase
+has already paid for.** Two independent warnings say so:
+
+- `db_records.upsert_candles` docstring: the per-symbol archive version "added
+  ~7s/cycle in prod, **slowing stop detection**".
+- `brain._exit_state` docstring: the exit path "runs on a ~30s cadence and must
+  stay fast — **cf. the archive_candles latency regression**".
+
+And the cost of a slow exit path is measured: cycle-boundary-only stop checks
+filled stops at **−2.78R instead of ≈−1R** (2026-07-08). The close path is the
+single most latency-sensitive code in the system — it is the worst possible
+place to add an I/O call.
+
+**Correct fix, if it becomes worth doing: archive the tail POST-CLOSE, off the
+hot path** — a job over the day's traded symbols after the session ends
+(`data_jobs.py` is the right home; it already owns `maybe_build_level_pack`,
+`maybe_lock_inplay`, `maybe_weekly_profiles`). Latency there is irrelevant.
+
+Still not proposed as work — recorded so the next person to lean on `candles`
+knows both its edges and where the fix does *not* go.
 
 ---
 
