@@ -257,14 +257,41 @@ Market opens 09:15 IST; the session row `started_at` is **07:10 UTC = 12:40
 IST**, leaving only ~2h50m of tape. That alone caps today's volume regardless
 of any pacing change, and it is the second-order cost of the manual
 enc_token + START dependency ([P-03], deprioritised).
-**The part worth chasing:** Railway logs show `START command received`
-repeated **~20 times** between lines 1294–1650 before the session actually
-began at line 2089. Either the scheduler polls and logs the flag on every
-tick (noisy but harmless), or ~20 start attempts genuinely failed before one
-took. Those are very different problems. Establish which by checking whether
-the repeats carry distinct timestamps at the poll interval, and whether any
-carry a failure reason. If starts were failing, this is a real reliability
-bug and outranks the pacing work.
+**ROOT-CAUSED 2026-08-07 post-close — they were genuine failed attempts, and
+there were far more than 20.**
+
+`AUTOPILOT=true` **is set on Railway**, so `_should_autostart()` fired on
+schedule at 09:30 IST. The blocker was authentication, not the start path:
+
+1. autostart writes `brain_status='START'`, sets `_is_trading=True`
+   (`scheduler.py:610-630`) and logs `START command received`;
+2. `db.get_enc_token()` returns nothing — the token had not been pasted;
+3. `token_refresher.refresh_enc_token()` cannot self-heal because TOTP
+   auto-login is **shipped but dormant** ([P-03]);
+4. → `_set_heartbeat('ERROR', 0, 'No token — reconnect from app')`,
+   `sleep(30)`, `continue`. The `continue` sits inside the `try` whose
+   `finally` (line 902) resets `_is_trading=False`, so the gate reopens and
+   **the whole thing repeats every 30 seconds**.
+
+From 09:30 → 12:40 IST that is roughly **380 retries**, not 20 — the log
+buffer only held the last slice, which is what made it look like ~20. It
+matches the silence elsewhere: `brain_activity` has **zero rows** between
+03:30 and 07:11 UTC, because the failure path writes to `brain_heartbeat`,
+never to `brain_activity`.
+
+**Cost: ~3h25m of a 6h15m session — about 55% of the day's tape.** Autopilot
+worked exactly as designed; it simply had nothing to authenticate with. So
+this is not a scheduler bug and needs no scheduler fix — it is the manual
+enc_token dependency, and today it was by far the largest single source of
+lost data, dwarfing every pacing cap. Recorded as a measured cost, not a
+re-opening of the [P-03] decision.
+
+**Cheap mitigation that does not touch [P-03]:** the brain knows at 09:30 that
+it is a trading day with no token and is about to burn the session. It
+currently says so only in a heartbeat field. Have it emit one
+`log_brain_activity('NO_TOKEN_AT_OPEN', …)` on the first failed autostart of
+the day (and/or a Telegram ping once creds land, [P-04]) so the situation
+surfaces where it will actually be seen instead of silently costing hours.
 
 ### C2 — Advisor universe scan: `invalid token` 400 on JBCHEPHARM 🟡
 `[market_data._get_historical] failed: 400 on
@@ -279,11 +306,13 @@ from the pinned CSV. Check whether other Nifty-500 names fail the same way
 across a full session, and if so regenerate via
 `scripts/build_nifty500_tokens.py`.
 
-### C3 — Cycle log mislabels rotated names as `nifty50` 🟢
+### C3 — Cycle log mislabels rotated names as `nifty50` — FIXED 2026-08-07 (brain, post-close)
 `CYCLE_START  Cycle 1 — Scanning 87 stocks (20 holdings, 67 nifty50)` — the
 67 is 27 Nifty-50 **plus** the 40 `nifty500_rot` names lumped in. Cosmetic,
-but it will mislead exactly the future audit that tries to attribute breadth,
-so fix the counter to break out `nifty500_rot` separately. Universe
+but it would mislead exactly the future audit that tries to attribute breadth.
+**Fixed:** the CYCLE_START message now breaks the mix out by source
+(`20 holdings, 27 nifty50, 40 nifty500_rot`) instead of lumping everything
+non-holdings under one label. Universe
 construction itself logs correctly (`Added 40 nifty500_rot stocks…`).
 
 ### C4 — `CYCLE_LIMIT` is now the binding cap, not `HOURLY_PACE` 🟡

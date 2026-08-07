@@ -297,6 +297,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+_2026-08-07 post-close_ — **[P-27] + [P-28] + [P-31] all VERIFIED LIVE**, plus
+[P-24]'s code half. Session `2ddadca7` (36 trades, −₹3,422.57): V-1 model_stop
+15/15, V-2 `COVER_SHORT` gone and **[P-05] re-judged at −1.211R across both
+sides**, V-3 counts 36=36=36, V-5 86 symbols, V-6 490s avg. [P-24] code
+verified — 20 advisor runs / 120 rotations produced **zero** new duplicate
+pairs. **[C3] fixed** (brain `a06d9fe`). **[C1] root-caused:** autopilot fired
+on time but retried ~380× on a missing enc_token, costing ~55% of the session —
+the largest single data loss of the day, and it is [P-03], not a bug.
+Full scorecard in [STATUS.md](STATUS.md); checks in
+[reference/VERIFY.md](reference/VERIFY.md).
+
 _2026-08-07 pre-market_ — **[P-31] Data volume + diversity boost.** Diversity
 shipped (brain `18b34f9`): sector-balanced Nifty 500 rotation, universe ~46 →
 ~86, 297 distinct names over 20 sessions vs 46. Volume half is a one-command

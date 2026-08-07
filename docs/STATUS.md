@@ -24,6 +24,20 @@ Session `2ddadca7` ran **12:40 → close** on git_sha `30b7c64a1114`. Nothing
 below was actioned live: every remedy restarts the brain and truncates
 collection. Work in this order.
 
+**✅ POST-SESSION AUDIT COMPLETE (08-07).** Scorecard clean: table freshness all
+today, trade integrity 36 rows / **0** bad-null-entry / 0 bad-exit / 0
+closed-null-pnl / 0 still-open, decision log 1,653 rows with **0** nulls on all
+four fields, advisor 380 rows over 20 runs 07:15→09:46 UTC with no stall and 0
+unsized rotations, and only **2 transient errors** in 5,000 log lines. Standing
+invariants: I-2/I-3/I-4 PASS; **I-1 fails on 7 frozen legacy rows** awaiting the
+V-4 repair (zero new dupes created today — the [P-24] *code* fix is verified
+live across 20 advisor runs / 120 rotations).
+**Counterfactual audit:** trend-tells **streak broken** — see VERIFY §W-A;
+market-direction had no signal (tape was SIDEWAYS all day, so no
+counter-direction entries existed to suppress); time-stop WAIT (EOD_CLOSE
+n=6 gave back MFE +0.568 → −0.238R). No flag flips.
+**[C1] root-caused, and it is the biggest number of the day** — see below.
+
 **Session closed `MARKET_CLOSED` 15:22 IST — 36 trades, −₹3,422.57, 11W/25L.**
 **All five open VERIFY checks PASSED** (recorded in
 [reference/VERIFY.md](reference/VERIFY.md)): V-1 model_stop 15/15 (was 0/12),
@@ -39,12 +53,20 @@ counts 36=36=36 with the +1 gap gone, V-5 **86 symbols**, V-6 **490s avg**.
    DAY 150. **But re-derive the numbers first:** see [C4] — breadth moved the
    binding cap from `HOURLY_PACE` to `CYCLE_LIMIT`, so the script's 8→12 may
    be too timid. Set it from the full-session deferral tally.
-3. **[C1] Why did the session start at 12:40 IST?** ~20 × `START command
-   received` before it took. If those were failed attempts it is a real
-   reliability bug and outranks the pacing work; if it is just poll logging,
-   close it. Decide from timestamps.
+3. **[C1] ROOT-CAUSED — and it dwarfs everything else on this list.**
+   `AUTOPILOT=true` **is** set; autostart fired on time at 09:30 IST and then
+   retried **every 30s for 3h10m (~380 attempts)**, each one dying on a missing
+   enc_token, because TOTP auto-refresh is dormant ([P-03]). It only started
+   when the token was pasted at 12:40. **Cost: ~3h25m of a 6h15m session, ~55%
+   of the day's tape** — an order of magnitude more data lost than any pacing
+   cap could recover. Nothing in the scheduler is broken, so there is nothing to
+   fix there; the decision is [P-03]'s, unchanged. _Cheap mitigation that avoids
+   that decision entirely: emit one `NO_TOKEN_AT_OPEN` activity row on the first
+   failed autostart of the day so this surfaces somewhere visible instead of
+   silently costing hours in a heartbeat field._
 4. **[C2]** JBCHEPHARM `/day` 400 in the advisor scan — pre-existing, not the
-   rotation. **[C3]** cycle log lumps rotated names under `nifty50`.
+   rotation. **[C3] FIXED** (brain `a06d9fe`) — CYCLE_START now breaks the
+   universe mix out by source.
 5. Still open from 08-06/07: **[P-24]** DB repair
    (`scripts/repair_p24_paper_books.sql`), **[P-26]** seed-basis decision,
    **[P-30]** exit-frontier candle replay.

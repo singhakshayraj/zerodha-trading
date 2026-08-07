@@ -31,10 +31,15 @@ the book.
 
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 
-### V-4 · [P-24] advisor paper book de-duplicated
-Code shipped: brain `f645ff3` (2026-08-07). **DB repair not yet run** —
-`scripts/repair_p24_paper_books.sql` in the brain repo needs a human; the
-prod write was blocked from the 08-07 session.
+### V-4 · [P-24] advisor paper book de-duplicated — CODE VERIFIED, DB REPAIR PENDING
+Code shipped: brain `f645ff3`. **The code half is now verified live (08-07):**
+the advisor ran **20 times with 120 rotation rows** and created **zero** new
+duplicate pairs. Every one of the 7 dupes has `first_seen = last_seen =
+2026-08-06` — they are frozen legacy, and the bug is not reproducing.
+
+What remains is purely the **DB repair** of those 7 rows:
+`scripts/repair_p24_paper_books.sql` (brain repo) needs a human — the prod
+write has been blocked from these sessions.
 
 ```sql
 select count(*) closed_rows, sum(realized_pnl) total
@@ -42,8 +47,15 @@ from advisor_paper_positions
 where book = 'MANAGEMENT' and source = 'SEED' and is_open = false;
 ```
 
-**PASS** = `9` rows / `−39983.84`. Currently `16` / `−71512.79`.
-This is a **one-shot** check — retire it once it passes.
+⚠️ **Expected values corrected 2026-08-07** — the original `9 / −39983.84` was
+computed when the book held 16 closed rows. It has since grown legitimately
+(18 rows / **−77325.36**) as new advice closed out, so that target is stale
+and would now read as a failure even after a correct repair.
+**PASS = `11` rows / `−45796.41`** (18 − 7 dupes; −77325.36 + 31528.95, the
+duplicate sum, which is unchanged).
+Because the book keeps growing, **re-derive both numbers immediately before
+running the repair** rather than trusting any figure written here.
+One-shot — retire once it passes.
 
 ---
 
@@ -58,10 +70,23 @@ Two positive sessions running for the first time: **08-05 +0.134R**,
 acting on. Still blocks ~73% of trades, so it stays dark regardless until then.
 Measured by `/counterfactual-audit` §2. Log each session's number below.
 
-| session | kept-bucket avg R | blocked % |
-|---|---|---|
-| 2026-08-05 | +0.134 | — |
-| 2026-08-06 | +0.182 | 73% |
+| session | kept-bucket avg R | blocked bucket avg R | blocked % |
+|---|---|---|---|
+| 2026-08-05 | +0.134 | — | — |
+| 2026-08-06 | +0.182 | — | 73% |
+| **2026-08-07** | **−0.093** (n=16) | −0.741 (n=19) | 54% |
+
+**🔴 STREAK BROKEN — the third reading is negative, so trend-tells does NOT
+earn ENABLE.** Two positives then a negative is exactly the *sign instability*
+[P-21] identified when it called this gate anti-predictive; it stays dark.
+
+Read the counter-argument honestly, because today's split looks compelling in
+isolation: the gate would have blocked 19 trades averaging **−0.741R**
+(−₹2,905) and kept 16 averaging −0.093R (−₹423). That is strong
+discrimination. But the **kept bucket is still negative** — enabling it buys a
+smaller loss, not a profit — and a rule that flips sign session to session is
+the definition of something fitted to noise. Needs a genuinely consistent run,
+not one good day.
 
 ### W-B · advisor calibration (ECE)
 48.5%, non-monotonic, n=22 graded calls — poor, but DARK (no live weight) and
@@ -148,6 +173,11 @@ where book = 'MANAGEMENT' and is_open = false
 group by 1, 2, 3, 4 having count(*) > 1;
 ```
 **PASS** = 0 rows.
+_2026-08-07: **7 rows — FAILING, but frozen.** All 7 carry
+`first_seen = last_seen = 2026-08-06`; the advisor ran 20 times with 120
+rotation rows on 08-07 and created none. So this is legacy awaiting the V-4
+repair, not a live defect. It should go to 0 the moment the repair runs — if a
+pair ever appears with a **newer** date, that is a genuine regression._
 
 ### I-2 · exit reasons are side-symmetric
 After [P-27], a reason that only ever appears on one side means a code path
@@ -162,6 +192,12 @@ group by 1 order by 1;
 ```
 **WARN** if `STOP_LOSS_HIT` or `TARGET_HIT` is 100% one-sided across a week
 with trades on both sides.
+_2026-08-07: **PASS.** `STOP_LOSS_HIT` 4L/11S, `TARGET_HIT` 2L/5S,
+`BRAIN_SIGNAL` 3L/3S — the two buckets the check names are both two-sided.
+`EOD_CLOSE` 0L/6S and `SESSION_END` 2L/0S **are** one-sided, and that is by
+design, not a collapsed path: shorts auto-cover at 15:15 and longs auto-close
+at 15:20, so each EOD reason belongs to one side by construction. Do not
+"fix" that asymmetry._
 
 ### I-3 · every closed trade carries its risk unit
 ```sql
