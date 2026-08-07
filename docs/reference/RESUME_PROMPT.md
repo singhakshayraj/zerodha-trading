@@ -15,7 +15,7 @@ Read first, in order: docs/STATUS.md — start with the "▶️ START HERE NEXT 
 block at the top, which names the current priority and why. Then docs/PIPELINE.md
 (the board), docs/reference/VERIFY.md (open checks owed on shipped fixes — this is
 what the post-session audit runs first), and docs/reference/KNOWN_ISSUES.md
-(§A and §B are the live findings). docs/README.md maps how those four connect.
+(the C-series is the newest batch). docs/README.md maps how those four connect.
 
 Two ID namespaces: K/W/A/B = KNOWN_ISSUES findings, P-nn = PIPELINE work items.
 K7 is not P-07. Shipping a fix owes VERIFY.md a row with runnable SQL and the
@@ -25,7 +25,7 @@ Context up front:
 - Deploy = git push origin main. The service auto-deploys from GitHub; deploy.sh
   hard-aborts on unpushed/dirty/non-main. NEVER push while a session is RUNNING —
   it restarts the brain and truncates the day's data collection. Push post-close.
-- Brain is on f645ff3; dashboard auto-deploys from main on Vercel. Full suite (872)
+- Brain is on 3489ac6; dashboard auto-deploys from main on Vercel. Full suite (894)
   CI-gated on push.
 - Supabase/Railway are MCP connectors — if their tools are missing they need
   reconnecting via claude.ai connector settings or /mcp. Railway CLI + npm/node/
@@ -34,6 +34,12 @@ Context up front:
   `railway logs --since Nh --lines 5000` for history (--lines caps ~5000).
   Kill any zombie `next start` on :3000 before running the dashboard locally.
 - Do NOT foreground P-01 (Kite ₹500) or P-03 (TOTP) — user deprioritized both.
+  This holds even though P-03 measurably cost ~55% of the 08-07 session: record
+  the cost, don't re-open the decision.
+- The two claude.ai routines ARE live (confirmed 08-07 — one committed
+  `chore(review)` mid-session). They work from what the docs already say rather
+  than re-querying prod, and they leave the full audit queued, so expect to
+  rebase and still run the real sweep yourself.
 
 If a session is running or has run today, verify + audit:
 - git_sha on the session stamps the deployed brain SHA (confirms the deploy chain).
@@ -42,10 +48,14 @@ If a session is running or has run today, verify + audit:
 - Then /post-session-check + /counterfactual-audit — but only AFTER market close
   (~10:00 UTC / 15:30 IST); auditing a live session misreports.
 
-Standing conclusion: no proven edge. [P-21] found no feature-based entry edge that
-holds out-of-sample, and no dark flag has earned ENABLE. The real edge verdict rests
-on gate #6, blocked on the Kite ₹500 user decision. Work the PIPELINE board; pull
-the top Ready item.
+Standing conclusion: no proven edge, now with a sharper number. [P-21] found no
+feature-based entry edge that holds out-of-sample, and no dark flag has earned
+ENABLE (trend-tells went +0.134, +0.182, then −0.093 — streak broken, stays dark).
+[P-29] `/autopsy` then showed **no exit policy rescues the book either**: none of
+180 clears breakeven even under the optimistic bound, entries are ≈ a coin flip,
+and breakeven needs round-trip costs ~0.0047% — about 1/25th of what is actually
+paid. So the edge has to come from the entries; the verdict still rests on gate #6,
+blocked on the Kite ₹500 decision. Work the PIPELINE board; pull the top Ready item.
 ```
 
 ---
@@ -63,6 +73,18 @@ the top Ready item.
   `quote_snapshots` use `captured_at`, `candles` uses `trade_date`,
   `inplay_list` uses `date`/`locked_at`. Check
   `information_schema.columns` before guessing.
+- **Verify before you trust a stored target.** Several acceptance numbers on
+  this board go stale because the underlying table keeps growing (the [P-24]
+  repair target moved from `9 / −39,983.84` to `11 / −45,796.41` in one day).
+  Derive totals at run time; the invariant is usually a delta, not an absolute.
+- **Two live-system rules that have each already bitten:** never `git push` the
+  brain while a session is RUNNING (it restarts and truncates collection —
+  dashboard pushes are safe, they only deploy Vercel), and never audit a live
+  session (half the day's rows don't exist yet, so it misreports).
+- **Prod writes may be blocked** by the permission classifier (Supabase
+  `UPDATE`/`DELETE`, `railway variables --set`). DDL via `apply_migration` and
+  ordinary inserts have gone through. When blocked, write the exact SQL or
+  script to a file and hand it over — do not work around it.
 - **Advisor grading cadence:** ~85% of `portfolio_advice` rows are
   `trigger_type=MACRO` on a **30-trading-day** horizon, so only ~3 MICRO rows
   grade per session. A large "ungraded backlog" is normal, not starvation — the

@@ -4,136 +4,108 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-07 (pre-market — [P-27]/[P-28] shipped; prior entry:
-post-close 08-06 — session `16f23213` finished
-`MARKET_CLOSED`: 77 trades, −₹5,051.92, PF 0.489, −0.344R. Post-session-check +
-counterfactual-audit ran (no flag flips); two real defects found in the [P-05]
-*measurement*, not new regressions — `execution.exit.model_stop` is never
-persisted (0/77 trades) and `STOP_LOSS_HIT` is LONG-only so short stops hide
-inside `COVER_SHORT`, so the −1.252R headline can't actually be trusted as a
-P-05 verify. Tracked as [P-27]/[P-28] — **both fixed 08-07 pre-market, brain
-`8c875df`, suite 870 green; awaiting live verify.** Also 08-06: [P-22] + [P-23] closed
-(paper books seeded, git_sha `c5fd525` live); the advisor grading "backlog" was
-a false alarm (MACRO 30d horizon). Brain now `8c875df`.)_
+_Last updated: 2026-08-08 (Sat) — post-session review of 08-07 complete. Session
+`2ddadca7` closed `MARKET_CLOSED` (36 trades, −₹3,422.57); all five open VERIFY
+checks PASSED; [P-25], [P-29], [P-31], [P-27], [P-28] shipped and [P-24]'s code
+half verified live. Brain `3489ac6`, suite 894. Next session Mon 2026-08-10._
 
 ---
-
-## 📋 POST-MARKET QUEUE — 2026-08-07 (do these after 15:30 IST / 10:00 UTC)
-
-Session `2ddadca7` ran **12:40 → close** on git_sha `30b7c64a1114`. Nothing
-below was actioned live: every remedy restarts the brain and truncates
-collection. Work in this order.
-
-**✅ POST-SESSION AUDIT COMPLETE (08-07).** Scorecard clean: table freshness all
-today, trade integrity 36 rows / **0** bad-null-entry / 0 bad-exit / 0
-closed-null-pnl / 0 still-open, decision log 1,653 rows with **0** nulls on all
-four fields, advisor 380 rows over 20 runs 07:15→09:46 UTC with no stall and 0
-unsized rotations, and only **2 transient errors** in 5,000 log lines. Standing
-invariants: I-2/I-3/I-4 PASS; **I-1 fails on 7 frozen legacy rows** awaiting the
-V-4 repair (zero new dupes created today — the [P-24] *code* fix is verified
-live across 20 advisor runs / 120 rotations).
-**Counterfactual audit:** trend-tells **streak broken** — see VERIFY §W-A;
-market-direction had no signal (tape was SIDEWAYS all day, so no
-counter-direction entries existed to suppress); time-stop WAIT (EOD_CLOSE
-n=6 gave back MFE +0.568 → −0.238R). No flag flips.
-**[C1] root-caused, and it is the biggest number of the day** — see below.
-
-**Session closed `MARKET_CLOSED` 15:22 IST — 36 trades, −₹3,422.57, 11W/25L.**
-**All five open VERIFY checks PASSED** (recorded in
-[reference/VERIFY.md](reference/VERIFY.md)): V-1 model_stop 15/15 (was 0/12),
-V-2 `COVER_SHORT` gone and **[P-05] re-judged at −1.211R over both sides**
-(n=15, 11 of them SHORT — the 08-06 −1.252R was the smaller half), V-3 trade
-counts 36=36=36 with the +1 gap gone, V-5 **86 symbols**, V-6 **490s avg**.
-
-1. **`/post-session-check` then `/counterfactual-audit`** — still run these for
-   the full sweep (table freshness, advisor detail, flag verdicts). The VERIFY
-   leg is already done and written back; don't redo it.
-2. **Run `scripts/session_2026-08-07_data_boost.sh`** (brain repo) — the
-   volume half never landed today, so caps are still HOURLY 15 / CYCLE 8 /
-   DAY 150. **But re-derive the numbers first:** see [C4] — breadth moved the
-   binding cap from `HOURLY_PACE` to `CYCLE_LIMIT`, so the script's 8→12 may
-   be too timid. Set it from the full-session deferral tally.
-3. **[C1] ROOT-CAUSED — and it dwarfs everything else on this list.**
-   `AUTOPILOT=true` **is** set; autostart fired on time at 09:30 IST and then
-   retried **every 30s for 3h10m (~380 attempts)**, each one dying on a missing
-   enc_token, because TOTP auto-refresh is dormant ([P-03]). It only started
-   when the token was pasted at 12:40. **Cost: ~3h25m of a 6h15m session, ~55%
-   of the day's tape** — an order of magnitude more data lost than any pacing
-   cap could recover. Nothing in the scheduler is broken, so there is nothing to
-   fix there; the decision is [P-03]'s, unchanged. _Cheap mitigation that avoids
-   that decision entirely: emit one `NO_TOKEN_AT_OPEN` activity row on the first
-   failed autostart of the day so this surfaces somewhere visible instead of
-   silently costing hours in a heartbeat field._
-4. **[C2]** JBCHEPHARM `/day` 400 in the advisor scan — pre-existing, not the
-   rotation. **[C3] FIXED** (brain `a06d9fe`) — CYCLE_START now breaks the
-   universe mix out by source.
-5. Still open from 08-06/07: **[P-24]** DB repair
-   (`scripts/repair_p24_paper_books.sql`), **[P-26]** seed-basis decision,
-   **[P-30]** exit-frontier candle replay.
-
-**Do not read today's trade count as a verdict on [P-31]** — a 2h50m session
-caps volume regardless. Today is a clean read on *diversity*, not volume.
 
 ## ▶️ START HERE NEXT SESSION
 
-Pull in this order. Full board in [PIPELINE.md](PIPELINE.md); resume prompt in
-[reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
+_Written 2026-08-08 (Sat). Next trading session **Mon 2026-08-10**._
+Board: [PIPELINE.md](PIPELINE.md) · open checks:
+[reference/VERIFY.md](reference/VERIFY.md) · findings:
+[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) · how they connect:
+[README.md](README.md) · paste-block: [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
 
-**1. Run [reference/VERIFY.md](reference/VERIFY.md) — the open-checks ledger.**
-New as of 08-07: every shipped fix now registers a runnable check there, and
-`/post-session-check` executes them as its §0. Open right now: **V-1/V-2**
-([P-27] — `model_stop` persisted, and short stops finally visible so [P-05] can
-be **re-judged on the pooled both-sides bucket**; the 08-06 "−1.252R on target"
-measured LONGs only and is *not* the answer), **V-3** ([P-28] phantom row),
-**V-4** ([P-24] paper-book de-dup — needs the DB repair run first). Short-side
-`exit_reason` semantics changed on 08-07, so those buckets are **not comparable
-across that boundary**. Building the ledger already closed one item on evidence:
-**[K8] inplay-lock is resolved** (locked 08-05 and 08-06; the 08-03 gap was a
-quiet tape), and every query in it was run against 08-06 data to confirm it
-executes and actually catches its bug.
+**Deployed:** brain `3489ac6` (suite 894), dashboard `c2da2d4`.
 
-**2. The parked advisor work — the user asked for these explicitly (08-06):**
-- **[P-24] code fixed 08-07 (brain `f645ff3`) — the DB repair still needs you.**
-  Run `scripts/repair_p24_paper_books.sql` (brain repo) against prod; this
-  session was blocked from writing to Supabase. Verify: closed MANAGEMENT SEED
-  rows = **9 / −₹39,983.84** (was 16 / −₹71,512.79). The audit's "TRIM books a
-  full exit" claim was **wrong** — those are honest half-trims; KNOWN_ISSUES §A1
-  is corrected.
-- **[P-25]** link the user's REAL executions to the advice (their actual ask) —
-  diff `portfolio_advice`'s per-run symbol+qty snapshots to infer fills; no new
-  capture needed.
-- **[P-26]** seed-basis decision — recommend seed-day price, not cost basis.
+### Where things stand
 
-**Also open:** [P-18] don't re-check before ~late Aug (MACRO horizon); the
-Android mobile fix (`5c169f4`) is still unconfirmed on a real device — ask, and
-get a screenshot + page + symptom before changing anything.
+08-07 session `2ddadca7` ran 12:40→15:22 IST (`MARKET_CLOSED`), 36 trades,
+−₹3,422.57, 11W/25L. Full audit ran, scorecard clean, **all five open VERIFY
+checks passed**. Big shipping day — see §"2026-08-07 shipped" below for the
+whole list. Nothing is mid-flight; the tree is clean and pushed.
 
-**⚡ 2026-08-07 pre-market — data volume + diversity boost [P-31].**
-- **Diversity (shipped, self-engaging):** brain `18b34f9` rotates **40
-  sector-balanced Nifty 500 names** into the universe each session
-  (`DATA_UNIVERSE_ROTATION_N`, data-collection mode only). Universe **~46 →
-  ~86**; dry-run on the real CSV gives all 20 sectors, max 2 per sector, and
-  **297 distinct names over 20 sessions** vs 46 today. No config needed — it
-  engages by itself on the next session.
-- **Volume (needs you, one command):** run
-  `scripts/session_2026-08-07_data_boost.sh` in the brain repo **before 09:15
-  IST**. Measured on 08-06, `HOURLY_PACE` is the only cap that binds (44
-  deferrals vs 13 for cycle, 1 each for concurrent/symbol), so it raises
-  hour 15→25, cycle 8→12, day 150→250 and deliberately leaves the other two.
-  This session was blocked from setting Railway vars.
-- **Check after close:** VERIFY **V-5** (breadth landed) and **V-6** (cycle
-  cadence did *not* blow out — this is the real risk; remedy is dropping the
-  knob to 20 or 0). Breadth only counts if `symbols × cycles` went up.
-- Expect a **bigger paper loss** — more trades at ≈−0.4R. That's the intended
-  trade-off (data is the goal, daily stop is already soft); don't read it as a
-  strategy signal.
+### Do these, in this order
 
-**Watch (don't act yet):** the trend-tells kept-bucket went positive two sessions
-running for the first time (08-05 +0.134R, 08-06 +0.182R). A **third** would be a
-real signal. Still blocks 73% of trades, so not enabled. Each session's reading
-now accumulates in VERIFY.md §W-A instead of being re-remembered here.
+**① Monday PRE-MARKET (before 09:15 IST) — the pacing runbook. [you]**
+`bash scripts/session_2026-08-07_data_boost.sh` in the brain repo. It restarts
+the brain, so it must land before the open and never during a session.
+⚠️ **Re-derive the numbers first.** [C4] was revised on live evidence: across
+20 cycles the tally stayed at `CYCLE_LIMIT 3` (all in cycle 1) while entries
+per IST hour ran 11 / 8 / **15** — and 15 is exactly
+`DATA_MAX_NEW_TRADES_PER_HOUR`. So **hourly 15→25 is the lever that matters**
+and cycle 8→12 is close to irrelevant. The script still carries the original
+numbers; adjust before running.
 
----
+**② [P-24] DB repair. [you]**
+`scripts/repair_p24_paper_books.sql` (brain repo). The **code** half is
+verified live — 20 advisor runs / 120 rotations on 08-07 created zero new
+duplicates, and all 7 dupes are frozen at 08-06. Only the legacy rows remain.
+⚠️ **Derive the target at run time**; the old `9 / −₹39,983.84` is stale because
+the book grows as advice closes out. At 08-07 close it was 18 / −₹77,325.36 →
+target **11 / −₹45,796.41**. The invariant is the duplicate sum, −₹31,528.95.
+Closes **V-4**, the only date-independent check still open.
+
+**③ [P-26] seed-basis decision. [you→me]**
+Bundle it with ② — both rewrite the same rows, so doing them together is one
+pass. Recommendation unchanged: seed at **seed-day price**, so the advisor owns
+only what happened after it spoke rather than inheriting RVNL −46.3% and NBCC
++73.0% as its own record.
+
+**④ Post-close Monday — `/post-session-check`, then `/counterfactual-audit`.**
+The audit runs the VERIFY ledger as its §0 and writes results back. Open
+entering Monday: **V-4** (needs ②) and **V-7** ([P-25], event-driven — it can
+only pass on a session where you actually trade; a quiet day is NOT-YET, not a
+failure). Invariant **I-1** will keep failing until ② runs.
+
+**⑤ Then pull the top Ready item.** My pick: **[P-30]** exit-frontier candle
+replay — fully designed with measured feasibility in
+[reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5 (48 of 51 ambiguous
+trades resolve exactly). Lower value than it looks, though: it sharpens the
+measurement of a strategy already shown to have ~coin-flip entries. **[P-06]**
+(module split, no file >600 lines) is the honest alternative if you want
+maintenance over analysis.
+
+### Standing facts a new session must not re-litigate
+
+- **The biggest lever is not on the board.** [C1]: `AUTOPILOT=true` fired on
+  time at 09:30 but retried ~380× on a missing enc_token (TOTP dormant), so the
+  session started 12:40 and **~55% of the day's tape was lost** — more than
+  breadth and pacing combined. Nothing in the scheduler is broken; the decision
+  is [P-03]'s and it is **deprioritised — do not re-raise it**. A cheap
+  mitigation that avoids that decision entirely is noted in KNOWN_ISSUES [C1]
+  (emit `NO_TOKEN_AT_OPEN` so it surfaces somewhere visible).
+- **Do not read 08-07's trade count as a verdict on [P-31].** A 2h50m session
+  caps volume regardless. 08-07 is a clean read on *diversity* (46→86 symbols),
+  not volume.
+- **Short-side `exit_reason` semantics changed on 08-07.** Buckets are **not
+  comparable across that boundary** — every short exit before it is
+  `COVER_SHORT`.
+- **Trend-tells: streak broken.** +0.134, +0.182, then **−0.093**. Stays dark.
+  Today's wide split (blocked −0.741R vs kept −0.093R) is tempting but the kept
+  bucket is still negative, and sign-flipping is exactly what [P-21] warned of.
+- **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
+  raise either.
+
+## 🚀 2026-08-07 shipped
+
+- **[P-27]/[P-28]** stop-exit measurement fixed and **verified live**:
+  `model_stop` 15/15, `COVER_SHORT` eliminated so every short exit carries a
+  real reason, phantom row gone (36=36=36). **[P-05] finally re-judged over the
+  whole book: −1.211R** (n=15, 11 SHORT — the old −1.252R was the smaller half).
+- **[P-31]** universe breadth: 40 sector-balanced Nifty-500 names rotate in
+  daily. **46 → 86 symbols**, ~490s cycles vs 459s at 46 — nearly double the
+  universe for ~7% more cycle time.
+- **[P-29]** `/autopsy` Exit-Policy Frontier — no exit rule rescues the book;
+  breakeven needs costs **~25× lower** than reality.
+- **[P-25]** real-execution capture — recovered your NBCC sale from history and
+  stamps `user_decision` with no manual step.
+- **Tracking loop**: [reference/VERIFY.md](reference/VERIFY.md) created; three
+  dead links in the audit skills fixed; K/W/A/B vs P-nn ID collision removed.
+- **[C3]** fixed; **[K8]** closed on evidence.
 
 ## 🔬 2026-08-07 — Exit-Policy Frontier (`/autopsy`): costs are the whole loss
 
