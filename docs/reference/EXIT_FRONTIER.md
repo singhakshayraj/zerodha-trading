@@ -100,18 +100,31 @@ Pessimistic best is −0.292R.
 
 **Set the cost dial to 0 and 3 of 180 policies go positive**, best **+0.009R**.
 
-That is the finding worth carrying:
+> ⚠️ **CORRECTED 2026-08-08 by phase 2 — the zero-cost result above was an
+> artifact of the optimistic assumption, and it does not survive exact
+> ordering.** Replaying the same 541 trades with the 5-minute candle replay
+> gives **0 of 180 positive at zero cost**, best **−0.077R** (was +0.009R).
+> Those three "profitable" cells existed only because every trade that touched
+> both its target and its stop was being credited with the target first. See
+> §5 Results. The corrected reading is below; the paragraph is left standing
+> because the correction is the point.
 
-> The entries are approximately a **coin flip**. Transaction costs are
-> essentially the **entire** loss. The strategy is not mis-reading the market so
-> much as paying to find that out 45 times a day.
+That is the finding worth carrying — **as amended by §5**:
 
-**But do not read that as "just cut costs."** The round-trip cost at which the
-best policy reaches breakeven is **≈0.0047%** (measured: +0.0013R at 0.004%,
-−0.0025R at 0.006%) — about **1/25th** of the 0.12% actually paid, and a fifth
-of the sell-side STT alone (0.025%). No achievable cost structure at this trade
-frequency reaches it. A coin flip minus *any* real cost is still a loss; the
-edge has to come from the entries.
+> The entries are **worse than a coin flip**, though not by much: even with
+> transaction costs set to **zero**, no fixed exit policy makes money
+> (best −0.077R). Costs are still the larger part of the realized loss
+> (−0.239R of −0.401R), but they are not the *whole* of it, and removing them
+> entirely would not produce a winning strategy.
+
+**But do not read that as "just cut costs."** Under phase 1 the round-trip cost
+at which the best policy reached breakeven was **≈0.0047%** (measured: +0.0013R
+at 0.004%, −0.0025R at 0.006%) — about **1/25th** of the 0.12% actually paid,
+and a fifth of the sell-side STT alone (0.025%). **Phase 2 makes this stronger,
+not weaker: there is now no cost level at which any policy breaks even, because
+the surface is still entirely negative at exactly zero cost.** The
+"cut costs" reading is not merely impractical, it is unavailable. The edge has
+to come from the entries.
 
 Secondary reading: variation across the surface runs almost entirely **down the
 rows** (stop width) and barely **across the columns** (target width). That is
@@ -146,11 +159,16 @@ banner and legend, where it cannot be missed.
 **Verification done:** numbers cross-checked against independent SQL; page
 rendered and inspected at 1440px and 390px; all controls probed (pessimistic
 −0.292R, zero-cost 3/180 positive, short-only −0.196R); zero console errors;
-build + typecheck clean.
+build + typecheck clean. _(The zero-cost figure here is phase 1's and was later
+corrected — see §5.1.)_
 
 ---
 
 ## 5. Phase 2 — resolving the ambiguous cells by intra-trade candle replay
+
+> ✅ **SHIPPED 2026-08-08 ([P-30]).** Results, the design-vs-built deltas, and
+> the ground-truth validation are in §5.1 at the end of this section. The
+> design below is kept as written because it is what was built against.
 
 ### Why it is worth doing
 
@@ -267,6 +285,81 @@ Phase 2 is done when:
 Criterion 4 is the one that matters most: **the replay has a ground truth
 available and must be held to it.** Trades that really did stop out or hit
 target are cases where the answer is already known.
+
+### 5.1 As built (2026-08-08)
+
+**Where it lives — one deliberate departure from the design above.** The design
+called for a brain-side `scripts/replay_exits.py` writing a precomputed table.
+It was built **inside `app/api/autopsy/route.ts` instead**: the route fetches
+the bars, computes the same first-touch ladder per trade, and ships it. The
+reason was practical — the session that built it had no Supabase MCP and so
+could not apply the DDL — but the design intent survives intact, because the
+*client* still receives only ~64 small integers per trade and sweeps the grid by
+integer comparison. The thing the design was protecting against (shipping ~1M
+bar-comparisons to a phone on every dial change) does not happen either way.
+The cost is a **~2.8s** cold API response and a **250KB** payload, since the
+~21k-row candle archive is re-read per request. If that becomes annoying, the
+brain-precompute path in the design above is still the answer.
+
+| File | What |
+|---|---|
+| `lib/exit-replay.ts` | `buildLadder` (first-touch indices per R level, 0.25→4.00) + `resolveOrder` (which level came first). Pure, no I/O. |
+| `app/api/autopsy/route.ts` | Fetches bars, builds one ladder per trade, ships it alongside the phase-1 primitives; also runs the ground-truth tally. |
+| `app/autopsy/page.tsx` | Prefers exact resolution; reports `resolved / intra-bar / no data` per cell and a residual **band** in place of the old ambiguity percentage. |
+
+**One correctness decision worth stating.** The replay is consulted **only** for
+trades the extremes already say touched both levels. `mfe_r`/`mae_r` are tracked
+tick-by-tick and remain the authority on *whether* a level was touched; the bars
+are a sampled, sometimes-incomplete view and are used only to *order* two
+touches already known to have happened. That layering is why phase 2 can split
+the ambiguous bucket but can never create or destroy a touch — and why a bar
+gap degrades to "unresolved", never to a wrong answer.
+
+**Results — the bounds collapse.** On the same 541-trade window as §3, so the
+comparison is like-for-like:
+
+| at 0.12% cost | phase 1 | phase 2 |
+|---|---|---|
+| best cell | −0.219R (T 1.00 / S 0.25) | **−0.291R** (T 1.75 / S 0.25) |
+| band at that cell | **0.118R** | **0.007R** |
+| policies above breakeven | 0 / 180 | 0 / 180 |
+| **at 0% cost:** best | **+0.009R** | **−0.077R** |
+| **at 0% cost:** above breakeven | **3 / 180** | **0 / 180** |
+
+The band narrows **~16×**. On the current 577 trades (through 08-07) the best
+cell is **−0.296R** with a band of **0.012R**, and the zero-cost surface is
+likewise 0/180.
+
+**The finding (criterion 3, re-checked rather than assumed).** Exact resolution
+moved no cell *above* breakeven — it moved cells *below* it. §3's
+"3 of 180 go positive at zero cost" was an artifact of crediting every ambiguous
+trade with the target, and it does not survive ordering. §3 has been corrected
+in place. The standing conclusion is unchanged in direction and **strengthened**
+in degree: not "a coin flip that costs eat", but **slightly worse than a coin
+flip, which costs then eat**.
+
+**Ground truth (criterion 4) — passed, with the failure mode characterised.**
+Checked against real `STOP_LOSS_HIT` / `TARGET_HIT` exits at their *actual*
+prices (not ladder-snapped, which introduces rounding of its own):
+
+| | agree |
+|---|---|
+| exit moment covered by an archived bar | **50/50 stops, 35/35 targets — 85/85** |
+| exit past the last archived bar | 2/5 stops, 0/5 targets |
+| no bars in window at all | 23 (unjudgeable) |
+
+**Every single disagreement is a trade whose exit fell past the last archived
+bar** — the archive's tail, not the replay's logic. Recorded as a data-capture
+finding in [KNOWN_ISSUES.md](KNOWN_ISSUES.md) §C5.
+
+**Robustness of the entry-bar exclusion.** Whole bars only: the bar containing
+the entry is excluded, since it also holds pre-entry action that could register
+a touch this position never saw. That leaves an exposure — 9 of 14 resolutions
+at the best cell are decided in the first *admitted* bar, so a touch hidden in
+the excluded bar could in principle flip them. Stress-tested by inverting
+**every** such resolution (a deliberately absurd worst case): the best cell
+moves to −0.248R at 0.12% cost and −0.020R at zero cost, and **0 of 180
+policies clear breakeven in either.** The verdict does not rest on it.
 
 ---
 

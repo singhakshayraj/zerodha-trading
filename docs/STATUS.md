@@ -4,10 +4,12 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-08 (Sat) — post-session review of 08-07 complete. Session
-`2ddadca7` closed `MARKET_CLOSED` (36 trades, −₹3,422.57); all five open VERIFY
-checks PASSED; [P-25], [P-29], [P-31], [P-27], [P-28] shipped and [P-24]'s code
-half verified live. Brain `3489ac6`, suite 894. Next session Mon 2026-08-10._
+_Last updated: 2026-08-08 (Sat) — post-session review of 08-07 complete, and
+**[P-30] shipped** (exit-frontier candle replay; it corrected a documented
+conclusion — see below). Session `2ddadca7` closed `MARKET_CLOSED` (36 trades,
+−₹3,422.57); all five open VERIFY checks PASSED; [P-25], [P-29], [P-31],
+[P-27], [P-28] shipped and [P-24]'s code half verified live. Brain `3489ac6`,
+suite 894. Next session Mon 2026-08-10._
 
 ---
 
@@ -61,13 +63,13 @@ entering Monday: **V-4** (needs ②) and **V-7** ([P-25], event-driven — it ca
 only pass on a session where you actually trade; a quiet day is NOT-YET, not a
 failure). Invariant **I-1** will keep failing until ② runs.
 
-**⑤ Then pull the top Ready item.** My pick: **[P-30]** exit-frontier candle
-replay — fully designed with measured feasibility in
-[reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5 (48 of 51 ambiguous
-trades resolve exactly). Lower value than it looks, though: it sharpens the
-measurement of a strategy already shown to have ~coin-flip entries. **[P-06]**
-(module split, no file >600 lines) is the honest alternative if you want
-maintenance over analysis.
+**⑤ Then pull the top Ready item.** ~~[P-30]~~ **shipped 2026-08-08** (see
+below). The remaining Ready items are **[P-26]** (bundled into ③),
+**[P-18]** (blocked on data until ~late Aug) and **[P-06]** (module split —
+only `brain.py` 2211 and `scheduler.py` 868 remain, both flagged as
+disproportionate risk for a line count). **[P-06] is the honest next pull** if
+you want maintenance; there is no high-value analysis item left on the board
+that isn't waiting on gate #6.
 
 ### Standing facts a new session must not re-litigate
 
@@ -89,6 +91,35 @@ maintenance over analysis.
   bucket is still negative, and sign-flipping is exactly what [P-21] warned of.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 🚀 2026-08-08 shipped — [P-30], and a correction it forced
+
+**[P-30] exit-frontier phase 2** (dashboard: `lib/exit-replay.ts`, the autopsy
+route + page). The 5-minute candle archive now **orders** the two touches that
+`mfe_r`/`mae_r` could only report as a set, so most ambiguous trades resolve
+exactly instead of riding on an assumption.
+
+- **The bounds collapsed ~16×.** Same 541-trade window: the best cell's
+  optimistic–pessimistic band went **0.118R → 0.007R**. On the current 577
+  trades it is 0.012R. A range became a number.
+- **Ground truth passed 85/85** (50/50 real stops, 35/35 real targets) among
+  trades whose exit moment an archived bar actually covers. Every disagreement
+  traced to the archive's tail, not the logic → new finding **[C5]**.
+- ⚠️ **It corrected a conclusion this board was carrying.** [P-29] reported
+  "set cost to 0 and **3 of 180** policies go positive (best +0.009R)", which
+  fed the "entries are ≈ a coin flip, costs are the entire loss" line. Those
+  three cells were an artifact of crediting every ambiguous trade with the
+  target. With exact ordering: **0 of 180, best −0.077R.** So the entries are
+  **slightly worse than a coin flip**, and "just cut costs" is not impractical
+  but *unavailable* — no cost level makes any policy break even.
+- **Robust to its own weakest assumption.** Whole bars only, so the entry bar is
+  excluded; 9 of 14 resolutions at the best cell hinge on the first admitted
+  bar. Inverting **every** one of them still leaves 0 of 180 above breakeven.
+- Verify row **V-8**; full writeup [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5.1.
+
+_Built in the API route, not the brain-side precompute the design specified —
+the session had no Supabase MCP to apply the DDL. Same client-side behaviour;
+costs ~2.8s per cold API response. Escape hatch documented in §5.1._
 
 ## 🚀 2026-08-07 shipped
 
@@ -128,15 +159,19 @@ stays blocked.
   bound, where every trade that touched both levels is credited with hitting the
   target first. The extremes don't record ordering, so no tick sequence beats it.
   The verdict is therefore immune to the one thing the data can't say.
-- **Set cost to 0 and 3 of 180 policies go positive** (best **+0.009R**). So the
-  entries are ≈ a coin flip and **transaction costs are essentially the entire
-  loss**, not bad signals.
-- **But that is not a "cut costs" finding.** The breakeven round-trip cost is
-  **≈0.0047%** — ~1/25th of the 0.12% actually paid, and a fifth of sell-side
-  STT alone. No achievable cost structure at this trade frequency gets there.
-  A coin flip minus any real cost is a loss: **the edge has to come from the
-  entries.** Full writeup + the phase-2 plan:
-  [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md).
+- ~~**Set cost to 0 and 3 of 180 policies go positive** (best **+0.009R**).~~
+  **CORRECTED 2026-08-08 by [P-30]:** those three cells were an artifact of the
+  optimistic assumption. With the candle replay ordering the touches exactly,
+  **0 of 180 go positive at zero cost** (best −0.077R). The entries are
+  **slightly worse than a coin flip**; costs are the larger part of the loss
+  (−0.239R of −0.401R) but not the whole of it.
+- **But that is not a "cut costs" finding — and [P-30] made that stronger.**
+  Phase 1 put the breakeven round-trip cost at **≈0.0047%**, ~1/25th of the
+  0.12% actually paid and a fifth of sell-side STT alone. After exact ordering
+  there is **no breakeven cost at all**: the surface is still entirely negative
+  at *zero* cost. So cutting costs is not merely impractical, it is
+  unavailable — **the edge has to come from the entries.** Full writeup, and
+  phase 2 as built: [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5.1.
 - Structure in the surface runs almost entirely **down** the rows: stop width
   dominates, target width barely matters — the signature of no entry edge.
 - Ships with a cost dial, optimistic/pessimistic bounds, side filter, and a

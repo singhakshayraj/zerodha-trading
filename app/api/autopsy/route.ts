@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { buildLadder, levelIndex, type Bar, type Ladder } from "@/lib/exit-replay";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,19 @@ export const dynamic = "force-dynamic";
 //   mfe >= T, mae <= -S  → BOTH touched, and the extremes do
 //                          not record which came first          → AMBIGUOUS
 //
-// The ambiguous case is the honest hard part, and we do not paper over it: we
-// return both bounds. `optimistic` resolves every ambiguity as target-first
-// (the most generous reading physically available); `pessimistic` resolves all
-// of them as stop-first. If even the OPTIMISTIC surface never crosses zero, no
-// ordering of any tick could have made that policy profitable — the verdict is
-// immune to the one thing the data can't tell us.
+// PHASE 2 ([P-30]) attacks that last case. The 5-minute `candles` archive can
+// ORDER the two touches: whichever level a bar reaches first decides the trade.
+// So each trade also ships a first-touch LADDER (see lib/exit-replay.ts) and
+// the client resolves most ambiguous trades exactly.
+//
+// The bounds do not go away — they narrow. Two residuals survive:
+//   • INTRA-BAR — one 5-minute bar touched both levels; the sequence inside it
+//     is unknowable at this resolution.
+//   • NO DATA   — no archived bar covers the holding window (a trade shorter
+//     than one bar, or a symbol/day the archive missed).
+// `optimistic`/`pessimistic` now govern only those, so if even the OPTIMISTIC
+// surface never crosses zero the verdict remains immune to what the data can't
+// say — but it is now a far smaller thing being assumed.
 //
 // This route ships the raw per-trade primitives and lets the client sweep the
 // grid, so the cost assumption stays a live dial rather than a baked-in guess.
@@ -39,26 +47,89 @@ type Row = {
   value: number;    // entry_value, for costing a counterfactual exit
   side: "LONG" | "SHORT";
   date: string;
+  ladder: Ladder | null;  // phase-2 first-touch indices; null = no bars in window
 };
+
+type TradeRec = {
+  r_multiple: number; mfe_r: number; mae_r: number; pnl: number; entry_value: number;
+  position_type: string; created_at: string; symbol: string;
+  entry_time: string | null; exit_time: string | null;
+  entry_price: number | null; stop_loss_price: number | null;
+  target_price: number | null; exit_reason: string | null;
+};
+
+// Just enough of PostgREST's builder to page through a filtered select without
+// dragging in the generated Database types (this project has none).
+type Pageable = { range: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }> };
+type Filterable = Pageable & {
+  eq: (c: string, v: string) => Filterable;
+  not: (c: string, op: string, v: null) => Filterable;
+  order: (c: string, o: { ascending: boolean }) => Filterable;
+};
+
+/** Supabase caps a select at 1000 rows; walk the whole table in pages. */
+async function fetchAll<T>(
+  table: string,
+  columns: string,
+  shape: (q: Filterable) => Pageable,
+  page = 1000
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += page) {
+    const { data, error } = await shape(
+      supabaseServer.from(table).select(columns) as unknown as Filterable
+    ).range(from, from + page - 1);
+    if (error) throw new Error(error.message);
+    const batch = (data ?? []) as T[];
+    out.push(...batch);
+    if (batch.length < page) return out;
+  }
+}
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseServer
-      .from("trades")
-      .select("r_multiple, mfe_r, mae_r, pnl, entry_value, position_type, created_at")
-      .eq("status", "CLOSED")
-      .not("r_multiple", "is", null)
-      .not("mfe_r", "is", null)
-      .not("mae_r", "is", null)
-      .order("created_at", { ascending: true })
-      .limit(5000);
+    const trades = await fetchAll<TradeRec>(
+      "trades",
+      "r_multiple, mfe_r, mae_r, pnl, entry_value, position_type, created_at, symbol, " +
+        "entry_time, exit_time, entry_price, stop_loss_price, target_price, exit_reason",
+      (q) =>
+        q.eq("status", "CLOSED")
+          .not("r_multiple", "is", null)
+          .not("mfe_r", "is", null)
+          .not("mae_r", "is", null)
+          .order("created_at", { ascending: true })
+    );
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    // Bars for every symbol we traded, keyed symbol → ascending bar list. The
+    // archive is small (~21k rows over the frontier window), so one pass beats
+    // a per-trade query by three orders of magnitude in round-trips.
+    const symbols = new Set(trades.map((t) => t.symbol).filter(Boolean));
+    const rawBars = await fetchAll<{ symbol: string; ts: string; open: number; high: number; low: number; close: number }>(
+      "candles",
+      "symbol, ts, open, high, low, close",
+      (q) => q.eq("interval", "5minute").order("ts", { ascending: true })
+    );
+
+    const bySymbol = new Map<string, Bar[]>();
+    for (const c of rawBars) {
+      if (!symbols.has(c.symbol)) continue;
+      const ts = Date.parse(c.ts);
+      const o = Number(c.open), h = Number(c.high), l = Number(c.low), cl = Number(c.close);
+      if (!Number.isFinite(ts) || !Number.isFinite(h) || !Number.isFinite(l) || !Number.isFinite(o)) continue;
+      let arr = bySymbol.get(c.symbol);
+      if (!arr) bySymbol.set(c.symbol, (arr = []));
+      arr.push({ ts, o, h, l, c: cl });
+    }
+    bySymbol.forEach((arr: Bar[]) => arr.sort((a, b) => a.ts - b.ts));
 
     const rows: Row[] = [];
     let dropped = 0;
+    let withBars = 0;
+    // Ground truth (acceptance criterion 4): trades whose real exit was a clean
+    // stop or target already know the answer. The replay must agree there.
+    const truth = { stopChecked: 0, stopAgree: 0, tgtChecked: 0, tgtAgree: 0, noData: 0 };
 
-    for (const t of data ?? []) {
+    for (const t of trades) {
       const r = Number(t.r_multiple);
       const mfe = Number(t.mfe_r);
       const mae = Number(t.mae_r);
@@ -78,9 +149,46 @@ export async function GET() {
       const risk = r !== 0 ? Math.abs(pnl / r) : NaN;
       if (!Number.isFinite(risk) || risk <= 0 || !Number.isFinite(value) || value <= 0) { dropped++; continue; }
 
+      const side: "LONG" | "SHORT" = t.position_type === "SHORT" ? "SHORT" : "LONG";
+
+      // ── phase 2: the trade's bar window ──────────────────────────────────
+      // Whole bars only. A bar is stamped at its START, so the bar containing
+      // the entry also contains PRE-entry action and could register a touch
+      // that never happened to this position — excluding it costs up to five
+      // minutes and is the conservative direction.
+      const entryPx = Number(t.entry_price);
+      const stopPx = Number(t.stop_loss_price);
+      const rps = Math.abs(entryPx - stopPx);
+      const t0 = t.entry_time ? Date.parse(t.entry_time) : NaN;
+      const t1 = t.exit_time ? Date.parse(t.exit_time) : NaN;
+
+      let ladder: Ladder | null = null;
+      if (Number.isFinite(t0) && Number.isFinite(t1) && rps > 0 && Number.isFinite(entryPx)) {
+        const all = bySymbol.get(t.symbol) ?? [];
+        const win = all.filter((b) => b.ts >= t0 && b.ts <= t1);
+        if (win.length) { ladder = buildLadder(side, entryPx, rps, win); withBars++; }
+      }
+
+      if (ladder) {
+        if (t.exit_reason === "STOP_LOSS_HIT") {
+          // The live stop sits at exactly 1.00R adverse, so the bars must show
+          // the 1.00R stop level being touched.
+          truth.stopChecked++;
+          if (ladder.dn[levelIndex(1.0)] !== null) truth.stopAgree++;
+        } else if (t.exit_reason === "TARGET_HIT" && Number.isFinite(Number(t.target_price))) {
+          // The live target is wherever the signal put it; snap to the ladder.
+          const lvl = Math.round((Math.abs(Number(t.target_price) - entryPx) / rps) / 0.25) * 0.25;
+          if (lvl >= 0.25 && lvl <= 4.0) {
+            truth.tgtChecked++;
+            if (ladder.up[levelIndex(lvl)] !== null) truth.tgtAgree++;
+          }
+        }
+      } else if (t.exit_reason === "STOP_LOSS_HIT" || t.exit_reason === "TARGET_HIT") {
+        truth.noData++;
+      }
+
       rows.push({
-        r, mfe, mae, risk, value,
-        side: t.position_type === "SHORT" ? "SHORT" : "LONG",
+        r, mfe, mae, risk, value, side, ladder,
         date: String(t.created_at).slice(0, 10),
       });
     }
@@ -95,6 +203,9 @@ export async function GET() {
         days,
         firstDate: rows[0]?.date ?? null,
         lastDate: rows[rows.length - 1]?.date ?? null,
+        withBars,
+        barCoveragePct: rows.length ? (100 * withBars) / rows.length : 0,
+        truth,
       },
     });
   } catch (e) {

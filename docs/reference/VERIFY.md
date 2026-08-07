@@ -30,6 +30,7 @@ the book.
 ## 🔵 OPEN — run these next session
 
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
+_2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
 
 ### V-4 · [P-24] advisor paper book de-duplicated — CODE VERIFIED, DB REPAIR PENDING
 Code shipped: brain `f645ff3`. **The code half is now verified live (08-07):**
@@ -77,6 +78,30 @@ case and must not be read as a failure.
 ⚠️ **A BUY will not appear same-day.** The holdings feed reports delivered stock
 only, so a purchase lands T+1 and an intraday round-trip never lands at all.
 Do not treat a missing same-day buy as a defect.
+
+### V-8 · [P-30] the candle replay agrees with real exits
+Shipped 2026-08-08 (dashboard). The replay orders two touches the extremes
+already recorded; trades that really stopped out or hit target are cases where
+the answer is known, so it must agree there. **Validated at build time: 85/85
+(50/50 stops, 35/35 targets) among trades whose exit moment is covered by an
+archived bar.** This row exists to catch a regression, and to re-check the
+number as the book grows.
+
+Not a SQL check — the replay is code, so the check is the page. Open
+`/autopsy` and read the **Ground truth** line in the "How this is computed"
+panel. It reports, live, `stopAgree / stopChecked` and `tgtAgree / tgtChecked`
+against the ladder-snapped levels; the exact-price version (the stricter one,
+85/85) is reproduced by
+`docs/reference/EXIT_FRONTIER.md` §5.1's method.
+
+**PASS** = every disagreement is explained by [C5] (the exit landed past the
+last archived bar). **FAIL** = a disagreement where the archive *does* cover
+the exit moment — that is a replay bug, and it invalidates every exact cell on
+the surface.
+⚠️ The page's own readout is the *ladder-snapped* check and runs a few points
+lower (52/55 stops, 32/40 targets at ship time) because a real target of, say,
+1.87R snaps to the 1.75R/2.00R grid. That gap is the snapping, not the replay —
+do not chase it.
 
 ### I-5 · no phantom executions on quiet days
 The failure mode that would destroy this feature's credibility is inventing

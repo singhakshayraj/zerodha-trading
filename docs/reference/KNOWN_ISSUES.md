@@ -338,6 +338,32 @@ evidence. Note also that a 2h50m session is too short to settle this — decide
 from a full session before committing to numbers. The deeper constraint today
 was **session length, not pacing** ([C1]).
 
+### C5 — `candles` misses the tail of a trade's window 🟡
+_Found 2026-08-08 by [P-30]'s ground-truth check, which is exactly the kind of
+thing that check exists to surface._
+
+Of 118 trades that exited on a clean `STOP_LOSS_HIT`/`TARGET_HIT`, **10 exited
+past the last bar the archive holds for that symbol**, and 8 of those 10 show
+no bar reaching the level the trade demonstrably exited at. The extremes
+(`mfe_r`/`mae_r`, tick-tracked) prove the touch happened; the bars just aren't
+there.
+
+**Mechanism.** `db_records.candle_rows` archives only the trailing `tail=3`
+bars, and only for symbols analyzed in that cycle. A position that closes
+*between* analysis cycles never gets its final bars re-archived — the exit is
+the last thing to happen to that symbol, and nothing revisits it afterwards.
+
+**Impact is bounded and currently benign.** [P-30] consults the bars only to
+*order* two touches the extremes already recorded, so a missing tail degrades to
+"unresolved" (the trade falls back to the optimistic/pessimistic band) rather
+than to a wrong answer. It costs resolution, not correctness. It would matter
+more to any future work that treats `candles` as a complete price path — a
+backtest harness especially.
+
+**Cheap fix if it becomes worth it:** archive the trailing bars once more at
+exit, in the close path, for the symbol just closed. Not proposed as work yet —
+recorded so the next person to lean on `candles` knows its edges.
+
 ---
 
 ## 2026-08-06 post-session check — new findings

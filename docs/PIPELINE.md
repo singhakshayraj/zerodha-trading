@@ -5,7 +5,12 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-07 (post-close) · Burn-down: 15 shipped +
+_Last updated: 2026-08-08 (Sat, no session) · Burn-down: 16 shipped +
+verified live / 1 in-progress / 5 ready / 4 blocked. **[P-30] shipped** —
+exit-frontier candle replay; bounds collapsed ~16×, ground truth 85/85, and it
+**corrected** EXIT_FRONTIER §3's zero-cost claim (3/180 positive → 0/180). New
+finding **[C5]** (candle archive tail gaps), new verify row **V-8**. Prior:_
+_2026-08-07 (post-close) · Burn-down: 15 shipped +
 verified live / 1 in-progress / 6 ready / 4 blocked. **Session `2ddadca7`
 closed 15:22 IST — 36 trades, −₹3,422.57, 11W/25L.** VERIFY V-1/V-2/V-3/V-5/V-6
 all **PASSED** ([reference/VERIFY.md](reference/VERIFY.md)): closes out
@@ -149,17 +154,23 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   books are one day old** — near-zero history to migrate. Detail:
   [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §A1. **Parked to
   post-market by the user 08-06.**_
-- **[P-30] Exit-frontier phase 2 — exact resolution by candle replay.** [me] ·
-  *done =* every cell reports `resolved / intra-bar ambiguous / no data`, the
-  optimistic-pessimistic bounds are computed over the unresolved remainder only
-  (the −0.219/−0.337 gap at the best cell should collapse), and the replay is
-  validated against ground truth (trades that really did `STOP_LOSS_HIT` or
-  `TARGET_HIT`). · *source:* [P-29].
-  _Evidenced feasible: `candles` is 5-minute, 88.5% window coverage, and at the
-  decisive cell **48 of 51 ambiguous trades resolve exactly** (1 intra-bar, 2 no
-  data). Note 5-min bars narrow the ambiguity to a single bar — they do not
-  eliminate it, so keep both bounds for the remainder. Full design, algorithm
-  and acceptance criteria: [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) §5._
+- ~~**[P-30] Exit-frontier phase 2 — exact resolution by candle replay.**~~
+  ✅ **SHIPPED 2026-08-08** (dashboard: `lib/exit-replay.ts`,
+  `app/api/autopsy/route.ts`, `app/autopsy/page.tsx`). All four acceptance
+  criteria met. **The bounds collapsed ~16×** — on the same 541-trade window the
+  best cell's band went **0.118R → 0.007R**; on the current 577 it is 0.012R.
+  **Ground truth passed 85/85** (50/50 stops, 35/35 targets) among trades whose
+  exit is covered by an archived bar; every disagreement traced to the archive's
+  tail, logged as **[C5]**. Verify row **V-8**.
+  _⚠️ **It moved a documented conclusion.** §3's "3 of 180 policies go positive
+  at zero cost (best +0.009R)" was an artifact of crediting every ambiguous
+  trade with the target. Exact ordering gives **0 of 180, best −0.077R** — so
+  the entries are slightly **worse** than a coin flip, not equal to one, and
+  "cut costs" is not merely impractical but unavailable. EXIT_FRONTIER §3
+  corrected in place; full results + the stress test in §5.1._
+  _Built in the API route rather than the brain-side precompute the design
+  called for (no Supabase MCP to apply the DDL). Same client-side outcome;
+  costs ~2.8s per cold API response. Escape hatch documented in §5.1._
 - **[P-26] Decide the paper MANAGEMENT seed basis.** [me→you] · *done =* seed
   price rule chosen + implemented. · *source:* 08-06 audit §A2.
   _Seeding at the holdings' **cost basis** books pre-advisor history (RVNL −46.3%,

@@ -51,11 +51,13 @@ If a session is running or has run today, verify + audit:
 Standing conclusion: no proven edge, now with a sharper number. [P-21] found no
 feature-based entry edge that holds out-of-sample, and no dark flag has earned
 ENABLE (trend-tells went +0.134, +0.182, then −0.093 — streak broken, stays dark).
-[P-29] `/autopsy` then showed **no exit policy rescues the book either**: none of
-180 clears breakeven even under the optimistic bound, entries are ≈ a coin flip,
-and breakeven needs round-trip costs ~0.0047% — about 1/25th of what is actually
-paid. So the edge has to come from the entries; the verdict still rests on gate #6,
-blocked on the Kite ₹500 decision. Work the PIPELINE board; pull the top Ready item.
+[P-29] `/autopsy` then showed **no exit policy rescues the book either**, and
+[P-30]'s candle replay sharpened that to an exact number: none of 180 policies
+clears breakeven, and **none clears it even at zero transaction cost** (best
+−0.077R). So the entries are slightly worse than a coin flip and there is no
+cost structure that rescues them — the edge has to come from the entries. The
+verdict still rests on gate #6, blocked on the Kite ₹500 decision. Work the
+PIPELINE board; pull the top Ready item.
 ```
 
 ---

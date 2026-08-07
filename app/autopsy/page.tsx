@@ -4,20 +4,33 @@ import { useEffect, useMemo, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Crosshair, TriangleAlert, Table2, Grid3x3, RefreshCw } from "lucide-react";
+import { resolveOrder, type Ladder } from "@/lib/exit-replay";
 
 // ── Exit-Policy Frontier ─────────────────────────────────────────────────────
 // Replays every fixed (take-profit T, stop S) policy against the path extremes
 // the strategy actually walked, and asks whether ANY of them turns a profit.
 // See app/api/autopsy/route.ts for the method and the ambiguity treatment.
 
-type Row = { r: number; mfe: number; mae: number; risk: number; value: number; side: "LONG" | "SHORT"; date: string };
-type Meta = { n: number; dropped: number; days: number; firstDate: string | null; lastDate: string | null };
+type Row = { r: number; mfe: number; mae: number; risk: number; value: number; side: "LONG" | "SHORT"; date: string; ladder: Ladder | null };
+type Truth = { stopChecked: number; stopAgree: number; tgtChecked: number; tgtAgree: number; noData: number };
+type Meta = {
+  n: number; dropped: number; days: number; firstDate: string | null; lastDate: string | null;
+  withBars: number; barCoveragePct: number; truth: Truth;
+};
 
 const TARGETS = Array.from({ length: 15 }, (_, i) => 0.5 + i * 0.25);   // 0.50 → 4.00 R
 const STOPS   = Array.from({ length: 12 }, (_, i) => 0.25 + i * 0.25);  // 0.25 → 3.00 R
 
 const R2 = (n: number) => (n >= 0 ? "+" : "−") + Math.abs(n).toFixed(3) + "R";
 const PCT = (n: number) => n.toFixed(1) + "%";
+
+/** How far the still-unresolved trades could move a cell, either way. After
+ *  phase 2 this is usually a few thousandths of an R — say so as a width, not
+ *  as two numbers, because the width is the thing that shrank. */
+const BAND = (c: { exp: number; expOther: number }) => {
+  const w = Math.abs(c.exp - c.expOther);
+  return w < 0.0005 ? "exact" : "±" + (w / 2).toFixed(3) + "R";
+};
 
 // Colour follows the data's actual job. When the surface straddles breakeven the
 // job is POLARITY → diverging, red↔blue with a neutral midpoint pinned to zero.
@@ -50,25 +63,59 @@ function sequential(a: number): string {
   return lerp([[0xf0, 0xa0, 0xa0], NEG[2], NEG[1], NEG[0]], Math.max(0, Math.min(1, a)));
 }
 
-type Cell = { tgt: number; stp: number; exp: number; ambigPct: number };
+type Cell = {
+  tgt: number; stp: number; exp: number; ambigPct: number;
+  /** trades where BOTH levels were touched — the population phase 2 works on */
+  both: number;
+  /** of those, ordered exactly by the 5-minute replay */
+  resolved: number;
+  /** one bar touched both levels; the sequence inside it is unknowable */
+  intrabar: number;
+  /** no archived bar covers the holding window */
+  nodata: number;
+  /** expectancy under the opposite assumption for the unresolved remainder */
+  expOther: number;
+};
 
-/** Replay one fixed exit policy across every trade. See route.ts for the cases. */
+/**
+ * Replay one fixed exit policy across every trade. See route.ts for the four
+ * cases. Phase 2 ([P-30]) splits the fourth: the extremes say both levels were
+ * touched, and the 5-minute bars say which came first. Only the trades the
+ * bars cannot order still ride on the optimistic/pessimistic assumption.
+ */
 function simulate(rows: Row[], tgt: number, stp: number, costPct: number, optimistic: boolean) {
-  let sum = 0, ambig = 0;
+  let sum = 0, sumOther = 0, both = 0, resolved = 0, intrabar = 0, nodata = 0;
   for (const row of rows) {
     // Counterfactual exits are gross, so they must be charged. The realized
     // leg (neither level touched) already carries its real costs in `r`.
     const costR = ((costPct / 100) * row.value) / row.risk;
     const hitT = row.mfe >= tgt;
     const hitS = row.mae <= -stp;
-    let r: number;
-    if (hitT && hitS) { ambig++; r = (optimistic ? tgt : -stp) - costR; }
-    else if (hitT)    { r = tgt - costR; }
-    else if (hitS)    { r = -stp - costR; }
-    else              { r = row.r; }
+    let r: number, rOther: number;
+    if (hitT && hitS) {
+      both++;
+      const order = resolveOrder(row.ladder, tgt, stp);
+      if (order === "TARGET")      { resolved++; r = rOther = tgt - costR; }
+      else if (order === "STOP")   { resolved++; r = rOther = -stp - costR; }
+      else {
+        if (order === "INTRABAR") intrabar++; else nodata++;
+        r      = (optimistic ? tgt : -stp) - costR;
+        rOther = (optimistic ? -stp : tgt) - costR;
+      }
+    }
+    else if (hitT) { r = rOther = tgt - costR; }
+    else if (hitS) { r = rOther = -stp - costR; }
+    else           { r = rOther = row.r; }
     sum += r;
+    sumOther += rOther;
   }
-  return { exp: sum / rows.length, ambigPct: (100 * ambig) / rows.length };
+  const n = rows.length;
+  return {
+    exp: sum / n,
+    expOther: sumOther / n,
+    ambigPct: (100 * (intrabar + nodata)) / n,
+    both, resolved, intrabar, nodata,
+  };
 }
 
 export default function AutopsyPage() {
@@ -98,8 +145,7 @@ export default function AutopsyPage() {
     const out: Cell[] = [];
     for (const stp of STOPS)
       for (const tgt of TARGETS) {
-        const { exp, ambigPct } = simulate(view, tgt, stp, costPct, optimistic);
-        out.push({ tgt, stp, exp, ambigPct });
+        out.push({ tgt, stp, ...simulate(view, tgt, stp, costPct, optimistic) });
       }
     return out;
   }, [view, costPct, optimistic]);
@@ -191,19 +237,13 @@ export default function AutopsyPage() {
                       : `None of the ${surface.length} exit policies clears breakeven.`}
                   </p>
                   <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                    {optimistic ? (
-                      <>
-                        This is the <strong className="text-[#f5f5f5]">optimistic</strong> bound — every trade that
-                        touched both its target and its stop is credited with hitting the target first. The extremes
-                        don&apos;t record which came first, so no ordering of ticks could beat this number.
-                        {!stats.anyProfitable && " The result therefore does not depend on the one thing the data can't tell us."}
-                      </>
-                    ) : (
-                      <>
-                        This is the <strong className="text-[#f5f5f5]">pessimistic</strong> bound — every ambiguous
-                        trade is charged the stop. The truth sits between this and the optimistic surface.
-                      </>
-                    )}
+                    At the best cell (T {best.tgt.toFixed(2)}R / S {best.stp.toFixed(2)}R) the 5-minute candle replay
+                    orders <strong className="text-[#f5f5f5]">{best.resolved} of {best.both}</strong> trades that touched
+                    both levels exactly, leaving {best.intrabar} intra-bar and {best.nodata} without bars. The remaining
+                    assumption is worth <strong className="text-[#f5f5f5]">{BAND(best)}</strong> — so this is
+                    an <strong className="text-[#f5f5f5]">{optimistic ? "optimistic" : "pessimistic"}</strong> reading of
+                    a residual that small, not of the whole ambiguous bucket.
+                    {!stats.anyProfitable && " The verdict does not turn on it."}
                   </p>
                 </div>
               </div>
@@ -213,7 +253,7 @@ export default function AutopsyPage() {
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { label: "Realized", value: R2(stats.actual), sub: "what actually happened, net", tone: "#e66767" },
-                { label: "Best achievable exit", value: R2(best.exp), sub: `T ${best.tgt.toFixed(2)}R / S ${best.stp.toFixed(2)}R`, tone: best.exp > 0 ? "#0ca30c" : "#e66767" },
+                { label: "Best achievable exit", value: R2(best.exp), sub: `T ${best.tgt.toFixed(2)}R / S ${best.stp.toFixed(2)}R · ${BAND(best)}`, tone: best.exp > 0 ? "#0ca30c" : "#e66767" },
                 { label: "Cost drag", value: "−" + stats.cost.toFixed(3) + "R", sub: `${costPct}% round trip, per trade`, tone: "#eda100" },
                 { label: "Realized, gross of cost", value: R2(stats.grossActual), sub: "the entries alone", tone: stats.grossActual > 0 ? "#0ca30c" : "#e66767" },
               ].map((s) => (
@@ -354,7 +394,7 @@ export default function AutopsyPage() {
                                 onFocus={() => setHover(c)}
                                 onBlur={() => setHover(null)}
                                 role="img"
-                                aria-label={`Target ${t.toFixed(2)}R, stop ${s.toFixed(2)}R: expectancy ${c.exp.toFixed(3)}R, ${c.ambigPct.toFixed(0)}% ambiguous`}
+                                aria-label={`Target ${t.toFixed(2)}R, stop ${s.toFixed(2)}R: expectancy ${c.exp.toFixed(3)}R, ${c.resolved} of ${c.both} ambiguous trades resolved exactly, residual band ${BAND(c)}`}
                                 className="relative h-7 outline-none"
                                 style={{
                                   background: scale!.color(c.exp),
@@ -390,13 +430,23 @@ export default function AutopsyPage() {
                     <span className="text-[#a1a1aa]">Stop <strong className="text-[#f5f5f5]">{hover.stp.toFixed(2)}R</strong></span>
                     <span className="text-[#a1a1aa]">Expectancy <strong style={{ color: hover.exp > 0 ? "#0ca30c" : "#e66767" }}>{R2(hover.exp)}</strong></span>
                     <span className="text-[#a1a1aa]">
-                      Ambiguous <strong className="text-[#f5f5f5]">{PCT(hover.ambigPct)}</strong>
-                      <span className="text-[#71717a]"> of trades touched both levels</span>
+                      Band <strong className="text-[#f5f5f5]">{BAND(hover)}</strong>
+                      <span className="text-[#71717a]"> what the unresolved remainder can still move</span>
+                    </span>
+                    <span className="text-[#a1a1aa]">
+                      Both levels touched <strong className="text-[#f5f5f5]">{hover.both}</strong>
+                      {" → "}
+                      <strong className="text-[#f5f5f5]">{hover.resolved}</strong> resolved
+                      {" · "}
+                      <strong className="text-[#f5f5f5]">{hover.intrabar}</strong> intra-bar
+                      {" · "}
+                      <strong className="text-[#f5f5f5]">{hover.nodata}</strong> no data
                     </span>
                   </div>
                 ) : (
                   <span className="text-[#71717a]">
-                    Hover or tab through a cell for its expectancy and how much of it rests on ambiguous ordering.
+                    Hover or tab through a cell for its expectancy, how many trades the candle replay ordered exactly,
+                    and how much the unresolved remainder can still move the number.
                     The outlined cell is the best policy on this surface.
                   </span>
                 )}
@@ -415,11 +465,35 @@ export default function AutopsyPage() {
                 <strong className="text-[#f5f5f5]">&minus;S</strong>; if neither, its real exit stands.
               </p>
               <p>
-                <strong className="text-[#f5f5f5]">The honest gap:</strong> when a trade touched both, the extremes
-                don&apos;t say which came first — so the surface is reported as two bounds rather than one guess. Where
-                the ambiguous share is small the bounds nearly coincide; the hover readout shows it per cell. Resolving
-                it exactly needs intra-trade candle replay, which is the natural next step.
+                <strong className="text-[#f5f5f5]">When a trade touched both</strong>, the extremes don&apos;t say which
+                came first. The archived <strong className="text-[#f5f5f5]">5-minute candles</strong> do: whichever level
+                a bar reaches first decides the trade, and a bar that already <em>opened</em> through a level reached it
+                on its first tick.{" "}
+                {meta && <><strong className="text-[#f5f5f5]">{meta.withBars}</strong> of {meta.n} trades ({PCT(meta.barCoveragePct)}) have
+                bars covering their holding window.</>} The extremes stay the authority on <em>whether</em> a level was
+                touched — bars only ever order two touches already known to have happened, so the replay can split the
+                ambiguous bucket but never create or destroy one.
               </p>
+              <p>
+                <strong className="text-[#f5f5f5]">What is still unresolved,</strong> and why the bounds have not gone
+                away: a single 5-minute bar whose high reached the target <em>and</em> whose low reached the stop cannot
+                be ordered at this resolution, and some windows have no archived bar at all. The ambiguity is narrowed
+                from hours to one bar, not eliminated. The optimistic/pessimistic toggle now governs only that
+                remainder, and the hover readout reports it per cell as a band.
+              </p>
+              {meta?.truth && (meta.truth.stopChecked > 0 || meta.truth.tgtChecked > 0) && (
+                <p>
+                  <strong className="text-[#f5f5f5]">Ground truth:</strong> trades whose real exit was a clean stop or
+                  target already know the answer, so the replay is held to them. Of{" "}
+                  <strong className="text-[#f5f5f5]">{meta.truth.stopChecked}</strong> real{" "}
+                  <code className="text-[#f5f5f5]">STOP_LOSS_HIT</code> trades with bars, the replay finds the 1.00R stop
+                  touched in <strong className="text-[#f5f5f5]">{meta.truth.stopAgree}</strong>; of{" "}
+                  <strong className="text-[#f5f5f5]">{meta.truth.tgtChecked}</strong> real{" "}
+                  <code className="text-[#f5f5f5]">TARGET_HIT</code> trades, it finds the target touched in{" "}
+                  <strong className="text-[#f5f5f5]">{meta.truth.tgtAgree}</strong>.
+                  {!!meta.truth.noData && <> {meta.truth.noData} more had no bars and cannot be judged.</>}
+                </p>
+              )}
               <p>
                 Counterfactual exits are <strong className="text-[#f5f5f5]">gross</strong>, so each is charged the
                 round-trip cost above, scaled by that trade&apos;s own rupee risk (the book sizes by Kelly, so there is
