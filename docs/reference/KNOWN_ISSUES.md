@@ -295,6 +295,20 @@ binds first. The pre-market runbook raises it 8→12; given this, **12 may be
 too timid** — re-derive from the full-session deferral tally after close
 before setting it.
 
+**Revised 14:51 IST on live evidence — the first read was misleading.** Across
+17 cycles the tally is still only `CYCLE_LIMIT 3`, all of them in cycle 1 and
+none since. So CYCLE_LIMIT does **not** dominate; it fired once during the
+opening burst and went quiet. What is actually binding is the hourly cap, and
+it only just engaged — entries per IST hour are **12:00 → 11** (in 20 minutes,
+an open-of-session burst), **13:00 → 8**, **14:00 → 15**, and 15 is exactly
+`DATA_MAX_NEW_TRADES_PER_HOUR`. The hour is capped with ~9 minutes still to
+run, so HOURLY_PACE deferrals should begin appearing.
+**Consequence for the post-market tuning:** the runbook's hourly 15→25 is the
+change that matters; the cycle 8→12 is close to irrelevant on today's
+evidence. Note also that a 2h50m session is too short to settle this — decide
+from a full session before committing to numbers. The deeper constraint today
+was **session length, not pacing** ([C1]).
+
 ---
 
 ## 2026-08-06 post-session check — new findings
