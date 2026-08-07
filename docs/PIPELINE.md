@@ -5,17 +5,19 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-06 (post-close) · Burn-down this week: 11 shipped +
-verified live / 0 in-progress / 7 ready / 4 blocked. **[P-22] + [P-23] both closed
-08-06** (paper books seeded; git_sha `c5fd525` stamped live). The "advisor grading
-backlog" was a **false alarm** — MACRO rows sit on a 30-trading-day horizon and every
-due MICRO row grades 100%; see [P-18] for the corrected timeline. **Post-close
-post-session-check + counterfactual-audit ran** (session `16f23213`: 77 trades,
-−₹5,052, PF 0.489, −0.344R; no flag flips). Found the [P-05] re-measure was
-never actually verifiable — new **[P-27]** (`model_stop` not persisted +
-`STOP_LOSS_HIT` masks short stops in `COVER_SHORT`) and **[P-28]** (phantom
-`SQUARE_OFF_FAILED` trade row) added to Ready. Android mobile re-check still
-open. Prior:_
+_Last updated: 2026-08-07 (post-close) · Burn-down: 15 shipped +
+verified live / 1 in-progress / 6 ready / 4 blocked. **Session `2ddadca7`
+closed 15:22 IST — 36 trades, −₹3,422.57, 11W/25L.** VERIFY V-1/V-2/V-3/V-5/V-6
+all **PASSED** ([reference/VERIFY.md](reference/VERIFY.md)): closes out
+**[P-27]**+**[P-28]** as verified-live (not just shipped) and confirms
+**[P-05]** at −1.211R pooled over both sides (was −1.252R LONG-only on 08-06).
+**[P-31]** diversity-half verified too (86 symbols, cycle budget fine). **K8**
+(inplay-lock) resolved on evidence. Only **V-4** ([P-24] DB repair) stays open
+— blocked on a human running the repair script, not on data. New Ready item:
+**[P-30]** (exit-frontier candle-replay phase 2, source [P-29] shipped today).
+`/post-session-check` + `/counterfactual-audit` full sweep (data-quality
+scorecard, flag verdicts) still queued per STATUS.md — not run this pass.
+Android mobile re-check still open. Prior:_
 _2026-08-05 (post-session) · Burn-down: 9 shipped + verified live
 / 0 in-progress / 4 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20 +
 P-14 phases 1-3 shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20
@@ -273,13 +275,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
     session start + loud `queued/graded/not_due/errors` log; `ADVISOR_BACKTEST_ENABLED=true`
     set on Railway (defaulted false — 2nd starvation cause). *done =* the 38
     matured-but-ungraded rows grade next session.
-  - ⚠️ **Phase 2 (brain `a2d9881`):** `advisor_paper.py` + tables
+  - ✅ **Phase 2 (brain `a2d9881`):** `advisor_paper.py` + tables
     `advisor_paper_positions`/`advisor_paper_equity`. MANAGEMENT (holdings +
     HOLD/SELL/TRIM/rotation, baseline=frozen holdings) + PICKING (₹100k cash,
     buys rotation/scan targets, horizon close, baseline=Nifty B&H). Advisory-only,
     +10 tests, suite 867. *done =* both books seed + snapshot on the next official run —
-    **NOT yet met: 08-05's session was the first official run since shipping and
-    both tables are still 0 rows** (see [P-22]).
+    **met 08-06** (see [P-22], ✅ DONE below).
   - ✅ **Phase 3 (dashboard, auto-deploys Vercel):** `/advisor/accountability`
     ("Advisor scorecard") + API — per-book equity curve vs baseline (alpha),
     realized win/loss record + win-rate, by verdict + source, best/worst trade.
