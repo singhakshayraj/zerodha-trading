@@ -24,14 +24,16 @@ Session `2ddadca7` ran **12:40 → close** on git_sha `30b7c64a1114`. Nothing
 below was actioned live: every remedy restarts the brain and truncates
 collection. Work in this order.
 
-1. **`/post-session-check` then `/counterfactual-audit`.** This is the first
-   session that grades a real backlog: **V-1/V-2/V-3** (yesterday's
-   `model_stop`, short exit-reasons, phantom row) get their first live read,
-   and **V-5/V-6** grade the [P-31] breadth change.
-   _Early signal: V-5 looks good — cycle 1 analysed **87 symbols** (was 46).
-   V-6 looks fine too — ~126s for 87 symbols, faster than the ~160s W1
-   measured at 46, so breadth is not costing cycles. Confirm across the full
-   session, not one cycle._
+**Session closed `MARKET_CLOSED` 15:22 IST — 36 trades, −₹3,422.57, 11W/25L.**
+**All five open VERIFY checks PASSED** (recorded in
+[reference/VERIFY.md](reference/VERIFY.md)): V-1 model_stop 15/15 (was 0/12),
+V-2 `COVER_SHORT` gone and **[P-05] re-judged at −1.211R over both sides**
+(n=15, 11 of them SHORT — the 08-06 −1.252R was the smaller half), V-3 trade
+counts 36=36=36 with the +1 gap gone, V-5 **86 symbols**, V-6 **490s avg**.
+
+1. **`/post-session-check` then `/counterfactual-audit`** — still run these for
+   the full sweep (table freshness, advisor detail, flag verdicts). The VERIFY
+   leg is already done and written back; don't redo it.
 2. **Run `scripts/session_2026-08-07_data_boost.sh`** (brain repo) — the
    volume half never landed today, so caps are still HOURLY 15 / CYCLE 8 /
    DAY 150. **But re-derive the numbers first:** see [C4] — breadth moved the

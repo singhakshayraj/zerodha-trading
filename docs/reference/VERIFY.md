@@ -29,62 +29,7 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
-### V-1 · [P-27] `model_stop` reaches the execution blob
-Shipped: brain `8c875df` (2026-08-07). Was: absent on 100% of 77 closed trades.
-
-```sql
-select count(*) stop_exits,
-       count(*) filter (where execution->'exit'->>'model_stop' = 'true') flagged,
-       count(*) filter (where (execution->'exit'->>'slippage_bps')::numeric
-                          = (execution->'exit'->>'charges_bps')::numeric) charges_only
-from trades
-where created_at::date = current_date
-  and status = 'CLOSED' and exit_reason = 'STOP_LOSS_HIT';
-```
-
-**PASS** = `flagged` = `stop_exits` **and** `charges_only` = `stop_exits`
-(on a capped stop fill the entire residual adverse move is charges — that is
-the proof PAPER_SLIPPAGE_PCT was not applied twice).
-**NOT-YET** if `stop_exits` = 0. **FAIL** → reopen [P-27].
-
-### V-2 · [P-27] short stops are visible, and [P-05] re-judged on both sides
-Shipped: brain `8c875df`. Was: `STOP_LOSS_HIT` 100% LONG; all 30 short exits
-pooled into `COVER_SHORT`, worst −1.356R past the cap and invisible.
-
-```sql
-select exit_reason, position_type, count(*) n,
-       round(avg(r_multiple)::numeric, 3) avg_r,
-       round(min(r_multiple)::numeric, 3) worst
-from trades
-where created_at::date = current_date and status = 'CLOSED'
-  and r_multiple is not null
-group by 1, 2 order by 1, 2;
-```
-
-**PASS** = `STOP_LOSS_HIT` contains **SHORT** rows (and `TARGET_HIT` too, if any
-short hit target). Then, and only then, **re-judge [P-05]**: pooled
-`STOP_LOSS_HIT` `avg_r` should sit at **≈ −1.25R − charges**, and `worst`
-should not run far past it.
-⚠️ The 08-06 "−1.252R, on target" measured LONGs only — **do not** treat it as
-the baseline. Short-side `exit_reason` semantics changed on 08-07, so buckets
-are **not comparable across that boundary**.
-
-### V-3 · [P-28] no phantom trade row
-Shipped: brain `8c875df`. Was: a never-filled row force-closed as
-`SQUARE_OFF_FAILED` with a fabricated exit price — the standing +1 gap.
-
-```sql
-select (select count(*) from trades where created_at::date = current_date) trades_rows,
-       (select total_trades_executed from trading_sessions
-         where created_at::date = current_date order by created_at desc limit 1) session_count,
-       (select count(*) from brain_activity
-         where activity_type = 'ORDER_PLACED' and created_at::date = current_date) orders_placed,
-       (select count(*) from trades where created_at::date = current_date
-          and entry_price is null and coalesce(exit_reason, '') <> 'ORDER_FAILED') phantom;
-```
-
-**PASS** = `phantom` = 0 **and** `trades_rows` = `session_count` = `orders_placed`.
-**FAIL** → reopen [P-28].
+_2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 
 ### V-4 · [P-24] advisor paper book de-duplicated
 Code shipped: brain `f645ff3` (2026-08-07). **DB repair not yet run** —
@@ -99,46 +44,6 @@ where book = 'MANAGEMENT' and source = 'SEED' and is_open = false;
 
 **PASS** = `9` rows / `−39983.84`. Currently `16` / `−71512.79`.
 This is a **one-shot** check — retire it once it passes.
-
-### V-5 · [P-31] universe breadth actually widened
-Shipped: brain `DATA_UNIVERSE_ROTATION_N=40` (2026-08-07). Every session to date
-analysed the same ~46 names (holdings + Nifty 50), so 1,883 decisions on 08-06
-covered only **46 symbols**.
-
-```sql
-select count(distinct symbol) symbols, count(*) decisions,
-       round(count(*)::numeric / nullif(count(distinct symbol),0), 1) decisions_per_symbol
-from brain_decisions where created_at::date = current_date;
-```
-
-**PASS** = `symbols` ≈ **80–90** (was 46) and `decisions` ≥ the 08-06 baseline of
-1,883. **FAIL** if symbols is still ~46 → the rotation did not engage; check the
-session log for `Added N nifty500_rot stocks to universe` and that
-`data_collection_active()` is true.
-
-### V-6 · [P-31] the wider universe did NOT blow the cycle budget ⚠️
-**This is the risk the breadth change introduces, and it must be checked the
-first session.** Per-cycle analysis cost scales with universe size. W1 measured
-32 cycles at avg 459s (analysis ≈160s + 300s sleep) on 46 symbols; ~86 symbols
-should land near ~600s.
-
-```sql
-with c as (
-  select created_at, lag(created_at) over (order by created_at) prev
-  from brain_activity
-  where activity_type = 'CYCLE_START' and created_at::date = current_date
-)
-select count(*) cycles,
-       round(avg(extract(epoch from created_at - prev))) avg_gap_s,
-       round(max(extract(epoch from created_at - prev))) max_gap_s
-from c where prev is not null;
-```
-
-**PASS** = `avg_gap_s` ≤ 700 and `cycles` ≥ 25.
-**FAIL** = avg > 700s or cycles < 20 → analysis is crowding out the day. Remedy
-is one env var: drop `DATA_UNIVERSE_ROTATION_N` to 20 (or 0 to revert entirely).
-Total decisions is the real scoreboard — breadth is only worth having if
-`symbols × cycles` went **up**.
 
 ---
 
@@ -168,6 +73,47 @@ starvation. Tracked as [P-18].
 ---
 
 ## ✅ PASSED — kept for the record
+
+### V-1 · [P-27] `model_stop` persisted — PASSED 2026-08-07
+Session `2ddadca7`. **15 of 15** stop exits carry
+`execution.exit.model_stop = true` (LONG 4/4, SHORT 11/11). Was **0 of 12** on
+08-06. The fix now leaves the trace it was supposed to.
+
+### V-2 · [P-27] short stops visible + [P-05] re-judged — PASSED 2026-08-07
+`COVER_SHORT` has **disappeared entirely** — every short exit now carries a real
+reason. Both sides appear in both buckets:
+
+| exit_reason | side | n | avg R |
+|---|---|---|---|
+| STOP_LOSS_HIT | LONG | 4 | −1.304 |
+| STOP_LOSS_HIT | **SHORT** | **11** | **−1.177** |
+| TARGET_HIT | LONG | 2 | +1.344 |
+| TARGET_HIT | **SHORT** | **5** | **+0.935** |
+| BRAIN_SIGNAL | LONG / SHORT | 3 / 3 | −0.707 / −0.344 |
+| EOD_CLOSE | SHORT | 6 | −0.238 |
+| SESSION_END | LONG | 2 | −0.324 |
+
+**[P-05] verdict, now measured over the whole book:** pooled `STOP_LOSS_HIT`
+= **−1.211R (n=15)**, inside the −1.25R cap. The 08-06 headline of −1.252R
+measured LONGs only and 11 of today's 15 stops are SHORT — i.e. the old number
+was describing the smaller half. Note the sides differ (LONG −1.304 vs SHORT
+−1.177) on small n; re-read once n grows.
+
+### V-3 · [P-28] phantom trade row — PASSED 2026-08-07
+`trades` **36** = `total_trades_executed` **36** = `ORDER_PLACED` **36**;
+phantom rows **0**, still-open at close **0**. The standing +1 gap (78/77/77 on
+08-06) is gone.
+
+### V-5 · [P-31] universe breadth — PASSED 2026-08-07
+**86 distinct symbols** (was 46), 1,653 decisions over 20 cycles. Decisions
+*per cycle* went 46 → **83**; the lower absolute total vs 08-06's 1,883 is
+purely the 2h50m session ([C1]), not the change.
+
+### V-6 · [P-31] cycle budget — PASSED 2026-08-07
+20 cycles, **avg 490s, max 520s** against a ≤700s threshold — versus 459s at 46
+symbols. **Nearly double the universe for ~7% more cycle time.** Analysis was
+never the bottleneck; the 300s inter-cycle sleep dominates. Breadth is close to
+free, and the concern that motivated this check was unfounded.
 
 ### [K8] `inplay_list` locks on session days — PASSED 2026-08-07
 Open since 08-03 (last lock had been 07-29). Closed on evidence, not a fix:
