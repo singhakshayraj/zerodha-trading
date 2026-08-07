@@ -6,7 +6,11 @@ daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
 _Last updated: 2026-08-08 (Sat, no session) · Burn-down: 16 shipped +
-verified live / 1 in-progress / 5 ready / 4 blocked. **[P-30] shipped** —
+verified live / 1 in-progress / 8 ready / 4 blocked. **Financial-services
+plugins assessed** — their data backends are all unconnected and the skills are
+prose checklists, but four ideas transfer; three became **[P-32]/[P-33]/[P-34]**
+and the rest is ruled out in writing at
+[reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md). **[P-30] shipped** —
 exit-frontier candle replay; bounds collapsed ~16×, ground truth 85/85, and it
 **corrected** EXIT_FRONTIER §3's zero-cost claim (3/180 positive → 0/180). New
 finding **[C5]** (candle archive tail gaps), new verify row **V-8**. Prior:_
@@ -171,6 +175,41 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   _Built in the API route rather than the brain-side precompute the design
   called for (no Supabase MCP to apply the DDL). Same client-side outcome;
   costs ~2.8s per cold API response. Escape hatch documented in §5.1._
+- **[P-32] Grade a verdict the day its `stop_level` breaks, not 30 days later.**
+  [me] · *done =* every open `portfolio_advice` row carrying a `stop_level` is
+  checked each session against the daily close; a break writes an
+  `invalidated_at` + the close that broke it, and those rows become gradeable
+  immediately. Measure: **the graded pool grows by more than the ~3 MICRO
+  rows/session it grows by today**, and ECE is recomputable without waiting for
+  the 30-day MACRO wave. · *source:* `thesis-tracker` via
+  [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md) §A.
+  _The advisor already emits `stop_level` — "hold while ₹520 holds" — and then
+  never looks at it again. Checking it is a fast, unambiguous falsification
+  that needs no new data. Directly attacks [P-18]'s small-n stall._
+  _⚠️ Design question to settle first: a break is evidence the HOLD was wrong,
+  but only if the level was meant as a thesis invalidation rather than a
+  suggested stop for the user. Read `advise()` before building — SELL sets
+  `stop = None`, so coverage is partial by construction._
+- **[P-33] Every verdict carries a bear case.** [me] · *done =*
+  `advise()` returns a `counter_case` (non-empty for every verdict except
+  `INSUFFICIENT`), stored on `portfolio_advice`, surfaced on `/advisor`.
+  Measure: 100% of non-INSUFFICIENT rows have one, and the accountability page
+  can group graded outcomes by whether the counter-case is what happened.
+  · *source:* `thesis-tracker` + `deal-screening`, FINSERV_PLUGINS §B.
+  _`reasons` today is confirmatory — it explains why the verdict is right.
+  Nothing records what would make it wrong, so nothing can be scored against
+  it. This is the cheap half of making calls falsifiable._
+- **[P-34] No-trade band on the rotation advisor.** [me] · *done =* rotation
+  suppresses any switch whose modelled edge is below a configurable band, with
+  the band expressed in the same round-trip cost units the frontier uses;
+  measured against the counterfactual of trading anyway. · *source:*
+  `portfolio-rebalance`, FINSERV_PLUGINS §C.
+  _[P-29]/[P-30] measured cost drag at −0.239R of a −0.401R loss and showed no
+  exit policy clears breakeven even at zero cost. A no-trade band is the
+  standard answer to that arithmetic. **Rotation advisor only — not the
+  intraday engine**, whose pacing is deliberately loose for data collection._
+  _⚠️ Ordering: this is a live-behaviour change to advice the user may act on.
+  It should follow [P-24]/[P-26], which are already rewriting the same book._
 - **[P-26] Decide the paper MANAGEMENT seed basis.** [me→you] · *done =* seed
   price rule chosen + implemented. · *source:* 08-06 audit §A2.
   _Seeding at the holdings' **cost basis** books pre-advisor history (RVNL −46.3%,

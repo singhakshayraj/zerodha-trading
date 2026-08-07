@@ -43,6 +43,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-28` are PIPELINE *work items*. `K7` is not
 - [reference/ADVISOR_MODULE.md](reference/ADVISOR_MODULE.md) — the portfolio advisor design.
 - [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) — tracked bugs/quirks (findings: `K`/`W`/`A`/`B`).
 - [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) — the `/autopsy` page: idea, method, results, and the phase-2 candle-replay plan.
+- [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md) — the claude-for-financial-services plugins: which four ideas transfer, and which are ruled out (so it isn't re-litigated).
 - [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md) — the paste-block for starting a new session.
 - [reference/TEST_COVERAGE.md](reference/TEST_COVERAGE.md) — what the suite covers.
 
