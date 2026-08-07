@@ -103,6 +103,24 @@ lower (52/55 stops, 32/40 targets at ship time) because a real target of, say,
 1.87R snaps to the 1.75R/2.00R grid. That gap is the snapping, not the replay —
 do not chase it.
 
+### I-6 · the Nifty-500 pin still matches the live instrument master
+[C2]'s failure mode is silent: a delisted or renamed name keeps its dead token
+and the advisor's rotation scan 400s on it, one line among thousands. Tokens are
+pinned in-repo because the authenticated OMS has no instruments endpoint, so
+they can only go stale.
+
+Not SQL — a script in the brain repo:
+```bash
+python3 scripts/audit_nifty500_tokens.py    # read-only, no auth, exit 1 on drift
+```
+**PASS** = exit 0, "every pinned token matches the live master".
+**FAIL** = any WRONG or ABSENT line → fix via `build_nifty500_tokens.py`, or
+drop the row if the name is genuinely gone.
+Exit **2** means the fetched master looked truncated — that is *not* a failure of
+the pin; re-run rather than rebuilding anything.
+_2026-08-08: **PASS**, 499/499 after dropping JBCHEPHARM._
+Worth running at quarterly index reconstitution, not every session.
+
 ### I-5 · no phantom executions on quiet days
 The failure mode that would destroy this feature's credibility is inventing
 trades. A torn holdings fetch is guarded in code; this catches it in the data.

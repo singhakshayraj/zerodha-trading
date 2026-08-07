@@ -318,7 +318,28 @@ insert may be rejected, and the function **swallows exceptions**, so it would
 look shipped while doing nothing. Use a channel known to be writable
 (`db.write_config`) or verify the row actually lands.
 
-### C2 — Advisor universe scan: `invalid token` 400 on JBCHEPHARM 🟡
+### C2 — Advisor universe scan: `invalid token` 400 on JBCHEPHARM — ✅ RESOLVED 2026-08-08 (brain `a68e136`)
+**Audited all 500 pins against Kite's live public instrument master: 499 match
+exactly. JBCHEPHARM was the only failure**, and it is absent from the master
+entirely — no token match, no name match, no similar tradingsymbol. The pin was
+dead however it got that way, so the row was dropped. **No rebuild was needed**;
+the isolated-occurrence read was right.
+
+Added `scripts/audit_nifty500_tokens.py` so the question "is the pin still
+good?" is one command instead of a log line buried in thousands — read-only, no
+auth (the instrument master is public), exit 1 on discrepancies. Run it after
+quarterly reconstitution or whenever `invalid token` appears. It reuses
+`build_rows`' exact NSE/EQ filter (a differently-filtered audit would report
+phantom drift) and aborts rather than judging if the master returns truncated.
+
+Also relaxed two tests that pinned the universe count at exactly 500 — the pin
+tracks a real index whose membership moves, so an exact count fails at the next
+legitimate reconstitution and teaches whoever hits it to just bump the number.
+Now a 450–510 band plus an internal consistency check.
+
+_Original finding below._
+
+
 `[market_data._get_historical] failed: 400 on
 /instruments/historical/441857/day: invalid token`. Token `441857` is
 **JBCHEPHARM** (`data/nifty500.csv:255`).

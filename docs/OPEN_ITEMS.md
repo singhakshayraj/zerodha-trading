@@ -209,7 +209,7 @@ None of these are P-items yet; each is a finding with a known fix.
 |---|---|
 | **[C1]** | ⚠️ **Downgraded** — the alert already exists (`_maybe_token_preflight`, 09:16 IST) and is dormant only because [P-04]'s Telegram token is unset. **[P-04] is the fix; this is second-best.** Still worth writing a `NO_TOKEN_AT_OPEN` marker eventually for the *post-mortem* trace (08-07's `brain_activity` had zero rows 03:30→07:11 UTC, so the loss was invisible afterwards too) — but via `db.write_config`, since `log_brain_activity` needs a `session_id` and swallows exceptions, so a no-session insert could fail silently and look shipped. |
 | **[C5]** | Archive the day's traded symbols' tail bars **post-close, in `data_jobs.py`** — ⚠️ **not** in the close path, which is where I first wrote it. That would reintroduce the documented `archive_candles` latency regression (~7s/cycle), and a slow exit path is measured to fill stops at −2.78R instead of ≈−1R. Found by [P-30]: 10 of 118 clean-exit trades exit past the last archived bar. Benign for [P-30]; matters for anything treating `candles` as a complete path. |
-| **[C2]** | Check whether other Nifty-500 names hit `invalid token` like JBCHEPHARM; if so regenerate via `scripts/build_nifty500_tokens.py`. 1 occurrence in 3,000 log lines — low priority. |
+| ~~**[C2]**~~ | ✅ **DONE 2026-08-08** (brain `a68e136`). Audited all 500 pins against Kite's live master: 499 matched, JBCHEPHARM was the only dead one and is absent from the master entirely — dropped. No rebuild needed. Added `scripts/audit_nifty500_tokens.py` (read-only, no auth) and verify **I-6**. Suite 894 green. |
 | pacing script | Refresh the stale header comment (numbers are fine — see §1.2). |
 
 ---
