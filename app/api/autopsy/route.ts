@@ -58,61 +58,26 @@ type TradeRec = {
   target_price: number | null; exit_reason: string | null;
 };
 
-// Just enough of PostgREST's builder to page through a filtered select without
-// dragging in the generated Database types (this project has none).
-type Pageable = { range: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }> };
-type Filterable = Pageable & {
-  eq: (c: string, v: string) => Filterable;
-  not: (c: string, op: string, v: null) => Filterable;
-  order: (c: string, o: { ascending: boolean }) => Filterable;
-};
-
-/** Supabase caps a select at 1000 rows; walk the whole table in pages. */
-async function fetchAll<T>(
-  table: string,
-  columns: string,
-  shape: (q: Filterable) => Pageable,
-  page = 1000
-): Promise<T[]> {
-  const out: T[] = [];
-  for (let from = 0; ; from += page) {
-    const { data, error } = await shape(
-      supabaseServer.from(table).select(columns) as unknown as Filterable
-    ).range(from, from + page - 1);
-    if (error) throw new Error(error.message);
-    const batch = (data ?? []) as T[];
-    out.push(...batch);
-    if (batch.length < page) return out;
-  }
-}
+type BarRow = { symbol: string; ts: string; open: number; high: number; low: number; close: number };
 
 export async function GET() {
   try {
-    const trades = await fetchAll<TradeRec>(
-      "trades",
-      "r_multiple, mfe_r, mae_r, pnl, entry_value, position_type, created_at, symbol, " +
-        "entry_time, exit_time, entry_price, stop_loss_price, target_price, exit_reason",
-      (q) =>
-        q.eq("status", "CLOSED")
-          .not("r_multiple", "is", null)
-          .not("mfe_r", "is", null)
-          .not("mae_r", "is", null)
-          .order("created_at", { ascending: true })
-    );
+    // [P-36] One RPC instead of a paginated client-side fetch of two whole
+    // tables. autopsy_dataset() returns the closed trades carrying excursion
+    // data plus ONLY the bars inside their holding windows — the window
+    // semi-join is a set operation, which belongs in Postgres, and it was
+    // previously being done in JS over all 23,835 candles after 24 sequential
+    // round trips. Returning a single jsonb row also sidesteps PostgREST's
+    // 1000-row page cap, so the pagination loop disappears entirely.
+    const { data, error } = await supabaseServer.rpc("autopsy_dataset");
+    if (error) throw new Error(error.message);
 
-    // Bars for every symbol we traded, keyed symbol → ascending bar list. The
-    // archive is small (~21k rows over the frontier window), so one pass beats
-    // a per-trade query by three orders of magnitude in round-trips.
-    const symbols = new Set(trades.map((t) => t.symbol).filter(Boolean));
-    const rawBars = await fetchAll<{ symbol: string; ts: string; open: number; high: number; low: number; close: number }>(
-      "candles",
-      "symbol, ts, open, high, low, close",
-      (q) => q.eq("interval", "5minute").order("ts", { ascending: true })
-    );
+    const payload = (data ?? {}) as { trades?: TradeRec[]; bars?: BarRow[] };
+    const trades = payload.trades ?? [];
+    const rawBars = payload.bars ?? [];
 
     const bySymbol = new Map<string, Bar[]>();
     for (const c of rawBars) {
-      if (!symbols.has(c.symbol)) continue;
       const ts = Date.parse(c.ts);
       const o = Number(c.open), h = Number(c.high), l = Number(c.low), cl = Number(c.close);
       if (!Number.isFinite(ts) || !Number.isFinite(h) || !Number.isFinite(l) || !Number.isFinite(o)) continue;
