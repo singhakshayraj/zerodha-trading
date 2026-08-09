@@ -17,72 +17,72 @@ suite 894. Next session Mon 2026-08-10._
 
 ## ▶️ START HERE NEXT SESSION
 
-_Written 2026-08-08 (Sat). Next trading session **Mon 2026-08-10**._
+_Written 2026-08-10 (Mon) ~01:40 IST, pre-market. **Today is a trading day** —
+the open is 09:15 IST._
 Board: [PIPELINE.md](PIPELINE.md) · open checks:
 [reference/VERIFY.md](reference/VERIFY.md) · findings:
 [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) · how they connect:
 [README.md](README.md) · paste-block: [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
 **Who owes what, with exact commands: [OPEN_ITEMS.md](OPEN_ITEMS.md).**
 
-**Deployed:** brain `3489ac6` (suite 894), dashboard `c2da2d4`.
+**Deployed:** brain `ce057e4` (suite **905**), dashboard `2a7d73a`.
 
 ### Where things stand
 
-08-07 session `2ddadca7` ran 12:40→15:22 IST (`MARKET_CLOSED`), 36 trades,
-−₹3,422.57, 11W/25L. Full audit ran, scorecard clean, **all five open VERIFY
-checks passed**. Big shipping day — see §"2026-08-07 shipped" below for the
-whole list. Nothing is mid-flight; the tree is clean and pushed.
+An overnight pre-market session (00:45–01:40 IST) closed **[P-24]**, **[C1]**,
+**[C2]** and **[C5]** — see §"2026-08-10 pre-market shipped" below. **No
+date-independent VERIFY check remains open**; the ledger is now purely
+event-driven (V-7/V-9/V-10 all need a live session to judge). Tree clean and
+pushed on both repos. Last trading session was 08-07.
 
 ### Do these, in this order
 
-**① Monday PRE-MARKET (before 09:15 IST) — the pacing runbook. [you]**
-`bash scripts/session_2026-08-07_data_boost.sh` in the brain repo. It restarts
-the brain, so it must land before the open and never during a session.
-⚠️ **Re-derive the numbers first.** [C4] was revised on live evidence: across
-20 cycles the tally stayed at `CYCLE_LIMIT 3` (all in cycle 1) while entries
-per IST hour ran 11 / 8 / **15** — and 15 is exactly
-`DATA_MAX_NEW_TRADES_PER_HOUR`. So **hourly 15→25 is the lever that matters**
-and cycle 8→12 is close to irrelevant. The script still carries the original
-numbers; adjust before running.
+**① BEFORE 09:15 IST — paste the `enc_token`, then run the pacing runbook. [you]**
+```bash
+bash scripts/session_2026-08-07_data_boost.sh   # brain repo
+```
+✅ **No edit needed** — the script already sets `DATA_MAX_NEW_TRADES_PER_HOUR=25`
+and `MAX_TRADES_PER_CYCLE=12`, which is what revised [C4] calls for. (An earlier
+version of this block said to adjust the numbers first; that was wrong, and the
+script's own stale header has since been rewritten.) It **restarts the brain**,
+so it must land before the open and never during a session.
 
-**② [P-24] DB repair. [you]**
-`scripts/repair_p24_paper_books.sql` (brain repo). The **code** half is
-verified live — 20 advisor runs / 120 rotations on 08-07 created zero new
-duplicates, and all 7 dupes are frozen at 08-06. Only the legacy rows remain.
-⚠️ **Derive the target at run time**; the old `9 / −₹39,983.84` is stale because
-the book grows as advice closes out. At 08-07 close it was 18 / −₹77,325.36 →
-target **11 / −₹45,796.41**. The invariant is the duplicate sum, −₹31,528.95.
-Closes **V-4**, the only date-independent check still open.
+**② ~~[P-24] DB repair~~ ✅ DONE 2026-08-10** — ran pre-market once the Supabase
+connector came up. 18 → **11 rows**, −₹77,325.36 → **−₹45,796.41**. **V-4
+PASSED, I-1 back to 0.** Nothing left for you here.
 
-**③ [P-26] seed-basis decision. [you→me]**
-Bundle it with ② — both rewrite the same rows, so doing them together is one
-pass. Recommendation unchanged: seed at **seed-day price**, so the advisor owns
-only what happened after it spoke rather than inheriting RVNL −46.3% and NBCC
-+73.0% as its own record.
+**③ [P-26] seed-basis decision. [you→me]** — the one item still waiting on you.
+Recommendation unchanged: seed at **seed-day price**, so the advisor owns only
+what happened after it spoke rather than inheriting RVNL −46.3% and NBCC +73.0%
+as its own record. _(It was meant to be bundled with ②; ② has now run without it,
+which costs nothing — the seed basis is a separate rewrite of the same rows.)_
 
-**④ Post-close Monday — `/post-session-check`, then `/counterfactual-audit`.**
-The audit runs the VERIFY ledger as its §0 and writes results back. Open
-entering Monday: **V-4** (needs ②) and **V-7** ([P-25], event-driven — it can
-only pass on a session where you actually trade; a quiet day is NOT-YET, not a
-failure). Invariant **I-1** will keep failing until ② runs.
+**④ Post-close — `/post-session-check`, then `/counterfactual-audit`.**
+Only after ~15:30 IST / 10:00 UTC; auditing a live session misreports. Open
+entering today, all event-driven:
+- **V-7** ([P-25]) — needs a day you actually trade. Quiet day = NOT-YET.
+- **V-9** ([C1]) — only judgeable on a day the token is *missing*. If you paste
+  on time it stays NOT-YET, which is the good outcome.
+- **V-10** ([C5]) — first real read after today's 15:40–16:30 IST backfill runs.
 
-**⑤ Then pull the top Ready item.** ~~[P-30]~~ **shipped 2026-08-08** (see
-below). The remaining Ready items are **[P-26]** (bundled into ③),
-**[P-18]** (blocked on data until ~late Aug) and **[P-06]** (module split —
-only `brain.py` 2211 and `scheduler.py` 868 remain, both flagged as
-disproportionate risk for a line count). **[P-06] is the honest next pull** if
-you want maintenance; there is no high-value analysis item left on the board
-that isn't waiting on gate #6.
+**⑤ Then pull the top Ready item.** With [P-24] and the C-series closed, the
+Ready list is **[P-32]** / **[P-33]** / **[P-34]** (from the finserv-plugin
+assessment) and **[P-06]**. [P-32] is the highest value — it attacks [P-18]'s
+grading bottleneck — but **needs one decision from you first**: is `stop_level` a
+*thesis invalidation* (breaking it means the HOLD was wrong) or a *suggested stop
+for you* (breaking it means act, but the call may still be sound)? They grade
+differently. [P-33] needs no decision and is now unblocked, since Supabase DDL
+works again.
 
 ### Standing facts a new session must not re-litigate
 
-- **The biggest lever is not on the board.** [C1]: `AUTOPILOT=true` fired on
-  time at 09:30 but retried ~380× on a missing enc_token (TOTP dormant), so the
-  session started 12:40 and **~55% of the day's tape was lost** — more than
-  breadth and pacing combined. Nothing in the scheduler is broken; the decision
-  is [P-03]'s and it is **deprioritised — do not re-raise it**. A cheap
-  mitigation that avoids that decision entirely is noted in KNOWN_ISSUES [C1]
-  (emit `NO_TOKEN_AT_OPEN` so it surfaces somewhere visible).
+- **The biggest lever is [P-04], and it costs ~3 minutes.** [C1]: `AUTOPILOT`
+  fired on time on 08-07 but retried ~380× on a missing enc_token, losing **~55%
+  of the day's tape**. The alarm for this **already exists** —
+  `_maybe_token_preflight` sends a Telegram warning at 09:16 IST, 14 minutes
+  before autostart — and is dormant *only* because [P-04]'s bot token is unset.
+  The durable post-mortem trace shipped 08-10 (V-9), but that records the loss,
+  it does not prevent it. [P-03] stays **deprioritised — do not re-raise it**.
 - **Do not read 08-07's trade count as a verdict on [P-31].** A 2h50m session
   caps volume regardless. 08-07 is a clean read on *diversity* (46→86 symbols),
   not volume.
@@ -90,8 +90,10 @@ that isn't waiting on gate #6.
   comparable across that boundary** — every short exit before it is
   `COVER_SHORT`.
 - **Trend-tells: streak broken.** +0.134, +0.182, then **−0.093**. Stays dark.
-  Today's wide split (blocked −0.741R vs kept −0.093R) is tempting but the kept
-  bucket is still negative, and sign-flipping is exactly what [P-21] warned of.
+  Sign-flipping session to session is exactly what [P-21] warned of.
+- **No exit policy rescues the book, and not even zero cost does.** [P-30]
+  corrected [P-29] here: 0 of 180 policies clear breakeven *at zero transaction
+  cost*. The edge has to come from the entries; the verdict rests on gate #6.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
 
