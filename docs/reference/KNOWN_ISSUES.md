@@ -293,6 +293,18 @@ currently says so only in a heartbeat field. Have it emit one
 the day (and/or a Telegram ping once creds land, [P-04]) so the situation
 surfaces where it will actually be seen instead of silently costing hours.
 
+✅ **FIXED 2026-08-10 (brain `ce057e4`) — the durable trace half.** The machinery
+already existed and was simply wired to the wrong branch:
+`_report_stale_token()` writes a durable `token_incident` to `app_config` that
+the watchdog (P1) and dashboard read — but only for a **stale** token. The
+**missing**-token branch, which is what actually fired on 08-07, wrote only a
+heartbeat, a current-state field overwritten on the next tick. Both branches now
+write it, and the message says which happened (they have different fixes:
+refresh vs paste). The existing clear-on-live-token path covers both. Verify row
+**V-9**.
+
+⚠️ **That is the post-mortem trace, NOT the alarm** — read the next paragraph.
+
 ✅ **REVISED 2026-08-08 — the alert is already built; it is [P-04] that is
 missing, not code.** `scheduler._maybe_token_preflight()` (scheduler.py:84)
 already runs **once per market day at 09:16 IST**, skips weekends and
@@ -405,6 +417,15 @@ the last thing to happen to that symbol, and nothing revisits it afterwards.
 than to a wrong answer. It costs resolution, not correctness. It would matter
 more to any future work that treats `candles` as a complete price path — a
 backtest harness especially.
+
+✅ **FIXED 2026-08-10 (brain `ce057e4`) — post-close, per the corrected design
+below.** `data_jobs.archive_traded_day_candles()` re-reads the full day's
+5-minute bars for every symbol traded, run from
+`scheduler._maybe_backfill_candles()` in a 15:40–16:30 IST window: day-gated,
+daemon thread, idempotent via the `(symbol,interval,ts)` upsert, and marked done
+only on success so a failure retries inside the window. A test pins the gate
+**shut during market hours** so the dangerous version cannot creep back. Verify
+row **V-10**. Only runs forward — earlier sessions are not backfilled.
 
 🔴 **CORRECTED 2026-08-08 (same day) — do NOT implement the fix as first
 written.** The original note here said "archive the trailing bars once more at

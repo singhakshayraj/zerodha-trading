@@ -31,6 +31,7 @@ the book.
 
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 _2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
+_2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
 
 ### V-4 · [P-24] advisor paper book de-duplicated — CODE VERIFIED, DB REPAIR PENDING
 Code shipped: brain `f645ff3`. **The code half is now verified live (08-07):**
@@ -102,6 +103,43 @@ the surface.
 lower (52/55 stops, 32/40 targets at ship time) because a real target of, say,
 1.87R snaps to the 1.75R/2.00R grid. That gap is the snapping, not the replay —
 do not chase it.
+
+### V-9 · [C1] a missing token leaves a durable trace
+Shipped 2026-08-10 (brain `ce057e4`). A *stale* token always wrote a durable
+`token_incident`; a *missing* one wrote only a heartbeat, which is a
+current-state field overwritten on the next tick. That asymmetry is why 08-07's
+lost morning left no evidence — `brain_activity` was empty 03:30–07:11 UTC and
+nothing durable existed either.
+
+```sql
+select key, value from app_config where key = 'token_incident';
+```
+**PASS** = on any day the brain wanted to start and had no token, this holds a
+line containing `no token at start` with that day's IST timestamp.
+**NOT-YET** on any day the token was pasted on time — the normal case, and not
+a failure. Cleared automatically once a token proves live, so read it *during*
+an incident or from the dashboard banner, not days later.
+
+### V-10 · [C5] the candle archive covers the whole traded day
+Shipped 2026-08-10 (brain `ce057e4`). Post-close backfill (15:40–16:30 IST)
+re-reads the full day for every symbol traded.
+
+```sql
+select t.symbol, count(c.*) bars
+from (select distinct symbol from trades
+       where created_at::date = 'YYYY-MM-DD') t
+left join candles c
+  on c.symbol = t.symbol and c.trade_date = 'YYYY-MM-DD' and c.interval = '5minute'
+group by 1 order by bars asc limit 10;
+```
+**PASS** = no traded symbol has 0 bars, and the busiest names carry roughly a
+full session of 5-minute bars (~75 for 09:15–15:30) rather than a handful.
+Substitute the session's IST date explicitly — `current_date` is UTC and will
+name the wrong day when run after 18:30 UTC.
+**The sharper check** is [P-30]'s own number: the share of clean-exit trades
+whose exit lands past the last archived bar should fall from the measured
+**10 of 118** toward 0 for sessions after this ships. Earlier sessions are not
+backfilled — this only runs forward.
 
 ### I-6 · the Nifty-500 pin still matches the live instrument master
 [C2]'s failure mode is silent: a delisted or renamed name keeps its dead token
