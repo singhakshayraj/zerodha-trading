@@ -129,6 +129,16 @@ function Section({ id, icon: Icon, title, lede, children }: {
 
 const R2 = (n: number | null | undefined) =>
   n === null || n === undefined ? "—" : (n >= 0 ? "+" : "−") + Math.abs(n).toFixed(3) + "R";
+/** Scale indicators come from pg_class.reltuples — O(1) instead of a count(*)
+ *  that would take ~18s once a year of decisions has accumulated. The estimate
+ *  refreshes on ANALYZE, so it can trail by a few percent mid-week. Rendering
+ *  it rounded with a "~" is the honest presentation: it conveys scale, which is
+ *  all it is for, without implying a precision it does not have. */
+const APPROX = (n: number | null | undefined) => {
+  if (n === null || n === undefined) return "—";
+  if (n >= 1000) return "~" + (Math.round(n / 100) / 10).toFixed(1).replace(/\.0$/, "") + "k";
+  return "~" + Math.round(n / 10) * 10;
+};
 const INR = (n: number | null | undefined) =>
   n === null || n === undefined ? "—" : (n < 0 ? "−" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
@@ -493,11 +503,14 @@ export default function LearnPage() {
                 ))}
               </div>
               <p>
-                The volume tells you what is being collected: {s ? <strong className="text-[#f5f5f5]">{s.decisions.toLocaleString("en-IN")}</strong> : "—"} recorded
-                decisions, {s ? <strong className="text-[#f5f5f5]">{s.candleRows.toLocaleString("en-IN")}</strong> : "—"} price
-                bars, {s ? <strong className="text-[#f5f5f5]">{s.adviceRows.toLocaleString("en-IN")}</strong> : "—"} advisor
-                opinions, across {s ? <strong className="text-[#f5f5f5]">{s.sessions.toLocaleString("en-IN")}</strong> : "—"} sessions.
+                The volume tells you what is being collected: {s ? <strong className="text-[#f5f5f5]">{APPROX(s.decisions)}</strong> : "—"} recorded
+                decisions, {s ? <strong className="text-[#f5f5f5]">{APPROX(s.candleRows)}</strong> : "—"} price
+                bars, {s ? <strong className="text-[#f5f5f5]">{APPROX(s.adviceRows)}</strong> : "—"} advisor
+                opinions, across {s ? <strong className="text-[#f5f5f5]">{APPROX(s.sessions)}</strong> : "—"} sessions.
                 Most were never acted on — they are kept so that questions nobody has asked yet can still be answered.
+                {" "}<span style={{ color: MUTE }}>(These four are rounded estimates — counting them exactly would cost
+                seconds once a year of data has piled up, and they exist to show scale. Every performance figure above
+                is exact.)</span>
               </p>
               <Callout kind="warn" title="The daily login step">
                 <p>
