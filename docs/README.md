@@ -1,6 +1,6 @@
 # Docs — start here
 
-Map of the project's documentation. **Five living docs** carry the current
+Map of the project's documentation. **Six living docs** carry the current
 picture; everything else is stable reference or dated history.
 
 ## The loop these docs form
@@ -21,7 +21,7 @@ first, then the data-quality scorecard, then appends new findings to
 feeds the flag-watch tables in VERIFY.
 
 **Two ID namespaces, deliberately distinct:** `K7`/`W2`/`A1`/`B3` are
-KNOWN_ISSUES *findings*; `P-01`…`P-28` are PIPELINE *work items*. `K7` is not
+KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 `P-07`. A finding earns a `P-nn` only when it becomes tracked work.
 
 ## 🟢 Living docs (read/update these)
@@ -44,6 +44,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-28` are PIPELINE *work items*. `K7` is not
 - [reference/ADVISOR_MODULE.md](reference/ADVISOR_MODULE.md) — the portfolio advisor design.
 - [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) — tracked bugs/quirks (findings: `K`/`W`/`A`/`B`).
 - [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) — the `/autopsy` page: idea, method, results, and the phase-2 candle-replay plan.
+- [reference/GATE_MEASURES.md](reference/GATE_MEASURES.md) — the go/no-go gate time series (PF, expectancy, drawdown, advisor ECE). Split out of PIPELINE 2026-08-10.
 - [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md) — the claude-for-financial-services plugins: which four ideas transfer, and which are ruled out (so it isn't re-litigated).
 - [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md) — the paste-block for starting a new session.
 - [reference/TEST_COVERAGE.md](reference/TEST_COVERAGE.md) — what the suite covers.

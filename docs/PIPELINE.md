@@ -5,136 +5,30 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-10 (Mon, pre-market ~01:30 IST) · **[P-24] closed — the
-DB repair finally ran** (Supabase connector came up mid-session): 18 → 11 rows,
-−₹77,325.36 → −₹45,796.41, **V-4 PASSED and I-1 back to 0**. That was the last
-date-independent open check. Also shipped overnight: **[C2]** (dead Nifty-500
-pin dropped + audit script, verify I-6), **[C1]** (durable no-token trace,
-V-9), **[C5]** (post-close candle backfill, V-10). Brain suite 905. Prior:_
+_Last updated: **2026-08-10** (Mon, pre-market) · Burn-down: **20 shipped +
+verified live / 0 in-progress / 5 ready / 4 blocked**._
 
-_2026-08-09 (Sun) · **Weekly review.** No new trading session
-since 08-07 (weekend) — burn-down unchanged from 08-08: 16 shipped + verified
-live / 1 in-progress / 8 ready / 4 blocked. Gate metrics re-measured over 610
-closed trades carrying `r_multiple` (692 total CLOSED): **PF 0.358, expectancy
-−0.4155R, max drawdown ≈−₹33,378** — no gate flip, still deep reject zone.
-**Advisor calibration ECE moved: 48.5%→35.6%** (n=22→31, still non-monotonic,
-still below the ≥50-graded gate). V-4 ([P-24] DB repair) still open, unchanged,
-pending user action. Full re-measure below. Prior:_
+**This pass:** [P-24] closed — the DB repair finally ran (18 → 11 rows,
+−₹77,325.36 → −₹45,796.41; **V-4 PASSED, I-1 back to 0**), which clears the last
+date-independent open check. [C1], [C2], [C5] shipped (brain `ce057e4`,
+`a68e136`; suite **905**). [P-14] closed on data — all phases were already done
+and both paper books are populated. New verifies **V-9**, **V-10**, **I-6**.
 
-_2026-08-08 (Sat, no session) · Burn-down: 16 shipped +
-verified live / 1 in-progress / 8 ready / 4 blocked. **Financial-services
-plugins assessed** — their data backends are all unconnected and the skills are
-prose checklists, but four ideas transfer; three became **[P-32]/[P-33]/[P-34]**
-and the rest is ruled out in writing at
-[reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md). **[P-30] shipped** —
-exit-frontier candle replay; bounds collapsed ~16×, ground truth 85/85, and it
-**corrected** EXIT_FRONTIER §3's zero-cost claim (3/180 positive → 0/180). New
-finding **[C5]** (candle archive tail gaps), new verify row **V-8**. Prior:_
-_2026-08-07 (post-close) · Burn-down: 15 shipped +
-verified live / 1 in-progress / 6 ready / 4 blocked. **Session `2ddadca7`
-closed 15:22 IST — 36 trades, −₹3,422.57, 11W/25L.** VERIFY V-1/V-2/V-3/V-5/V-6
-all **PASSED** ([reference/VERIFY.md](reference/VERIFY.md)): closes out
-**[P-27]**+**[P-28]** as verified-live (not just shipped) and confirms
-**[P-05]** at −1.211R pooled over both sides (was −1.252R LONG-only on 08-06).
-**[P-31]** diversity-half verified too (86 symbols, cycle budget fine). **K8**
-(inplay-lock) resolved on evidence. Only **V-4** ([P-24] DB repair) stays open
-— blocked on a human running the repair script, not on data. New Ready item:
-**[P-30]** (exit-frontier candle-replay phase 2, source [P-29] shipped today).
-`/post-session-check` + `/counterfactual-audit` full sweep (data-quality
-scorecard, flag verdicts) still queued per STATUS.md — not run this pass.
-Android mobile re-check still open. Prior:_
-_2026-08-05 (post-session) · Burn-down: 9 shipped + verified live
-/ 0 in-progress / 4 ready / 4 blocked. (P-19 + P-05 + P-07 + P-06 (database.py) + P-20 +
-P-14 phases 1-3 shipped; P-15/P-05/P-07 verified live on 08-03's two sessions, P-20
-verified live on 08-04 + 08-05 (no advisor stall either day); P-16 resolved as no-op.
-New 08-05 findings: P-14 Phase 2 snapshot tables still 0 rows after the first official
-session since shipping (→ [P-22]); brain git_sha mismatch, P-05 re-fix still unconfirmed
-live (→ [P-23]).)_
+> **Where the history went.** This preamble used to stack every prior update,
+> and the weekly gate re-measures sat above the board — together pushing the
+> actual kanban ~130 lines down. Gate numbers now live in
+> [reference/GATE_MEASURES.md](reference/GATE_MEASURES.md); prior preambles are
+> in `git log docs/PIPELINE.md`, which is a better changelog than a doc that
+> only ever grows. **Keep this section to the current pass.**
 
 ---
 
-## 📊 Weekly gate re-measure (2026-08-09)
+## 📊 Gate re-measure — latest 2026-08-09
 
-**No new trading session this week** (last session `2ddadca7` ended 08-07
-09:52 UTC; 08-08/08-09 are weekend, next session Mon 08-10 per STATUS). So
-this is a clean re-measure over the same underlying data the 08-07/08-08
-post-session passes already recorded, computed directly from `trades` +
-`app_config.advisor_calibration_latest` rather than carried-forward prose:
-
-| Metric | Value (610 closed trades w/ `r_multiple`; 692 total CLOSED) | Gate (VISION §6.1) | Δ vs 08-02 review | Δ vs 08-07 post-close |
-|---|---|---|---|---|
-| Profit factor | **0.358** (gross win ₹18,563 / gross loss ₹51,830) | >1.3 go / <1.1 reject → **reject zone, no flip** | 0.376→0.358 | 0.371→0.358 |
-| Expectancy | **−0.4155R** avg | negative | −0.408R→−0.4155R | −0.414R→−0.4155R |
-| Max drawdown | **≈−₹33,378** (peak-to-trough equity, all-time) | — | ≈−6,697→−33,378 (deepening is by design — soft `-3R` stop lets full-day sessions bleed past the marker; see FLAG log, not a regression) | ≈−29,320→−33,378 (08-07's −₹3,423 session) |
-| Advisor calibration ECE | **35.6%**, still non-monotonic, **31** graded calls | DARK — not scored | 48.5%→35.6% (n=22→31) | 48.5%→35.6% (STATUS's 08-06 narrative had already noted 28→31 graded but the tracked ECE/VERIFY W-B number was stale until this pass) |
-
-**82 of 692 CLOSED trades carry no `r_multiple`** (all dated ≤2026-07-06 —
-`COVER_SHORT` 39, `SESSION_END` 17, `AUTO_SQUARED_ZERODHA` 10, `BRAIN_SIGNAL`
-8, `ORDER_FAILED`/`SQUARE_OFF_FAILED` 7, `STOP_LOSS_HIT` 1). Pre-dates every
-tracked fix on this board, not a new gap — excluded from expectancy by
-construction (`avg()` skips nulls), noted here so the 610-vs-692 count
-doesn't read as unexplained.
-
-No go/no-go gate flipped — PF stays deep in reject territory, nowhere near
-either threshold. **Advisor calibration is the one number that moved for a
-real reason**: ECE fell 12.9pp as the graded pool grew 22→31 (all MICRO-horizon
-matures; the 30-day MACRO wave still isn't due — see [P-18]/W-B). Still
-non-monotonic and still under the 50-graded action threshold, so this stays a
-**watch note, not an action** — recorded in [reference/VERIFY.md](reference/VERIFY.md)
-W-B so it isn't lost again.
-
-**[P-24] DB repair (V-4) — still open, unchanged.** `advisor_paper_positions`
-MANAGEMENT/SEED closed rows: still **18 rows / −₹77,325.36**, still **7**
-duplicate pairs (I-1), all still frozen at `first_seen=last_seen=2026-08-06`
-— the code fix continues to hold (no new dupes), but the repair script itself
-hasn't been run yet. Third day open; not yet "over a week" but it's the one
-Ready item that's pure user-action and has sat untouched since 08-06.
-
-**3-lens sanity:**
-- **Trader** — PF unchanged in substance (0.358, deep reject), no new
-  trades to read since last Friday. Drawdown deepened exactly as the
-  soft-stop design predicts; not a new risk.
-- **Advisor** — ECE improved (48.5%→35.6%) but n=31 is still low and the
-  curve is still non-monotonic; [P-18]'s own criteria (≥50 graded, expected
-  late August per the MACRO-wave timeline) already covers when this becomes
-  actionable — no new item needed.
-- **Engineer** — no new session ran this week, so no new operational
-  finding. The one standing engineering risk is non-technical: [P-24]'s DB
-  repair is a one-command script (`scripts/repair_p24_paper_books.sql` in
-  the brain repo) still waiting on a human to run it against prod.
-
-Nothing regressed; nothing moved to Ready. See prior weekly re-measure below
-for the 08-02 baseline this compares against.
-
-## 📊 Weekly gate re-measure (2026-08-02)
-
-**No new trading data this week.** `trading_sessions` max `started_at` is still
-07-29; `brain_heartbeat` shows `status=ONLINE, current_cycle=0, "Waiting for
-START command"` as of 08-02 04:39 UTC — same stalled state STATUS flagged on
-07-31. Zero sessions, zero trades, zero advisor runs since 07-29. All figures
-below are therefore **unchanged from last review, not re-verified against new
-data** — first-time cumulative baseline for future deltas:
-
-| Metric | Value (370 closed trades, all-time) | Gate (VISION §6.1) |
-|---|---|---|
-| Profit factor | **0.376** | >1.3 go / <1.1 reject → **reject zone, no flip** |
-| Expectancy | **−0.408R** avg | negative |
-| Max drawdown | **≈−₹6,697** (peak-to-trough equity) | — |
-| Advisor calibration ECE | **48.5%**, non-monotonic, 22 graded calls (most bins low-n) | DARK — not scored |
-
-No go/no-go gate flipped. Paper PF confirms the standing conclusion (no edge
-on paper data) but this is not the edge verdict — gate #6 is, and it's still
-blocked on the Kite ₹500/mo decision ([P-01]).
-
-**3-lens sanity:** trader — PF unchanged, deep reject zone, nothing new to
-read since no new trades. advisor — calibration ECE 48.5%/non-monotonic is
-the first hard number recorded for it; poor but DARK (no live weight), and
-n=22 is too small to act on — watch, don't fix (new [P-18]). engineer — the
-real story this week is operational, not statistical: the manual-token-paste
-SPOF has now stalled the *entire* pipeline for a full week, which means none
-of [P-05]/[P-07]/[P-16] can accumulate the fresh session data they need to be
-tested. This sharpens [P-03]'s priority further; no new risk beyond what's
-already tracked there.
+**PF 0.358 · expectancy −0.4155R · advisor ECE 35.6% (n=31).** No gate flipped;
+PF has never left the reject zone. Full history, method and the 3-lens read:
+**[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** — moved out of this
+file on 2026-08-10 so the board stays at the top of the page.
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -260,7 +154,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   after it spoke. Bundle with [P-24]._
 
 
-- **[P-06] Module split part 2 — IN PROGRESS (scoring half done).** [me] · *done
+- **[P-06] Module split part 2 — PARTIALLY DONE (advisor family + database.py all <600).** [me] · *done
   =* no file >600 lines, suite green. · *source:* SE4.
   _08-02–03 shipped: the **entire advisor family is now split and all <600** —
   `advisor_scoring.py` 554 (scoring/`advise`, brain `4cb62ce`) + `advisor_rotation.py`
@@ -330,7 +224,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🔨 IN PROGRESS
 
-- _(none — Sprint 0/2 just shipped)_
+- _(none)_ — [P-14] closed 2026-08-10, see DONE.
 
 ## 🗓️ BACKLOG — after gate #6 / decisions
 
@@ -351,9 +245,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 - _(none)_
 
-## 🔨 IN PROGRESS
+## ⏸️ PARKED — explicitly deferred, revisit when raised
 
-- **[P-14] Advisor accountability / paper-trade system.** [me] · re-raised +
+- _(none)_
+
+## ✅ DONE (recent — for burn-down + verify)
+
+- ~~**[P-14] Advisor accountability / paper-trade system.**~~ ✅ **DONE — verified live 2026-08-10.** [me] · re-raised +
   scoped 2026-08-05 (was parked 2026-07-28): paper-trade every advisor verdict,
   store outcomes, measure wins/losses → feedback loop. Scope: **two books**,
   track **everything** (holdings + rotation + Nifty-500 scan). Spec:
@@ -372,17 +270,21 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
     ("Advisor scorecard") + API — per-book equity curve vs baseline (alpha),
     realized win/loss record + win-rate, by verdict + source, best/worst trade.
     Empty-state until data accrues; verified end-to-end with fixtures, `next
-    build` clean. *done =* page live; fills in as Phase 2 snapshots land
-    (still empty-state — blocked on [P-22]).
+    build` clean. *done =* page live; fills in as Phase 2 snapshots land — **met.**
   - ✅ **UX redesign (dashboard `99fe9a7`, 08-05):** reworked `/advisor` page
     for scannability + mobile, content unchanged. `next build` clean, auto-
     deployed.
+  **Closed 2026-08-10 on data, not on a code change.** All four sub-items were
+  already ✅ but the item sat in IN PROGRESS because Phase 3 was noted
+  "still empty-state — blocked on [P-22]", and [P-22] had since been resolved
+  without this note being updated. Prod now shows both books populated:
+  **MANAGEMENT 31 positions (20 open / 11 closed) + 2 equity snapshots;
+  PICKING 7 open + 2 snapshots**, newest 2026-08-07. The scorecard is no longer
+  an empty state. _Caveat: 2 equity snapshots per book is one per session since
+  seeding, so the alpha curve is still only two points — it needs sessions, not
+  work._
 
-## ⏸️ PARKED — explicitly deferred, revisit when raised
 
-- _(none)_
-
-## ✅ DONE (recent — for burn-down + verify)
 
 _2026-08-07_ — **[P-25] Real-money accountability SHIPPED** (brain `3489ac6`).
 Infers the user's actual executions by diffing the ~8-min `portfolio_advice`
@@ -410,7 +312,7 @@ Full scorecard in [STATUS.md](STATUS.md); checks in
 _2026-08-07 pre-market_ — **[P-31] Data volume + diversity boost.** Diversity
 shipped (brain `18b34f9`): sector-balanced Nifty 500 rotation, universe ~46 →
 ~86, 297 distinct names over 20 sessions vs 46. Volume half is a one-command
-runbook (`scripts/session_2026-08-07_data_boost.sh`) — Railway var writes were
+runbook (`scripts/premarket_pacing.sh`) — Railway var writes were
 blocked from the session. Evidence-led: the 08-06 `ENTRY_DEFERRED` tally showed
 `HOURLY_PACE` binding at 44 vs `CONCURRENT_CAP`/`SYMBOL_DAY_CAP` at 1 each, so
 only the caps that bind get raised. **Verify V-5 + V-6** — V-6 (cycle cadence)

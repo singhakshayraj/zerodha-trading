@@ -4,14 +4,11 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-10 (Mon, pre-market) — **[P-24] closed**; [C1]/[C2]/[C5]
-shipped overnight. No date-independent VERIFY check remains open. Prior entry:
-2026-08-08 (Sat) — post-session review of 08-07 complete, and
-**[P-30] shipped** (exit-frontier candle replay; it corrected a documented
-conclusion — see below). Session `2ddadca7` closed `MARKET_CLOSED` (36 trades,
-−₹3,422.57); all five open VERIFY checks PASSED; [P-25], [P-29], [P-31],
-[P-27], [P-28] shipped and [P-24]'s code half verified live. Brain `3489ac6`,
-suite 894. Next session Mon 2026-08-10._
+_Last updated: **2026-08-10** (Mon, pre-market). **[P-24] closed** — the DB
+repair ran, so **no date-independent VERIFY check remains open**. [C1], [C2],
+[C5] shipped overnight; [P-14] closed on data. Deployed versions are in the
+"Deployed:" line below — that is the single place they live. Prior entries:
+`git log docs/STATUS.md`._
 
 ---
 
@@ -39,7 +36,7 @@ pushed on both repos. Last trading session was 08-07.
 
 **① BEFORE 09:15 IST — paste the `enc_token`, then run the pacing runbook. [you]**
 ```bash
-bash scripts/session_2026-08-07_data_boost.sh   # brain repo
+bash scripts/premarket_pacing.sh   # brain repo
 ```
 ✅ **No edit needed** — the script already sets `DATA_MAX_NEW_TRADES_PER_HOUR=25`
 and `MAX_TRADES_PER_CYCLE=12`, which is what revised [C4] calls for. (An earlier

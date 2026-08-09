@@ -53,7 +53,7 @@ notification in time to prevent it. Prioritise it over everything else in §1.4.
 ### ① Run the pacing runbook
 ```bash
 cd ~/Desktop/GITHUB/zerodha-brain
-bash scripts/session_2026-08-07_data_boost.sh
+bash scripts/premarket_pacing.sh
 ```
 
 **It restarts the brain.** Must land before the open; never during a session.

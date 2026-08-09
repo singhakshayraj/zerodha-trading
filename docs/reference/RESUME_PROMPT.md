@@ -15,7 +15,9 @@ Read first, in order: docs/STATUS.md — start with the "▶️ START HERE NEXT 
 block at the top, which names the current priority and why. Then docs/PIPELINE.md
 (the board), docs/reference/VERIFY.md (open checks owed on shipped fixes — this is
 what the post-session audit runs first), and docs/reference/KNOWN_ISSUES.md
-(the C-series is the newest batch). docs/README.md maps how those four connect.
+(the C-series is the newest batch). If you want it cut by OWNER instead of by
+status — what is blocked on the user vs on you, with exact commands — read
+docs/OPEN_ITEMS.md. docs/README.md maps how they all connect.
 
 Two ID namespaces: K/W/A/B = KNOWN_ISSUES findings, P-nn = PIPELINE work items.
 K7 is not P-07. Shipping a fix owes VERIFY.md a row with runnable SQL and the
@@ -25,8 +27,9 @@ Context up front:
 - Deploy = git push origin main. The service auto-deploys from GitHub; deploy.sh
   hard-aborts on unpushed/dirty/non-main. NEVER push while a session is RUNNING —
   it restarts the brain and truncates the day's data collection. Push post-close.
-- Brain is on 3489ac6; dashboard auto-deploys from main on Vercel. Full suite (894)
-  CI-gated on push.
+- Dashboard auto-deploys from main on Vercel; the brain's full suite is CI-gated
+  on push. Deployed SHAs and the current suite count are in STATUS's "Deployed:"
+  line — read them there, they are not repeated here on purpose.
 - Supabase/Railway are MCP connectors — if their tools are missing they need
   reconnecting via claude.ai connector settings or /mcp. Railway CLI + npm/node/
   python may not be on PATH in a fresh shell:
