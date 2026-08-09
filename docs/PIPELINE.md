@@ -96,6 +96,21 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
+- ~~**[P-36] Aggregate at the data, not in Node.**~~ ✅ **SHIPPED 2026-08-10.**
+  Architect pass over the API layer. The codebase already had the right pattern
+  (`/api/analytics/insights` calls Postgres RPCs) and applied it inconsistently;
+  the heavy routes pulled whole tables over the wire because PostgREST cannot
+  aggregate. `/api/autopsy` was making **24 sequential round trips** for all
+  23,835 candles, then discarding ~73% client-side.
+  Three new functions (`autopsy_dataset`, `learn_stats`, `insights_totals`),
+  each returning one `jsonb` row so the 1000-row page cap stops mattering.
+  **Combined latency 5.04s → 0.94s (−81%)**; autopsy −85%, insights −73%,
+  learn −86%. Output verified identical field-by-field on all three, and
+  `totalDeployed` is now *more* accurate (Postgres `numeric` vs accumulated JS
+  float drift). Rule written up in
+  [reference/ENGINEERING_SPEC.md](reference/ENGINEERING_SPEC.md) so new routes
+  inherit it. No new security lints (`security invoker` + pinned `search_path`).
+
 - ~~**[P-35] Re-test the entry edge on the grown sample.**~~ ✅ **SHIPPED
   2026-08-10** (brain `scripts/edge_study.py`). **Reverses [P-21].** The sample
   had grown 1,597 → 5,481 labeled decisions across 10 days (SHORT labels on ten

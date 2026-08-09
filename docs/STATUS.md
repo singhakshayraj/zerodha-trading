@@ -96,6 +96,33 @@ works again.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
 
+## ⚡ 2026-08-10 — [P-36]: API layer, 5.04s → 0.94s
+
+Architect pass. The right pattern already existed here and was applied
+inconsistently: `/api/analytics/insights` called Postgres RPCs while the other
+heavy routes pulled whole tables into Node, because PostgREST cannot aggregate.
+`/api/autopsy` was making **24 sequential round trips** to read all 23,835
+candles and then discarding ~73% of them client-side — the round trips, not the
+data, were the cost.
+
+| route | before | after | |
+|---|---|---|---|
+| `/api/autopsy` | 2.741s | **0.406s** | −85% |
+| `/api/analytics/insights` | 1.603s | **0.431s** | −73% |
+| `/api/learn/stats` | 0.694s | **0.099s** | −86% |
+| **combined** | **5.04s** | **0.94s** | **−81%** |
+
+Three functions, each returning a single `jsonb` row so PostgREST's 1000-row cap
+stops mattering and the pagination loops disappear rather than being tuned.
+**Output verified identical field-by-field on all three** — a speedup that
+changes a number is not a speedup. `totalDeployed` is now *more* accurate:
+Postgres `numeric` instead of accumulated JS float drift over 685 rows.
+
+The durable part is the rule, written into
+[reference/ENGINEERING_SPEC.md](reference/ENGINEERING_SPEC.md): **Postgres does
+set operations, the app does algorithms.** The exit-frontier ladder stays in
+TypeScript precisely because it is an algorithm, not a set operation.
+
 ## 🔬 2026-08-10 — [P-35]: the first entry edge that survives testing
 
 **This reverses [P-21].** Everything prior said the edge had to be in the

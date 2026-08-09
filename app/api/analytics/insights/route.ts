@@ -51,35 +51,46 @@ const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length
 
 export async function GET() {
   try {
-    const [sessCount, tradeCount, decCount, candleCount] = await Promise.all([
-      supabaseServer.from("trading_sessions").select("*", { count: "exact", head: true }),
-      supabaseServer.from("trades").select("*", { count: "exact", head: true }),
-      supabaseServer.from("brain_decisions").select("*", { count: "exact", head: true }),
-      supabaseServer.from("candles").select("*", { count: "exact", head: true }),
+    // [P-36] Nine round trips of scalars (4 table counts, 3 signal counts, a
+    // news count, and a full-table fetch of every trade purely to SUM one
+    // column) collapse into one RPC. The remaining independent reads now run
+    // concurrently instead of five sequential awaits — they never depended on
+    // each other, the sequencing was incidental.
+    const [
+      { data: totalsRaw },
+      { data: daily },
+      { data: ttEffectRows },
+      { data: newsEffectRows },
+      { data: latestNews },
+    ] = await Promise.all([
+      supabaseServer.rpc("insights_totals"),
+      supabaseServer.rpc("daily_capture"),
+      supabaseServer.rpc("trend_tells_effect"),
+      supabaseServer.rpc("news_outcome_effect"),
+      supabaseServer
+        .from("news_events")
+        .select("published_at, headline, symbols, sentiment_label, sentiment_score, url")
+        .order("published_at", { ascending: false })
+        .limit(8),
     ]);
 
-    const { data: daily } = await supabaseServer.rpc("daily_capture");
-    const { data: ttEffectRows } = await supabaseServer.rpc("trend_tells_effect");
+    const totals = (totalsRaw ?? {}) as {
+      sessions: number; trades: number; decisions: number; candles: number;
+      newsEvents: number; buy: number; sell: number; hold: number; totalDeployed: number;
+    };
+    const sessCount = { count: totals.sessions };
+    const tradeCount = { count: totals.trades };
+    const decCount = { count: totals.decisions };
+    const candleCount = { count: totals.candles };
+    const newsCount = totals.newsEvents;
+    const buy = { count: totals.buy };
+    const sell = { count: totals.sell };
+    const hold = { count: totals.hold };
+    const totalDeployed = Number(totals.totalDeployed) || 0;
 
-    // News correlation (NEWS_CORRELATION_PLAN): coverage + latest headlines +
-    // outcome-by-sentiment. Empty/degrades gracefully until the collector runs.
-    const { data: newsEffectRows } = await supabaseServer.rpc("news_outcome_effect");
-    const { count: newsCount } = await supabaseServer
-      .from("news_events").select("*", { count: "exact", head: true });
-    const { data: latestNews } = await supabaseServer
-      .from("news_events")
-      .select("published_at, headline, symbols, sentiment_label, sentiment_score, url")
-      .order("published_at", { ascending: false })
-      .limit(8);
     const tt = (ttEffectRows?.[0] as
       | { entry_signals: number; permitted: number; linked: number; blocked_losers: number; blocked_loser_pnl: number }
       | undefined) ?? { entry_signals: 0, permitted: 0, linked: 0, blocked_losers: 0, blocked_loser_pnl: 0 };
-
-    const [buy, sell, hold] = await Promise.all(
-      ["BUY", "SELL", "HOLD"].map((s) =>
-        supabaseServer.from("brain_decisions").select("*", { count: "exact", head: true }).eq("signal", s)
-      )
-    );
 
     const trades = await fetchAll<Trade>((from, to) =>
       supabaseServer
@@ -89,18 +100,6 @@ export async function GET() {
         .not("pnl", "is", null)
         .order("entry_time", { ascending: true, nullsFirst: false })
         .range(from, to));
-
-    // Total capital put to work across all filled entries (paper turnover).
-    const sizedRows = await fetchAll<{ quantity: number | null; entry_price: number | null }>(
-      (from, to) =>
-        supabaseServer
-          .from("trades")
-          .select("quantity, entry_price")
-          .not("entry_price", "is", null)
-          .order("created_at")
-          .range(from, to));
-    const totalDeployed = sizedRows.reduce(
-      (a, t) => a + (t.quantity ?? 0) * (t.entry_price ?? 0), 0);
 
     const closed = trades.length;
     const winners = trades.filter((t) => (t.pnl ?? 0) > 0);

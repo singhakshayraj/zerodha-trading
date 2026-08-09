@@ -504,3 +504,46 @@ counterfactual logs now accumulating, then flip them on with evidence.
 | M5/M6 | gate 6, §2.2, §6.1, §7b |
 | M7 | §5, §6.2 |
 | M8 | §6c, §6b |
+
+## Data-access rule: aggregate at the data, not in Node
+
+_Added 2026-08-10 ([P-36])._
+
+**PostgREST cannot `SUM`, `GROUP BY` or join across a range condition.** The
+natural workaround — fetch the rows and do it in JavaScript — quietly became the
+default in several API routes, and it costs far more than it looks:
+
+- it pages, and PostgREST caps at 1000 rows, so a big table becomes N sequential
+  round trips. `/api/autopsy` was making **24** of them to read all 23,835
+  candles, then discarding three quarters client-side.
+- **the round trips, not the data volume, dominate.** 24 × ~100ms is the whole
+  latency budget.
+- summing floats in JS accumulates error. `totalDeployed` drifted from the
+  Postgres `numeric` sum until this was fixed.
+
+**The rule:** if a route needs a *summary*, a *filtered subset defined by a join*,
+or *any aggregate*, write a Postgres function and call it with `.rpc()`. Fetch
+rows into Node only when the app genuinely needs each row — for example the
+exit-frontier ladder algorithm, which stays in TypeScript because it is an
+algorithm, not a set operation. **Postgres does set operations; the app does
+algorithms.**
+
+Return **a single `jsonb` row**. That is not cosmetic — it sidesteps the
+1000-row page cap entirely, so the pagination loop disappears instead of being
+tuned. Pin `security invoker` and `set search_path = public` or the Supabase
+linter will (correctly) flag it.
+
+Existing functions: `daily_capture`, `trend_tells_effect`,
+`news_outcome_effect`, `autopsy_dataset`, `learn_stats`, `insights_totals`.
+
+Measured effect of applying this consistently (warm, same machine):
+
+| route | before | after | |
+|---|---|---|---|
+| `/api/autopsy` | 2.741s | **0.406s** | −85% |
+| `/api/analytics/insights` | 1.603s | **0.431s** | −73% |
+| `/api/learn/stats` | 0.694s | **0.099s** | −86% |
+| **combined** | **5.04s** | **0.94s** | **−81%** |
+
+Output was verified identical field-by-field on each. A speedup that changes a
+number is not a speedup.
