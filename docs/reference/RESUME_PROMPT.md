@@ -36,6 +36,11 @@ Context up front:
   export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; python is ~/opt/anaconda3/bin/python.
   `railway logs --since Nh --lines 5000` for history (--lines caps ~5000).
   Kill any zombie `next start` on :3000 before running the dashboard locally.
+- The dashboard has a /learn page explaining the whole system to a non-builder.
+  If a change alters BEHAVIOUR (a new subsystem, the trading loop, the risk
+  gates, advisor scoring, a corrected finding, a new house rule), update
+  app/learn/page.tsx in the SAME change. Numbers there are live from
+  /api/learn/stats — never hard-code a figure into that page.
 - Do NOT foreground P-01 (Kite ₹500) or P-03 (TOTP) — user deprioritized both.
   This holds even though P-03 measurably cost ~55% of the 08-07 session: record
   the cost, don't re-open the decision.

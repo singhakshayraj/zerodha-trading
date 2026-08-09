@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy, Crosshair } from "lucide-react";
+import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy, Crosshair, GraduationCap } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,7 @@ const navItems = [
   { href: "/advisor/timeline", label: "Timeline", icon: Activity, short: "Time" },
   { href: "/advisor/accountability", label: "Scorecard", icon: Trophy, short: "Score" },
   { href: "/autopsy",   label: "Exit Frontier", icon: Crosshair, short: "Exits" },
+  { href: "/learn",     label: "Learn",      icon: GraduationCap, short: "Learn" },
 ];
 
 export function Sidebar() {
@@ -130,8 +131,15 @@ export function Sidebar() {
       {/* order-last → sits below the scrollable main in the flex column (flow,
           not fixed) so no content is ever hidden behind it. */}
       <nav className="md:hidden order-last shrink-0 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
-        {/* single row of 9 — short labels so nothing wraps at ~40px/cell */}
-        <div className="grid grid-cols-9">
+        {/* Single row, one cell per nav item, short labels so nothing wraps.
+            Derived from navItems.length rather than a hard-coded grid-cols-N:
+            that number had already drifted twice (8 → 9 → 10) and a stale one
+            silently wraps the row or clips the last tab, which is easy to ship
+            without noticing on a desktop browser.
+            At 10 items this is ~36px/cell on a 360px screen — tight but usable,
+            since the row is 52px tall so the vertical target is comfortable.
+            Beyond ~11 this needs to become scrollable or a "More" sheet. */}
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }}>
           {navItems.map(({ href, label, short, icon: Icon }) => {
             const active = pathname === href;
             return (

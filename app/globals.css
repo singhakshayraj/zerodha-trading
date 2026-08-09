@@ -133,3 +133,14 @@
 .scroll-touch {
   -webkit-overflow-scrolling: touch;
 }
+/* Horizontal chip rows (e.g. the Learn page's section nav) scroll on narrow
+   screens. The scrollbar itself adds visual noise under a row of small pills
+   and, on desktop, shifts the row's height when it appears — hide it while
+   keeping the scrolling itself intact and keyboard-reachable. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

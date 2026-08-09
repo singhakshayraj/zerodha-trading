@@ -34,10 +34,26 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 | **[reference/VERIFY.md](reference/VERIFY.md)** | *Did the fixes actually work?* — the open-checks ledger. Every shipped fix registers runnable SQL + its pass number here; `/post-session-check` executes them. | every session |
 | **[OPEN_ITEMS.md](OPEN_ITEMS.md)** | *Who owes what?* — the same work cut by **owner** instead of status: what's on you (with exact commands), what's on me, what's waiting on time, what's ruled out. A derived view — PIPELINE and VERIFY stay authoritative. | when ownership shifts |
 | **[VISION.md](VISION.md)** | *Why?* — mission, trading fundamentals, risk limits, the pre-run gates + go/no-go criteria (§6.1, §7). The durable reference. | rarely |
+| **`/learn`** (the app, not a doc) | *How does this all work?* — the in-app explanation of the system for a reader with basic finance knowledge: vocabulary, the trading loop, the advisor, how we measure, what we found. | **with any behaviour change** |
 | this **README** | *Where is everything?* | when docs move |
 
 > Do **not** create new dated `HANDOFF_YYYY-MM-DD.md` files — fold current state
 > into STATUS.md. Old handoffs live in `archive/`.
+
+> ### 📚 Changing behaviour? Update `/learn` in the same change.
+> `app/learn/page.tsx` is the teaching surface — it explains the system to
+> someone who did not build it. It goes stale the same way STATUS used to: not
+> all at once, but one unmentioned change at a time, until it quietly teaches
+> something false. So treat it like a test that must be kept green.
+>
+> **It needs editing when:** a new subsystem or page ships; the trading loop,
+> the risk gates or the advisor's scoring change; a finding is corrected or
+> reversed (this has already happened twice); or a house rule is added.
+>
+> **It does NOT need editing for numbers.** Every figure on the page is read
+> live from `/api/learn/stats`, deliberately — hard-coded numbers in teaching
+> material start lying the first time a session runs. Add to that endpoint
+> rather than pasting a number into the prose.
 
 ## 📘 reference/ — stable technical specs
 - [reference/ENGINEERING_SPEC.md](reference/ENGINEERING_SPEC.md) — system architecture + REQ list.
