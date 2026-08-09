@@ -1,6 +1,6 @@
 # OPEN ITEMS — who owes what
 
-_Cut by **owner**, as of 2026-08-08 (Sat). Next trading session Mon 2026-08-10._
+_Cut by **owner**, as of 2026-08-10 (Mon, pre-market). Updated after the overnight session that closed [P-24], [C1], [C2] and [C5]._
 
 This is a **derived view**, not a new source of truth. [PIPELINE.md](PIPELINE.md)
 stays authoritative for work items and [reference/VERIFY.md](reference/VERIFY.md)
@@ -73,32 +73,16 @@ edit needed.** Only the script's *header comment* is stale — it still cites th
 > Never audit a live session — half the day's rows don't exist yet, so it
 > misreports.
 
-### ② [P-24] Run the paper-book repair
-```bash
-# brain repo
-scripts/repair_p24_paper_books.sql   → run against prod gilmuwmtdpjccibfhqtx
-```
+### ~~② [P-24] Run the paper-book repair~~ ✅ **DONE 2026-08-10, ~01:20 IST**
 
-⚠️ **Derive the targets at run time. Do not trust any number written down.**
-The book grows as new advice closes out, so stored targets go stale — the
-08-06 figure of `9 / −39,983.84` had already moved to `11 / −45,796.41` by
-08-07 close.
+Ran from a session after the Supabase MCP connector came up. **18 rows /
+−₹77,325.36 → 11 / −₹45,796.41**, duplicate sum −₹31,528.95 removed, every
+documented target hit exactly. **V-4 PASSED; I-1 back to 0 rows.** TRIM rows
+untouched. Rollback snapshot: `scripts/p24_rollback_2026-08-10.sql` (brain).
 
-```sql
-select count(*) rows_now, sum(realized_pnl) total_now
-  from advisor_paper_positions
- where book='MANAGEMENT' and source='SEED' and is_open=false;
--- after the repair expect: rows_now − 7, and total_now + 31528.95
-```
-
-The **invariant** is the duplicate sum: **−₹31,528.95** across 7 pairs.
-
-**Why it's on you and not me:** prod writes have been blocked from these
-sessions by the permission classifier. The code half is already **verified live**
-— 20 advisor runs / 120 rotations on 08-07 created zero new duplicates, and all
-7 dupes are frozen at 08-06. Only the legacy rows remain.
-
-**Closes:** VERIFY **V-4**, and invariant **I-1** stops failing.
+**Nothing left for you here.** Note for future items: `UPDATE`/`DELETE` both
+went through — the standing "prod writes may be blocked by the permission
+classifier" caveat did not bite.
 
 ### ③ [P-26] Decide the paper seed basis
 **Bundle with ② — both rewrite the same rows, so it's one pass.**
@@ -120,10 +104,12 @@ too), but the win/loss scorecard reads as advisor skill when it isn't.
 **Expected state entering Monday:**
 | Check | Expect |
 |---|---|
-| **V-4** | passes once ② runs |
+| ~~**V-4**~~ | ✅ **PASSED** — ② is done |
 | **V-7** | [P-25] — event-driven. Only passes on a day you actually **trade**. A quiet day is NOT-YET, **not** a failure. |
-| **V-8** | [P-30] — new, passed at build time; standing re-check |
-| **I-1** | keeps failing until ② runs |
+| **V-8** | [P-30] — passed at build time; standing re-check |
+| **V-9** | [C1] — event-driven: only judgeable on a day the token is missing. NOT-YET on a normal day. |
+| **V-10** | [C5] — first judgeable after today's post-close backfill runs (15:40–16:30 IST) |
+| ~~**I-1**~~ | ✅ **PASS** — 0 rows since the repair |
 
 ---
 
@@ -153,7 +139,7 @@ Several connectors are unauthorized or never finished connecting:
 
 | Connector | State | Consequence |
 |---|---|---|
-| **Supabase** | not available | **This is why ② is on you.** I can't apply DDL or run prod writes. [P-30] was built in the API route rather than as a brain-side precomputed table for exactly this reason. |
+| **Supabase** | ✅ **connected 2026-08-10** | Resolved itself mid-session. `execute_sql` reads + `UPDATE`/`DELETE` all work — that's how ② finally ran. [P-33]'s migration is now unblocked too. |
 | **Railway** | not available | Can't read logs or set variables directly. |
 | S&P Global | needs auth | Finserv plugin data — low value here, see FINSERV_PLUGINS. |
 | LSEG | never connected | Same. |

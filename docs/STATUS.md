@@ -4,7 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: 2026-08-08 (Sat) — post-session review of 08-07 complete, and
+_Last updated: 2026-08-10 (Mon, pre-market) — **[P-24] closed**; [C1]/[C2]/[C5]
+shipped overnight. No date-independent VERIFY check remains open. Prior entry:
+2026-08-08 (Sat) — post-session review of 08-07 complete, and
 **[P-30] shipped** (exit-frontier candle replay; it corrected a documented
 conclusion — see below). Session `2ddadca7` closed `MARKET_CLOSED` (36 trades,
 −₹3,422.57); all five open VERIFY checks PASSED; [P-25], [P-29], [P-31],
@@ -92,6 +94,35 @@ that isn't waiting on gate #6.
   bucket is still negative, and sign-flipping is exactly what [P-21] warned of.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 🚀 2026-08-10 pre-market shipped — [P-24] closed, plus three findings
+
+Overnight session (~00:45–01:40 IST, market shut, brain pushes safe).
+
+- **[P-24] DONE — the DB repair finally ran.** The Supabase MCP connector came
+  up mid-session, so the repair that had been waiting on a human since 08-06
+  went through: **18 rows / −₹77,325.36 → 11 / −₹45,796.41**, duplicate sum
+  −₹31,528.95 removed, every documented target hit exactly. **V-4 PASSED and
+  I-1 is back to 0 rows** — that was the last date-independent open check on the
+  board. Rollback snapshot committed (`scripts/p24_rollback_2026-08-10.sql`).
+  _Worth recording: `UPDATE` and `DELETE` both went through. The standing "prod
+  writes may be blocked by the permission classifier" caveat did not bite._
+- **[C2] closed** (brain `a68e136`). Audited all 500 Nifty-500 pins against
+  Kite's live public master: **499 matched**, JBCHEPHARM was the only dead one
+  and is absent from the master entirely. Dropped it; no rebuild needed. Added
+  `scripts/audit_nifty500_tokens.py` + verify **I-6**. Also relaxed two tests
+  that pinned the universe count at exactly 500 — an assertion that would fail
+  at every legitimate index reconstitution.
+- **[C1] + [C5] shipped** (brain `ce057e4`). [C1]: a *missing* token now leaves
+  the same durable `token_incident` a *stale* one always did — that asymmetry is
+  why 08-07's lost morning left no evidence. [C5]: post-close candle backfill
+  (15:40–16:30 IST), deliberately **not** in the close path. Verifies **V-9**,
+  **V-10**. Suite **905** green.
+
+⚠️ **[C1] is the post-mortem trace, not the alarm.** The alarm already exists —
+`_maybe_token_preflight` sends a Telegram warning at 09:16 IST, 14 minutes
+before autostart — and is dormant only because **[P-04]**'s bot token is unset.
+That remains the single highest-leverage ~3-minute action available.
 
 ## 🚀 2026-08-08 shipped — [P-30], and a correction it forced
 

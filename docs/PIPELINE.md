@@ -5,7 +5,14 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-09 (Sun) · **Weekly review.** No new trading session
+_Last updated: 2026-08-10 (Mon, pre-market ~01:30 IST) · **[P-24] closed — the
+DB repair finally ran** (Supabase connector came up mid-session): 18 → 11 rows,
+−₹77,325.36 → −₹45,796.41, **V-4 PASSED and I-1 back to 0**. That was the last
+date-independent open check. Also shipped overnight: **[C2]** (dead Nifty-500
+pin dropped + audit script, verify I-6), **[C1]** (durable no-token trace,
+V-9), **[C5]** (post-close candle backfill, V-10). Brain suite 905. Prior:_
+
+_2026-08-09 (Sun) · **Weekly review.** No new trading session
 since 08-07 (weekend) — burn-down unchanged from 08-08: 16 shipped + verified
 live / 1 in-progress / 8 ready / 4 blocked. Gate metrics re-measured over 610
 closed trades carrying `r_multiple` (692 total CLOSED): **PF 0.358, expectancy
@@ -195,48 +202,20 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-24] Advisor paper book double-counts realized P&L — CODE SHIPPED
-  2026-08-07 (brain `f645ff3`), DB REPAIR PENDING [you].** *Remaining:* run
-  `scripts/repair_p24_paper_books.sql` (brain repo) against prod — this session
-  was blocked from writing to the DB. **Code half VERIFIED LIVE 08-07** — 20
-  advisor runs / 120 rotations produced zero new duplicate pairs; all 7 dupes
-  are frozen at 08-06. ⚠️ **The 9 / −₹39,983.84 target is STALE** — the book
-  grows as advice closes out (18 / −₹77,325.36 at 08-07 close → target now
-  11 / −₹45,796.41). Derive it at run time; the invariant is the duplicate sum
-  −₹31,528.95. Script updated (brain `a06d9fe`). _Note the audit's TRIM claim was wrong — ITC 40+40 and
-  SILVERBEES 213+212 are honest half-trims of 80 and 425, not full exits;
-  KNOWN_ISSUES §A1 corrected. A real second bug was there though: the rotation
-  leg read the pre-trim qty and overwrote the trim's shrink._ Original item:
-  [me] · *done =*
-  each closed position has **exactly one** row with the real closed qty, and
-  `sum(realized_pnl)` over closed SEED rows equals the per-name sum (today:
-  −₹39,983.84, not the recorded −₹71,512.79). · *source:* 08-06 mid-session audit.
-  _Every rotated-out holding was written twice (`qty=0`/`SELL_VERDICT` at
-  04:31:06 **and** `qty=<real>`/`ROTATION_OUT` at 04:31:13), same P&L both times
-  — the 7 duplicate pairs account for the −₹31,528.95 gap to the rupee. Separately
-  **TRIM books a full exit while leaving the position open** (ITC open 40 + closed
-  TRIM 40 for the whole −25.8%; SILVERBEES open 213 + closed 212). Corrupts
-  `/advisor/accountability`'s realized record + win-rate. **Fix now while the
-  books are one day old** — near-zero history to migrate. Detail:
-  [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §A1. **Parked to
-  post-market by the user 08-06.**_
-- ~~**[P-30] Exit-frontier phase 2 — exact resolution by candle replay.**~~
-  ✅ **SHIPPED 2026-08-08** (dashboard: `lib/exit-replay.ts`,
-  `app/api/autopsy/route.ts`, `app/autopsy/page.tsx`). All four acceptance
-  criteria met. **The bounds collapsed ~16×** — on the same 541-trade window the
-  best cell's band went **0.118R → 0.007R**; on the current 577 it is 0.012R.
-  **Ground truth passed 85/85** (50/50 stops, 35/35 targets) among trades whose
-  exit is covered by an archived bar; every disagreement traced to the archive's
-  tail, logged as **[C5]**. Verify row **V-8**.
-  _⚠️ **It moved a documented conclusion.** §3's "3 of 180 policies go positive
-  at zero cost (best +0.009R)" was an artifact of crediting every ambiguous
-  trade with the target. Exact ordering gives **0 of 180, best −0.077R** — so
-  the entries are slightly **worse** than a coin flip, not equal to one, and
-  "cut costs" is not merely impractical but unavailable. EXIT_FRONTIER §3
-  corrected in place; full results + the stress test in §5.1._
-  _Built in the API route rather than the brain-side precompute the design
-  called for (no Supabase MCP to apply the DDL). Same client-side outcome;
-  costs ~2.8s per cold API response. Escape hatch documented in §5.1._
+- ~~**[P-24] Advisor paper book double-counts realized P&L.**~~ ✅ **DONE
+  2026-08-10 — code (brain `f645ff3`) + DB repair both complete.** The repair
+  ran against prod pre-market once the Supabase connector came up: 18 rows /
+  −₹77,325.36 → **11 / −₹45,796.41**, duplicate sum −₹31,528.95 removed, every
+  target hit exactly. **V-4 PASSED, I-1 back to 0 rows.** Rollback snapshot:
+  `scripts/p24_rollback_2026-08-10.sql` (brain repo).
+  _The code half had already been verified live on 08-07 (20 advisor runs / 120
+  rotations, zero new dupes). The "targets go stale, re-derive them" warning
+  turned out not to bite this time — the book had not grown since 08-07 — but
+  deriving at run time is still the right habit, since it moved once already
+  (9/−39,983.84 → 11/−45,796.41)._
+  _Note the audit's TRIM claim was wrong — ITC 40+40 and SILVERBEES are honest
+  half-trims, not full exits; KNOWN_ISSUES §A1 corrected, and those rows were
+  confirmed untouched after the repair._
 - **[P-32] Grade a verdict the day its `stop_level` breaks, not 30 days later.**
   [me] · *done =* every open `portfolio_advice` row carrying a `stop_level` is
   checked each session against the daily close; a break writes an

@@ -32,32 +32,7 @@ the book.
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 _2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
 _2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
-
-### V-4 · [P-24] advisor paper book de-duplicated — CODE VERIFIED, DB REPAIR PENDING
-Code shipped: brain `f645ff3`. **The code half is now verified live (08-07):**
-the advisor ran **20 times with 120 rotation rows** and created **zero** new
-duplicate pairs. Every one of the 7 dupes has `first_seen = last_seen =
-2026-08-06` — they are frozen legacy, and the bug is not reproducing.
-
-What remains is purely the **DB repair** of those 7 rows:
-`scripts/repair_p24_paper_books.sql` (brain repo) needs a human — the prod
-write has been blocked from these sessions.
-
-```sql
-select count(*) closed_rows, sum(realized_pnl) total
-from advisor_paper_positions
-where book = 'MANAGEMENT' and source = 'SEED' and is_open = false;
-```
-
-⚠️ **Expected values corrected 2026-08-07** — the original `9 / −39983.84` was
-computed when the book held 16 closed rows. It has since grown legitimately
-(18 rows / **−77325.36**) as new advice closed out, so that target is stale
-and would now read as a failure even after a correct repair.
-**PASS = `11` rows / `−45796.41`** (18 − 7 dupes; −77325.36 + 31528.95, the
-duplicate sum, which is unchanged).
-Because the book keeps growing, **re-derive both numbers immediately before
-running the repair** rather than trusting any figure written here.
-One-shot — retire once it passes.
+_2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
 Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
@@ -224,6 +199,33 @@ as [P-18], whose action gate is ≥50 graded calls.
 
 ## ✅ PASSED — kept for the record
 
+### V-4 · [P-24] advisor paper book de-duplicated — PASSED 2026-08-10
+Repair run against prod `gilmuwmtdpjccibfhqtx` at ~01:20 IST pre-market, via the
+Supabase MCP connector once it finally came up. Targets **derived at run time**
+as the script insists — and they had not drifted since 08-07 after all.
+
+| | before | after | target |
+|---|---|---|---|
+| closed MANAGEMENT/SEED rows | 18 | **11** | 11 ✅ |
+| `sum(realized_pnl)` | −77,325.36 | **−45,796.41** | −45,796.41 ✅ |
+| duplicate sum removed | | **−31,528.95** | −31,528.95 ✅ |
+
+All 7 pairs were the documented shape: `ROTATION_OUT` created 04:31:13 carrying
+the real qty, `SELL_VERDICT` created 04:31:06 with `qty=0`, identical prices and
+P&L, all frozen at 2026-08-06. Step 1 set the 7 survivors' real quantity
+(91/146/65/15/115/90/97), step 2 deleted the 7 twins — each returned id matched
+the rollback snapshot.
+
+**I-1 now returns 0 rows**, and 0 closed rows are left with `qty=0`. The ITC and
+SILVERBEES TRIM rows the script warned not to touch are intact.
+
+Rollback snapshot of all 14 rows:
+`scripts/p24_rollback_2026-08-10.sql` (brain repo).
+
+_Note for future prod work: `UPDATE` and `DELETE` both went through. The
+standing "prod writes may be blocked by the permission classifier" caveat did
+not bite here._
+
 ### V-1 · [P-27] `model_stop` persisted — PASSED 2026-08-07
 Session `2ddadca7`. **15 of 15** stop exits carry
 `execution.exit.model_stop = true` (LONG 4/4, SHORT 11/11). Was **0 of 12** on
@@ -298,11 +300,10 @@ where book = 'MANAGEMENT' and is_open = false
 group by 1, 2, 3, 4 having count(*) > 1;
 ```
 **PASS** = 0 rows.
-_2026-08-07: **7 rows — FAILING, but frozen.** All 7 carry
-`first_seen = last_seen = 2026-08-06`; the advisor ran 20 times with 120
-rotation rows on 08-07 and created none. So this is legacy awaiting the V-4
-repair, not a live defect. It should go to 0 the moment the repair runs — if a
-pair ever appears with a **newer** date, that is a genuine regression._
+_2026-08-07: 7 rows — failing but frozen (all `2026-08-06`, none new)._
+_**2026-08-10: PASS — 0 rows.** The V-4 repair ran; the duplicates are gone. From
+here this is a live regression check: any pair appearing with a **newer** date is
+a genuine reintroduction of the [P-24] bug, not legacy._
 
 ### I-2 · exit reasons are side-symmetric
 After [P-27], a reason that only ever appears on one side means a code path
