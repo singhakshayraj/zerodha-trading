@@ -166,11 +166,21 @@ the definition of something fitted to noise. Needs a genuinely consistent run,
 not one good day.
 
 ### W-B · advisor calibration (ECE)
-48.5%, non-monotonic, n=22 graded calls — poor, but DARK (no live weight) and
-too small to act on. **Do not re-check before ~late Aug 2026**: ~85% of
-`portfolio_advice` is `trigger_type=MACRO` on a **30-trading-day** horizon, so
-the graded pool grows slowly and a large ungraded backlog is normal, not
-starvation. Tracked as [P-18].
+**35.6%** (was 48.5%), still non-monotonic, **n=31** graded calls (was 22) —
+improved but still too small to act on. Read from
+`app_config.advisor_calibration_latest`, `built_at=2026-08-07`, re-confirmed
+in the 2026-08-09 weekly review (this row had gone stale — STATUS's 08-06 note
+already mentioned 28→31 graded but the ECE number here hadn't been refreshed
+since the 08-02 baseline). **Do not re-check monotonicity before ~late Aug
+2026**: ~85% of `portfolio_advice` is `trigger_type=MACRO` on a
+**30-trading-day** horizon, so the graded pool grows slowly (~3 MICRO
+rows/session) and a large ungraded backlog is normal, not starvation. Tracked
+as [P-18], whose action gate is ≥50 graded calls.
+
+| date | ECE | n graded | monotonic |
+|---|---|---|---|
+| 2026-08-02 (baseline) | 48.5% | 22 | false |
+| 2026-08-07 (built_at) / 2026-08-09 (re-confirmed) | 35.6% | 31 | false |
 
 ---
 

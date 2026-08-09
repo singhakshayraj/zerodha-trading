@@ -5,7 +5,16 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: 2026-08-08 (Sat, no session) · Burn-down: 16 shipped +
+_Last updated: 2026-08-09 (Sun) · **Weekly review.** No new trading session
+since 08-07 (weekend) — burn-down unchanged from 08-08: 16 shipped + verified
+live / 1 in-progress / 8 ready / 4 blocked. Gate metrics re-measured over 610
+closed trades carrying `r_multiple` (692 total CLOSED): **PF 0.358, expectancy
+−0.4155R, max drawdown ≈−₹33,378** — no gate flip, still deep reject zone.
+**Advisor calibration ECE moved: 48.5%→35.6%** (n=22→31, still non-monotonic,
+still below the ≥50-graded gate). V-4 ([P-24] DB repair) still open, unchanged,
+pending user action. Full re-measure below. Prior:_
+
+_2026-08-08 (Sat, no session) · Burn-down: 16 shipped +
 verified live / 1 in-progress / 8 ready / 4 blocked. **Financial-services
 plugins assessed** — their data backends are all unconnected and the skills are
 prose checklists, but four ideas transfer; three became **[P-32]/[P-33]/[P-34]**
@@ -36,6 +45,59 @@ session since shipping (→ [P-22]); brain git_sha mismatch, P-05 re-fix still u
 live (→ [P-23]).)_
 
 ---
+
+## 📊 Weekly gate re-measure (2026-08-09)
+
+**No new trading session this week** (last session `2ddadca7` ended 08-07
+09:52 UTC; 08-08/08-09 are weekend, next session Mon 08-10 per STATUS). So
+this is a clean re-measure over the same underlying data the 08-07/08-08
+post-session passes already recorded, computed directly from `trades` +
+`app_config.advisor_calibration_latest` rather than carried-forward prose:
+
+| Metric | Value (610 closed trades w/ `r_multiple`; 692 total CLOSED) | Gate (VISION §6.1) | Δ vs 08-02 review | Δ vs 08-07 post-close |
+|---|---|---|---|---|
+| Profit factor | **0.358** (gross win ₹18,563 / gross loss ₹51,830) | >1.3 go / <1.1 reject → **reject zone, no flip** | 0.376→0.358 | 0.371→0.358 |
+| Expectancy | **−0.4155R** avg | negative | −0.408R→−0.4155R | −0.414R→−0.4155R |
+| Max drawdown | **≈−₹33,378** (peak-to-trough equity, all-time) | — | ≈−6,697→−33,378 (deepening is by design — soft `-3R` stop lets full-day sessions bleed past the marker; see FLAG log, not a regression) | ≈−29,320→−33,378 (08-07's −₹3,423 session) |
+| Advisor calibration ECE | **35.6%**, still non-monotonic, **31** graded calls | DARK — not scored | 48.5%→35.6% (n=22→31) | 48.5%→35.6% (STATUS's 08-06 narrative had already noted 28→31 graded but the tracked ECE/VERIFY W-B number was stale until this pass) |
+
+**82 of 692 CLOSED trades carry no `r_multiple`** (all dated ≤2026-07-06 —
+`COVER_SHORT` 39, `SESSION_END` 17, `AUTO_SQUARED_ZERODHA` 10, `BRAIN_SIGNAL`
+8, `ORDER_FAILED`/`SQUARE_OFF_FAILED` 7, `STOP_LOSS_HIT` 1). Pre-dates every
+tracked fix on this board, not a new gap — excluded from expectancy by
+construction (`avg()` skips nulls), noted here so the 610-vs-692 count
+doesn't read as unexplained.
+
+No go/no-go gate flipped — PF stays deep in reject territory, nowhere near
+either threshold. **Advisor calibration is the one number that moved for a
+real reason**: ECE fell 12.9pp as the graded pool grew 22→31 (all MICRO-horizon
+matures; the 30-day MACRO wave still isn't due — see [P-18]/W-B). Still
+non-monotonic and still under the 50-graded action threshold, so this stays a
+**watch note, not an action** — recorded in [reference/VERIFY.md](reference/VERIFY.md)
+W-B so it isn't lost again.
+
+**[P-24] DB repair (V-4) — still open, unchanged.** `advisor_paper_positions`
+MANAGEMENT/SEED closed rows: still **18 rows / −₹77,325.36**, still **7**
+duplicate pairs (I-1), all still frozen at `first_seen=last_seen=2026-08-06`
+— the code fix continues to hold (no new dupes), but the repair script itself
+hasn't been run yet. Third day open; not yet "over a week" but it's the one
+Ready item that's pure user-action and has sat untouched since 08-06.
+
+**3-lens sanity:**
+- **Trader** — PF unchanged in substance (0.358, deep reject), no new
+  trades to read since last Friday. Drawdown deepened exactly as the
+  soft-stop design predicts; not a new risk.
+- **Advisor** — ECE improved (48.5%→35.6%) but n=31 is still low and the
+  curve is still non-monotonic; [P-18]'s own criteria (≥50 graded, expected
+  late August per the MACRO-wave timeline) already covers when this becomes
+  actionable — no new item needed.
+- **Engineer** — no new session ran this week, so no new operational
+  finding. The one standing engineering risk is non-technical: [P-24]'s DB
+  repair is a one-command script (`scripts/repair_p24_paper_books.sql` in
+  the brain repo) still waiting on a human to run it against prod.
+
+Nothing regressed; nothing moved to Ready. See prior weekly re-measure below
+for the 08-02 baseline this compares against.
 
 ## 📊 Weekly gate re-measure (2026-08-02)
 
@@ -246,7 +308,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   monkeypatching) — do only if a file becomes a real merge-conflict/nav pain, one
   carefully-verified pass at a time. config.py exempt._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
-  ECE recomputed once graded_calls ≥ 50 (currently 28, most bins low-n);
+  ECE recomputed once graded_calls ≥ 50 (currently 31, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
   before it holds. · *source:* weekly review 08-02 gate re-measure — first
   recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`.
@@ -257,6 +319,11 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   horizon, so only ~3 MICRO rows grade per session. First MACRO wave (07-12, 19
   rows) matures ~**08-24**; 07-22's ~**09-02**. Realistic ECE re-measure date:
   **late August**. Don't re-open this weekly expecting movement._
+  _**08-09 weekly review:** ECE itself moved for the first time — **48.5%→35.6%**
+  (`built_at=2026-08-07`, still `monotonic=false`), graded pool unchanged at 31
+  (no new session this week). Directionally good but n is still ~40% of the
+  action gate; recorded in [reference/VERIFY.md](reference/VERIFY.md) W-B so
+  it's tracked as a trend line, not treated as a verdict on one reading._
 - ~~**[P-22] advisor_paper tables empty**~~ ✅ **DONE — verified live 08-06.**
   Both books seeded on the official run at 04:31 UTC: `advisor_paper_positions`
   42 rows, `advisor_paper_equity` 2 (MANAGEMENT ₹618,714 vs baseline ₹620,695;
