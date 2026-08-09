@@ -419,28 +419,50 @@ export default function LearnPage() {
             <Section id="found" icon={FlaskConical} title="What the experiment has actually shown"
               lede="Findings to date, stated the way the evidence supports them.">
               <p>
-                <strong className="text-[#f5f5f5]">1. There is no edge in the entries.</strong>{" "}
+                <strong className="text-[#f5f5f5]">1. The book as a whole loses.</strong>{" "}
                 {s?.profitFactor != null && <>Profit factor sits at <strong className="text-[#f5f5f5]">{s.profitFactor.toFixed(3)}</strong>, </>}
-                deep in the reject zone, and it has never approached either gate.
+                deep in the reject zone, and it has never approached either gate. Nothing below changes that.
               </p>
               <p>
                 <strong className="text-[#f5f5f5]">2. Costs are most of the loss — but removing them would not
                 save it.</strong> Of roughly −0.40R lost per trade, about −0.24R is <T g="slippage">transaction
-                costs</T>. That sounds like a fixable problem. It is not: when every possible fixed exit rule was
-                replayed over the real price paths with costs set to <em>zero</em>, none of 180 combinations made
-                money. The entries are slightly worse than a coin flip, so no cost structure rescues them.
+                costs</T>. That sounds fixable. It is not: when every possible fixed exit rule was replayed over the
+                real price paths with costs set to <em>zero</em>, none of 180 combinations made money.
               </p>
               <p>
-                <strong className="text-[#f5f5f5]">3. No exit rule rescues it either.</strong> That same replay
-                covered every take-profit and stop-width pairing. The best was still a loss. Notably, the results
-                vary far more with stop width than with target width — the signature of entries carrying no
-                directional information.
+                <strong className="text-[#f5f5f5]">3. No exit rule rescues it either.</strong> That replay covered
+                every take-profit and stop-width pairing. The best was still a loss, and results varied far more with
+                stop width than with target width — the signature of entries carrying no directional information.
               </p>
               <p>
-                <strong className="text-[#f5f5f5]">4. Promising signals have not survived contact with more
-                data.</strong> One filter posted two good sessions in a row and looked ready to enable; the third
-                was negative. It stays dark. A rule that changes sign session to session is fitted to noise.
+                <strong className="text-[#f5f5f5]">4. So if an edge exists, it has to be in which trades are taken
+                at all</strong> — and in August 2026 the first candidate appeared that survives testing.
               </p>
+
+              <Callout kind="key" title="The one live lead — held at arm's length">
+                <p>
+                  Filtering to <strong className="text-[#f5f5f5]">short trades, entered before 13:00, in a strongly
+                  trending stock</strong> turns −0.205R per decision into <strong className="text-[#f5f5f5]">+0.097R
+                  after costs</strong>, tested on days it was not derived from. It beat plain shorting on 9 days out
+                  of 9, so it is not merely &ldquo;short a falling market&rdquo;, and the advantage shows up before
+                  costs rather than by dodging them.
+                </p>
+                <p>
+                  <strong className="text-[#f5f5f5]">It is still not proof of profitability</strong>, and the
+                  reasons matter more than the result. These are <T g="counterfactual">simulated</T> entries, not
+                  real fills. The margin is about a third of the cost paid to obtain it. It covers one ten-day
+                  market period. And an earlier version of exactly this rule looked convincing on two days and then
+                  fell apart on more data — which is why nothing has been switched on.
+                </p>
+              </Callout>
+
+              <p>
+                <strong className="text-[#f5f5f5]">5. That earlier collapse is the lesson worth keeping.</strong>{" "}
+                A separate filter posted two good sessions and looked ready to enable; the third was negative. It
+                stays dark. A rule that changes sign session to session is fitted to noise, and the only defence is
+                to keep measuring rather than to decide early.
+              </p>
+
               <Callout kind="key" title="So what would settle it?">
                 <p>
                   <T g="gate6">Gate #6</T> — a proper historical backtest across years and multiple market regimes.
@@ -448,8 +470,8 @@ export default function LearnPage() {
                   waiting on a decision about buying historical data.
                 </p>
                 <p>
-                  Until then the honest position is: <strong className="text-[#f5f5f5]">unproven, and the evidence
-                  so far is discouraging.</strong>
+                  Until then the honest position is: <strong className="text-[#f5f5f5]">unproven — the book loses,
+                  one entry filter looks promising, and neither fact is settled.</strong>
                 </p>
               </Callout>
             </Section>

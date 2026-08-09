@@ -32,6 +32,7 @@ the book.
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 _2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
 _2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
+_2026-08-10: V-12 added ([P-35] entry edge — re-run after each session's labeling)._
 _2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 advisor run._
 _2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
@@ -141,6 +142,27 @@ _The second half of the measure — grouping graded outcomes by whether the
 counter-case is what actually happened — needs graded rows carrying one, so it
 cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
 in the meantime._
+
+### V-12 · [P-35] the entry edge still holds as days accumulate
+Registered 2026-08-10. [P-35] found the first entry-edge candidate that survives
+out-of-sample testing (+0.097R net, n=1,383, t=+3.0). It is thin and rests on
+counterfactual labels, so the check is whether it *survives contact with more
+data* — which is exactly how [P-21]'s version died.
+
+Not SQL — a script in the brain repo, run AFTER the post-session labeler:
+
+```bash
+python3 scripts/label_decisions.py YYYY-MM-DD   # label the session just closed
+python3 scripts/edge_study.py                   # re-run the walk-forward
+```
+
+**PASS** = pooled out-of-sample net R stays **positive with t > 2**, and the
+rule keeps beating plain SHORT on a majority of days.
+**FAIL** = it falls to zero/negative, or t drops below 2 as n grows. That is a
+real answer, not a regression — record it and close the candidate.
+⚠️ Exclude any day whose labels are all `NO_DATA` (07-14 is one). The script
+filters on `r_multiple is not null`; a future day with an empty candle archive
+would otherwise silently dilute the result.
 
 ### I-6 · the Nifty-500 pin still matches the live instrument master
 [C2]'s failure mode is silent: a delisted or renamed name keeps its dead token

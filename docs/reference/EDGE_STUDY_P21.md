@@ -1,5 +1,14 @@
 # [P-21] Edge study — what the collected data says predicts winners
 
+> ⚠️ **The conclusion below ("the edge does NOT hold") was REVERSED on
+> 2026-08-10 by [P-35]** — see [EDGE_STUDY_P35.md](EDGE_STUDY_P35.md).
+> Nothing here was wrong at the time; the limitation this study named in its own
+> first paragraph (SHORT labels on only 2 days) simply expired as the sample
+> grew 1,597 → 5,481 decisions across 10 days. Re-tested with walk-forward
+> validation, the frozen rule holds out-of-sample at **+0.097R net** and beats
+> plain SHORT on 9 of 9 days. Read this page for the method and the honest
+> starting point; read P-35 for the current verdict.
+
 _2026-08-06. Feature→outcome mining on the walk-forward decision labels
 (`decision_outcomes`) joined to their full feature context (`brain_decisions`).
 The point of the whole data-collection effort: let the data reveal the edge (or

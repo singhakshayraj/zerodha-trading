@@ -96,6 +96,22 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
+- ~~**[P-35] Re-test the entry edge on the grown sample.**~~ ✅ **SHIPPED
+  2026-08-10** (brain `scripts/edge_study.py`). **Reverses [P-21].** The sample
+  had grown 1,597 → 5,481 labeled decisions across 10 days (SHORT labels on ten
+  days, not two), retiring the exact limitation [P-21] named — and nobody had
+  re-run it. Walk-forward out-of-sample: **+0.097R net, n=1,383, t=+3.0**; the
+  frozen rule beats plain SHORT on **9/9 days**. Both boring explanations ruled
+  out and now checked automatically by the script: cost is flat across rules (the
+  edge is in gross, +0.374R vs +0.105R), and it is not merely shorting a falling
+  market. Verify **V-12**; writeup
+  [reference/EDGE_STUDY_P35.md](reference/EDGE_STUDY_P35.md).
+  _⚠️ **Not evidence of profitability.** Counterfactual labels rather than real
+  fills, +0.097R against an average 0.310R cost, one 10-day market period, and
+  4/7 OOS days positive. Nothing is enabled — the follow-up is to re-run it after
+  each session and see whether it survives, which is how [P-21]'s version died.
+  Also backfilled 08-07's 366 missing labels as part of this._
+
 - ~~**[P-24] Advisor paper book double-counts realized P&L.**~~ ✅ **DONE
   2026-08-10 — code (brain `f645ff3`) + DB repair both complete.** The repair
   ran against prod pre-market once the Supabase connector came up: 18 rows /

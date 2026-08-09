@@ -4,7 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-10** (Mon, pre-market). **[P-24] closed** — the DB
+_Last updated: **2026-08-10** (Mon, pre-market). **[P-35] found the first entry
+edge that survives out-of-sample testing** — reverses [P-21], nothing enabled,
+see below. **[P-24] closed** — the DB
 repair ran, so **no date-independent VERIFY check remains open**. [C1], [C2],
 [C5] shipped overnight; [P-14] closed on data. Deployed versions are in the
 "Deployed:" line below — that is the single place they live. Prior entries:
@@ -93,6 +95,44 @@ works again.
   cost*. The edge has to come from the entries; the verdict rests on gate #6.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 🔬 2026-08-10 — [P-35]: the first entry edge that survives testing
+
+**This reverses [P-21].** Everything prior said the edge had to be in the
+entries ([P-29]/[P-30]: no exit policy clears breakeven even at zero cost), and
+[P-21] had tested entries and found nothing. But [P-21] named its own
+limitation in its first paragraph — SHORT labels on only 2 days — and that
+limitation had since expired without anyone re-running the study.
+
+Sample grew **1,597 → 5,481** usable labeled decisions across **10 days**
+(after backfilling 08-07's 366 missing labels).
+
+| | gross | cost | **net** |
+|---|---|---|---|
+| all 5,481 decisions | +0.105R | 0.310R | **−0.205R** |
+| frozen rule: SHORT + before 13:00 + STRONG trend | **+0.374R** | 0.291R | **+0.083R** |
+
+**Walk-forward out-of-sample: +0.097R net** (n=1,383, t=+3.0), derived only on
+prior days. Beat that day's own baseline 7/9.
+
+**Both boring explanations ruled out**, and the checks are built into the script
+so they re-run with the data:
+- *Cheaper trades?* No — cost is flat across every rule (0.291–0.332R). The
+  advantage is in **gross** (+0.374R vs +0.105R, 3.6×).
+- *Just shorting a falling market?* No — plain SHORT is that bet, and the rule
+  **beat it on 9 of 9 days**. Direction alone lost on 8 of those 9.
+
+⚠️ **Not evidence of profitability, and nothing is enabled.** Counterfactual
+labels rather than real fills; +0.097R against 0.310R of cost; one 10-day
+period; 4/7 OOS days positive. The traded book is still −0.4155R. An earlier
+version of this same rule looked convincing on two days and then collapsed —
+which is the entire reason for holding it at arm's length now.
+
+**No new brain code is needed to keep testing it** — every decision already
+records direction, hour and trend strength, so a dark flag would be redundant.
+The follow-up is to run the labeler + `scripts/edge_study.py` after each
+session. Registered as **V-12**; writeup
+[reference/EDGE_STUDY_P35.md](reference/EDGE_STUDY_P35.md).
 
 ## 🚀 2026-08-10 pre-market shipped — [P-24] closed, plus three findings
 
