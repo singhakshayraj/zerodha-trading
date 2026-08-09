@@ -20,6 +20,8 @@ type Advice = {
   confidence: number;
   trend_score: number;
   reasons: string[];
+  /** [P-33] the case AGAINST this verdict. Null on rows written before 2026-08-10. */
+  counter_case?: string | null;
   stop_level: number | null;
   exit_target: number | null;
   rotation_target_symbol?: string | null;
@@ -359,6 +361,25 @@ export default function AdvisorPage() {
                               </li>
                             ))}
                           </ul>
+
+                          {/* [P-33] The case AGAINST. Deliberately NOT another
+                              bullet in the list above — that list is
+                              confirmatory by construction, and a counter-case
+                              styled like a reason just reads as one more point
+                              in favour. Given its own block, labelled by which
+                              side it argues: bear case against a hold, bull
+                              case against a sell. */}
+                          {r.counter_case && (
+                            <div className="mt-3 rounded border border-[#3a3320] bg-[#17140c] px-2.5 py-2">
+                              <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: AMBER }}>
+                                {r.verdict === "SELL" || r.verdict === "SELL_ON_BOUNCE"
+                                  ? "Bull case — what would make this sell wrong"
+                                  : "Bear case — what would make this call wrong"}
+                              </p>
+                              <p className="text-[12px] text-[#c5b898] leading-relaxed">{r.counter_case}</p>
+                            </div>
+                          )}
+
                           {hasPlan && (
                             <div className="mt-3">
                               <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1.5">Plan</p>

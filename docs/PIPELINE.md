@@ -6,7 +6,7 @@ daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
 _Last updated: **2026-08-10** (Mon, pre-market) · Burn-down: **20 shipped +
-verified live / 0 in-progress / 5 ready / 4 blocked**._
+verified live / 0 in-progress / 4 ready / 4 blocked**._
 
 **This pass:** [P-24] closed — the DB repair finally ran (18 → 11 rows,
 −₹77,325.36 → −₹45,796.41; **V-4 PASSED, I-1 back to 0**), which clears the last
@@ -125,15 +125,21 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   but only if the level was meant as a thesis invalidation rather than a
   suggested stop for the user. Read `advise()` before building — SELL sets
   `stop = None`, so coverage is partial by construction._
-- **[P-33] Every verdict carries a bear case.** [me] · *done =*
-  `advise()` returns a `counter_case` (non-empty for every verdict except
-  `INSUFFICIENT`), stored on `portfolio_advice`, surfaced on `/advisor`.
-  Measure: 100% of non-INSUFFICIENT rows have one, and the accountability page
-  can group graded outcomes by whether the counter-case is what happened.
-  · *source:* `thesis-tracker` + `deal-screening`, FINSERV_PLUGINS §B.
-  _`reasons` today is confirmatory — it explains why the verdict is right.
-  Nothing records what would make it wrong, so nothing can be scored against
-  it. This is the cheap half of making calls falsifiable._
+- ~~**[P-33] Every verdict carries a bear case.**~~ ✅ **SHIPPED 2026-08-10**
+  (brain `bcdb667`, dashboard). `build_counter_case()` states the opposite side
+  in the verdict's own numbers — HOLD names the level whose daily close ends it;
+  TRIM gets **two** different cases because it has two causes (overextended =
+  you capped the upside, mixed = you booked a loss on noise); SELL argues the
+  reversal; SELL_ON_BOUNCE names both ways it fails. Surfaced on `/advisor` as
+  its own labelled block, **not** another bullet in the confirmatory list.
+  Verify **V-11**. Suite 925.
+  _Migration applied before the code, deliberately: `advise()`'s dict spreads
+  straight into the insert, so shipping code first would have broken the
+  advisor. An unrecognised verdict returns a loud "treat as unfalsifiable"
+  rather than '' — the failure mode to avoid is looking compliant._
+  _Half the measure is deferred by arithmetic, not by omission: grouping graded
+  outcomes by whether the counter-case happened needs ~30 trading days of
+  matured MACRO advice that carries one._
 - **[P-34] No-trade band on the rotation advisor.** [me] · *done =* rotation
   suppresses any switch whose modelled edge is below a configurable band, with
   the band expressed in the same round-trip cost units the frontier uses;

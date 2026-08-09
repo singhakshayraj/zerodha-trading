@@ -32,6 +32,7 @@ the book.
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 _2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
 _2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
+_2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 advisor run._
 _2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
@@ -115,6 +116,31 @@ name the wrong day when run after 18:30 UTC.
 whose exit lands past the last archived bar should fall from the measured
 **10 of 118** toward 0 for sessions after this ships. Earlier sessions are not
 backfilled — this only runs forward.
+
+### V-11 · [P-33] every verdict carries a bear case
+Shipped 2026-08-10 (brain `bcdb667`, dashboard). `reasons` is confirmatory by
+construction; this is the disconfirming half, so a verdict can be scored against
+something later.
+
+```sql
+select verdict,
+       count(*) n,
+       count(*) filter (where coalesce(counter_case,'') <> '') with_case
+from portfolio_advice
+where run_date = 'YYYY-MM-DD' and is_official
+group by 1 order by 1;
+```
+**PASS** = `with_case = n` for every verdict except `INSUFFICIENT`, which must be
+0 (it has no call to argue against). Substitute the session's IST date —
+`current_date` is UTC and names the wrong day after 18:30 UTC.
+**Historical rows are null** and always will be; the column was added
+2026-08-10, so only judge `run_date >= 2026-08-10`.
+First real read: today's 09:20 IST advisor run.
+
+_The second half of the measure — grouping graded outcomes by whether the
+counter-case is what actually happened — needs graded rows carrying one, so it
+cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
+in the meantime._
 
 ### I-6 · the Nifty-500 pin still matches the live instrument master
 [C2]'s failure mode is silent: a delisted or renamed name keeps its dead token
