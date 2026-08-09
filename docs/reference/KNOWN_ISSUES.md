@@ -396,6 +396,57 @@ evidence. Note also that a 2h50m session is too short to settle this — decide
 from a full session before committing to numbers. The deeper constraint today
 was **session length, not pacing** ([C1]).
 
+### C6 — the enctoken's "~06:00 IST expiry" is an unverified guess 🟡
+_Raised 2026-08-10. **Measurement in flight** — see the probe below._
+
+Four places state the enctoken expires "~06:00 IST", and
+`config.TOKEN_REFRESH_HOUR_IST = 6` / `MINUTE = 30` is built on that number:
+
+- `token_refresher.py:3`, `config.py:18`, `data_jobs.py:5`, and
+  `token_refresher.maybe_daily_refresh()`'s docstring.
+
+**None of it is documented.** Zerodha documents only the Kite Connect
+`access_token` ([kite.trade/docs/connect/v3/user](https://kite.trade/docs/connect/v3/user/));
+`enctoken` is the web-session cookie, is not part of any official API, and has
+no published lifetime. The "~06:00" figure is this project's own observation.
+
+**Why it may be wrong in the risky direction.** Community reports for
+`access_token` put the daily flush anywhere in **05:00–07:30 IST**, with tokens
+created at/after 07:30 considered safe
+([Kite forum](https://kite.trade/forum/discussion/13884/what-is-the-earliest-time-in-the-day-i-can-generate-the-access-token-for-the-day)).
+If enctoken behaves similarly, **06:30 sits inside the flush window** — so the
+TOTP auto-refresh, if it is ever enabled ([P-03]), could fetch a token that dies
+30 minutes later. That would present as "the token system is broken" rather than
+"the refresh is mis-timed", which is the expensive kind of bug.
+
+**Also settles the keep-alive question.** Keeping a session warm defeats an
+*idle timeout*; this looks like a *scheduled flush* (a time window applied to
+everyone at once). The system's own history agrees: a session that hammers Kite
+until 15:30 still dies the next morning rather than ~24h later. So no
+keep-alive scheme can work — but the probe tests it directly, since the probe
+itself is activity.
+
+**Measurement running now** (brain `a150999`,
+`scheduler._maybe_probe_token_expiry`): polls `/user/profile` every 5 min from a
+token pasted 2026-08-10 01:38 IST until 09:00, appending to
+`app_config.token_probe_log`. Runs on Railway, not a laptop, because a sleeping
+Mac leaves a gap exactly where the transition happens. Hard-gated to
+2026-08-10, so it is dead code on any other day.
+
+```sql
+select value from app_config where key = 'token_probe_log';
+```
+
+**Actions once the number is known:** correct the four comments, and move
+`TOKEN_REFRESH_HOUR_IST` if 06:30 proves to be inside the window (likely →
+07:35). Then delete `_maybe_probe_token_expiry` and
+`scripts/probe_token_expiry.py`.
+
+⚠️ Do not treat tonight's token as the plan for the 08-10 session — paste a
+fresh one after ~07:30 regardless. This is an experiment, not a runbook change.
+
+---
+
 ### C5 — `candles` misses the tail of a trade's window 🟡
 _Found 2026-08-08 by [P-30]'s ground-truth check, which is exactly the kind of
 thing that check exists to surface._
