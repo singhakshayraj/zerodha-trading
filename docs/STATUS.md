@@ -4,13 +4,14 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-10** (Mon, pre-market). **[P-35] found the first entry
-edge that survives out-of-sample testing** — reverses [P-21], nothing enabled,
-see below. **[P-24] closed** — the DB
-repair ran, so **no date-independent VERIFY check remains open**. [C1], [C2],
-[C5] shipped overnight; [P-14] closed on data. Deployed versions are in the
-"Deployed:" line below — that is the single place they live. Prior entries:
-`git log docs/STATUS.md`._
+_Last updated: **2026-08-10** (Mon, post-session, ~16:50 IST). Today's session
+ran and closed normally (81 trades, −₹8,528.22, PF 0.242). **New this pass:
+the Supabase org is confirmed on the free tier**, DB at 97 MB / 500 MB,
+**≈6 weeks of runway** — a real, time-boxed decision now needed on [P-38]
+(see "Open — needs the USER" below). Also found and drained: **[P-37]**
+(capacity fixes) had shipped pre-market but was never moved to PIPELINE Done.
+Deployed versions are in the "Deployed:" line below — that is the single place
+they live. Prior entries: `git log docs/STATUS.md`._
 
 ---
 
@@ -24,15 +25,23 @@ Board: [PIPELINE.md](PIPELINE.md) · open checks:
 [README.md](README.md) · paste-block: [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
 **Who owes what, with exact commands: [OPEN_ITEMS.md](OPEN_ITEMS.md).**
 
-**Deployed:** brain `ce057e4` (suite **905**), dashboard `2a7d73a`.
+**Deployed:** brain `68f306f3f5fc` (git_sha stamped on today's session,
+`6220e8ce`), dashboard `b7f9f9f`.
 
 ### Where things stand
 
-An overnight pre-market session (00:45–01:40 IST) closed **[P-24]**, **[C1]**,
-**[C2]** and **[C5]** — see §"2026-08-10 pre-market shipped" below. **No
+An overnight pre-market session (00:45–03:27 IST) closed **[P-24]**, **[C1]**,
+**[C2]** and **[C5]**, shipped **[P-35]**/**[P-36]**/**[P-37]**, and added the
+Learn page — see §"2026-08-10 pre-market shipped" below. **No
 date-independent VERIFY check remains open**; the ledger is now purely
-event-driven (V-7/V-9/V-10 all need a live session to judge). Tree clean and
-pushed on both repos. Last trading session was 08-07.
+event-driven (V-7/V-9/V-10 all need a live session to judge).
+
+⚠️ **Superseded — a full trading session has since run.** Session `6220e8ce`
+04:07–09:51 UTC (09:37–15:21 IST), `COMPLETED`/`MARKET_CLOSED`. The **"Do these,
+in order"** block right below is pre-market prep for a day that has now
+happened — items ①/② no longer apply. See **§"📈 2026-08-10 post-session"**
+below for today's result, and re-write this block fresh next pre-market
+session rather than trusting it as-is.
 
 ### Do these, in this order
 
@@ -160,6 +169,40 @@ records direction, hour and trend strength, so a dark flag would be redundant.
 The follow-up is to run the labeler + `scripts/edge_study.py` after each
 session. Registered as **V-12**; writeup
 [reference/EDGE_STUDY_P35.md](reference/EDGE_STUDY_P35.md).
+
+## 📈 2026-08-10 post-session
+
+Session `6220e8ce` 04:07–09:51 UTC (09:37–15:21 IST), `COMPLETED`/
+`MARKET_CLOSED`, git_sha `68f306f3f5fc`. **81 trades, −₹8,528.22, PF 0.242**
+(gross win 13.712R / gross loss 56.686R), **expectancy −0.531R** (17 win / 64
+loss) — a weak day, on the low end of the established per-session PF range
+(0.04–1.03). Advisor ran normally: 800 advice rows, 04:23–09:46 UTC, no stall.
+
+**Advisor calibration moved:** graded_calls **31 → 37**, ECE **35.6% → 30.3%**,
+base rate 37.8%, still `monotonic=false` (still below [P-18]'s ≥50-graded
+action gate).
+
+**Cumulative (all-time, now 773 closed trades / 691 carrying `r_multiple`):**
+PF **0.343** (gross win ₹21,765.63 / gross loss ₹63,560.75), expectancy
+**−0.429R**, max drawdown (peak-to-trough equity) **≈−₹42,352** (deepened from
+≈−₹33,378 on 08-09 — today's loss day, consistent with the soft-stop design,
+not a new regression). No gate flip — PF stays deep in reject territory.
+Standing conclusion unchanged: **no edge on paper data; gate #6 is still the
+verdict and still blocked** ([P-01]).
+
+**⚠️ New finding this pass — Supabase capacity.** Cross-checking [P-37]'s
+capacity work (shipped pre-market but not yet reflected on the PIPELINE board)
+turned up that its own Task 0 gate had never been answered: **the org is on
+the Supabase free tier**, not Pro. Current DB size **97 MB / 500 MB (19%)**,
+**≈6 weeks of runway** at the measured growth rate. This is a real, time-boxed
+item — see **[P-38]** in PIPELINE (moved to Blocked) and
+[reference/CAPACITY.md](reference/CAPACITY.md). Needs a decision: upgrade to
+Pro, or run the storage-trim plan under that clock (the trim alone does not
+remove the need for the decision — it only stretches the runway).
+
+_Docs sync: [P-37] (shipped 03:15 IST) added to PIPELINE Done — it had
+shipped but the board was never updated. No other undocumented shipped items
+found in `git log -25`._
 
 ## 🚀 2026-08-10 pre-market shipped — [P-24] closed, plus three findings
 
@@ -584,25 +627,29 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 08-04 | 90 (full-day, −3R soft) | −₹10,827 | 0.16 | −0.64R |
 | 08-05 | 41 (full-day, −3R soft) | −₹1,604 | 0.55 | −0.23R |
 | 08-06 | 77 (full-day, −3R soft) | −₹5,052 | 0.489 | −0.344R |
+| 08-10 | 81 (full-day, −3R soft) | −₹8,528.22 | 0.242 | −0.531R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
 still no edge. AM (in the "+EV" open window) was the **worst** bucket, PM (after
 10:15) the best — inverting the T4 open-window thesis (see FLAG log)._
 
-Cumulative (all-time, 574 closed trades) ≈ PF **0.371**, expectancy
-**−0.414R avg**, total **−₹29,178** — measured directly from
-`trades.r_multiple` this pass (08-06 post-close).
-08-06 added 77 trades / −₹5,052 (PF 0.489, mid-range — not the weak-day 0.158
-of 08-04, not the better 0.66/0.55 of 08-03PM/08-05); no gate flip (still deep
+Cumulative (all-time, **773 closed trades**, 691 carrying `r_multiple`) ≈ PF
+**0.343** (gross win ₹21,765.63 / gross loss ₹63,560.75), expectancy
+**−0.429R avg**, total **−₹41,795.12** — measured directly from `trades` this
+pass (08-10 post-close; see §"2026-08-10 post-session" above for the full
+readout and method).
+08-10 added 81 trades / −₹8,528.22 (PF 0.242, a weak day — worse than 08-06's
+0.489, in similar territory to 08-04's 0.158); no gate flip (still deep
 reject zone, PF gate is >1.3 go / <1.1 reject). **Standing conclusion
 unchanged: no edge yet → gate #6 is the priority.** Max drawdown (peak-to-
-trough equity, all-time) is now **≈−₹29,320** (was ≈−₹24,879) — deeper,
-consistent with the soft daily-stop design (a session can bleed past −3R
-rather than hard-cutting), not treated as a new regression. Trade-quality note (T4): the "opening hour is the only
-+EV window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R
-vs −0.64R) converged to both-negative, no spread left to exploit either way.
-See the FLAG log; re-measure over more full-day sessions.
+trough equity, all-time) is now **≈−₹42,352** (was ≈−₹33,378 on 08-09) —
+deeper, consistent with the soft daily-stop design (a session can bleed past
+−3R rather than hard-cutting), not treated as a new regression. Trade-quality
+note (T4): the "opening hour is the only +EV window" thesis stays **dented** —
+08-04's open vs after-open R (−0.63R vs −0.64R) converged to both-negative, no
+spread left to exploit either way. See the FLAG log; re-measure over more
+full-day sessions.
 
 ## Live subsystems (all shipped + deployed)
 - **Advisor** — daily HOLD/SELL on real holdings; `/advisor` + command center.
@@ -620,11 +667,15 @@ See the FLAG log; re-measure over more full-day sessions.
   /trading (RiskMeter).
 
 ## ⏳ Open — needs the USER
-1. **Rotate the Telegram bot token** (only real cred left — was in runtime logs).
+1. **Supabase tier decision (≈6-week clock).** Org confirmed on the free tier
+   (500 MB), DB at 97 MB (19%). Upgrade to Pro, or accept running
+   [P-38]'s storage-trim plan under that runway (the trim alone doesn't remove
+   the need for this decision — see [reference/CAPACITY.md](reference/CAPACITY.md)). [P-38]
+2. **Rotate the Telegram bot token** (only real cred left — was in runtime logs).
    BotFather → revoke → `railway variables --set TELEGRAM_BOT_TOKEN=… --service
    zerodha-brain`. Anon-key rotation is **unnecessary** (RLS airtight) — see
    [reference/CRED_ROTATION.md](reference/CRED_ROTATION.md). [P-04]
-2. **Fundamentals data source** pick (screener/NSE vs paid) → unblocks agent P3. [P-02]
+3. **Fundamentals data source** pick (screener/NSE vs paid) → unblocks agent P3. [P-02]
 
 _Deprioritized by the user (do not foreground): **P-01** Kite ₹500 historical
 (gate #6) and **P-03** TOTP auto-login. Sessions now run daily via autopilot

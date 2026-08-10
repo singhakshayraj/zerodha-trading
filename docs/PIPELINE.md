@@ -5,14 +5,17 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-10** (Mon, pre-market) · Burn-down: **20 shipped +
-verified live / 0 in-progress / 4 ready / 4 blocked**._
+_Last updated: **2026-08-10** (Mon, post-session) · Burn-down: **21 shipped +
+verified live / 0 in-progress / 4 ready / 5 blocked**._
 
-**This pass:** [P-24] closed — the DB repair finally ran (18 → 11 rows,
-−₹77,325.36 → −₹45,796.41; **V-4 PASSED, I-1 back to 0**), which clears the last
-date-independent open check. [C1], [C2], [C5] shipped (brain `ce057e4`,
-`a68e136`; suite **905**). [P-14] closed on data — all phases were already done
-and both paper books are populated. New verifies **V-9**, **V-10**, **I-6**.
+**This pass (post-session, evidence from today's session + git log):** Today's
+session `6220e8ce` ran 04:07–09:51 UTC, COMPLETED/MARKET_CLOSED, 81 trades,
+−₹8,528.22, PF 0.242, expectancy −0.531R — see STATUS for the full readout.
+**[P-37] added to Done** — pre-market capacity fixes (query-cost cliffs) had
+shipped but were never moved off the board. **[P-38] added to Blocked** — the
+storage-scaling plan's own Task 0 gate (confirm Supabase tier) is now answered:
+**the org is on the free tier**, not Pro, ~6 weeks of runway at the measured
+growth rate. Needs a user decision before the plan proceeds.
 
 > **Where the history went.** This preamble used to stack every prior update,
 > and the weekly gate re-measures sat above the board — together pushing the
@@ -93,6 +96,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   The ONE real action is the **Telegram token** (was in Railway logs pre-scrub):
   BotFather → revoke → `railway variables --set TELEGRAM_BOT_TOKEN=… --service
   zerodha-brain`. Runbook has exact steps. Reduced from a 2-cred task to 1._
+- **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
+  decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
+  `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
+  31 checkbox steps) or is explicitly deferred with the tier upgraded instead.
+  · *source:* [P-37]'s capacity pass. · *blocked on:* the plan's own Task 0
+  gate. **Confirmed 2026-08-10 (post-session): org is on the free tier**, DB
+  at 97 MB / 500 MB (19%), ≈6 weeks of runway at the measured growth rate —
+  the plan's own escalation clause fires ("stop and escalate... the correct
+  fix is a tier change, not 600 MB of savings"). The trim plan alone does not
+  remove the need for that decision — it only stretches runway.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
@@ -287,6 +300,22 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- ~~**[P-37] Capacity — fix the two cliffs that break within a year.**~~ ✅
+  **SHIPPED 2026-08-10** (found shipped in git log, was never moved off the
+  board). `EXPLAIN ANALYZE`-led, not guessed: `autopsy_dataset()`'s Nested Loop
+  had the right plan already, but its loop count is the trade count, which
+  grows linearly (577×0.29ms today → ~7.5s/year); bounded to a rolling window
+  (default 400d) + a partial index (`idx_trades_closed_excursion`, Seq Scan
+  20.6ms → Index Scan 0.85ms). `count(*)` on `brain_decisions` (417ms warm at
+  21k rows, →~18s/year) split into an exact **claim** (PF/expectancy/P&L, from
+  `trades` only) vs an O(1) **indicator** (`pg_class.reltuples` via
+  `approx_rows()`, rendered with `~`). `brain_activity` retention deliberately
+  deferred (write-only, 17 MB today, not yet worth the irreversible delete).
+  `/api/autopsy` 0.406s → 0.284s on top of [P-36]. All exact figures verified
+  unchanged after the change (692 trades, PF 0.358, −0.4155R, −₹33,267).
+  Projections in [reference/CAPACITY.md](reference/CAPACITY.md). _Follow-up
+  spawned [P-38] (the storage-trim plan, now in Blocked)._
 
 - ~~**[P-14] Advisor accountability / paper-trade system.**~~ ✅ **DONE — verified live 2026-08-10.** [me] · re-raised +
   scoped 2026-08-05 (was parked 2026-07-28): paper-trade every advisor verdict,

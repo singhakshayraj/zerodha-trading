@@ -22,9 +22,15 @@ Use **recent** rates, not lifetime averages: [P-31] doubled the universe
 
 Today: **77 MB**. So storage is ~40× current in a year.
 
-**Storage is not the constraint.** 3.3 GB is unremarkable for Postgres, and
-Supabase Pro includes 8 GB (~2.4 years). ⚠️ On the **free tier (500 MB) this
-blows in about six weeks** — worth confirming which plan is active.
+**Storage is not the constraint** — *if* the org is on Pro. ⚠️ **Confirmed
+2026-08-10 (post-session review): the org (`singhakshayraj's Org`) is on the
+free tier**, not Pro. Current DB size **97 MB / 500 MB** (19%). At the measured
+~13.6 MB/trading-day rate that's **≈6 weeks of runway** — matching [P-38]'s own
+estimate. Per [P-38] Task 0's own instruction: *"If Free, stop and escalate
+before implementing anything below — the correct fix is a tier change, not
+600 MB of savings."* [P-38]'s trim only buys ~2.4 GB back a year; it does not
+change which tier is needed. Needs a user decision: upgrade to Pro, or accept
+running the trim plan under a hard ~6-week clock.
 
 `brain_decisions` at **1,848 bytes/row** is over half the total. That is the
 `indicators` jsonb, which carries ~30 keys including nested `regime`,
