@@ -5,17 +5,16 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-10** (Mon, post-session) · Burn-down: **21 shipped +
-verified live / 0 in-progress / 4 ready / 5 blocked**._
+_Last updated: **2026-08-13** (Thu, post-session) · Burn-down: **21 shipped +
+verified live / 0 in-progress / 4 ready / 5 blocked**._ (unchanged this pass —
+nothing shipped, no session to verify against.)
 
-**This pass (post-session, evidence from today's session + git log):** Today's
-session `6220e8ce` ran 04:07–09:51 UTC, COMPLETED/MARKET_CLOSED, 81 trades,
-−₹8,528.22, PF 0.242, expectancy −0.531R — see STATUS for the full readout.
-**[P-37] added to Done** — pre-market capacity fixes (query-cost cliffs) had
-shipped but were never moved off the board. **[P-38] added to Blocked** — the
-storage-scaling plan's own Task 0 gate (confirm Supabase tier) is now answered:
-**the org is on the free tier**, not Pro, ~6 weeks of runway at the measured
-growth rate. Needs a user decision before the plan proceeds.
+**This pass (post-session):** No trading session has run since 08-10 —
+`git log --oneline -25` shows nothing past the 08-10 review commit, and prod
+confirms zero rows in every session-scoped table for 08-11/08-12/08-13 (see
+STATUS). Board unchanged: no items to drain, no metric to re-measure. One
+evidence note added to **[P-04]** below — three consecutive silent weekdays,
+a new worst case for the dependency that item already tracks.
 
 > **Where the history went.** This preamble used to stack every prior update,
 > and the weekly gate re-measures sat above the board — together pushing the
@@ -96,6 +95,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   The ONE real action is the **Telegram token** (was in Railway logs pre-scrub):
   BotFather → revoke → `railway variables --set TELEGRAM_BOT_TOKEN=… --service
   zerodha-brain`. Runbook has exact steps. Reduced from a 2-cred task to 1._
+  _**08-13 evidence, not a reprioritization:** the dependency this item guards
+  against just cost **3 consecutive weekdays** (08-11/08-12/08-13) — zero rows
+  in every session-scoped table, heartbeat ONLINE/`current_cycle=0`/"Waiting
+  for START command" throughout. Previously worst-documented gap was 2 days
+  (07-30/07-31); this is now the worst case on record. Still user-deprioritised,
+  not re-raised here — logged so the next priority review has the number._
 - **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
   decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
   `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
