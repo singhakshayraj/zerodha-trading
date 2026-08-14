@@ -5,15 +5,15 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-13** (Thu, post-session) · Burn-down: **21 shipped +
+_Last updated: **2026-08-14** (Fri, post-session) · Burn-down: **21 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (unchanged this pass —
 nothing shipped, no session to verify against.)
 
 **This pass (post-session):** No trading session has run since 08-10 —
-`git log --oneline -25` shows nothing past the 08-10 review commit, and prod
-confirms zero rows in every session-scoped table for 08-11/08-12/08-13 (see
+`git log --oneline -25` shows nothing past the 08-13 review commit, and prod
+confirms zero rows in every session-scoped table for 08-11 through 08-14 (see
 STATUS). Board unchanged: no items to drain, no metric to re-measure. One
-evidence note added to **[P-04]** below — three consecutive silent weekdays,
+evidence note added to **[P-04]** below — four consecutive silent weekdays,
 a new worst case for the dependency that item already tracks.
 
 > **Where the history went.** This preamble used to stack every prior update,
@@ -101,6 +101,10 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   for START command" throughout. Previously worst-documented gap was 2 days
   (07-30/07-31); this is now the worst case on record. Still user-deprioritised,
   not re-raised here — logged so the next priority review has the number._
+  _**08-14 evidence:** extends to **4 consecutive weekdays** (08-11→08-14),
+  same signature (heartbeat ONLINE, `current_cycle=0`, "Waiting for START
+  command", zero session/decision/advice rows). Still not re-raised — logging
+  only._
 - **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
   decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
   `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
