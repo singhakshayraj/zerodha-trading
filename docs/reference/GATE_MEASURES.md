@@ -9,30 +9,81 @@ numbers and links here.
 **The gates** (VISION §6.1): profit factor **>1.3 go / <1.1 reject**; expectancy
 positive; advisor calibration is DARK and not scored.
 
-## Latest — 2026-08-09
+## Latest — 2026-08-16 (data unchanged since 08-10)
 
 | Metric | Value | vs prior |
 |---|---|---|
-| Profit factor | **0.358** | 0.376 (08-02) → 0.358 |
-| Expectancy | **−0.4155R** | −0.408R → −0.4155R |
-| Max drawdown | **≈−₹33,378** | ≈−₹6,697 → −₹33,378 |
-| Advisor calibration ECE | **35.6%**, non-monotonic, n=31 | 48.5% (n=22) → 35.6% |
+| Profit factor | **0.343** | 0.358 (08-09) → 0.343 |
+| Expectancy | **−0.429R** | −0.4155R → −0.429R |
+| Max drawdown | **≈−₹41,817** | ≈−₹33,378 → −₹41,817 |
+| Advisor calibration ECE | **30.3%**, non-monotonic, n=37 | 35.6% (n=31) → 30.3% |
+
+Measured directly from `trades` (773 closed, 691 carrying `r_multiple`) and
+`app_config.advisor_calibration_latest` (`built_at=2026-08-10`) this pass —
+the same underlying data as STATUS's 08-10 post-session entry, since no
+session has run since. **Corrects a docs-sync gap:** this table and
+PIPELINE's summary line had kept carrying 08-07/08-09's calibration read (ECE
+35.6%, n=31) through two more review cycles (08-13, 08-14) after STATUS
+recorded the real 08-10 numbers the day they were measured — the
+weekly-tracking tables just hadn't been refreshed to match. No hidden new
+data; the STATUS entry was correct throughout.
 
 **No gate has ever flipped.** PF has sat in the reject zone at every measure and
 is nowhere near either threshold. The drawdown deepening is *by design* — the
 −3R daily stop went soft on 08-03 so full-day sessions bleed past the marker;
 that is data collection working as intended, not a regression.
 
-The one number moving for a real reason is **advisor ECE**, which fell 12.9pp as
-the graded pool grew 22→31. Still non-monotonic, still under the ≥50-graded
-action threshold ([P-18]), and it is expected to keep crawling until the 30-day
-MACRO wave matures ~late August.
+**Advisor ECE keeps improving as the graded pool grows**: 48.5% (n=22) →
+35.6% (n=31) → 30.3% (n=37). Still non-monotonic, still under the ≥50-graded
+action threshold ([P-18], now ~74% of the way there), and expected to keep
+crawling until the 30-day MACRO wave matures ~late August.
 
 ⚠️ **None of this is the edge verdict.** Paper PF measures entries the book
 already took; gate #6 (a historical backtest, [P-01]) is the verdict, and it is
 blocked. [P-30] sharpened the surrounding picture — no exit policy clears
 breakeven *even at zero transaction cost* — so the edge has to come from the
 entries.
+
+---
+
+## 📊 Weekly gate re-measure (2026-08-16)
+
+**No new trading session this week.** `trading_sessions` max `started_at` is
+still 08-10; zero rows in `trading_sessions`/`brain_decisions`/`portfolio_advice`
+for 08-11 through 08-15 (confirmed directly against prod). The four
+consecutive silent weekdays (08-11→08-14) already logged in the 08-14
+post-session pass haven't grown — 08-15/08-16 are weekend, same non-growth
+pattern as the 08-02 weekly review. `brain_heartbeat`: ONLINE,
+`current_cycle=0`, "Waiting for START command" as of today 04:37 UTC — same
+standing state, not re-raised ([P-03]/[P-04] stay user-deprioritised).
+
+All figures in the "Latest" table above are a **re-measure of the same 08-10
+data**, not new information — see the docs-sync note above for why the
+numbers moved from what this table last showed.
+
+**Re-verified [P-05] holds on a much larger sample.** Pooled `STOP_LOSS_HIT`
+since the 08-07 fix: **−1.226R (n=43)**, inside the −1.25R cap and consistent
+with V-2's original −1.211R at n=15 — the fix has held as the sample nearly
+tripled (all from already-closed trades; no new session was needed to check
+this). See [VERIFY.md](VERIFY.md) V-2.
+
+**3-lens sanity:**
+- **Trader** — PF 0.343, deep reject zone, unchanged in substance. No new
+  trades to read. Max drawdown ≈−₹41,817 (peak-to-trough of realized P&L,
+  all-time) is essentially the 08-10 read — no new bleed.
+- **Advisor** — ECE 30.3% (n=37), continuing the improvement trend, still
+  non-monotonic and still under [P-18]'s ≥50-graded action gate. First MACRO
+  wave still expected ~08-24; watch, don't act.
+- **Engineer** — no new session this week, so no new operational finding
+  beyond the standing [P-03]/[P-04] token-paste gap (still 4 consecutive
+  silent weekdays, unchanged — not re-raised, per standing user
+  deprioritization).
+
+No go/no-go gate flipped (PF stays far below the 1.1 reject line). Nothing
+regressed; nothing moved to Ready. [VERIFY.md](VERIFY.md)'s OPEN section has
+had no date-independent checks since 08-10 (V-7/V-9/V-10/V-11/V-12 are all
+event-driven, still awaiting a live session) — none has sat open past a week
+with no path to resolve, so no ledger-staleness finding this pass.
 
 ---
 

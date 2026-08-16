@@ -227,21 +227,23 @@ the definition of something fitted to noise. Needs a genuinely consistent run,
 not one good day.
 
 ### W-B · advisor calibration (ECE)
-**35.6%** (was 48.5%), still non-monotonic, **n=31** graded calls (was 22) —
-improved but still too small to act on. Read from
-`app_config.advisor_calibration_latest`, `built_at=2026-08-07`, re-confirmed
-in the 2026-08-09 weekly review (this row had gone stale — STATUS's 08-06 note
-already mentioned 28→31 graded but the ECE number here hadn't been refreshed
-since the 08-02 baseline). **Do not re-check monotonicity before ~late Aug
-2026**: ~85% of `portfolio_advice` is `trigger_type=MACRO` on a
-**30-trading-day** horizon, so the graded pool grows slowly (~3 MICRO
-rows/session) and a large ungraded backlog is normal, not starvation. Tracked
-as [P-18], whose action gate is ≥50 graded calls.
+**30.3%** (was 35.6%), still non-monotonic, **n=37** graded calls (was 31) —
+continuing to improve, still too small to act on. Read from
+`app_config.advisor_calibration_latest`, `built_at=2026-08-10`, re-confirmed
+in the 2026-08-16 weekly review (this row had again gone stale — the 08-10
+number was live in `app_config` and in STATUS's own 08-10 post-session entry
+the same day, but this ledger and GATE_MEASURES.md's "Latest" table kept
+carrying the 08-07 read through two more review cycles). **Do not re-check
+monotonicity before ~late Aug 2026**: ~85% of `portfolio_advice` is
+`trigger_type=MACRO` on a **30-trading-day** horizon, so the graded pool grows
+slowly (~3 MICRO rows/session) and a large ungraded backlog is normal, not
+starvation. Tracked as [P-18], whose action gate is ≥50 graded calls.
 
 | date | ECE | n graded | monotonic |
 |---|---|---|---|
 | 2026-08-02 (baseline) | 48.5% | 22 | false |
 | 2026-08-07 (built_at) / 2026-08-09 (re-confirmed) | 35.6% | 31 | false |
+| 2026-08-10 (built_at) / 2026-08-16 (re-confirmed) | 30.3% | 37 | false |
 
 ---
 
@@ -298,6 +300,10 @@ reason. Both sides appear in both buckets:
 measured LONGs only and 11 of today's 15 stops are SHORT — i.e. the old number
 was describing the smaller half. Note the sides differ (LONG −1.304 vs SHORT
 −1.177) on small n; re-read once n grows.
+
+_2026-08-16 weekly re-measure: pooled `STOP_LOSS_HIT` since 08-07 is now
+**−1.226R (n=43)**, up from n=15 — still inside the −1.25R cap as the sample
+nearly tripled. The fix holds._
 
 ### V-3 · [P-28] phantom trade row — PASSED 2026-08-07
 `trades` **36** = `total_trades_executed` **36** = `ORDER_PLACED` **36**;

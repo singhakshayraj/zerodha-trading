@@ -5,16 +5,25 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-14** (Fri, post-session) · Burn-down: **21 shipped +
+_Last updated: **2026-08-16** (Sun, weekly review) · Burn-down: **21 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (unchanged this pass —
-nothing shipped, no session to verify against.)
+nothing shipped, no session since 08-10.)
 
-**This pass (post-session):** No trading session has run since 08-10 —
-`git log --oneline -25` shows nothing past the 08-13 review commit, and prod
-confirms zero rows in every session-scoped table for 08-11 through 08-14 (see
-STATUS). Board unchanged: no items to drain, no metric to re-measure. One
-evidence note added to **[P-04]** below — four consecutive silent weekdays,
-a new worst case for the dependency that item already tracks.
+**This pass (weekly review):** No trading session has run since 08-10 — prod
+confirms zero rows in `trading_sessions`/`brain_decisions`/`portfolio_advice`
+for 08-11 through 08-15. The silent-weekday count stays at **four** (08-11→
+08-14; 08-15/08-16 are weekend, so no new weekday has elapsed since the 08-14
+post-session pass — same non-growth pattern as the 08-02 weekly review).
+Re-measured the gate metrics directly against prod: numerically identical to
+08-10 (same 773 closed / 691 `r_multiple` trades). Found and fixed a
+**docs-sync gap**: this section and
+[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)'s "Latest" table were
+still carrying 08-07/08-09's advisor-calibration read (ECE 35.6%, n=31) two
+review cycles after STATUS's own 08-10 post-session entry had already recorded
+the real latest number (ECE 30.3%, n=37) — corrected both, see
+GATE_MEASURES.md. Re-verified **[P-05]**'s stop-fill cap holds on a much larger
+sample: pooled `STOP_LOSS_HIT` since the 08-07 fix is now **−1.226R (n=43)**,
+up from −1.211R at n=15 — see VERIFY.md V-2.
 
 > **Where the history went.** This preamble used to stack every prior update,
 > and the weekly gate re-measures sat above the board — together pushing the
@@ -25,12 +34,13 @@ a new worst case for the dependency that item already tracks.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-09
+## 📊 Gate re-measure — latest 2026-08-16
 
-**PF 0.358 · expectancy −0.4155R · advisor ECE 35.6% (n=31).** No gate flipped;
-PF has never left the reject zone. Full history, method and the 3-lens read:
-**[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** — moved out of this
-file on 2026-08-10 so the board stays at the top of the page.
+**PF 0.343 · expectancy −0.429R · advisor ECE 30.3% (n=37).** Same underlying
+trade data as 08-10 (no session since); this replaces the stale 08-09 numbers
+this doc had been carrying. No gate flipped; PF has never left the reject
+zone. Full history, method and the 3-lens read:
+**[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)**.
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -240,7 +250,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   monkeypatching) — do only if a file becomes a real merge-conflict/nav pain, one
   carefully-verified pass at a time. config.py exempt._
 - **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
-  ECE recomputed once graded_calls ≥ 50 (currently 31, most bins low-n);
+  ECE recomputed once graded_calls ≥ 50 (currently 37, most bins low-n);
   re-check monotonicity then — don't promote confidence into a scored input
   before it holds. · *source:* weekly review 08-02 gate re-measure — first
   recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`.
@@ -256,6 +266,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   (no new session this week). Directionally good but n is still ~40% of the
   action gate; recorded in [reference/VERIFY.md](reference/VERIFY.md) W-B so
   it's tracked as a trend line, not treated as a verdict on one reading._
+  _**08-16 weekly review:** graded pool grew 31→37 and ECE fell further,
+  35.6%→30.3% (`built_at=2026-08-10` — this had already landed live in
+  `app_config` and in STATUS's 08-10 post-session entry the day it was
+  measured; this pass just caught PIPELINE/GATE_MEASURES/VERIFY up to it).
+  Still `monotonic=false`, now ~74% of the ≥50 action gate. No new session
+  this week, so the pool itself hasn't grown past 08-10._
 - ~~**[P-22] advisor_paper tables empty**~~ ✅ **DONE — verified live 08-06.**
   Both books seeded on the official run at 04:31 UTC: `advisor_paper_positions`
   42 rows, `advisor_paper_equity` 2 (MANAGEMENT ₹618,714 vs baseline ₹620,695;
