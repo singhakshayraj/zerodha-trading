@@ -4,25 +4,25 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-14** (Fri, post-session, ~16:45 IST). ⚠️ **No trading
-session has run since 08-10** — now **four** consecutive weekdays silent
-(08-11 Tue, 08-12 Wed, 08-13 Thu, 08-14 Fri). Verified directly against prod
-(dashboard API unreachable this pass too, see note below): zero rows in
-`trading_sessions`, `brain_decisions`, `portfolio_advice` for 08-14; closed
-trade count unchanged at 773 (691 `r_multiple`) — identical to the 08-10
-figure. `brain_heartbeat` is **ONLINE** as of 11:29 UTC today but
-`current_cycle=0`, `"Waiting for START command"` — the known
-manual-enc_token-paste dependency ([P-03]/[P-04]) never got a token any of
-these four days. New worst case, extending 08-13's note (was three days, now
-four) — exceeds the previously recorded 07-30/07-31 two-day gap. Not
-re-raising the P-03/P-04 priority call (user has deprioritised it) —
-recording the evidence only. **No metrics changed this pass** — 08-10 numbers
-(81 trades, −₹8,528.22, PF 0.242; 773 closed trades cumulative, PF 0.343)
-still stand, see "2026-08-10 post-session" below.
+_Last updated: **2026-08-17** (Mon, post-session, ~17:00 IST). ⚠️ **No trading
+session has run since 08-10** — now **five** consecutive weekdays silent
+(08-11 Tue, 08-12 Wed, 08-13 Thu, 08-14 Fri, 08-17 Mon — 08-15/08-16 were
+weekend). Verified directly against prod (dashboard API unreachable this pass
+too, see note below): zero rows in `trading_sessions`, `brain_decisions`,
+`portfolio_advice` for 08-17; closed trade count unchanged at 773 (691
+`r_multiple`) — identical to the 08-10 figure. `brain_heartbeat` is
+**ONLINE** as of 11:22 UTC today but `current_cycle=0`, `"Waiting for START
+command"` — the known manual-enc_token-paste dependency ([P-03]/[P-04]) never
+got a token any of these five days. New worst case, extending 08-14's note
+(was four days, now five) — exceeds the previously recorded 07-30/07-31
+two-day gap. Not re-raising the P-03/P-04 priority call (user has
+deprioritised it) — recording the evidence only. **No metrics changed this
+pass** — 08-10 numbers (81 trades, −₹8,528.22, PF 0.242; 773 closed trades
+cumulative, PF 0.343) still stand, see "2026-08-10 post-session" below.
 ⚠️ **Data-source note:** the deployed dashboard API
 (`zerodha-trading-liard.vercel.app`) was **egress-blocked** again this session
 (proxy returned 403 — organization policy denial, not a site outage, same as
-08-13). Today's "no session" finding was confirmed instead via direct
+08-13/08-14). Today's "no session" finding was confirmed instead via direct
 Supabase queries, which this routine always has as a fallback. Deployed
 versions are in the "Deployed:" line below — that is the single place they
 live. Prior entries: `git log docs/STATUS.md`._

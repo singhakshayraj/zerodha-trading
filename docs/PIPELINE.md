@@ -5,18 +5,22 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-16** (Sun, weekly review) · Burn-down: **21 shipped +
+_Last updated: **2026-08-17** (Mon, post-session) · Burn-down: **21 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (unchanged this pass —
 nothing shipped, no session since 08-10.)
 
-**This pass (weekly review):** No trading session has run since 08-10 — prod
+**This pass (post-session):** No trading session has run since 08-10 — prod
 confirms zero rows in `trading_sessions`/`brain_decisions`/`portfolio_advice`
-for 08-11 through 08-15. The silent-weekday count stays at **four** (08-11→
-08-14; 08-15/08-16 are weekend, so no new weekday has elapsed since the 08-14
-post-session pass — same non-growth pattern as the 08-02 weekly review).
-Re-measured the gate metrics directly against prod: numerically identical to
-08-10 (same 773 closed / 691 `r_multiple` trades). Found and fixed a
-**docs-sync gap**: this section and
+for 08-17 too (direct Supabase query; dashboard API still egress-blocked,
+403). The silent-weekday count is now **five** (08-11, 08-12, 08-13, 08-14,
+08-17 — 08-15/08-16 were weekend). Trade count unchanged at 773 closed / 691
+`r_multiple`, same as the last recorded pass — nothing to re-measure. Gate
+metrics, burn-down and blocked items below are carried forward unchanged from
+the 08-16 weekly review.
+
+**08-16 weekly review (prior pass):** Re-measured the gate metrics directly
+against prod: numerically identical to 08-10 (same 773 closed / 691
+`r_multiple` trades). Found and fixed a **docs-sync gap**: this section and
 [reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)'s "Latest" table were
 still carrying 08-07/08-09's advisor-calibration read (ECE 35.6%, n=31) two
 review cycles after STATUS's own 08-10 post-session entry had already recorded
@@ -115,6 +119,9 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   same signature (heartbeat ONLINE, `current_cycle=0`, "Waiting for START
   command", zero session/decision/advice rows). Still not re-raised — logging
   only._
+  _**08-17 evidence:** extends to **5 consecutive weekdays** (08-11, 08-12,
+  08-13, 08-14, 08-17 — weekend excluded), same signature. Still not
+  re-raised — logging only._
 - **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
   decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
   `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
