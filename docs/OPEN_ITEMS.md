@@ -1,6 +1,6 @@
 # OPEN ITEMS — who owes what
 
-_Cut by **owner**, as of 2026-08-10 (Mon, pre-market). Updated after the overnight session that closed [P-24], [C1], [C2] and [C5]._
+_Cut by **owner**, as of **2026-08-23** (Sun). Next session Mon 08-24. Sections 1.2/1.3 below are the 08-10 pre-market block, kept for the runbook commands — the dated framing is stale, the commands are not._
 
 This is a **derived view**, not a new source of truth. [PIPELINE.md](PIPELINE.md)
 stays authoritative for work items and [reference/VERIFY.md](reference/VERIFY.md)
@@ -115,12 +115,9 @@ too), but the win/loss scorecard reads as advisor skill when it isn't.
 
 ## 1.4 Decisions with no deadline — each one unblocks something
 
-| 🔴 **[P-38] Supabase tier** | Measured 08-23: **97 MB / 500 MB (19%) — the FREE tier.** Projected growth ~3.3 GB/yr. Optimisation saves ~600 MB/yr, which does not close that gap. **Decide: upgrade to Pro (8 GB ≈ 2.4 yrs) or accept a hard stop.** Paused while no session runs; resumes the day trading does. |
-|---|---|
-
-
 | Item | What exactly | What it unblocks |
 |---|---|---|
+| 🔴 **[P-38]** Supabase tier — **new, 2026-08-23** | Measured **97 MB / 500 MB (19%) — the FREE tier.** Decide: upgrade to **Pro (8 GB ≈ 2.4 yrs)**, or accept a hard stop. | Projected growth is ~3.3 GB/yr and lossless optimisation saves only ~600 MB/yr, so **this is a tier change, not a code problem**. Clock is paused only because no session has run since 08-10; it restarts the day trading does. |
 | **[P-02]** Fundamentals provider | Pick a source | `stock_agent.py:74` has carried `'fundamentals': None` since P3. The advisor scores 7 factors with **zero fundamental input**. Also blocks every fundamental screen the finserv plugins offer ([FINSERV_PLUGINS](reference/FINSERV_PLUGINS.md)). |
 | **[P-13]** Marketaux API key | Set the key | `news.sentiment` populates; the collector is built and dormant. |
 | 🔴 **[P-04]** Telegram token — **do this one first** | ① @BotFather → `/mybots` → pick bot → API Token → **Revoke current token**. ② `railway variables --set "TELEGRAM_BOT_TOKEN=<new>" --service zerodha-brain`. ③ Confirm a digest lands. | **The 09:16 IST dead-token alert (§1.1)** — already built, dormant only for want of this token; it is what would have saved 55% of the 08-07 session. Plus the digest + intraday alerts. **~3 minutes.** Runbook: [reference/CRED_ROTATION.md](reference/CRED_ROTATION.md). **1 cred, not 2** — the anon key is safe-by-design, skip it. |
@@ -144,7 +141,7 @@ Several connectors are unauthorized or never finished connecting:
 | Connector | State | Consequence |
 |---|---|---|
 | **Supabase** | ✅ **connected 2026-08-10** | Resolved itself mid-session. `execute_sql` reads + `UPDATE`/`DELETE` all work — that's how ② finally ran. [P-33]'s migration is now unblocked too. |
-| **Railway** | not available | Can't read logs or set variables directly. |
+| **Railway** | ✅ connected 2026-08-23 | Logs and variables reachable again. |
 | S&P Global | needs auth | Finserv plugin data — low value here, see FINSERV_PLUGINS. |
 | LSEG | never connected | Same. |
 
