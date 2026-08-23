@@ -446,23 +446,26 @@ export default function LearnPage() {
               </p>
               <p>
                 <strong className="text-[#f5f5f5]">4. So if an edge exists, it has to be in which trades are taken
-                at all</strong> — and in August 2026 the first candidate appeared that survives testing.
+                at all</strong> — and every candidate tested there has failed too.
               </p>
 
-              <Callout kind="key" title="The one live lead — held at arm's length">
+              <Callout kind="warn" title="A lead that looked real, and died">
                 <p>
-                  Filtering to <strong className="text-[#f5f5f5]">short trades, entered before 13:00, in a strongly
-                  trending stock</strong> turns −0.205R per decision into <strong className="text-[#f5f5f5]">+0.097R
-                  after costs</strong>, tested on days it was not derived from. It beat plain shorting on 9 days out
-                  of 9, so it is not merely &ldquo;short a falling market&rdquo;, and the advantage shows up before
-                  costs rather than by dodging them.
+                  In August 2026 one filter looked like the first genuine edge this project had found. Restricting to{" "}
+                  <strong className="text-[#f5f5f5]">short trades, entered before 13:00, in a strongly trending
+                  stock</strong> turned −0.205R per decision into <strong className="text-[#f5f5f5]">+0.097R after
+                  costs</strong>, tested on days it was not derived from, with a t-statistic of +3.0. It beat plain
+                  shorting on 9 days out of 9.
                 </p>
                 <p>
-                  <strong className="text-[#f5f5f5]">It is still not proof of profitability</strong>, and the
-                  reasons matter more than the result. These are <T g="counterfactual">simulated</T> entries, not
-                  real fills. The margin is about a third of the cost paid to obtain it. It covers one ten-day
-                  market period. And an earlier version of exactly this rule looked convincing on two days and then
-                  fell apart on more data — which is why nothing has been switched on.
+                  <strong className="text-[#f5f5f5]">Then one more day of data erased it.</strong> The next session
+                  scored −0.532R on that filter — its worst day ever — and the out-of-sample average fell to{" "}
+                  <strong className="text-[#f5f5f5]">−0.003R</strong>. Not a decline: zero.
+                </p>
+                <p>
+                  This is the single most useful thing on the page. A result can look statistically solid on ten days
+                  and be a coin flip on eleven. Nothing had been switched on, so nothing had to be undone — which is
+                  exactly what the <T g="darkflag">dark-flag</T> discipline is for.
                 </p>
               </Callout>
 
@@ -480,8 +483,8 @@ export default function LearnPage() {
                   waiting on a decision about buying historical data.
                 </p>
                 <p>
-                  Until then the honest position is: <strong className="text-[#f5f5f5]">unproven — the book loses,
-                  one entry filter looks promising, and neither fact is settled.</strong>
+                  Until then the honest position is blunt: <strong className="text-[#f5f5f5]">the book loses, and no
+                  entry filter tested so far survives contact with more data.</strong>
                 </p>
               </Callout>
             </Section>

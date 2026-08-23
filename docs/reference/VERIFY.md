@@ -143,7 +143,15 @@ counter-case is what actually happened — needs graded rows carrying one, so it
 cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
 in the meantime._
 
-### V-12 · [P-35] the entry edge still holds as days accumulate
+### V-12 · [P-35] the entry edge still holds as days accumulate — 🔴 **FAILED 2026-08-23**
+**The check did its job.** Labelling 2026-08-10 (329 decisions) took pooled
+out-of-sample from **+0.097R (t=+3.0) → −0.003R (t=−0.1)**. The rule scored
+−0.532R on 08-10 (n=262, t=−7.7), its worst day ever. Per this row's own FAIL
+condition that is *a real answer, not a regression*: **there is no entry edge**,
+and the candidate is closed. [P-35] annotated; see EDGE_STUDY_P35.md.
+Keep running it — the ledger row stays open as the standing re-check.
+
+_Original registration:_
 Registered 2026-08-10. [P-35] found the first entry-edge candidate that survives
 out-of-sample testing (+0.097R net, n=1,383, t=+3.0). It is thin and rests on
 counterfactual labels, so the check is whether it *survives contact with more

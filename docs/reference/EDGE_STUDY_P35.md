@@ -1,4 +1,20 @@
-# [P-35] Entry edge, re-tested — the first candidate that survives
+# [P-35] Entry edge, re-tested — and it did NOT survive
+
+> 🔴 **COLLAPSED 2026-08-23 on the very next day of data.** Labelling the
+> 2026-08-10 session added 329 decisions. The rule scored **−0.532R** that day
+> (n=262, t=−7.7), its worst ever, and pooled out-of-sample went
+> **+0.097R (t=+3.0) → −0.003R (t=−0.1)**. That is not a decline, it is zero.
+>
+> **There is no entry edge.** One day erased it — exactly how [P-21]'s version
+> died, and exactly what verify **V-12** existed to catch. The section below is
+> kept as written because the failure is the finding: a result that looked
+> statistically solid at t=+3.0 on ten days was a coin flip on eleven.
+>
+> The one thing that *did* survive: the rule still beat plain SHORT on **9 of
+> 10 days**, so it was never merely "short a falling market". It selects
+> better-than-average entries — just not better than the cost of taking them.
+
+# [P-35] (original writeup) Entry edge, re-tested — the first candidate that survives
 
 _2026-08-10. Supersedes the conclusion of [EDGE_STUDY_P21.md](EDGE_STUDY_P21.md)
 on a 3.4× larger sample with walk-forward validation.

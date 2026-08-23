@@ -4,120 +4,120 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-17** (Mon, post-session, ~17:00 IST). ⚠️ **No trading
-session has run since 08-10** — now **five** consecutive weekdays silent
-(08-11 Tue, 08-12 Wed, 08-13 Thu, 08-14 Fri, 08-17 Mon — 08-15/08-16 were
-weekend). Verified directly against prod (dashboard API unreachable this pass
-too, see note below): zero rows in `trading_sessions`, `brain_decisions`,
-`portfolio_advice` for 08-17; closed trade count unchanged at 773 (691
-`r_multiple`) — identical to the 08-10 figure. `brain_heartbeat` is
-**ONLINE** as of 11:22 UTC today but `current_cycle=0`, `"Waiting for START
-command"` — the known manual-enc_token-paste dependency ([P-03]/[P-04]) never
-got a token any of these five days. New worst case, extending 08-14's note
-(was four days, now five) — exceeds the previously recorded 07-30/07-31
-two-day gap. Not re-raising the P-03/P-04 priority call (user has
-deprioritised it) — recording the evidence only. **No metrics changed this
-pass** — 08-10 numbers (81 trades, −₹8,528.22, PF 0.242; 773 closed trades
-cumulative, PF 0.343) still stand, see "2026-08-10 post-session" below.
-⚠️ **Data-source note:** the deployed dashboard API
-(`zerodha-trading-liard.vercel.app`) was **egress-blocked** again this session
-(proxy returned 403 — organization policy denial, not a site outage, same as
-08-13/08-14). Today's "no session" finding was confirmed instead via direct
-Supabase queries, which this routine always has as a fallback. Deployed
-versions are in the "Deployed:" line below — that is the single place they
-live. Prior entries: `git log docs/STATUS.md`._
+_Last updated: **2026-08-23** (Sun, ~21:00 IST). **[P-35]'s entry edge
+COLLAPSED** on 08-10's data — V-12 FAILED exactly as designed, so **there is no
+entry edge**. **[C6]** answered by measurement: the token is flushed at
+**04:34 IST**, not ~06:00. **[P-38]** storage tasks 1/2/4 shipped. And the
+storage plan's open question is now answered by the weekly review's own number —
+**97 MB / 500 MB (19%), i.e. the FREE tier**, so [P-38] Task 0 resolves to
+"escalate": ~3.3 GB/yr of growth does not fit in 500 MB.
+
+⚠️ **No trading session has run since 08-10** — nine silent weekdays
+(08-11→08-21). Closed trades unchanged at 773 (691 with `r_multiple`), PF 0.343.
+The manual-enc_token dependency ([P-03]/[P-04]) never got a token on any of
+them. Recording evidence only, not re-raising the deprioritised call.
+
+Deployed versions are in the "Deployed:" line below. Prior entries:
+`git log docs/STATUS.md`._
 
 ---
 
 ## ▶️ START HERE NEXT SESSION
 
-_Written 2026-08-10 (Mon) ~01:40 IST, pre-market. **Today is a trading day** —
-the open is 09:15 IST._
+_Written 2026-08-23 (Sun) ~21:00 IST. **Next session Mon 2026-08-24.** No
+session has run since 08-10 — thirteen days idle._
 Board: [PIPELINE.md](PIPELINE.md) · open checks:
 [reference/VERIFY.md](reference/VERIFY.md) · findings:
-[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) · how they connect:
-[README.md](README.md) · paste-block: [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
-**Who owes what, with exact commands: [OPEN_ITEMS.md](OPEN_ITEMS.md).**
+[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) · who owes what:
+[OPEN_ITEMS.md](OPEN_ITEMS.md) · paste-block:
+[reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
 
-**Deployed:** brain `68f306f3f5fc` (git_sha stamped on today's session,
-`6220e8ce`), dashboard `b7f9f9f`.
+**Deployed:** brain `b21a09b` (suite **933**), dashboard `git log`.
 
 ### Where things stand
 
-An overnight pre-market session (00:45–03:27 IST) closed **[P-24]**, **[C1]**,
-**[C2]** and **[C5]**, shipped **[P-35]**/**[P-36]**/**[P-37]**, and added the
-Learn page — see §"2026-08-10 pre-market shipped" below. **No
-date-independent VERIFY check remains open**; the ledger is now purely
-event-driven (V-7/V-9/V-10 all need a live session to judge).
+Session `6220e8ce` on 08-10 ran clean — 04:07–09:51 UTC (09:37–15:21 IST),
+`COMPLETED`/`MARKET_CLOSED`, 5.75h, 81 trades, 3,526 decisions, git_sha
+`68f306f`. The scheduled routine posted its post-session pass that day; what it
+did **not** do is label the decisions and re-run the edge study, which is V-12.
+Doing that tonight is what killed [P-35] — see below.
 
-⚠️ **Superseded — a full trading session has since run.** Session `6220e8ce`
-04:07–09:51 UTC (09:37–15:21 IST), `COMPLETED`/`MARKET_CLOSED`. The **"Do these,
-in order"** block right below is pre-market prep for a day that has now
-happened — items ①/② no longer apply. See **§"📈 2026-08-10 post-session"**
-below for today's result, and re-write this block fresh next pre-market
-session rather than trusting it as-is.
+Verify results from 08-10: **V-10 PASS** (31/31 traded symbols, 69 bars each,
+zero gaps — the [C5] backfill works), **V-11 PASS** (800/800 advice rows carry a
+counter-case), **I-1 PASS** (0 duplicate pairs), **V-9 NOT-YET** (token was
+pasted on time, the good outcome), **V-12 FAIL**.
 
-### Do these, in this order
+Also cleared tonight: **[C6]** answered by measurement and the temporary probe
+removed; **[P-38]** storage tasks 1/2/4 shipped.
+
+**Verify results from 08-10:** V-10 **PASS** (31/31 traded symbols, 69 bars
+each, zero gaps — the [C5] backfill works), V-11 **PASS** (800/800 advice rows
+carry a counter-case), I-1 **PASS** (0 duplicate pairs), V-9 NOT-YET (token was
+pasted on time — the good outcome), V-12 **FAIL** (see below).
+
+### Do these, in this order — Monday 2026-08-24
 
 **① BEFORE 09:15 IST — paste the `enc_token`, then run the pacing runbook. [you]**
 ```bash
 bash scripts/premarket_pacing.sh   # brain repo
 ```
-✅ **No edit needed** — the script already sets `DATA_MAX_NEW_TRADES_PER_HOUR=25`
-and `MAX_TRADES_PER_CYCLE=12`, which is what revised [C4] calls for. (An earlier
-version of this block said to adjust the numbers first; that was wrong, and the
-script's own stale header has since been rewritten.) It **restarts the brain**,
-so it must land before the open and never during a session.
+✅ **Corrected 2026-08-23 by measurement.** The token is flushed daily at
+**~04:34 IST**, not ~06:00 as four files used to claim. So the paste window is
+**anything after ~04:35** — much wider than the "after 07:30" previously
+advised, and `TOKEN_REFRESH_HOUR_IST=06:30` is safely *after* the flush, not
+inside it. The script needs no edits; it restarts the brain, so never during a
+session.
 
-**② ~~[P-24] DB repair~~ ✅ DONE 2026-08-10** — ran pre-market once the Supabase
-connector came up. 18 → **11 rows**, −₹77,325.36 → **−₹45,796.41**. **V-4
-PASSED, I-1 back to 0.** Nothing left for you here.
+**② [P-26] seed-basis decision. [you→me]** — still the one item waiting on you.
+Seed at **seed-day price** (recommended) so the advisor owns only what happened
+after it spoke, rather than inheriting RVNL −46.3% and NBCC +73.0%.
 
-**③ [P-26] seed-basis decision. [you→me]** — the one item still waiting on you.
-Recommendation unchanged: seed at **seed-day price**, so the advisor owns only
-what happened after it spoke rather than inheriting RVNL −46.3% and NBCC +73.0%
-as its own record. _(It was meant to be bundled with ②; ② has now run without it,
-which costs nothing — the seed basis is a separate rewrite of the same rows.)_
+**③ Post-close — `/post-session-check`, then `/counterfactual-audit`.**
+Only after 15:30 IST. Then **label the session and re-run the edge study** —
+that is V-12, and it is now the check that matters most:
+```bash
+python3 scripts/label_decisions.py 2026-08-24 && python3 scripts/edge_study.py
+```
 
-**④ Post-close — `/post-session-check`, then `/counterfactual-audit`.**
-Only after ~15:30 IST / 10:00 UTC; auditing a live session misreports. Open
-entering today, all event-driven:
-- **V-7** ([P-25]) — needs a day you actually trade. Quiet day = NOT-YET.
-- **V-9** ([C1]) — only judgeable on a day the token is *missing*. If you paste
-  on time it stays NOT-YET, which is the good outcome.
-- **V-10** ([C5]) — first real read after today's 15:40–16:30 IST backfill runs.
-
-**⑤ Then pull the top Ready item.** With [P-24] and the C-series closed, the
-Ready list is **[P-32]** / **[P-33]** / **[P-34]** (from the finserv-plugin
-assessment) and **[P-06]**. [P-32] is the highest value — it attacks [P-18]'s
-grading bottleneck — but **needs one decision from you first**: is `stop_level` a
-*thesis invalidation* (breaking it means the HOLD was wrong) or a *suggested stop
-for you* (breaking it means act, but the call may still be sound)? They grade
-differently. [P-33] needs no decision and is now unblocked, since Supabase DDL
-works again.
+**④ Then pull the top Ready item.** [P-32] still needs your `stop_level` answer
+(thesis invalidation vs suggested stop). [P-34] and [P-06] need nothing.
 
 ### Standing facts a new session must not re-litigate
 
-- **The biggest lever is [P-04], and it costs ~3 minutes.** [C1]: `AUTOPILOT`
-  fired on time on 08-07 but retried ~380× on a missing enc_token, losing **~55%
-  of the day's tape**. The alarm for this **already exists** —
-  `_maybe_token_preflight` sends a Telegram warning at 09:16 IST, 14 minutes
-  before autostart — and is dormant *only* because [P-04]'s bot token is unset.
-  The durable post-mortem trace shipped 08-10 (V-9), but that records the loss,
-  it does not prevent it. [P-03] stays **deprioritised — do not re-raise it**.
-- **Do not read 08-07's trade count as a verdict on [P-31].** A 2h50m session
-  caps volume regardless. 08-07 is a clean read on *diversity* (46→86 symbols),
-  not volume.
-- **Short-side `exit_reason` semantics changed on 08-07.** Buckets are **not
-  comparable across that boundary** — every short exit before it is
-  `COVER_SHORT`.
-- **Trend-tells: streak broken.** +0.134, +0.182, then **−0.093**. Stays dark.
-  Sign-flipping session to session is exactly what [P-21] warned of.
-- **No exit policy rescues the book, and not even zero cost does.** [P-30]
-  corrected [P-29] here: 0 of 180 policies clear breakeven *at zero transaction
-  cost*. The edge has to come from the entries; the verdict rests on gate #6.
+- **There is no entry edge, and no exit edge.** [P-30]: 0 of 180 exit policies
+  clear breakeven *even at zero cost*. [P-35]: the one entry filter that
+  survived ten days died on the eleventh. The verdict rests on gate #6.
+- **The token is flushed ~04:34 IST daily** (measured). Not an idle timeout — a
+  probe hitting the API throughout did not keep it alive, so **no keep-alive
+  scheme can work**. Not a ~3h TTL either: sessions have run 5.75h and 5.85h on
+  one token.
+- **The biggest operational lever is [P-04], ~3 minutes.** The 09:16 IST
+  dead-token Telegram alert is built and dormant only because the bot token is
+  unset. [P-03] stays **deprioritised — do not re-raise it**.
+- **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 🔴 2026-08-23 — [P-35]'s entry edge COLLAPSED on the next day of data
+
+**V-12 caught it, which is the whole point of V-12.** No session had run since
+08-10. Labelling that session added 329 decisions and the candidate died:
+
+| | 10 days | 11 days |
+|---|---|---|
+| pooled out-of-sample net | **+0.097R (t=+3.0)** | **−0.003R (t=−0.1)** |
+| 08-10 itself | — | **−0.532R** (n=262, t=−7.7), worst day ever |
+
+**There is no entry edge.** A result that looked statistically solid on ten days
+was a coin flip on eleven — the same way [P-21]'s version died. Nothing was ever
+enabled, so nothing needs reverting; that is the dark-flag discipline paying for
+itself.
+
+One nuance survives: the rule still beat plain SHORT on **9 of 10 days**, so it
+was never merely "short a falling market". It picks better-than-average
+entries — just not better than the **0.309R average cost** of taking them.
+Which returns the project to [P-30]'s conclusion: costs dominate, and the
+verdict rests on gate #6.
 
 ## ⚡ 2026-08-10 — [P-36]: API layer, 5.04s → 0.94s
 

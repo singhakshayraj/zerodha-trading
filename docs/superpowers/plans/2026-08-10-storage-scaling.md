@@ -26,7 +26,14 @@
 
 At ~3.3 GB/year: Supabase **Pro** includes 8 GB → ~2.4 years of runway, and this plan is a worthwhile tidy-up rather than an emergency. Supabase **Free** is 500 MB → the database fills in **roughly six weeks**, and this plan is insufficient on its own (you would also need aggressive retention or an upgrade).
 
-- [ ] **Step 1: Check the tier**
+✅ **ANSWERED 2026-08-23: FREE tier, 97 MB / 500 MB (19%).** So the escalation
+branch applies — **the correct fix is a tier change, not this plan**. Tasks 1, 2
+and 4 shipped anyway on 2026-08-23 (brain `b21a09b`) because they are lossless
+and cheap, but they buy ~600 MB/yr against a 3.3 GB/yr problem in a 500 MB box.
+Task 3 (`market_context`) is **not worth doing until the tier question is
+settled** — it is the only task that can lose data.
+
+- [x] **Step 1: Check the tier**
 
 Supabase dashboard → Project Settings → Billing, or ask the project owner.
 
