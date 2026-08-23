@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
-import api from "@/lib/api";
+
 
 // Acquisition is this system's only real failure mode — 45.2% uptime since
 // 2026-07-10, and every lost day was an enctoken nobody pasted before 09:15
@@ -21,10 +21,22 @@ export function TokenAlert() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // api.get carries the auth this route requires; a bare fetch 401s.
-    api.get<{ tokenStale?: boolean }>("/brain/status")
-      .then((r) => setStale(Boolean(r.data?.tokenStale)))
-      .catch(() => {});
+    // /connect is where you FIX this, so never poll from there.
+    if (pathname === "/connect") return;
+
+    // Deliberately a raw fetch, NOT the shared `api` client. That client's
+    // response interceptor calls clearSession() and hard-redirects to /connect
+    // on any 401 — so a passive advisory banner mounted in the root layout
+    // could (and did) log the user out and put /connect into an infinite
+    // reload loop. A warning must never be able to break the page it warns on.
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("enc_token") : null;
+    if (!token) return;               // nothing to authenticate with; stay quiet
+
+    fetch("/api/brain/status", { headers: { "x-enc-token": token } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setStale(Boolean(d?.tokenStale)))
+      .catch(() => {});               // advisory only: never surface an error
   }, [pathname]);
 
   if (!stale || pathname === "/connect") return null;
