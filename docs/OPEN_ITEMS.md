@@ -115,6 +115,10 @@ too), but the win/loss scorecard reads as advisor skill when it isn't.
 
 ## 1.4 Decisions with no deadline — each one unblocks something
 
+| 🔴 **[P-38] Supabase tier** | Measured 08-23: **97 MB / 500 MB (19%) — the FREE tier.** Projected growth ~3.3 GB/yr. Optimisation saves ~600 MB/yr, which does not close that gap. **Decide: upgrade to Pro (8 GB ≈ 2.4 yrs) or accept a hard stop.** Paused while no session runs; resumes the day trading does. |
+|---|---|
+
+
 | Item | What exactly | What it unblocks |
 |---|---|---|
 | **[P-02]** Fundamentals provider | Pick a source | `stock_agent.py:74` has carried `'fundamentals': None` since P3. The advisor scores 7 factors with **zero fundamental input**. Also blocks every fundamental screen the finserv plugins offer ([FINSERV_PLUGINS](reference/FINSERV_PLUGINS.md)). |

@@ -99,6 +99,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🔴 BLOCKED — waiting on a decision/action (mostly [you])
 
+- **[P-38] Supabase is on the FREE tier (500 MB) and will not hold a year.**
+  [you] · *done =* tier decision made. · *source:* [P-37] capacity + the 08-23
+  weekly review's own measurement (**97 MB / 500 MB, 19%**).
+  _Projected growth is ~3.3 GB/yr; the storage plan's lossless savings are
+  ~600 MB/yr. That gap is not closable by optimisation — **the fix is a tier
+  change** (Pro = 8 GB ≈ 2.4 years). Tasks 1/2/4 shipped 08-23 anyway because
+  they are cheap and lossless; Task 3 (`market_context`) is deliberately parked,
+  since it is the only one that can lose data and it is not worth that risk to
+  buy weeks. The clock is paused only because no session has run since 08-10 —
+  it restarts the day trading does._
+
 - **[P-01] Gate #6 backtest — the edge verdict.** [you→me] · *done =*
   `backtest.py` outputs per-regime PF over ≥2yrs. · *blocked on:* Kite ₹500/mo.
   _The hinge — everything strategic waits on this._
@@ -182,8 +193,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   [reference/ENGINEERING_SPEC.md](reference/ENGINEERING_SPEC.md) so new routes
   inherit it. No new security lints (`security invoker` + pinned `search_path`).
 
-- ~~**[P-35] Re-test the entry edge on the grown sample.**~~ ✅ **SHIPPED
-  2026-08-10** (brain `scripts/edge_study.py`). **Reverses [P-21].** The sample
+- ~~**[P-35] Re-test the entry edge on the grown sample.**~~ ✅ SHIPPED 2026-08-10
+  · 🔴 **RESULT REVERSED 2026-08-23 — no entry edge.** Labelling 08-10 (329
+  decisions) took pooled out-of-sample from **+0.097R (t=+3.0) → −0.003R
+  (t=−0.1)**; the rule scored **−0.532R** on 08-10, its worst day. V-12 FAILED
+  exactly as registered. Nothing was enabled, so nothing needs reverting. The
+  rule still beat plain SHORT 9/10 days, so it was never merely directional —
+  it picks better-than-average entries, just not better than the 0.309R cost of
+  taking them. Original entry:
+  ✅ **SHIPPED 2026-08-10** (brain `scripts/edge_study.py`). **Reverses [P-21].** The sample
   had grown 1,597 → 5,481 labeled decisions across 10 days (SHORT labels on ten
   days, not two), retiring the exact limitation [P-21] named — and nobody had
   re-run it. Walk-forward out-of-sample: **+0.097R net, n=1,383, t=+3.0**; the
