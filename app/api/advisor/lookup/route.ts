@@ -71,6 +71,14 @@ export async function GET(req: Request) {
             held,
           }
         : null,
+      // Every prefix hit, including the exact one — the search box uses this
+      // as a typeahead list, so filtering out the exact match would make the
+      // dropdown drop the item you just finished typing.
+      options: rows.map((r) => ({
+        symbol: r.symbol,
+        name: r.company_name,
+        score: r.advisor_score,
+      })),
       suggestions: rows.filter((r) => r.symbol !== q).map((r) => r.symbol),
     });
   } catch (e) {

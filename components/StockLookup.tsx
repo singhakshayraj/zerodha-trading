@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Loader2 } from "lucide-react";
 
 // Look up any Nifty-500 name, not just holdings.
@@ -12,6 +12,8 @@ import { Search, Loader2 } from "lucide-react";
 //
 // Consequence, surfaced rather than hidden: the number is as fresh as the last
 // advisor run, not live. The component always shows when it was scored.
+
+type Option = { symbol: string; name: string | null; score: number | null };
 
 type Match = {
   symbol: string; name: string | null; sector: string | null;
@@ -26,6 +28,23 @@ export function StockLookup() {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<{ match: Match | null; suggestions: string[]; query: string } | null>(null);
+  const [opts, setOpts] = useState<Option[]>([]);
+
+  // Typeahead. A native <datalist> rather than a custom popover: the browser
+  // handles keyboard nav, mobile and dismissal, which is most of what a hand-
+  // rolled dropdown gets wrong. Debounced so typing a 10-char ticker is one
+  // request at rest, not ten.
+  useEffect(() => {
+    const s = q.trim();
+    if (s.length < 2) { setOpts([]); return; }
+    const t = setTimeout(() => {
+      fetch(`/api/advisor/lookup?symbol=${encodeURIComponent(s)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => setOpts(d?.options ?? []))
+        .catch(() => {});
+    }, 180);
+    return () => clearTimeout(t);
+  }, [q]);
 
   async function run(symbol?: string) {
     const s = (symbol ?? q).trim();
@@ -66,8 +85,18 @@ export function StockLookup() {
           onChange={(e) => setQ(e.target.value.toUpperCase())}
           placeholder="e.g. INFY, TATAMOTORS"
           aria-label="Stock symbol"
+          list="stock-symbols"
+          autoComplete="off"
           className="flex-1 min-w-0 bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-[13px] text-[#f5f5f5] placeholder:text-[#555] focus:outline-none focus:border-[#3b82f6]"
         />
+        <datalist id="stock-symbols">
+          {opts.map((o) => (
+            // label carries the company name + score where the browser shows it
+            <option key={o.symbol} value={o.symbol}
+                    label={`${o.name ?? ""}${o.score !== null ? `  ·  ${o.score > 0 ? "+" : ""}${o.score}` : ""}`} />
+          ))}
+        </datalist>
+
         <button
           type="submit"
           disabled={busy || !q.trim()}
