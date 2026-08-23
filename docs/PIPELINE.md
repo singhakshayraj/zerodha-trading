@@ -5,18 +5,35 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-17** (Mon, post-session) · Burn-down: **21 shipped +
+_Last updated: **2026-08-23** (Sun, weekly review) · Burn-down: **21 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (unchanged this pass —
 nothing shipped, no session since 08-10.)
 
-**This pass (post-session):** No trading session has run since 08-10 — prod
+**This pass (weekly review):** No trading session has run since 08-10 — prod
 confirms zero rows in `trading_sessions`/`brain_decisions`/`portfolio_advice`
-for 08-17 too (direct Supabase query; dashboard API still egress-blocked,
-403). The silent-weekday count is now **five** (08-11, 08-12, 08-13, 08-14,
-08-17 — 08-15/08-16 were weekend). Trade count unchanged at 773 closed / 691
-`r_multiple`, same as the last recorded pass — nothing to re-measure. Gate
-metrics, burn-down and blocked items below are carried forward unchanged from
-the 08-16 weekly review.
+for the entire 08-11→08-21 window (direct Supabase query: `sessions_since_0811
+= 0`, `decisions_since_0811 = 0`, `advice_since_0811 = 0`; dashboard API still
+egress-blocked, 403, same as every recent pass). The silent-weekday count is
+now **nine** (08-11, 08-12, 08-13, 08-14, 08-17, 08-18, 08-19, 08-20, 08-21 —
+weekends excluded) — up from five at the last pass (08-17) and a new worst
+case, well past the previous record (the 4-day 08-11→08-14 run). `total_sessions
+= 87`, `max(started_at) = 2026-08-10 04:07 UTC`, unchanged. `brain_heartbeat`
+is **ONLINE** as of 08-23 04:37 UTC but `current_cycle=0`, `"Waiting for START
+command"` — same standing signature as every prior pass this stretch. Trade
+count unchanged at 773 closed / 691 `r_multiple`. Not re-raising [P-03]/[P-04]
+priority (user has deprioritised it) — recording the evidence only, per
+standing instruction.
+
+**Full gate re-measure run this pass** (see below): every figure came back
+numerically identical to 08-16 — expected, since no new closed trade exists to
+move them. **[P-05]'s stop-fill cap re-verified once more**, pooled
+`STOP_LOSS_HIT` since 08-07 recomputed fresh at **−1.226R (n=43)**, exactly
+matching the 08-16 reading — the fix continues to hold, unchanged data.
+**I-1 (no duplicate paper exits) re-checked: still 0 rows**, no regression.
+**Supabase DB size unchanged at 97 MB / 500 MB (19%)** — with zero sessions
+writing data, [P-38]'s ≈6-week runway clock has effectively paused rather than
+continued ticking down; the decision is still open but is not more urgent than
+last measured.
 
 **08-16 weekly review (prior pass):** Re-measured the gate metrics directly
 against prod: numerically identical to 08-10 (same 773 closed / 691
@@ -38,13 +55,13 @@ up from −1.211R at n=15 — see VERIFY.md V-2.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-16
+## 📊 Gate re-measure — latest 2026-08-23
 
-**PF 0.343 · expectancy −0.429R · advisor ECE 30.3% (n=37).** Same underlying
-trade data as 08-10 (no session since); this replaces the stale 08-09 numbers
-this doc had been carrying. No gate flipped; PF has never left the reject
-zone. Full history, method and the 3-lens read:
-**[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)**.
+**PF 0.343 · expectancy −0.429R · max drawdown ≈−₹41,817 · advisor ECE 30.3%
+(n=37).** Third weekly review in a row on the same underlying trade data as
+08-10 (no session since) — identical to the 08-16 reading, zero delta. No gate
+flipped; PF has never left the reject zone. Full history, method and the
+3-lens read: **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)**.
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -122,6 +139,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   _**08-17 evidence:** extends to **5 consecutive weekdays** (08-11, 08-12,
   08-13, 08-14, 08-17 — weekend excluded), same signature. Still not
   re-raised — logging only._
+  _**08-23 weekly-review evidence:** extends to **9 consecutive weekdays**
+  (08-11 through 08-21, weekends excluded — 08-15/08-16 and 08-22/08-23
+  skipped), same signature (`brain_heartbeat` ONLINE, `current_cycle=0`,
+  "Waiting for START command", zero rows in `trading_sessions`/
+  `brain_decisions`/`portfolio_advice` for the whole window). This is now the
+  longest gap on record for this project, more than double the previous
+  worst case (4 days). Still not re-raised per standing user
+  deprioritization — logging only, so the next priority review has the
+  number._
 - **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
   decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
   `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
@@ -132,6 +158,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   the plan's own escalation clause fires ("stop and escalate... the correct
   fix is a tier change, not 600 MB of savings"). The trim plan alone does not
   remove the need for that decision — it only stretches runway.
+  _**08-23 weekly review:** DB size re-measured at **97 MB / 500 MB (19%),
+  unchanged byte-for-byte since 08-10** — with zero trading sessions writing
+  data across the 9-weekday gap above, the runway clock has paused rather
+  than continued counting down. Not a reason to deprioritize the decision
+  (it resumes ticking the moment sessions restart), just a note that no
+  extra urgency has accrued this week._
 
 ## 🟢 READY — pull these now (no blocker, [me])
 

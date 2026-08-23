@@ -9,7 +9,7 @@ numbers and links here.
 **The gates** (VISION §6.1): profit factor **>1.3 go / <1.1 reject**; expectancy
 positive; advisor calibration is DARK and not scored.
 
-## Latest — 2026-08-16 (data unchanged since 08-10)
+## Latest — 2026-08-23 (data unchanged since 08-10)
 
 | Metric | Value | vs prior |
 |---|---|---|
@@ -43,6 +43,60 @@ already took; gate #6 (a historical backtest, [P-01]) is the verdict, and it is
 blocked. [P-30] sharpened the surrounding picture — no exit policy clears
 breakeven *even at zero transaction cost* — so the edge has to come from the
 entries.
+
+---
+
+## 📊 Weekly gate re-measure (2026-08-23)
+
+**No new trading session in 13 days.** `trading_sessions` still tops out at
+`max(started_at) = 2026-08-10 04:07 UTC`, `total_sessions = 87`. Direct
+Supabase queries confirm zero rows in `trading_sessions`/`brain_decisions`/
+`portfolio_advice` for the entire 08-11→08-21 window (all three counted
+`0` from a single query). Silent-weekday count is now **9** (08-11 through
+08-21, weekends excluded) — up from 5 at the 08-17 pass, a new record.
+`brain_heartbeat`: ONLINE, `current_cycle=0`, "Waiting for START command" as
+of 08-23 04:37 UTC — same standing state as every pass since 08-11
+([P-03]/[P-04] stay user-deprioritised, not re-raised here).
+
+All figures below are a **re-measure of the same 08-10 data**, third weekly
+review running on it unchanged (08-16, and now 08-23):
+
+| Metric | Value | vs 08-16 |
+|---|---|---|
+| Profit factor | **0.343** | unchanged |
+| Expectancy | **−0.429R** | unchanged |
+| Max drawdown | **≈−₹41,817.14** | unchanged |
+| Advisor calibration ECE | **30.3%**, non-monotonic, n=37 | unchanged |
+
+**Re-verified [P-05] holds, recomputed fresh (not just carried forward):**
+pooled `STOP_LOSS_HIT` since the 08-07 fix, split by side — LONG **−1.285R
+(n=17)**, SHORT **−1.187R (n=26)**, pooled **−1.226R (n=43)** — exactly
+matching the 08-16 reading. Confirms no drift, no regression.
+
+**Invariant re-check:** I-1 (no duplicate paper exits) still **0 rows**.
+Supabase DB size still **97 MB / 500 MB (19%)** — byte-identical to 08-10,
+since nothing has written to the trade/decision tables in 13 days; [P-38]'s
+runway clock has paused, not ticked down further.
+
+**3-lens sanity:**
+- **Trader** — PF 0.343, deep reject zone, no new trades to read, no change
+  in substance from 08-16.
+- **Advisor** — ECE 30.3% (n=37), unchanged; still non-monotonic and below
+  [P-18]'s ≥50-graded action gate. First MACRO wave still expected ~08-24 —
+  next week's review is the one likely to show movement, if a session runs
+  to generate MICRO rows and the MACRO wave matures on schedule.
+- **Engineer** — the operational story is the same one three passes running:
+  the manual-token-paste dependency ([P-03]/[P-04]) has now cost 9
+  consecutive weekdays, more than double the prior worst case (4 days). No
+  new technical finding — the mechanism (heartbeat ONLINE, waiting for
+  START) is identical to every prior silent day. Not re-raised, per standing
+  user deprioritization; logged so the number is on record.
+
+No go/no-go gate flipped (PF stays far below the 1.1 reject line). Nothing
+regressed; nothing moved to Ready. [VERIFY.md](VERIFY.md)'s OPEN section
+still has no date-independent checks (V-7/V-9/V-10/V-11/V-12 remain
+event-driven, all still awaiting a live session) — none has a runnable check
+sitting stale, so no ledger-staleness finding this pass either.
 
 ---
 
