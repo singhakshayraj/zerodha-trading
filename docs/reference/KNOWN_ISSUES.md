@@ -317,9 +317,22 @@ It fires **14 minutes before** the 09:30 autostart — early enough to save the
 session. It did nothing on 08-07 for one reason: its **only** channel is
 Telegram, gated on `ADVISOR_TELEGRAM_BOT_TOKEN`, which [P-04] has never set.
 
-So the highest-value action here is **[P-04] — a ~3-minute BotFather rotation
-plus one `railway variables --set`** — not new code. It activates a working
-alert that has been sitting dormant.
+So the highest-value action here is **[P-04]**…
+
+✅ **CORRECTED 2026-08-23 — this premise was WRONG.** Verified directly against
+Railway: `ADVISOR_TELEGRAM_BOT_TOKEN` (46 chars) and `ADVISOR_TELEGRAM_CHAT_ID`
+are **set**, the token validates against Telegram's `getMe` (`@singhakshayraj_bot`),
+the chat is reachable (`getChat` → private, Akshay), and `ADVISOR_DIGEST_ENABLED`
+/ `ADVISOR_INTRADAY_ALERTS_ENABLED` / `AUTOPILOT` are all `true`. Running
+`_token_is_live()` against the current 13-day-old token returns **False**, so
+`_maybe_token_preflight` **would alert**. The 09:16 IST alarm is LIVE, not
+dormant.
+
+**Therefore the nine silent weekdays were not a technical failure.** The alert
+fires; it just did not result in a token being pasted. The only remaining
+technical lever is **[P-03] TOTP**, which removes the human step entirely and
+needs `KITE_USER_ID` / `KITE_PASSWORD` / `KITE_TOTP_SECRET` — none of which are
+set on Railway.
 
 Writing `NO_TOKEN_AT_OPEN` to the DB is still worth doing eventually, for the
 **post-mortem** trace (on 08-07 `brain_activity` had zero rows 03:30→07:11 UTC,

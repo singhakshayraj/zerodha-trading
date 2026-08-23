@@ -91,9 +91,12 @@ python3 scripts/label_decisions.py 2026-08-24 && python3 scripts/edge_study.py
   probe hitting the API throughout did not keep it alive, so **no keep-alive
   scheme can work**. Not a ~3h TTL either: sessions have run 5.75h and 5.85h on
   one token.
-- **The biggest operational lever is [P-04], ~3 minutes.** The 09:16 IST
-  dead-token Telegram alert is built and dormant only because the bot token is
-  unset. [P-03] stays **deprioritised — do not re-raise it**.
+- **The 09:16 IST Telegram alert is LIVE** (verified 2026-08-23 against
+  Railway + Telegram `getMe`/`getChat`). Earlier notes claiming it was dormant
+  for want of a bot token were **wrong**. So the nine silent weekdays were not
+  a technical failure — the alarm fires. The only remaining technical lever is
+  **[P-03] TOTP** (needs `KITE_USER_ID`/`KITE_PASSWORD`/`KITE_TOTP_SECRET`,
+  none set). [P-03] stays deprioritised by owner choice — recorded, not raised.
 - **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.

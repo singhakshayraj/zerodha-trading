@@ -40,8 +40,9 @@ and often doesn't. Nine consecutive weekdays were lost in August alone.
 
 **Acquisition — 🔴 the weak link, and the only one that matters right now.**
 One manual step gates the entire pipeline. It has no automated fallback in
-service (TOTP is built and dormant), and its alarm is built and switched off for
-want of a Telegram token. Measured cost: 55% of one session's tape on 08-07, and
+service (TOTP is built and dormant), and — **correction, same day** — its alarm is **not** switched off: the Telegram
+credentials are set and validate, and the preflight would fire. The failure is
+downstream of the alert, not upstream of it. Measured cost: 55% of one session's tape on 08-07, and
 nine whole days in mid-August. This is a single point of failure with a known,
 cheap remedy sitting unused.
 
@@ -101,7 +102,9 @@ accretion rather than by design.
 ## Ranked, if work resumes
 
 1. **Make sessions start reliably.** Nothing else changes the verdict timeline.
-   Cheapest form is [P-04] (~3 min, switches on an alarm already written).
+   ⚠️ **Revised:** [P-04] is already functionally live (verified 2026-08-23),
+   so the alert is not the gap. The only remaining technical lever is [P-03]
+   TOTP — removing the human step — which needs three KITE_* vars, none set.
    _Partially addressed 2026-08-23: the dashboard now shows a red **NO LIVE
    TOKEN** banner when the enctoken is missing or predates today's ~04:34 IST
    flush. This needs no credential and no decision. It is weaker than [P-04] —

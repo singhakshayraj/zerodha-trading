@@ -129,6 +129,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   on [P-05], [P-07], [P-16] and the P-15/P-17 fixes below alike._
 - **[P-04] Rotate Telegram bot token (+ anon key = unnecessary).** [you] · *done
   =* new Telegram token live, old dead. · *source:* Sprint 0 security fix.
+  _⚠️ **2026-08-23: the FUNCTIONAL half is already live** — token set and valid
+  (`getMe` → @singhakshayraj_bot), chat reachable, digest + intraday alerts
+  enabled, and the 09:16 preflight would fire on the current stale token. What
+  remains is only the **security rotation** of a token that appeared in Railway
+  logs pre-scrub. Every note elsewhere claiming the alarm was dormant for want
+  of this token was wrong._
   _08-03 audit ([reference/CRED_ROTATION.md](reference/CRED_ROTATION.md)):
   repos + full git history are clean (no secret ever committed); RLS verified
   airtight (sensitive tables service_role-only, rest deny-all, no rls_disabled
@@ -371,7 +377,10 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - **[P-11] Promote daily/weekly alignment into the score** once it's gradeable
   (~early Aug) AND attribution shows it predicts. [me]
 - ~~**[P-12] Agent P4 — per-stock timeline UI**~~ ✅ SHIPPED 08-03 (see Done).
-- **[P-13] Activate Marketaux news key** → `news.sentiment` populates. [you→me]
+- ~~**[P-13] Activate Marketaux news key**~~ ✅ **DONE — verified 2026-08-23.**
+  `MARKETAUX_API_KEY` is set on Railway and `NEWS_ENABLED=true`; `news_events`
+  holds **137 rows, all with sentiment**, newest 2026-08-10 (i.e. the last day a
+  session ran). It was already working and the board had not noticed.
 
 ## 💡 PROPOSED — high-value, awaiting user greenlight
 

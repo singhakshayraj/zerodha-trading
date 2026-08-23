@@ -28,7 +28,20 @@ open.
 which you deprioritised. Nothing is broken; the token is simply manual by your
 choice. Don't rebuild the TOTP path.
 
-### 🔴 The 3-minute task that makes the above nearly foolproof — do [P-04]
+### ✅ The alarm already works — verified 2026-08-23
+
+**Correction to everything written above this line on earlier dates.**
+`ADVISOR_TELEGRAM_BOT_TOKEN` and `ADVISOR_TELEGRAM_CHAT_ID` **are set** on
+Railway; the token validates (`getMe` → `@singhakshayraj_bot`), the chat is
+reachable, and `_token_is_live()` on the current stale token returns `False`,
+so the 09:16 preflight **would fire**. It is not dormant.
+
+Which means the nine silent weekdays in August were **not** a technical
+failure — the alert works, it just did not result in a token being pasted. The
+only remaining technical lever is **[P-03] TOTP** (removes the human step),
+which needs `KITE_USER_ID` / `KITE_PASSWORD` / `KITE_TOTP_SECRET` — none set.
+
+_Original note, now known to be wrong:_
 
 **The alarm for this already exists and is switched off.**
 `scheduler._maybe_token_preflight()` runs **once per market day at 09:16 IST**,
@@ -119,8 +132,8 @@ too), but the win/loss scorecard reads as advisor skill when it isn't.
 |---|---|---|
 | 🔴 **[P-38]** Supabase tier — **new, 2026-08-23** | Measured **97 MB / 500 MB (19%) — the FREE tier.** Decide: upgrade to **Pro (8 GB ≈ 2.4 yrs)**, or accept a hard stop. | Projected growth is ~3.3 GB/yr and lossless optimisation saves only ~600 MB/yr, so **this is a tier change, not a code problem**. Clock is paused only because no session has run since 08-10; it restarts the day trading does. |
 | **[P-02]** Fundamentals provider | Pick a source | `stock_agent.py:74` has carried `'fundamentals': None` since P3. The advisor scores 7 factors with **zero fundamental input**. Also blocks every fundamental screen the finserv plugins offer ([FINSERV_PLUGINS](reference/FINSERV_PLUGINS.md)). |
-| **[P-13]** Marketaux API key | Set the key | `news.sentiment` populates; the collector is built and dormant. |
-| 🔴 **[P-04]** Telegram token — **do this one first** | ① @BotFather → `/mybots` → pick bot → API Token → **Revoke current token**. ② `railway variables --set "TELEGRAM_BOT_TOKEN=<new>" --service zerodha-brain`. ③ Confirm a digest lands. | **The 09:16 IST dead-token alert (§1.1)** — already built, dormant only for want of this token; it is what would have saved 55% of the 08-07 session. Plus the digest + intraday alerts. **~3 minutes.** Runbook: [reference/CRED_ROTATION.md](reference/CRED_ROTATION.md). **1 cred, not 2** — the anon key is safe-by-design, skip it. |
+| ~~**[P-13]**~~ Marketaux API key | ✅ **DONE — verified 2026-08-23.** Key set, `NEWS_ENABLED=true`, 137 news rows all carrying sentiment. Was already working. |
+| ~~**[P-04]**~~ Telegram token — ✅ **functionally live, verified 2026-08-23** | ① @BotFather → `/mybots` → pick bot → API Token → **Revoke current token**. ② `railway variables --set "TELEGRAM_BOT_TOKEN=<new>" --service zerodha-brain`. ③ Confirm a digest lands. | **The 09:16 IST dead-token alert (§1.1)** — already built, dormant only for want of this token; it is what would have saved 55% of the 08-07 session. Plus the digest + intraday alerts. **~3 minutes.** Runbook: [reference/CRED_ROTATION.md](reference/CRED_ROTATION.md). **1 cred, not 2** — the anon key is safe-by-design, skip it. |
 
 ## 1.5 Deprioritised by you — listed for completeness, not being raised
 
