@@ -24,6 +24,8 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0a",
 };
 
+import { TokenAlert } from "@/components/TokenAlert";
+
 export default function RootLayout({
   children,
 }: {
@@ -32,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased bg-[#0a0a0a] text-[#f5f5f5] min-h-dvh">
+        <TokenAlert />
         {children}
       </body>
     </html>
