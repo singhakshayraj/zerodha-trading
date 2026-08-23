@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     const { data, error } = await supabaseServer
       .from("stock_universe")
-      .select("symbol, company_name, sector, industry, advisor_score, advisor_score_updated_at, is_nifty50, is_nifty500")
+      .select("symbol, company_name, sector, industry, advisor_score, advisor_score_updated_at, advisor_detail, is_nifty50, is_nifty500")
       .ilike("symbol", `${q}%`)
       .order("symbol")
       .limit(8);
@@ -67,6 +67,9 @@ export async function GET(req: Request) {
             score: exact.advisor_score,
             scoredAt: exact.advisor_score_updated_at,
             band: exact.advisor_score === null ? null : band(exact.advisor_score),
+            // Full advise() output the daily scan now stores: verdict, reasons,
+            // counter_case, levels. Null until the next scan runs.
+            detail: exact.advisor_detail ?? null,
             inNifty50: exact.is_nifty50,
             held,
           }

@@ -16,14 +16,41 @@ import api from "@/lib/api";
 
 type Option = { symbol: string; name: string | null; score: number | null };
 
+type Detail = {
+  verdict: "HOLD" | "TRIM" | "SELL" | "SELL_ON_BOUNCE" | "INSUFFICIENT";
+  confidence: number;
+  trend_score: number;
+  reasons: string[];
+  counter_case?: string | null;
+  stop_level: number | null;
+  exit_target: number | null;
+  market_regime?: string | null;
+  trigger_type?: "MACRO" | "MICRO" | null;
+  indicators?: { rsi_14?: number; adx?: number; ema_50?: number; ema_200?: number;
+                 support?: number; resistance?: number; relative_strength_vs_nifty?: number } | null;
+};
+
 type Match = {
   symbol: string; name: string | null; sector: string | null;
   industry: string | null; score: number | null; scoredAt: string | null;
   band: { label: string; tone: "good" | "bad" | "mid" } | null;
+  detail: Detail | null;
   inNifty50: boolean; held: boolean;
 };
 
 const TONE = { good: "#22c55e", bad: "#ef4444", mid: "#f59e0b" } as const;
+
+// Same palette/wording the holdings list uses, so a searched name and a held
+// name read identically — the analysis is the same analysis.
+const VERDICT: Record<Detail["verdict"], { color: string; label: string }> = {
+  HOLD:           { color: "#22c55e", label: "Hold" },
+  TRIM:           { color: "#3b82f6", label: "Trim" },
+  SELL_ON_BOUNCE: { color: "#f59e0b", label: "Sell on bounce" },
+  SELL:           { color: "#ef4444", label: "Sell" },
+  INSUFFICIENT:   { color: "#71717a", label: "No read" },
+};
+
+const INR = (n: number) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 export function StockLookup() {
   const [q, setQ] = useState("");
@@ -184,6 +211,83 @@ export function StockLookup() {
               </>
             )}
           </p>
+
+          {m.detail && m.detail.verdict !== "INSUFFICIENT" && (
+            <div className="mt-3 pt-3 border-t border-[#1f1f1f] space-y-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-1 rounded-md text-[12px] font-semibold border"
+                      style={{ color: VERDICT[m.detail.verdict].color,
+                               borderColor: `${VERDICT[m.detail.verdict].color}55`,
+                               background: `${VERDICT[m.detail.verdict].color}14` }}>
+                  {VERDICT[m.detail.verdict].label}
+                </span>
+                <span className="text-[11px] text-[#6a6a6a]">
+                  confidence {m.detail.confidence}%
+                  {m.detail.trigger_type ? ` · ${m.detail.trigger_type === "MACRO" ? "long-term structure" : "short-term signal"}` : ""}
+                </span>
+              </div>
+
+              <ul className="space-y-1.5">
+                {m.detail.reasons.map((r, i) => (
+                  <li key={i} className="text-[12px] text-[#c5c5c5] leading-relaxed flex gap-2">
+                    <span className="mt-1.5 h-1 w-1 rounded-full bg-[#555] shrink-0" />{r}
+                  </li>
+                ))}
+              </ul>
+
+              {/* [P-33] the case AGAINST — its own block, never a bullet in the
+                  list above, which is confirmatory by construction. */}
+              {m.detail.counter_case && (
+                <div className="rounded border border-[#3a3320] bg-[#17140c] px-2.5 py-2">
+                  <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: "#f59e0b" }}>
+                    {m.detail.verdict === "SELL" || m.detail.verdict === "SELL_ON_BOUNCE"
+                      ? "Bull case — what would make this sell wrong"
+                      : "Bear case — what would make this call wrong"}
+                  </p>
+                  <p className="text-[12px] text-[#c5b898] leading-relaxed">{m.detail.counter_case}</p>
+                </div>
+              )}
+
+              {(m.detail.stop_level || m.detail.exit_target || m.detail.indicators) && (
+                <div className="flex flex-wrap gap-2">
+                  {m.detail.exit_target && (
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#d5d5d5]">
+                      sell near <span style={{ color: "#f59e0b" }}>{INR(m.detail.exit_target)}</span>
+                    </span>
+                  )}
+                  {m.detail.stop_level && (
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#d5d5d5]">
+                      exit below <span style={{ color: "#ef4444" }}>{INR(m.detail.stop_level)}</span>
+                    </span>
+                  )}
+                  {m.detail.indicators?.rsi_14 != null && (
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+                      RSI {m.detail.indicators.rsi_14.toFixed(0)}
+                    </span>
+                  )}
+                  {m.detail.indicators?.adx != null && (
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+                      ADX {m.detail.indicators.adx.toFixed(0)}
+                    </span>
+                  )}
+                  {m.detail.indicators?.relative_strength_vs_nifty != null && (
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+                      vs NIFTY {m.detail.indicators.relative_strength_vs_nifty > 0 ? "+" : ""}
+                      {m.detail.indicators.relative_strength_vs_nifty.toFixed(1)}pp
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {m.score !== null && !m.detail && (
+            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+              Only the trend score is stored for this name so far — the full
+              read (reasons, levels, bear case) lands on the next advisor run.
+            </p>
+          )}
+
 
           {m.scoredAt && stale !== null && stale > 1 && (
             <div className="mt-3 pt-3 border-t border-[#1f1f1f] flex items-center gap-3 flex-wrap">
