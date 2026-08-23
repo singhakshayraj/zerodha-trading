@@ -98,9 +98,17 @@ The rule beat plain SHORT on **9 of 9 days**:
 Direction alone loses on 8 of those 9 days. The morning-plus-trend-strength
 filter adds value *on top of* direction, every single day.
 
-_(A third control — correlating with the day's Nifty drift — could not be run:
-`brain_decisions.nifty_level_at_decision` is null throughout. The plain-SHORT
-comparison is the better control anyway, but the null column is worth fixing.)_
+_(A third control — correlating with the day's Nifty drift — was reported here
+as impossible. **That was wrong, corrected 2026-08-23.** Two facts:
+`nifty_level_at_decision` is 0 **by design** — a retail enctoken cannot read the
+Nifty index (`/quote` is disabled), which is the entire reason `_market_context()`
+reconstructs direction from universe breadth instead. But
+`market_context.nifty_change_percent` **is** populated (0.05, 0.13, 0.25 … on
+08-10), so the drift control was available all along, just not via the column I
+looked at. Moot for the verdict — the edge is dead on the plain-SHORT control
+already — but the claim should not stand uncorrected. Separately, that dig found
+`advancing_stocks`/`declining_stocks` were computed every cycle and never
+persisted; fixed in brain `b8eab1e`.)_
 
 ## What this does and does not mean
 
