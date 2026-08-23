@@ -102,6 +102,12 @@ accretion rather than by design.
 
 1. **Make sessions start reliably.** Nothing else changes the verdict timeline.
    Cheapest form is [P-04] (~3 min, switches on an alarm already written).
+   _Partially addressed 2026-08-23: the dashboard now shows a red **NO LIVE
+   TOKEN** banner when the enctoken is missing or predates today's ~04:34 IST
+   flush. This needs no credential and no decision. It is weaker than [P-04] —
+   it only fires if you open the dashboard, whereas Telegram reaches you — but
+   the dashboard is where you go to paste the token anyway, and until now the
+   brain's durable `token_incident` was written and read by nothing._
 2. **Settle the tier.** A billing decision blocking a data pipeline.
 3. **Gate #6** — the only remaining source of a *positive* answer.
 4. Everything currently on the board is below these.

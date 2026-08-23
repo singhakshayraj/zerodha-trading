@@ -54,6 +54,17 @@ export default function CommandCenter() {
   const [changeCount, setChangeCount] = useState(0);
   const [edge, setEdge] = useState<{ profitFactor: number | null; maxDrawdownR: number; expectancyR: number; label: string; closed: number } | null>(null);
   const [edgeVerified, setEdgeVerified] = useState<boolean | null>(null); // null=loading, false=gate #6 not run, true=run
+  // [DESIGN_REVIEW 2026-08-23] Acquisition is the system's only real failure
+  // mode — 45% uptime since 07-10, every lost day a token nobody pasted. The
+  // brain already wrote a durable token_incident; nothing read it.
+  const [tokenStale, setTokenStale] = useState(false);
+
+  useEffect(() => {
+    // api.get carries the auth token this route requires; a bare fetch 401s.
+    api.get<{ tokenStale?: boolean }>("/brain/status")
+      .then((r) => setTokenStale(Boolean(r.data?.tokenStale)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
@@ -112,6 +123,23 @@ export default function CommandCenter() {
             </div>
             <BrainStatus />
           </div>
+
+          {/* Token nag. Deliberately ABOVE the edge nag and louder: this one is
+              time-critical and actionable in 30 seconds, and missing it costs a
+              whole day of data. Measured flush is ~04:34 IST ([C6]). */}
+          {tokenStale && (
+            <div className="mb-4 rounded-xl border px-4 py-3 flex items-start gap-3"
+                 style={{ borderColor: "#ef444488", background: "#ef44441a" }}>
+              <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#ef4444" }} />
+              <p className="text-[12px] leading-relaxed text-[#ddd]">
+                <span className="font-semibold" style={{ color: "#ef4444" }}>NO LIVE TOKEN</span>
+                {" — the enctoken is missing or was last set before today's ~04:34 IST flush, so the brain cannot start a session. "}
+                <span className="text-[#e5e5e5]">Paste a fresh one before 09:15</span>
+                {" or today produces no data. "}
+                <Link href="/connect" className="text-[#60a5fa] hover:underline">connect →</Link>
+              </p>
+            </div>
+          )}
 
           {/* EDGE UNVERIFIED nag — clears only when gate #6 (historical
               backtest) has run. Keeps us honest: paper metrics are not a verdict. */}
