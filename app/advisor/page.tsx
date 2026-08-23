@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
 import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { StockLookup } from "@/components/StockLookup";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown } from "lucide-react";
 
@@ -193,6 +194,8 @@ export default function AdvisorPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
+          <StockLookup />
+
           <p className="text-[11px] text-[#5a5a5a] mb-5">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
 
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}

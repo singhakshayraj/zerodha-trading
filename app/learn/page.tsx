@@ -380,6 +380,12 @@ export default function LearnPage() {
                 </p>
               </Callout>
               <p>
+                The same page also lets you <strong className="text-[#f5f5f5]">look up any of the ~500 names it
+                scans</strong>, not only the ones you own — useful before buying something. That returns the raw
+                trend score rather than a full verdict, and it is only as fresh as the last advisor run, both of
+                which the panel states rather than hides.
+              </p>
+              <p>
                 Each call is graded after a set time — 30 trading days for calls resting on long-term structure, 10
                 for ones resting on short-term signals. That is deliberately slow, and it is why the advisor&apos;s
                 own accuracy is still measured on only a few dozen graded calls.
