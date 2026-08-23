@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, RefreshCw } from "lucide-react";
+import api from "@/lib/api";
 
 // Look up any Nifty-500 name, not just holdings.
 //
@@ -29,6 +30,20 @@ export function StockLookup() {
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<{ match: Match | null; suggestions: string[]; query: string } | null>(null);
   const [opts, setOpts] = useState<Option[]>([]);
+  const [queue, setQueue] = useState<"idle" | "sending" | "queued" | "failed">("idle");
+
+  // Ask the brain to re-score. Uses the shared `api` client deliberately: this
+  // IS a user action, so the 401-redirect-to-/connect behaviour is correct here
+  // (unlike the passive TokenAlert, which must never log anyone out).
+  async function requestRefresh() {
+    setQueue("sending");
+    try {
+      await api.post("/advisor/refresh");
+      setQueue("queued");
+    } catch {
+      setQueue("failed");
+    }
+  }
 
   // Typeahead. A native <datalist> rather than a custom popover: the browser
   // handles keyboard nav, mobile and dismissal, which is most of what a hand-
@@ -169,6 +184,26 @@ export function StockLookup() {
               </>
             )}
           </p>
+
+          {m.scoredAt && stale !== null && stale > 1 && (
+            <div className="mt-3 pt-3 border-t border-[#1f1f1f] flex items-center gap-3 flex-wrap">
+              <button
+                onClick={requestRefresh}
+                disabled={queue === "sending" || queue === "queued"}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] bg-[#3b82f6]/10 border border-[#3b82f6]/40 text-[#7fb4ff] disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3 h-3 ${queue === "sending" ? "animate-spin" : ""}`} />
+                {queue === "queued" ? "Requested" : "Re-run analysis"}
+              </button>
+              <span className="text-[11px] text-[#6a6a6a]">
+                {queue === "queued"
+                  ? "Queued — the brain picks it up within ~30s and needs a live token. Refresh this page after that."
+                  : queue === "failed"
+                  ? "Could not queue the request."
+                  : "Re-scores all ~500 names, including on weekends."}
+              </span>
+            </div>
+          )}
 
           {m.held && (
             <p className="mt-2 text-[11px] text-[#7fb4ff]">
