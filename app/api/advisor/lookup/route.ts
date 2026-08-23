@@ -71,6 +71,10 @@ export async function GET(req: Request) {
             // counter_case, levels. Null until the next scan runs.
             detail: exact.advisor_detail ?? null,
             inNifty50: exact.is_nifty50,
+            // Distinguishes "the scan has not covered it yet" from "it is not
+            // in the scanned universe at all" — TATAMOTORS is is_nifty500=false,
+            // so an unscored result there is expected, not a gap.
+            inScanUniverse: exact.is_nifty500 === true,
             held,
           }
         : null,

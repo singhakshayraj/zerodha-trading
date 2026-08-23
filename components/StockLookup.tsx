@@ -35,7 +35,7 @@ type Match = {
   industry: string | null; score: number | null; scoredAt: string | null;
   band: { label: string; tone: "good" | "bad" | "mid" } | null;
   detail: Detail | null;
-  inNifty50: boolean; held: boolean;
+  inNifty50: boolean; inScanUniverse: boolean; held: boolean;
 };
 
 const TONE = { good: "#22c55e", bad: "#ef4444", mid: "#f59e0b" } as const;
@@ -279,6 +279,13 @@ export function StockLookup() {
                 </div>
               )}
             </div>
+          )}
+
+          {m.score === null && !m.held && !m.inScanUniverse && (
+            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+              This name sits outside the Nifty 500 universe the advisor scans, so
+              there is nothing to report — not a gap in the data.
+            </p>
           )}
 
           {m.score !== null && !m.detail && (
