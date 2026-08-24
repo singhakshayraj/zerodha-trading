@@ -246,6 +246,34 @@ Low severity — no data is lost.
 
 ---
 
+### C7 — `inplay_list` has not locked on the last two session days 🟡
+_Found 2026-08-25 by verify **I-4**, which warns on two consecutive session days
+with no lock ("no longer a quiet tape, it is a broken lock path")._
+
+Locks stop at **2026-08-07**. Neither **08-10** (session 09:37–15:21, 81 trades)
+nor **08-24** (11:48–15:25, 42 trades) produced a single row, and both were real
+sessions with plenty of activity.
+
+**Not the obvious cause.** `data_jobs._past_lock_time()` is `>= 09:30` with **no
+upper bound**, so a late start does not skip the window — both sessions were
+past it for their whole duration, and `maybe_lock_inplay` is called from the
+trading cycle (`brain.py:482`), which ran repeatedly.
+
+**Two hypotheses, neither confirmed** (the Railway log buffer had rotated by the
+time this was found, so this needs a live check rather than a guess):
+1. `opening_range_stats` returns `or_rvol=None` when the candle window holds
+   fewer than 2 prior days, and those rows are excluded from ranking. Worth
+   checking what `get_candles(key,'5minute',days=5)` actually returns after a
+   long gap in sessions — 08-24 followed an 11-day silence.
+2. A per-symbol exception inside the candidate loop, which is caught and printed
+   per symbol and would leave `ranked` empty without any single loud error.
+
+**Next session, check live:** watch for `[data_jobs] Locking in-play list for …`
+in the logs, and if it appears but locks 0, print the candidate/`or_rvol` counts.
+Low impact today — the list is recorded, not enforced ("non-gating during the
+paper run") — but it is a documented input to the trend-tells breadth tell and
+to [P-31]'s universe work, so it should not stay dark.
+
 ## 2026-08-07 mid-session findings — handle POST-MARKET
 
 _Session `2ddadca7` (RUNNING at time of writing, started 07:10 UTC). Recorded

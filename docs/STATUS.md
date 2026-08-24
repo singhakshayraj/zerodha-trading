@@ -4,25 +4,35 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-24** (Mon, post-session, ~16:00 IST). **A session ran
-today**, ending the 9-silent-weekday streak — but the token was pasted at
-**06:18 UTC (11:48 IST)**, ~2.5h after the 09:15 IST target, so the session ran
-short (3.6h, 42 trades) at PF **0.282**, expectancy **−0.472R**. Cumulative:
-**815 trades / 733 with `r_multiple`**, PF **0.338**, expectancy **−0.431R**,
-max drawdown deepened to **≈−₹45,095** (was ≈−₹41,817). **Advisor calibration
-jumped**: graded_calls **37→79** (crosses [P-18]'s ≥50 action gate), ECE
-**30.3%→22.6%**, still `monotonic=false` — the MACRO wave matured as
-predicted; verdict unchanged (don't promote confidence into a scored input).
-No gate flip (PF still deep in reject territory).
+_Last updated: **2026-08-25** (Tue, ~01:15 IST). **Session 08-24 ran and has
+been audited** — ending the 9-silent-weekday streak. Token was pasted at 11:48
+IST, ~2.5h after the 09:15 target, so the session ran short: **3.62h, 42 trades,
+−₹3,288.77, PF 0.282, expectancy −0.472R**. Read it as a behaviour sample, not a
+volume one.
+
+**Cumulative:** 815 trades / 733 with `r_multiple`, PF **0.338**, expectancy
+**−0.431R**, max drawdown deepened to **≈−₹45,095**. No gate flip.
+
+**[P-18] gate crossed:** advisor graded_calls **37→79** (past the ≥50 action
+threshold), ECE **30.3%→22.6%**, still `monotonic=false`. The MACRO wave matured
+as predicted. Verdict unchanged for now — do not promote confidence into a
+scored input while the curve is non-monotonic — but this is the first time the
+item is actually *actionable*.
+
+**Verify results:** **V-10 PASS** (23/23 traded symbols, zero missing bars, avg
+44 — exactly a 3.62h session, so the [C5] backfill works), **V-11 PASS** (20/20
+counter-cases), **I-1/I-2/I-3 PASS**, **V-9 NOT-YET** (a token existed, just
+late — this check only fires when one is *missing*), **I-4 WARN → new finding
+[C7]** (no `inplay_list` lock on either of the last two session days).
+**V-12 UNSTABLE** — see below.
 
 ⚠️ Two dashboard features shipped 08-23 evening (after that day's automated
-review ran) were never logged on this board: a stale-token banner
-(`components/TokenAlert.tsx`) and a Nifty-500 stock-lookup/on-demand-refresh
-feature (`components/StockLookup.tsx` + `/api/advisor/lookup`,
-`/api/advisor/refresh`). Now recorded in PIPELINE Done.
+review ran) were initially unlogged: the stale-token banner
+(`components/TokenAlert.tsx`) and the Nifty-500 lookup + on-demand refresh
+(`components/StockLookup.tsx`, `/api/advisor/lookup`, `/api/advisor/refresh`).
+Now recorded in PIPELINE Done.
 
-Deployed versions are in the "Deployed:" line below. Prior entries:
-`git log docs/STATUS.md`._
+Prior entries: `git log docs/STATUS.md`._
 
 ---
 
@@ -89,6 +99,29 @@ python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
 - **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 📉 2026-08-25 — the entry edge is not dead, it is UNSTABLE
+
+Day 12 (session 08-24, 555 decisions labeled) scored **+0.474R** (n=124,
+t=+4.7) — its second-best day, immediately after its worst. Pooled
+out-of-sample moved **−0.003R → +0.031R (t=+1.0)**.
+
+Three readings now:
+
+| sample | pooled OOS net | t |
+|---|---|---|
+| 10 days | +0.097R | **+3.0** |
+| 11 days | −0.003R | −0.1 |
+| 12 days | +0.031R | +1.0 |
+
+**The instability is the finding.** The estimate wanders around zero and each
+new day moves it a lot, because per-day n is small (35–341). Two adjacent
+sessions gave −0.532R and +0.474R. That is not an edge with noise on top; it is
+an estimate with an error bar wide enough to contain everything claimed about it
+so far — including August 10th's "statistically solid at t=+3.0".
+
+Verdict: **positive but indistinguishable from noise. Not actionable.** Nothing
+enabled, nothing to revert. Keep running V-12 after each session.
 
 ## 📈 2026-08-24 post-session
 

@@ -143,7 +143,23 @@ counter-case is what actually happened — needs graded rows carrying one, so it
 cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
 in the meantime._
 
-### V-12 · [P-35] the entry edge still holds as days accumulate — 🔴 **FAILED 2026-08-23**
+### V-12 · [P-35] the entry edge still holds as days accumulate — ⚠️ **UNSTABLE**
+_2026-08-25 (day 12, session 08-24 labeled — 555 decisions):_ the rule scored
+**+0.474R** (n=124, t=+4.7), its second-best day, immediately after its worst.
+Pooled out-of-sample moved **−0.003R → +0.031R (t=+1.0)**.
+
+**The instability is the finding.** Across three readings the pooled OOS has gone
+**+0.097 (t=+3.0) → −0.003 (t=−0.1) → +0.031 (t=+1.0)** — wandering around zero,
+with each new day moving it a lot because per-day n is small (35–341). Two
+adjacent sessions produced −0.532R and +0.474R.
+
+Verdict unchanged and now better supported: **positive but indistinguishable
+from noise, not actionable.** A rule whose estimate swings this far on one day
+of data is not an edge; it is an estimate with a wide error bar. Keep running
+it — the point of this row is that a single flattering reading must not be
+mistaken for a result.
+
+_Prior: 🔴 FAILED 2026-08-23_
 **The check did its job.** Labelling 2026-08-10 (329 decisions) took pooled
 out-of-sample from **+0.097R (t=+3.0) → −0.003R (t=−0.1)**. The rule scored
 −0.532R on 08-10 (n=262, t=−7.7), its worst day ever. Per this row's own FAIL
