@@ -5,35 +5,33 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-23** (Sun, weekly review) · Burn-down: **21 shipped +
-verified live / 0 in-progress / 4 ready / 5 blocked**._ (unchanged this pass —
-nothing shipped, no session since 08-10.)
+_Last updated: **2026-08-24** (Mon, post-session) · Burn-down: **22 shipped +
+verified live / 0 in-progress / 4 ready / 5 blocked**._ (+1 Done this pass —
+two dashboard features shipped 08-23 evening, found undocumented in git log.)
 
-**This pass (weekly review):** No trading session has run since 08-10 — prod
-confirms zero rows in `trading_sessions`/`brain_decisions`/`portfolio_advice`
-for the entire 08-11→08-21 window (direct Supabase query: `sessions_since_0811
-= 0`, `decisions_since_0811 = 0`, `advice_since_0811 = 0`; dashboard API still
-egress-blocked, 403, same as every recent pass). The silent-weekday count is
-now **nine** (08-11, 08-12, 08-13, 08-14, 08-17, 08-18, 08-19, 08-20, 08-21 —
-weekends excluded) — up from five at the last pass (08-17) and a new worst
-case, well past the previous record (the 4-day 08-11→08-14 run). `total_sessions
-= 87`, `max(started_at) = 2026-08-10 04:07 UTC`, unchanged. `brain_heartbeat`
-is **ONLINE** as of 08-23 04:37 UTC but `current_cycle=0`, `"Waiting for START
-command"` — same standing signature as every prior pass this stretch. Trade
-count unchanged at 773 closed / 691 `r_multiple`. Not re-raising [P-03]/[P-04]
-priority (user has deprioritised it) — recording the evidence only, per
-standing instruction.
+**This pass (post-session):** A trading session ran 08-24 — `1d45ab4a`,
+06:18–09:55 UTC, `COMPLETED`, 42 trades — ending the 9-silent-weekday streak
+logged in the last several passes. It started late (token pasted 06:18 UTC /
+11:48 IST, ~2.5h past the 09:15 IST target); PF **0.282**, expectancy
+**−0.472R** for the day. Cumulative now **815 closed / 733 `r_multiple`**,
+PF **0.338**, expectancy **−0.431R**, max drawdown ≈−₹45,095 (deepened from
+≈−₹41,817). No gate flip. Full readout: [STATUS.md](STATUS.md)'s 08-24
+post-session section. Dashboard API still egress-blocked (403) from this
+environment — all numbers measured directly against Supabase.
 
-**Full gate re-measure run this pass** (see below): every figure came back
-numerically identical to 08-16 — expected, since no new closed trade exists to
-move them. **[P-05]'s stop-fill cap re-verified once more**, pooled
-`STOP_LOSS_HIT` since 08-07 recomputed fresh at **−1.226R (n=43)**, exactly
-matching the 08-16 reading — the fix continues to hold, unchanged data.
-**I-1 (no duplicate paper exits) re-checked: still 0 rows**, no regression.
-**Supabase DB size unchanged at 97 MB / 500 MB (19%)** — with zero sessions
-writing data, [P-38]'s ≈6-week runway clock has effectively paused rather than
-continued ticking down; the decision is still open but is not more urgent than
-last measured.
+**Advisor calibration crossed [P-18]'s ≥50-graded action gate**: graded_calls
+37→79, ECE 30.3%→22.6%, still `monotonic=false` — see [P-18] below.
+
+**git log check (step 4):** two dashboard features shipped 2026-08-23 evening
+(commits `0f7bddf` through `bbf1c10`, after that day's automated weekly review
+had already run) were never logged on this board — added to Done below.
+Nothing else in `git log -25` is undocumented.
+
+**Prior pass (08-23 weekly review), for reference:** full gate re-measure came
+back numerically identical to 08-16 (no session since 08-10 at the time).
+[P-05]'s stop-fill cap re-verified at −1.226R (n=43). I-1 still 0 rows.
+Supabase DB size was 97 MB / 500 MB (19%) — that runway clock resumes now
+that a session has written data again; not yet re-measured this pass.
 
 **08-16 weekly review (prior pass):** Re-measured the gate metrics directly
 against prod: numerically identical to 08-10 (same 773 closed / 691
@@ -55,13 +53,16 @@ up from −1.211R at n=15 — see VERIFY.md V-2.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-23
+## 📊 Gate re-measure — latest 2026-08-24
 
-**PF 0.343 · expectancy −0.429R · max drawdown ≈−₹41,817 · advisor ECE 30.3%
-(n=37).** Third weekly review in a row on the same underlying trade data as
-08-10 (no session since) — identical to the 08-16 reading, zero delta. No gate
-flipped; PF has never left the reject zone. Full history, method and the
-3-lens read: **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)**.
+**PF 0.338 · expectancy −0.431R · max drawdown ≈−₹45,095 · advisor ECE 22.6%
+(n=79).** First movement since 08-10 — session `1d45ab4a` closed 42 trades
+today. No gate flipped; PF has never left the reject zone. Advisor
+`graded_calls` crossed [P-18]'s ≥50 action threshold (79, was 37); still
+`monotonic=false`. This is a post-session reading, not the weekly 3-lens
+re-measure — full history, method and the 3-lens read:
+**[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** (next due Sunday
+08-30).
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -335,6 +336,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   measured; this pass just caught PIPELINE/GATE_MEASURES/VERIFY up to it).
   Still `monotonic=false`, now ~74% of the ≥50 action gate. No new session
   this week, so the pool itself hasn't grown past 08-10._
+  _**08-24 post-session — the ≥50 gate is crossed.** `graded_calls` jumped
+  37→79 (`built_at=2026-08-24`, base rate 45.6%) — the predicted MACRO wave
+  matured. ECE **fell further, 30.3%→22.6%**, but **`monotonic=false`
+  still holds** on the recheck this item's own measure-of-done called for.
+  Verdict unchanged: do not promote confidence into a scored input. This
+  item's original trigger has now fired; it stays open only because the
+  answer at the trigger is "not yet," not because the trigger hasn't come._
 - ~~**[P-22] advisor_paper tables empty**~~ ✅ **DONE — verified live 08-06.**
   Both books seeded on the official run at 04:31 UTC: `advisor_paper_positions`
   42 rows, `advisor_paper_equity` 2 (MANAGEMENT ₹618,714 vs baseline ₹620,695;
@@ -391,6 +399,21 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- **2026-08-23 (evening) — two dashboard features shipped, undocumented until
+  this pass.** Found via `git log -25` during the 08-24 post-session review;
+  not tracked as board items beforehand, so recorded here rather than "moved."
+  - **Stale-token banner** (`components/TokenAlert.tsx`, commits `0f7bddf`,
+    `62ee323`). Shows a red warning on every page when the `enc_token` is
+    missing or predates the day's ~04:34 IST flush. Design-review item #1's
+    partial fix — needs no credential, surfaces the [C1]/token_incident state
+    that was previously written and read by nothing on the dashboard side.
+  - **Nifty-500 stock lookup + on-demand refresh** (`components/StockLookup.tsx`,
+    `app/api/advisor/lookup/route.ts`, `app/api/advisor/refresh/route.ts`,
+    commits `e6b904d`, `b453e8b`, `0efe1f5`, `eca1a8e`, `bbf1c10`). Look up any
+    Nifty-500 name (not just current holdings) with a typeahead dropdown and
+    the full read (not just a score); searched-but-unscored names are now
+    distinguished from names outside the scan universe entirely.
 
 - ~~**[P-37] Capacity — fix the two cliffs that break within a year.**~~ ✅
   **SHIPPED 2026-08-10** (found shipped in git log, was never moved off the
