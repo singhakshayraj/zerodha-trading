@@ -100,6 +100,31 @@ python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
 
+## ✅ 2026-08-25 — [P-18] ANSWERED: advisor confidence carries no information
+
+The ≥50-graded gate opened on 08-24 (37→79), so the question could finally be
+asked properly. On **n=98**, base rate 48.0%:
+
+| test | value |
+|---|---|
+| corr(confidence, correct) | **0.0205** (t = 0.20) |
+| **AUC** | **0.4556** (0.5 = coin flip) |
+| avg confidence when RIGHT | 70.3 |
+| avg confidence when WRONG | 69.8 |
+
+The 90–100 bin hits **28.6%** against a 48% base rate. **Never promote
+confidence into a scored input.** It stays display-only — now on evidence
+rather than caution.
+
+⚠️ **[P-18]'s own success criterion was wrong, and that is the transferable
+lesson.** It asked for ECE + monotonicity at n≥50. ECE measures *calibration*,
+not *discrimination* — and a signal that always predicts the base rate is
+perfectly calibrated and completely useless. So ECE improving 30.3% → 22.6%
+looked like progress and was just compression toward the base rate. Waiting for
+a "good ECE" would have waited forever for a number that could not answer the
+question. **Re-open only on AUC materially above 0.5.** Writeup:
+[reference/P18_CALIBRATION.md](reference/P18_CALIBRATION.md).
+
 ## 📉 2026-08-25 — the entry edge is not dead, it is UNSTABLE
 
 Day 12 (session 08-24, 555 decisions labeled) scored **+0.474R** (n=124,

@@ -60,6 +60,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 - [reference/ADVISOR_MODULE.md](reference/ADVISOR_MODULE.md) — the portfolio advisor design.
 - [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) — tracked bugs/quirks (findings: `K`/`W`/`A`/`B`).
 - [reference/EXIT_FRONTIER.md](reference/EXIT_FRONTIER.md) — the `/autopsy` page: idea, method, results, and the phase-2 candle-replay plan.
+- [reference/P18_CALIBRATION.md](reference/P18_CALIBRATION.md) — why the advisor's confidence number carries no information, and why ECE was the wrong test.
 - [reference/EDGE_STUDY_P35.md](reference/EDGE_STUDY_P35.md) — **current** entry-edge verdict (2026-08-10); supersedes P-21's conclusion.
 - [reference/EDGE_STUDY_P21.md](reference/EDGE_STUDY_P21.md) — the original entry-edge study + method (conclusion since reversed).
 - [reference/CAPACITY.md](reference/CAPACITY.md) — growth rates, one-year projections, and which queries break first (re-measure when the universe or pacing changes).

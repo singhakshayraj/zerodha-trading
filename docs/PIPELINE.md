@@ -313,10 +313,19 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   + scheduler.py remain disproportionate risk for a line count (live engine, dense
   monkeypatching) — do only if a file becomes a real merge-conflict/nav pain, one
   carefully-verified pass at a time. config.py exempt._
-- **[P-18] Advisor calibration is poor and non-monotonic.** [me] · *done =*
-  ECE recomputed once graded_calls ≥ 50 (currently 37, most bins low-n);
-  re-check monotonicity then — don't promote confidence into a scored input
-  before it holds. · *source:* weekly review 08-02 gate re-measure — first
+- ~~**[P-18] Advisor calibration is poor and non-monotonic.**~~ ✅ **ANSWERED
+  2026-08-25 — confidence carries no information; never promote it.** The ≥50
+  gate opened on 08-24 (37→79 graded). On n=98: **corr 0.0205 (t=0.20), AUC
+  0.4556**, avg confidence 70.3 when right vs 69.8 when wrong. The 90–100 bin
+  hits 28.6% against a 48% base rate.
+  _⚠️ **This item's own success criterion was wrong.** It asked for ECE +
+  monotonicity, which measure CALIBRATION, not DISCRIMINATION — and a signal
+  that always predicts the base rate is perfectly calibrated and useless. ECE
+  falling 30.3%→22.6% looked like progress and was just compression toward the
+  base rate. Replacement criterion for any re-open: **AUC materially above 0.5**,
+  not a better ECE._ Writeup:
+  [reference/P18_CALIBRATION.md](reference/P18_CALIBRATION.md).
+  _Original item + history below, kept for the record._ First
   recorded baseline: ECE 48.5%, `monotonic=false`, `built_at=2026-07-29`.
   _08-05: graded_calls 21→28, hit rate 42.9%→39.3% — still small-n, DARK,
   watch only._

@@ -250,7 +250,18 @@ smaller loss, not a profit — and a rule that flips sign session to session is
 the definition of something fitted to noise. Needs a genuinely consistent run,
 not one good day.
 
-### W-B · advisor calibration (ECE)
+### W-B · advisor calibration (ECE) — ✅ **CLOSED 2026-08-25, and the metric was wrong**
+The ≥50-graded gate opened (37→79 on 08-24). Measured on n=98: **corr 0.0205
+(t=0.20), AUC 0.4556** — confidence carries no information about whether a call
+is right. avg 70.3 when right vs 69.8 when wrong.
+
+⚠️ **ECE was the wrong thing to watch.** It measures calibration, not
+discrimination, and a signal that always predicts the base rate is perfectly
+calibrated and useless — so ECE improving 30.3%→22.6% was compression toward the
+base rate, not progress. **Re-open only on AUC materially above 0.5**, never on
+a better ECE. See [P18_CALIBRATION.md](P18_CALIBRATION.md).
+
+_Original watch note:_
 **30.3%** (was 35.6%), still non-monotonic, **n=37** graded calls (was 31) —
 continuing to improve, still too small to act on. Read from
 `app_config.advisor_calibration_latest`, `built_at=2026-08-10`, re-confirmed
