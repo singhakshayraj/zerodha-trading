@@ -71,6 +71,9 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 - [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md) — the paste-block for starting a new session.
 - [reference/TEST_COVERAGE.md](reference/TEST_COVERAGE.md) — what the suite covers.
 
+## 📐 superpowers/plans/ — design docs for work not yet built
+- [superpowers/plans/2026-08-26-multi-tenant.md](superpowers/plans/2026-08-26-multi-tenant.md) — running the system for N Zerodha accounts: coupling inventory, staged architecture, migration phases. Includes the review that reversed its own shared-market-worker decision.
+
 ## 🗄️ archive/ — history + superseded (kept for the record)
 - `SYSTEM_EVALUATION_2026-07-27.md` — full three-lens eval that seeded the roadmap.
 - `SESSION_HANDOFF.md` — the long append-only running log (pre-2026-07-25).
