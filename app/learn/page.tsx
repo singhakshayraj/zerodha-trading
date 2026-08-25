@@ -454,6 +454,21 @@ export default function LearnPage() {
                 <strong className="text-[#f5f5f5]">4. So if an edge exists, it has to be in which trades are taken
                 at all</strong> — and every candidate tested there has failed too.
               </p>
+              <p>
+                <strong className="text-[#f5f5f5]">5. The advisor&apos;s scoring has no measurable edge
+                either — and it is not a weighting problem.</strong> Its seven factors were re-weighted eight
+                different ways and replayed over 43,952 observations: every variant landed within an IC range of
+                0.004 of the others, which is noise. Then twelve standard factors from the published equity
+                literature — momentum, low-volatility, 52-week-high proximity, illiquidity and the rest — were
+                tested the same way over 5.2 years, cross-sectionally ranked and sector-neutralised. Not one
+                survived correction for multiple testing out of sample.
+              </p>
+              <p>
+                The most useful part was a trap it caught. Factors picked because they looked strong in the
+                first half of the data performed <em>worse than nothing</em> in the second half — illiquidity
+                scored a t-statistic of +4.18 early and went negative later. Choosing what to ship by
+                in-sample significance would have shipped exactly that.
+              </p>
 
               <Callout kind="warn" title="A lead that looked real, and died">
                 <p>
