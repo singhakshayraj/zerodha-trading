@@ -246,7 +246,44 @@ Low severity — no data is lost.
 
 ---
 
-### C7 — `inplay_list` has not locked on the last two session days 🟡
+### C7 — `inplay_list` never locks after a weekend — ✅ **ROOT-CAUSED + FIXED 2026-08-25** (brain `eb75ded`)
+
+**Cause: `market_data._get_historical` ignored its `days` parameter entirely**
+and hardcoded a window per interval — 3 calendar days for `5minute`, measured
+from *now* so the oldest day's opening range was clipped too.
+
+`data_jobs.maybe_lock_inplay` asks for `days=5` and silently got 3 calendar
+days. After a weekend that holds **at most one prior trading day**, and
+`inplay.opening_range_stats` needs **≥2** to compute an RVOL baseline — so every
+candidate returned `or_rvol=None`, `inplay.rank()` came back empty, and the list
+never locked.
+
+**It worked mid-week and failed every Monday**, which is exactly the recorded
+pattern: 08-05/06/07 locked; 08-10, 08-24, 08-25 did not.
+
+**Proven live** on INFY during the 08-25 session, same symbol before and after:
+
+| | dates returned | `or_rvol` |
+|---|---|---|
+| before | 08-24, 08-25 | **None** |
+| after | 08-20, 08-21, 08-24, 08-25 | **0.5221** |
+
+**Fix:** the per-interval values are now *floors*, not fixed windows — a caller
+asking for more gets more, while callers asking for less keep the old behaviour
+so nothing narrows silently. Window floored to midnight so the oldest day is a
+whole session. Suite 943.
+
+⚠️ **The first suspicion was wrong, and worth recording as such.**
+`db.inplay_locked()` *does* fail closed to `True` on error, and a cold-start
+`Server disconnected` on cycle 1 genuinely skips that cycle — that part is real.
+But `maybe_lock_inplay` runs on **every** cycle, so it recovers. Four cycles on
+08-25 still produced zero locks, and that is what ruled the disconnect out and
+pointed at the candle window instead. A plausible mechanism that survives one
+cycle is not a cause of an all-day miss.
+
+_Original finding below._
+
+### C7 (original) — `inplay_list` has not locked on the last two session days 🟡
 _Found 2026-08-25 by verify **I-4**, which warns on two consecutive session days
 with no lock ("no longer a quiet tape, it is a broken lock path")._
 
