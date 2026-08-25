@@ -4,35 +4,37 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-25** (Tue, post-close). **Session 08-25 ran and closed
-cleanly** (`f821de37`, 06:27:59–09:54:45 UTC / 11:57–15:24 IST, `COMPLETED`,
-git_sha unchanged at `893267c447e3`): **30 trades, −₹3,550.78, PF 0.102,
-expectancy −0.706R** (6 win / 24 loss) — the weakest single-session PF on
-record (prior low was 08-04's 0.158). Same-day, a live investigation
-root-caused **[C7]** (see below) and fixed it in the brain repo, but the fix
-is **not yet pushed** (deliberately, to avoid restarting the running session).
+_Last updated: **2026-08-26** (Wed, ~01:45 IST). **Session 08-25 audited.**
+`f821de37`, 11:57–15:24 IST, `COMPLETED`/`MARKET_CLOSED`: **30 trades,
+−₹3,550.78, PF 0.102, expectancy −0.706R** (6 win / 24 loss) — the **weakest
+single-session PF on record** (prior low 08-04's 0.158). Late start again
+(11:58), so ~3.4h of tape.
 
 **Cumulative:** 845 trades / 763 with `r_multiple`, PF **0.325**, expectancy
 **−0.442R**, max drawdown deepened to **≈−₹48,646**. No gate flip.
 
-**[P-18] gate crossed:** advisor graded_calls **37→79** (past the ≥50 action
-threshold), ECE **30.3%→22.6%**, still `monotonic=false`. The MACRO wave matured
-as predicted. Verdict unchanged for now — do not promote confidence into a
-scored input while the curve is non-monotonic — but this is the first time the
-item is actually *actionable*.
+**[C7] ROOT-CAUSED AND NOW DEPLOYED** (brain `eb75ded`, suite **943** — pushed
+post-close 08-26 01:45, correcting the 08-25 note that said it was held back):
+`_get_historical` ignored its `days` parameter and hardcoded 3 calendar days for
+5-minute bars, so after a weekend the in-play ranking had fewer than the 2 prior
+trading days it needs for an RVOL baseline. It worked mid-week and failed every
+Monday. Proven live before/after on INFY: `or_rvol` **None → 0.5221**.
 
-**Verify results:** **V-10 PASS** (23/23 traded symbols, zero missing bars, avg
-44 — exactly a 3.62h session, so the [C5] backfill works), **V-11 PASS** (20/20
-counter-cases), **I-1/I-2/I-3 PASS**, **V-9 NOT-YET** (a token existed, just
-late — this check only fires when one is *missing*), **I-4 WARN → new finding
-[C7]** (no `inplay_list` lock on either of the last two session days).
-**V-12 UNSTABLE** — see below.
+**V-12 has CONVERGED TO ZERO** (+0.001R, t=+0.0 on 13 days) — see below.
+**[C8]** recorded: an alarming mid-session `ABORTED` that self-healed by close.
 
-⚠️ Two dashboard features shipped 08-23 evening (after that day's automated
-review ran) were initially unlogged: the stale-token banner
-(`components/TokenAlert.tsx`) and the Nifty-500 lookup + on-demand refresh
-(`components/StockLookup.tsx`, `/api/advisor/lookup`, `/api/advisor/refresh`).
-Now recorded in PIPELINE Done.
+**Verify:** V-10 PASS (18/18 traded symbols, zero gaps, avg 41.7 bars), V-11
+PASS (20/20), I-1/I-2/I-3 PASS, V-9 NOT-YET, **I-4 still 0** — expected, the fix
+post-dates this session. **The next session is the real check for [C7].**
+
+Prior entries: `git log docs/STATUS.md`._
+
+**V-12 has converged to zero** — see below. **[C8]** recorded: an alarming-looking
+mid-session `ABORTED` that self-healed by close with no harm.
+
+**Verify:** V-10 PASS (18/18 symbols, zero gaps, avg 41.7 bars), V-11 PASS
+(20/20), I-1/I-2/I-3 PASS, V-9 NOT-YET, I-4 still 0 (the fix post-dates the
+session — expect a lock on the next one, which is now the check that matters).
 
 Prior entries: `git log docs/STATUS.md`._
 
@@ -168,6 +170,30 @@ looked like progress and was just compression toward the base rate. Waiting for
 a "good ECE" would have waited forever for a number that could not answer the
 question. **Re-open only on AUC materially above 0.5.** Writeup:
 [reference/P18_CALIBRATION.md](reference/P18_CALIBRATION.md).
+
+## 🔴 2026-08-26 — the entry edge has CONVERGED TO ZERO
+
+Day 13 (session 08-25, 348 decisions labeled): pooled out-of-sample **+0.001R,
+t=+0.0** on n=1,834.
+
+| sample | pooled OOS net | t |
+|---|---|---|
+| 10 days | +0.097R | **+3.0** |
+| 11 days | −0.003R | −0.1 |
+| 12 days | +0.031R | +1.0 |
+| **13 days** | **+0.001R** | **+0.0** |
+
+**No longer "unstable" — settling.** The estimate converges on zero as n grows,
+and the t=+3.0 at ten days was the outlier. That is what an initial false
+positive looks like when more data arrives.
+
+The rule still beats its own day's baseline **9 of 12 days**, so it does select
+better-than-average decisions — but the margin it wins is **exactly the cost of
+taking them** (avg 0.317R/decision). Which is [P-30]'s conclusion arriving from
+a different direction: costs dominate, and no filter tested clears them.
+
+Re-open only on **t > 2 on a materially larger sample** — never on one good day.
+That mistake has now been made once and corrected twice.
 
 ## 📉 2026-08-25 — the entry edge is not dead, it is UNSTABLE
 

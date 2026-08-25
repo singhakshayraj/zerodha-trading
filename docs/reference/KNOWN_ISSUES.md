@@ -246,6 +246,35 @@ Low severity — no data is lost.
 
 ---
 
+### C8 — session showed ABORTED/INIT_FAILED mid-session, then self-healed 🟢
+_2026-08-25. Recorded because it looked alarming and turned out not to be, which
+is worth knowing before someone panics at the same signal._
+
+At 12:46 IST the session row flipped to **`ABORTED` / `INIT_FAILED`** while the
+brain was demonstrably still working — cycle 11 completed, advisor ran, decisions
+kept landing until 13:20, heartbeat RUNNING at 13:24. State was inconsistent:
+session ABORTED, `brain_status=RUNNING`, `active_session_id` still pointing at
+it, and **6 positions open**.
+
+**It resolved itself.** By close the row read **`COMPLETED` / `MARKET_CLOSED`**
+(15:24 IST), all **30 trades closed, zero left open**, `brain_status=IDLE`,
+pointer cleared. No ghost positions, no data loss. The running loop ended the
+session properly; the abort had been written by a second code path that tried to
+(re)initialise and failed.
+
+⚠️ **Possible contributing factor, recorded honestly:** at ~12:29 and ~12:40 I
+ran live Kite calls from a laptop using the **same enctoken** (`_token_is_live`
+→ `get_profile`, then `get_candles`) to prove the [C7] fix. The abort landed at
+12:46. Not proven — nothing was deployed, and the logs covering 12:46 had
+rotated before this was investigated — but the timing is close enough to state.
+**Lesson: a read-only probe from a laptop still shares the one broker session.**
+Prefer testing against archived data, or accept the risk knowingly and outside
+market hours.
+
+Not tracked as work: it self-corrected, the guards did their job, and there is
+no evidence of harm. If a session ever ends the day still marked ABORTED with
+open trades, that is the version worth chasing.
+
 ### C7 — `inplay_list` never locks after a weekend — ✅ **ROOT-CAUSED + FIXED 2026-08-25** (brain `eb75ded`)
 
 **Cause: `market_data._get_historical` ignored its `days` parameter entirely**

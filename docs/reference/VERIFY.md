@@ -143,7 +143,31 @@ counter-case is what actually happened — needs graded rows carrying one, so it
 cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
 in the meantime._
 
-### V-12 · [P-35] the entry edge still holds as days accumulate — ⚠️ **UNSTABLE**
+### V-12 · [P-35] the entry edge — 🔴 **CONVERGED TO ZERO**
+_2026-08-26 (day 13, session 08-25 labeled — 348 decisions):_ pooled
+out-of-sample **+0.001R, t=+0.0** on n=1,834.
+
+Four readings, and they are no longer wandering — they are settling:
+
+| sample | pooled OOS net | t |
+|---|---|---|
+| 10 days | +0.097R | **+3.0** |
+| 11 days | −0.003R | −0.1 |
+| 12 days | +0.031R | +1.0 |
+| **13 days** | **+0.001R** | **+0.0** |
+
+**This is now a confident answer, not an unstable one.** The estimate is
+converging on zero as n grows; the t=+3.0 at ten days was the outlier, which is
+what an initial false positive looks like when more data arrives. The rule still
+beats its own day's baseline **9 of 12 days** — it does select better-than-average
+decisions — but the margin it wins is **exactly the cost of taking them**
+(avg 0.317R).
+
+**Keep running it, but stop expecting it to turn.** Re-open only if the pooled
+OOS clears **t > 2 on a materially larger sample**, not on a single good day —
+that mistake has now been made once and corrected twice.
+
+_Prior: ⚠️ UNSTABLE (12 days) · 🔴 FAILED (11 days)_
 _2026-08-25 (day 12, session 08-24 labeled — 555 decisions):_ the rule scored
 **+0.474R** (n=124, t=+4.7), its second-best day, immediately after its worst.
 Pooled out-of-sample moved **−0.003R → +0.031R (t=+1.0)**.
