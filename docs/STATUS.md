@@ -4,14 +4,16 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-25** (Tue, ~01:15 IST). **Session 08-24 ran and has
-been audited** — ending the 9-silent-weekday streak. Token was pasted at 11:48
-IST, ~2.5h after the 09:15 target, so the session ran short: **3.62h, 42 trades,
-−₹3,288.77, PF 0.282, expectancy −0.472R**. Read it as a behaviour sample, not a
-volume one.
+_Last updated: **2026-08-25** (Tue, post-close). **Session 08-25 ran and closed
+cleanly** (`f821de37`, 06:27:59–09:54:45 UTC / 11:57–15:24 IST, `COMPLETED`,
+git_sha unchanged at `893267c447e3`): **30 trades, −₹3,550.78, PF 0.102,
+expectancy −0.706R** (6 win / 24 loss) — the weakest single-session PF on
+record (prior low was 08-04's 0.158). Same-day, a live investigation
+root-caused **[C7]** (see below) and fixed it in the brain repo, but the fix
+is **not yet pushed** (deliberately, to avoid restarting the running session).
 
-**Cumulative:** 815 trades / 733 with `r_multiple`, PF **0.338**, expectancy
-**−0.431R**, max drawdown deepened to **≈−₹45,095**. No gate flip.
+**Cumulative:** 845 trades / 763 with `r_multiple`, PF **0.325**, expectancy
+**−0.442R**, max drawdown deepened to **≈−₹48,646**. No gate flip.
 
 **[P-18] gate crossed:** advisor graded_calls **37→79** (past the ≥50 action
 threshold), ECE **30.3%→22.6%**, still `monotonic=false`. The MACRO wave matured
@@ -99,6 +101,48 @@ python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
 - **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 📈 2026-08-25 post-session
+
+Session `f821de37` 06:27:59–09:54:45 UTC (11:57–15:24 IST), `COMPLETED`,
+git_sha unchanged `893267c447e3` (no new brain deploy today — the [C7] fix
+below is committed but deliberately unpushed). **30 trades, −₹3,550.78, PF
+0.102** (gross win ₹404.11 / gross loss ₹3,954.89), **expectancy −0.706R**
+(6 win / 24 loss) — the weakest single-session PF measured so far, below the
+prior low (08-04, 0.158). Read as ordinary variance inside the established
+per-session PF range until a mechanism says otherwise; no gate flip.
+
+**Cumulative (all-time, now 845 closed trades / 763 carrying `r_multiple`):**
+PF **0.325** (gross win ₹23,463.60 / gross loss ₹72,098.27), expectancy
+**−0.442R**, total P&L **−₹48,634.67**. Max drawdown (peak-to-trough of
+realized P&L, all-time) deepened to **≈−₹48,646** (was ≈−₹45,095 on 08-24) —
+consistent with the soft-stop design, not treated as a new regression. PF
+stays deep in reject territory (gate: >1.3 go / <1.1 reject).
+
+**Advisor calibration:** `advisor_calibration_latest` in `app_config` shows
+`graded_calls` unchanged at **98**, ECE **22.6%→22.1%** (small wobble, same
+ballpark), still `monotonic=false` — consistent with [P-18]'s answer below,
+no new movement.
+
+⚠️ **[C7] root-caused and fixed same day, mid-session** (brain `eb75ded`,
+**not pushed** — see [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md)
+§C7). Cause: `market_data._get_historical` ignored its `days` parameter and
+hardcoded a 3-calendar-day window for `5minute` candles; after a weekend
+(≤1 prior trading day) `opening_range_stats` needs ≥2 days for an RVOL
+baseline, so every candidate got `or_rvol=None` and `inplay_list` never
+locked. Explains the exact pattern already on record: locked 08-05/06/07,
+silent on 08-10/24/25. Fix floors the per-interval candle window instead of
+fixing it. Proven live on INFY (`or_rvol` None → 0.5221). **Needs pushing +
+a live re-check that `inplay_list` locks** — tracked as **[P-39]** below.
+
+⚠️ **Docs-sync gap found this pass:** commit `493ee92` (08-23 23:58 IST, "fix
+the infinite reload that blocked pasting a token") was in `git log -25` but
+never logged on the board, even though the 08-24 automated review ran after
+it. It fixed a same-night regression in the stale-token banner
+(`components/TokenAlert.tsx`, from `62ee323`): the banner used the shared API
+client, whose 401-interceptor clears the session and hard-redirects — on
+`/connect`, with no token yet, that looped forever and wiped any token the
+user was mid-paste on. Recorded in PIPELINE Done.
 
 ## ✅ 2026-08-25 — [P-18] ANSWERED: advisor confidence carries no information
 
@@ -609,11 +653,12 @@ still broken, get a screenshot + the specific page/symptom **before** changing
 anything — emulation never reproduced the original bug.
 
 ## Deployed versions
-- **Brain:** session `1d45ab4a` (08-24) stamps `git_sha=893267c447e3`. This
-  session (docs-only, no brain-repo access) cannot independently confirm this
-  against the brain repo's commit log — recorded as measured from prod, not
-  cross-checked. Prior STATUS entry: `b21a09b` (suite 933, 08-23 review).
-  Prior:
+- **Brain:** session `f821de37` (08-25) stamps `git_sha=893267c447e3` — same
+  as 08-24, since **[C7]'s fix (`eb75ded`) is committed locally but not yet
+  pushed** (deliberately held back while the session was running). Push +
+  redeploy is [P-39]. This session (docs-only, no brain-repo access) cannot
+  independently confirm the git_sha against the brain repo's commit log —
+  recorded as measured from prod, not cross-checked. Prior:
 - **Brain:** `c5fd525` (08-06: auto-label decisions each session — Track C
   unstarve). Chain today: `b09904` (P-05 re-fix) → `91a4836` (grade-on-session-
   start) → `a2d9881` (paper-portfolio P-14·2) → `489d6b5` (holdings-warm grading
@@ -737,6 +782,7 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 08-06 | 77 (full-day, −3R soft) | −₹5,052 | 0.489 | −0.344R |
 | 08-10 | 81 (full-day, −3R soft) | −₹8,528.22 | 0.242 | −0.531R |
 | 08-24 | 42 (short — late token paste, 3.6h) | −₹3,288.77 | 0.282 | −0.472R |
+| 08-25 | 30 (short — late token paste, 3.45h) | −₹3,550.78 | 0.102 | −0.706R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
@@ -745,20 +791,25 @@ still no edge. AM (in the "+EV" open window) was the **worst** bucket, PM (after
 _08-24 note: session started 06:18 UTC (11:48 IST), ~2.5h after the 09:15 IST
 target — the manual-token-paste dependency ([P-03]/[P-04]) cost most of the
 morning, not a strategy issue._
+_08-25 note: session started 06:27:59 UTC (11:57 IST), ~2.75h after the
+09:15 IST target — second consecutive late paste, and [C7] (inplay-list
+never locking) was live for this session too since its fix wasn't pushed
+until after close. Small n (30 trades) — read the weak PF as noise until a
+mechanism is shown, not as a new regression._
 
-Cumulative (all-time, **815 closed trades**, 733 carrying `r_multiple`) ≈ PF
-**0.338** (gross win ₹23,059.49 / gross loss ₹68,143.38), expectancy
-**−0.431R avg**, total **−₹45,083.89** — measured directly from `trades` this
-pass (08-24 post-close; see §"2026-08-24 post-session" above for the full
+Cumulative (all-time, **845 closed trades**, 763 carrying `r_multiple`) ≈ PF
+**0.325** (gross win ₹23,463.60 / gross loss ₹72,098.27), expectancy
+**−0.442R avg**, total **−₹48,634.67** — measured directly from `trades` this
+pass (08-25 post-close; see §"2026-08-25 post-session" above for the full
 readout and method).
-08-24 added 42 trades / −₹3,288.77 (PF 0.282, weak — near 08-10's 0.242); no
+08-25 added 30 trades / −₹3,550.78 (PF 0.102, the weakest session yet); no
 gate flip (still deep reject zone, PF gate is >1.3 go / <1.1 reject).
 **Standing conclusion unchanged: no edge yet → gate #6 is the priority.** Max
-drawdown (peak-to-trough equity, all-time) is now **≈−₹45,095** (was
-≈−₹41,817 on 08-16/08-23) — deeper, consistent with the soft daily-stop
-design (a session can bleed past −3R rather than hard-cutting), not treated
-as a new regression. Trade-quality note (T4): the "opening hour is the only
-+EV window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R vs
+drawdown (peak-to-trough equity, all-time) is now **≈−₹48,646** (was
+≈−₹45,095 on 08-24) — deeper, consistent with the soft daily-stop design (a
+session can bleed past −3R rather than hard-cutting), not treated as a new
+regression. Trade-quality note (T4): the "opening hour is the only +EV
+window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R vs
 −0.64R) converged to both-negative, no spread left to exploit either way. See
 the FLAG log; re-measure over more full-day sessions.
 
