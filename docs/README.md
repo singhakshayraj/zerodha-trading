@@ -63,6 +63,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 - [reference/P18_CALIBRATION.md](reference/P18_CALIBRATION.md) — why the advisor's confidence number carries no information, and why ECE was the wrong test.
 - [reference/EDGE_STUDY_P35.md](reference/EDGE_STUDY_P35.md) — **current** entry-edge verdict (2026-08-10); supersedes P-21's conclusion.
 - [reference/EDGE_STUDY_P21.md](reference/EDGE_STUDY_P21.md) — the original entry-edge study + method (conclusion since reversed).
+- [reference/ADVISOR_LAB.md](reference/ADVISOR_LAB.md) — offline advisor scoring experiments: method, the pre-registered variants, and why reweighting is a dead axis.
 - [reference/CAPACITY.md](reference/CAPACITY.md) — growth rates, one-year projections, and which queries break first (re-measure when the universe or pacing changes).
 - [reference/GATE_MEASURES.md](reference/GATE_MEASURES.md) — the go/no-go gate time series (PF, expectancy, drawdown, advisor ECE). Split out of PIPELINE 2026-08-10.
 - [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md) — the claude-for-financial-services plugins: which four ideas transfer, and which are ruled out (so it isn't re-litigated).
