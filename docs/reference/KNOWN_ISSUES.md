@@ -275,7 +275,11 @@ Not tracked as work: it self-corrected, the guards did their job, and there is
 no evidence of harm. If a session ever ends the day still marked ABORTED with
 open trades, that is the version worth chasing.
 
-### C7 — `inplay_list` never locks after a weekend — ✅ **ROOT-CAUSED + FIXED 2026-08-25** (brain `eb75ded`)
+### C7 — `inplay_list` never locks after a weekend — ✅ **FIXED 2026-08-25, VERIFIED LIVE 2026-08-26** (brain `eb75ded`)
+
+**Verified on session `c40c5634`:** the list locked with 10 rows at 10:32:54 IST, top `or_rvol` 15.89 — the first session after the fix, and the first lock since 08-07. I-4 PASS. The day's trade count (69) rose with the restored candidate pool, but one session cannot separate that from the tape, so no performance claim is attached to this fix.
+
+⚠️ 08-26 was **mid-week** (Wed, after Tue's session). [C7] failed specifically *after a weekend*, so the decisive check is Monday **2026-08-31**.
 
 **Cause: `market_data._get_historical` ignored its `days` parameter entirely**
 and hardcoded a window per interval — 3 calendar days for `5minute`, measured

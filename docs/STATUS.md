@@ -4,31 +4,51 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-26** (Wed, ~17:15 IST). **Session 08-26 audited.**
-`c40c5634`, 10:31–15:21 IST, `COMPLETED`: **69 trades, −₹2,214.01, PF 0.724,
-expectancy −0.232R** (24 win / 45 loss) — a rebound off 08-25's record-low PF
-0.102, back inside the established per-session range. Start time 10:31 IST is
-still ~76min past the 09:15 IST target, but the smallest gap of the last three
-sessions (08-24 +2.5h, 08-25 +2.75h, today +1.25h).
+_Last updated: **2026-08-27** (Thu, ~00:40 IST). **Session 08-26 audited.**
+`c40c5634`, 10:31–15:21 IST, `COMPLETED`/`MARKET_CLOSED`: **69 trades, all
+closed, zero left open**, −₹2,214.01, **PF 0.724**, expectancy **−0.232R**
+(24 win / 45 loss, 32 short / 37 long), 2,953 decisions. A rebound off 08-25's
+record-low 0.102, back inside the established per-session range — **not a
+record**: 0.724 ranks 6th, behind 05-21 (1.631), 05-20 (1.419), 05-19 (1.129),
+07-13 (1.032) and 07-14 (0.867). Start 10:31 IST is still ~76min past the
+09:15 target, but the smallest gap of the last three sessions (08-24 +2.5h,
+08-25 +2.75h, today +1.25h).
 
 **Cumulative:** 914 trades / 832 with `r_multiple`, PF **0.365**, expectancy
 **−0.425R**, max drawdown deepened to **≈−₹51,047**. No gate flip.
 
-**[P-39] DONE — [C7] fix confirmed live, git_sha moved.** Today's session
-stamps `git_sha=2e884587d855` (was `893267c447e3` the prior two sessions — the
-brain push finally landed), and `inplay_list` locked **all 10 candidates**
-(`or_rvol` populated on every row, first lock 05:02:50 UTC) — **I-4 PASS**.
-⚠️ Today is mid-week (Wed, after Tue's own session ran), not the post-weekend
-case [C7] actually broke on — the real stress test is the next session after a
-weekend gap (Monday 08-31). Marking [P-39] DONE on its literal
-measure-of-done (git_sha moved + a lock), with that harder check still ahead.
+**[P-39] DONE — [C7] fix confirmed live, git_sha moved.** Today stamps
+`git_sha=2e884587d855` (was `893267c447e3` the prior two sessions — the brain
+push finally landed), and `inplay_list` locked **all 10 candidates**, first
+lock 05:02:50 UTC (10:32 IST), top `or_rvol` 15.89 — **I-4 PASS**, the first
+lock since 08-07 and the gap since then is exactly the three failures the fix
+targeted (08-10, 08-24, 08-25).
+
+⚠️ **But this was a mid-week session** (Wed, after Tue's own session ran), not
+the post-weekend case [C7] actually broke on. The real stress test is the
+next session after a weekend gap — **Monday 08-31**. [P-39] is DONE on its
+literal measure-of-done (git_sha moved + a lock); the harder check is still
+ahead.
+
+**Do not attribute the day's PF or the 69-trade count to the fix.** A locked
+list restores the candidate pool, which moves volume (30 → 69); one session
+cannot separate that from the tape.
+
+Also confirmed: advisor ran (20 official rows), both paper books snapshotted,
+exits spread across BRAIN_SIGNAL 23 / TARGET_HIT 18 / STOP_LOSS_HIT 17 /
+EOD_CLOSE 8 / SESSION_END 3. Clean shutdown — `IDLE`, pointer cleared,
+heartbeat back to "Waiting for START command".
 
 **Advisor calibration:** unchanged — `graded_calls` 98, ECE 22.1%, still
-`monotonic=false` (same numbers recomputed same-day; no new movement since
-08-25's [P-18] answer).
+`monotonic=false`. Nothing newly matured; next MACRO batch due ~09-02.
 
-**Verify:** V-10/V-11/I-1/I-2/I-3 PASS (carried from 08-25, unaffected by
-today), **I-4 now PASS** (was NOT-YET). V-9 still NOT-YET.
+**Verify:** V-10/V-11/I-1/I-2/I-3 PASS (carried from 08-25), **I-4 now PASS**
+(was NOT-YET). V-9 still NOT-YET.
+
+**Shipped post-close 08-26** (market shut): advisor variant lab + factor lab
+(brain `7d85944`, `b2ba4d9`), 12-1 momentum logged as a **dark flag**
+(`2e88458`), dead `get_nifty_level` stub deleted (`78ca4be`), multi-tenant
+design + architecture review (`f5359bf`, `5e5e908`). Suite **950**.
 
 Prior entries: `git log docs/STATUS.md`._
 

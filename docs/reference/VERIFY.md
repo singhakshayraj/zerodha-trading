@@ -34,6 +34,7 @@ _2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a 
 _2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
 _2026-08-10: V-12 added ([P-35] entry edge — re-run after each session's labeling)._
 _2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 advisor run._
+_2026-08-26: **I-4 PASSED — [C7] is verified live.** `inplay_list` locked on session `c40c5634`: 10 rows, `locked_at` 10:32:54 IST, top `or_rvol` 15.89. The series gap 08-07 → 08-26 is exactly the three failures the fix targeted (08-10, 08-24, 08-25). First session able to judge it._
 _2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
@@ -461,3 +462,10 @@ from inplay_list group by 1 order by 1 desc limit 6;
 ```
 **PASS** = a row for today. **WARN** if two or more consecutive session days
 have no lock — that is no longer a quiet tape, it is a broken lock path.
+
+**Result 2026-08-26 — PASS.** 10 rows, `locked_at` `2026-08-26 05:02:54 UTC`
+(10:32:54 IST, one minute after a late 10:31 session start), top `or_rvol`
+15.89. This is the check [C7] was fixed for; it had returned zero on 08-10,
+08-24 and 08-25. Standing invariant, so it stays open and keeps running.
+
+⚠️ **This was a mid-week session**, not the post-weekend case [C7] broke on. The real stress test is the first session after a weekend gap — **Monday 2026-08-31**.
