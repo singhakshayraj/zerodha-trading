@@ -37,6 +37,48 @@ _2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 
 _2026-08-26: **I-4 PASSED — [C7] is verified live.** `inplay_list` locked on session `c40c5634`: 10 rows, `locked_at` 10:32:54 IST, top `or_rvol` 15.89. The series gap 08-07 → 08-26 is exactly the three failures the fix targeted (08-10, 08-24, 08-25). First session able to judge it._
 _2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
+### V-13 · TARGET_HIT fills stop losing the poll-latency tail
+Shipped 2026-08-27 (brain `f1c7d35`). [P-05] capped the ~30s poll tail on the
+STOP side and left the TARGET side raw, so target exits booked the pullback as
+lost gain: **+1.389R against a planned 2.08R**, with `avg mfe_r` 1.610R — below
+the target the trade must have touched to be classified TARGET_HIT at all.
+`_target_fill_price` now mirrors `_stop_fill_price` (cap 0.25R, never better
+than target).
+
+```sql
+select case when created_at < '2026-08-27' then 'before' else 'after' end period,
+       count(*) n, round(avg(r_multiple)::numeric,3) avg_r,
+       round(avg(mfe_r)::numeric,3) avg_mfe
+from trades where exit_reason='TARGET_HIT' and r_multiple is not null
+group by 1 order by 1;
+```
+**PASS** = `after` avg_r **≥ 1.60** on n ≥ 15 (the cap floors the fill at
+2.08 − 0.25 = 1.83R before charges; the `before` baseline is 1.389R).
+**FAIL** = still ≈1.4R → the cap is not reaching the fill path.
+**NOT-YET** = n < 15 target hits since the deploy.
+
+⚠️ This changes reported performance **upward** by construction. It is a
+symmetry correction, not an improvement — expectancy moves from ≈−0.425R to
+≈−0.365R and **no gate flips**. Do not read a PF rise after 08-27 as the
+strategy improving.
+
+### V-14 · the win rate keeps moving past 1000 closed trades
+Shipped 2026-08-27 (brain `49b76e5`). `get_win_rate` selected every closed
+trade and counted in Python; PostgREST caps a rowset at 1000 and the book was
+at **914**, adding ~69 a session. It would have silently frozen on the oldest
+1000. Now two server-side exact counts.
+
+```sql
+select count(*) total,
+       count(*) filter (where pnl > 0) wins,
+       round((count(*) filter (where pnl>0))::numeric/count(*),4) win_rate
+from trades where status='CLOSED' and pnl is not null;
+```
+**PASS** = once `total` > 1000, the `[kelly] Historical win rate: W/T` line in
+the session log reports the **same T** as this query. **FAIL** = the log says
+1000 while the query says more — the cap is back.
+**NOT-YET** = total ≤ 1000 (no session has crossed it yet).
+
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
 Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
 one historical execution (NBCC SELL 115, 08-06 04:36, `followed_advice=true`,
