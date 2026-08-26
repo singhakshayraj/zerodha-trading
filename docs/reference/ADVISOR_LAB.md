@@ -95,7 +95,7 @@ that sequence would repeat the V-12 mistake in the opposite direction.
 ## What follows
 
 Consistent with [P18_CALIBRATION.md](P18_CALIBRATION.md): the advisor's
-confidence carried no information (AUC 0.4556), and now the trend score shows
+confidence carried no information (AUC **0.4917**, market-neutral 0.5133), and now the trend score shows
 no stable cross-sectional edge either. Two independent measurements of the
 same thing.
 

@@ -208,7 +208,7 @@ asked properly. On **n=98**, base rate 48.0%:
 | test | value |
 |---|---|
 | corr(confidence, correct) | **0.0205** (t = 0.20) |
-| **AUC** | **0.4556** (0.5 = coin flip) |
+| **AUC** | **0.4917** (0.5 = coin flip); market-neutral label **0.5133**. Regenerate: `scripts/advisor_discrimination.py`. 0.4556 was unreproducible — corrected 2026-08-27 |
 | avg confidence when RIGHT | 70.3 |
 | avg confidence when WRONG | 69.8 |
 

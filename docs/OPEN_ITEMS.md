@@ -1,6 +1,6 @@
 # OPEN ITEMS — who owes what
 
-_Cut by **owner**, as of **2026-08-23** (Sun). Next session Mon 08-24. Sections 1.2/1.3 below are the 08-10 pre-market block, kept for the runbook commands — the dated framing is stale, the commands are not._
+_Cut by **owner**, as of **2026-08-27** (Thu, ~03:00 IST). Next session is **today**, 08-27. Sections 1.2/1.3 are an undated runbook — the commands are current, the Monday framing was never meant to pin them to one date._
 
 This is a **derived view**, not a new source of truth. [PIPELINE.md](PIPELINE.md)
 stays authoritative for work items and [reference/VERIFY.md](reference/VERIFY.md)
@@ -61,7 +61,7 @@ notification in time to prevent it. Prioritise it over everything else in §1.4.
 
 ---
 
-## 1.2 Monday 2026-08-10 — PRE-MARKET (before 09:15 IST)
+## 1.2 RUNBOOK — PRE-MARKET (any session day, before 09:15 IST)
 
 ### ① Run the pacing runbook
 ```bash
@@ -81,7 +81,7 @@ edit needed.** Only the script's *header comment* is stale — it still cites th
 
 ---
 
-## 1.3 Monday 2026-08-10 — POST-CLOSE (after 15:30 IST / 10:00 UTC)
+## 1.3 RUNBOOK — POST-CLOSE (any session day, after 15:30 IST / 10:00 UTC)
 
 > Never audit a live session — half the day's rows don't exist yet, so it
 > misreports.
@@ -182,9 +182,8 @@ Full reasoning: [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md).
   you* (breaking it means you should act, but the call may still be sound)?
   They grade differently. Note `SELL` sets `stop = None`, so coverage is partial
   by construction either way.
-- **[P-33] Every verdict carries a bear case.** `reasons[]` is confirmatory
-  only — nothing records what would make the verdict wrong, so nothing can be
-  scored against it. Cheap, no decision needed.
+- ~~**[P-33] Every verdict carries a bear case.**~~ ✅ **SHIPPED** — every
+  verdict now emits `counter_case`; verify **V-11 PASSED (20/20)**.
 - **[P-34] No-trade band on the rotation advisor.** Cost drag is −0.239R of a
   −0.401R loss and no exit policy clears breakeven even at zero cost; a drift
   band is the standard answer. **Sequenced after ②/③** — those are already
@@ -201,6 +200,27 @@ Full reasoning: [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md).
   **My read: do these only if a file becomes real merge-conflict or navigation
   pain, one carefully-verified pass at a time.** It's a line count, not a bug.
 
+## 2.2b Added 2026-08-27 (overnight session)
+
+- **[P-40] De-duplicate `market_context` + `event_policy` out of
+  `brain_decisions.indicators`.** [me] — **deferred by you**, listed so it is not
+  lost. Worth ~25–30% of the largest table. It is the ONLY remaining storage
+  lever: [P-41] proved this data does not compress under pglz **or** lz4 (0 of
+  500 rows, in-database, with an uncompressed control), so encoding is closed
+  and cross-row duplication is all that is left.
+- ~~**[P-41] Does this data compress?**~~ ✅ **DONE — answer is no.** Measured,
+  not proxied. Compression removed from the [P-38] plan entirely.
+- **Advisor grading is market-confounded.** `outcome_correct` judges HOLD on
+  *absolute* return, so in a rising tape every HOLD scores right regardless of
+  quality. `outcome_vs_nifty_pct` — the market-neutral version — is computed and
+  stored by the same grader and then never used. Under it the advisor's hit rate
+  is **0.551**, not 0.480. Not yet a P-item; needs a decision on which label is
+  authoritative before anything is rewired.
+- **The recorded `AUC 0.4556` was unreproducible** and is corrected to **0.4917**
+  (market-neutral 0.5133). It lived in four documents and in no code; it is now
+  `scripts/advisor_discrimination.py`. The conclusion is unchanged — both are a
+  coin flip — but the number is now regenerable on demand.
+
 ## 2.3 Small, real, unclaimed
 
 None of these are P-items yet; each is a finding with a known fix.
@@ -211,6 +231,7 @@ None of these are P-items yet; each is a finding with a known fix.
 | ~~**[C5]**~~ | ✅ **DONE 2026-08-10** (brain `ce057e4`). `archive_traded_day_candles()` re-reads the full traded day, 15:40–16:30 IST, day-gated, idempotent; a test pins the gate shut during market hours. Verify **V-10**. Runs forward only. _(original)_ Archive the day's traded symbols' tail bars **post-close, in `data_jobs.py`** — ⚠️ **not** in the close path, which is where I first wrote it. That would reintroduce the documented `archive_candles` latency regression (~7s/cycle), and a slow exit path is measured to fill stops at −2.78R instead of ≈−1R. Found by [P-30]: 10 of 118 clean-exit trades exit past the last archived bar. Benign for [P-30]; matters for anything treating `candles` as a complete path. |
 | ~~**[C2]**~~ | ✅ **DONE 2026-08-08** (brain `a68e136`). Audited all 500 pins against Kite's live master: 499 matched, JBCHEPHARM was the only dead one and is absent from the master entirely — dropped. No rebuild needed. Added `scripts/audit_nifty500_tokens.py` (read-only, no auth) and verify **I-6**. Suite 894 green. |
 | pacing script | Refresh the stale header comment (numbers are fine — see §1.2). |
+| ~~orphan sessions~~ | ✅ **DONE 2026-08-27.** Two `trading_sessions` rows from 2026-05-25 read `RUNNING` with 0 trades — they tripped a live-session safety check during the storage work. Set to `ABORTED` with an explicit `end_reason`; `ended_at` left null rather than fabricated, since the true end time is unknown. `RUNNING` count is now 0. |
 
 ---
 

@@ -345,7 +345,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   monotonicity, which measure CALIBRATION, not DISCRIMINATION — and a signal
   that always predicts the base rate is perfectly calibrated and useless. ECE
   falling 30.3%→22.6% looked like progress and was just compression toward the
-  base rate. Replacement criterion for any re-open: **AUC materially above 0.5**,
+  base rate. Replacement criterion for any re-open: **AUC materially above 0.5 under BOTH labels** (absolute and market-neutral; `scripts/advisor_discrimination.py`),
   not a better ECE._ Writeup:
   [reference/P18_CALIBRATION.md](reference/P18_CALIBRATION.md).
   _Original item + history below, kept for the record._ First
