@@ -4,37 +4,31 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-26** (Wed, ~01:45 IST). **Session 08-25 audited.**
-`f821de37`, 11:57–15:24 IST, `COMPLETED`/`MARKET_CLOSED`: **30 trades,
-−₹3,550.78, PF 0.102, expectancy −0.706R** (6 win / 24 loss) — the **weakest
-single-session PF on record** (prior low 08-04's 0.158). Late start again
-(11:58), so ~3.4h of tape.
+_Last updated: **2026-08-26** (Wed, ~17:15 IST). **Session 08-26 audited.**
+`c40c5634`, 10:31–15:21 IST, `COMPLETED`: **69 trades, −₹2,214.01, PF 0.724,
+expectancy −0.232R** (24 win / 45 loss) — a rebound off 08-25's record-low PF
+0.102, back inside the established per-session range. Start time 10:31 IST is
+still ~76min past the 09:15 IST target, but the smallest gap of the last three
+sessions (08-24 +2.5h, 08-25 +2.75h, today +1.25h).
 
-**Cumulative:** 845 trades / 763 with `r_multiple`, PF **0.325**, expectancy
-**−0.442R**, max drawdown deepened to **≈−₹48,646**. No gate flip.
+**Cumulative:** 914 trades / 832 with `r_multiple`, PF **0.365**, expectancy
+**−0.425R**, max drawdown deepened to **≈−₹51,047**. No gate flip.
 
-**[C7] ROOT-CAUSED AND NOW DEPLOYED** (brain `eb75ded`, suite **943** — pushed
-post-close 08-26 01:45, correcting the 08-25 note that said it was held back):
-`_get_historical` ignored its `days` parameter and hardcoded 3 calendar days for
-5-minute bars, so after a weekend the in-play ranking had fewer than the 2 prior
-trading days it needs for an RVOL baseline. It worked mid-week and failed every
-Monday. Proven live before/after on INFY: `or_rvol` **None → 0.5221**.
+**[P-39] DONE — [C7] fix confirmed live, git_sha moved.** Today's session
+stamps `git_sha=2e884587d855` (was `893267c447e3` the prior two sessions — the
+brain push finally landed), and `inplay_list` locked **all 10 candidates**
+(`or_rvol` populated on every row, first lock 05:02:50 UTC) — **I-4 PASS**.
+⚠️ Today is mid-week (Wed, after Tue's own session ran), not the post-weekend
+case [C7] actually broke on — the real stress test is the next session after a
+weekend gap (Monday 08-31). Marking [P-39] DONE on its literal
+measure-of-done (git_sha moved + a lock), with that harder check still ahead.
 
-**V-12 has CONVERGED TO ZERO** (+0.001R, t=+0.0 on 13 days) — see below.
-**[C8]** recorded: an alarming mid-session `ABORTED` that self-healed by close.
+**Advisor calibration:** unchanged — `graded_calls` 98, ECE 22.1%, still
+`monotonic=false` (same numbers recomputed same-day; no new movement since
+08-25's [P-18] answer).
 
-**Verify:** V-10 PASS (18/18 traded symbols, zero gaps, avg 41.7 bars), V-11
-PASS (20/20), I-1/I-2/I-3 PASS, V-9 NOT-YET, **I-4 still 0** — expected, the fix
-post-dates this session. **The next session is the real check for [C7].**
-
-Prior entries: `git log docs/STATUS.md`._
-
-**V-12 has converged to zero** — see below. **[C8]** recorded: an alarming-looking
-mid-session `ABORTED` that self-healed by close with no harm.
-
-**Verify:** V-10 PASS (18/18 symbols, zero gaps, avg 41.7 bars), V-11 PASS
-(20/20), I-1/I-2/I-3 PASS, V-9 NOT-YET, I-4 still 0 (the fix post-dates the
-session — expect a lock on the next one, which is now the check that matters).
+**Verify:** V-10/V-11/I-1/I-2/I-3 PASS (carried from 08-25, unaffected by
+today), **I-4 now PASS** (was NOT-YET). V-9 still NOT-YET.
 
 Prior entries: `git log docs/STATUS.md`._
 
@@ -103,6 +97,46 @@ python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
 - **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 📈 2026-08-26 post-session — [P-39] verified live
+
+Session `c40c5634` 05:01:32–09:51:16 UTC (10:31–15:21 IST), `COMPLETED`,
+**git_sha `2e884587d855`** — a new build (prior two sessions stamped
+`893267c447e3`), confirming the [C7] fix (brain `eb75ded`) was pushed. **69
+trades, −₹2,214.01, PF 0.724** (gross win ₹5,816.56 / gross loss ₹8,030.57),
+**expectancy −0.232R** (24 win / 45 loss) — inside the established per-session
+PF range, a clear rebound from 08-25's record-low 0.102.
+
+**[C7]/[P-39] check: PASS.** `inplay_list` for 2026-08-26 has **10/10 rows
+locked**, all carrying `or_rvol` (first lock 05:02:50 UTC) — verify **I-4**
+clears (was NOT-YET on 08-25). ⚠️ Today follows Tuesday's own session, not a
+weekend gap, so this confirms the fix didn't break anything mid-week but is
+**not** the scenario [C7] actually failed on. The definitive check is the
+first session after a weekend gap — next due **Monday 2026-08-31**.
+
+**Cumulative (all-time, now 914 closed trades / 832 carrying `r_multiple`):**
+PF **0.365** (gross win ₹29,280.16 / gross loss ₹80,128.84), expectancy
+**−0.425R**, total P&L **−₹50,848.68**. Max drawdown (peak-to-trough of
+realized P&L, all-time) deepened to **≈−₹51,047** (was ≈−₹48,646 on 08-25) —
+consistent with the soft-stop design, not treated as a new regression. PF
+improved off 08-25's low but stays deep in reject territory (gate: >1.3 go /
+<1.1 reject).
+
+**Advisor calibration:** `advisor_calibration_latest` in `app_config` shows
+`graded_calls` unchanged at **98**, ECE unchanged at **22.1%**, still
+`monotonic=false` — no new movement since [P-18] was answered 08-25
+(the row simply recomputed same-day with an identical result).
+
+**Dashboard API** (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again this pass (`curl` connection failure, exit 56, HTTP 000) —
+same as every recent pass. All numbers above measured directly against
+Supabase prod.
+
+_No `git log -25` docs-sync gaps found this pass — the commits since the last
+review (`8c11a3d`…`5e5e908`) are all docs-only (P-18 already recorded, C7
+already recorded, two ADVISOR_LAB/FACTOR_LAB writeups not tied to a board
+item, two multi-tenant design-plan commits) and none represents shipped code
+that needs a board move besides [P-39] above._
 
 ## 📈 2026-08-25 post-session
 
@@ -679,12 +713,14 @@ still broken, get a screenshot + the specific page/symptom **before** changing
 anything — emulation never reproduced the original bug.
 
 ## Deployed versions
-- **Brain:** session `f821de37` (08-25) stamps `git_sha=893267c447e3` — same
-  as 08-24, since **[C7]'s fix (`eb75ded`) is committed locally but not yet
-  pushed** (deliberately held back while the session was running). Push +
-  redeploy is [P-39]. This session (docs-only, no brain-repo access) cannot
-  independently confirm the git_sha against the brain repo's commit log —
+- **Brain:** session `c40c5634` (08-26) stamps `git_sha=2e884587d855` — a new
+  build, confirming **[C7]'s fix (`eb75ded`) was pushed** ([P-39] DONE, see
+  08-26 post-session above). This session (docs-only, no brain-repo access)
+  cannot independently confirm the sha against the brain repo's commit log —
   recorded as measured from prod, not cross-checked. Prior:
+- **Brain:** session `f821de37` (08-25) stamped `git_sha=893267c447e3` — same
+  as 08-24, since [C7]'s fix was committed locally but not yet pushed at that
+  time. Prior:
 - **Brain:** `c5fd525` (08-06: auto-label decisions each session — Track C
   unstarve). Chain today: `b09904` (P-05 re-fix) → `91a4836` (grade-on-session-
   start) → `a2d9881` (paper-portfolio P-14·2) → `489d6b5` (holdings-warm grading
@@ -809,6 +845,7 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 08-10 | 81 (full-day, −3R soft) | −₹8,528.22 | 0.242 | −0.531R |
 | 08-24 | 42 (short — late token paste, 3.6h) | −₹3,288.77 | 0.282 | −0.472R |
 | 08-25 | 30 (short — late token paste, 3.45h) | −₹3,550.78 | 0.102 | −0.706R |
+| 08-26 | 69 (full-day, −3R soft) | −₹2,214.01 | 0.724 | −0.232R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
@@ -823,16 +860,16 @@ never locking) was live for this session too since its fix wasn't pushed
 until after close. Small n (30 trades) — read the weak PF as noise until a
 mechanism is shown, not as a new regression._
 
-Cumulative (all-time, **845 closed trades**, 763 carrying `r_multiple`) ≈ PF
-**0.325** (gross win ₹23,463.60 / gross loss ₹72,098.27), expectancy
-**−0.442R avg**, total **−₹48,634.67** — measured directly from `trades` this
-pass (08-25 post-close; see §"2026-08-25 post-session" above for the full
+Cumulative (all-time, **914 closed trades**, 832 carrying `r_multiple`) ≈ PF
+**0.365** (gross win ₹29,280.16 / gross loss ₹80,128.84), expectancy
+**−0.425R avg**, total **−₹50,848.68** — measured directly from `trades` this
+pass (08-26 post-close; see §"2026-08-26 post-session" above for the full
 readout and method).
-08-25 added 30 trades / −₹3,550.78 (PF 0.102, the weakest session yet); no
-gate flip (still deep reject zone, PF gate is >1.3 go / <1.1 reject).
+08-26 added 69 trades / −₹2,214.01 (PF 0.724, a rebound off 08-25's 0.102
+low); no gate flip (still deep reject zone, PF gate is >1.3 go / <1.1 reject).
 **Standing conclusion unchanged: no edge yet → gate #6 is the priority.** Max
-drawdown (peak-to-trough equity, all-time) is now **≈−₹48,646** (was
-≈−₹45,095 on 08-24) — deeper, consistent with the soft daily-stop design (a
+drawdown (peak-to-trough equity, all-time) is now **≈−₹51,047** (was
+≈−₹48,646 on 08-25) — deeper, consistent with the soft daily-stop design (a
 session can bleed past −3R rather than hard-cutting), not treated as a new
 regression. Trade-quality note (T4): the "opening hour is the only +EV
 window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R vs

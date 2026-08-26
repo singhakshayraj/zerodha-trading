@@ -5,37 +5,39 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-25** (Tue, post-session) · Burn-down: **23 shipped +
-verified live / 0 in-progress / 5 ready / 5 blocked**._ (+1 Done this pass —
-the 08-23 infinite-reload fix (`493ee92`), found undocumented in git log; +1
-Ready — [P-39], push+deploy the [C7] fix.)
+_Last updated: **2026-08-26** (Wed, post-session) · Burn-down: **24 shipped +
+verified live / 0 in-progress / 4 ready / 5 blocked**._ (+1 Done this pass —
+[P-39], the [C7] fix confirmed live via a new git_sha + a full in-play lock.)
 
-**This pass (post-session):** A trading session ran 08-25 — `f821de37`,
-06:27:59–09:54:45 UTC, `COMPLETED`, 30 trades, PF **0.102**, expectancy
-**−0.706R** — the weakest single-session PF on record, and a late start
-again (token pasted 11:57 IST, ~2.75h past the 09:15 IST target). Cumulative
-now **845 closed / 763 `r_multiple`**, PF **0.325**, expectancy **−0.442R**,
-max drawdown ≈−₹48,646 (deepened from ≈−₹45,095). No gate flip. Full
-readout: [STATUS.md](STATUS.md)'s 08-25 post-session section. Dashboard API
-still unreachable (connection failure, not just 403) from this environment —
-all numbers measured directly against Supabase.
+**This pass (post-session):** A trading session ran 08-26 — `c40c5634`,
+05:01:32–09:51:16 UTC, `COMPLETED`, 69 trades, PF **0.724**, expectancy
+**−0.232R** — a rebound off 08-25's record-low PF 0.102, back inside the
+established per-session range. Session started 10:31 IST, ~76min past the
+09:15 IST target — still late, but the smallest gap of the last three
+sessions. Cumulative now **914 closed / 832 `r_multiple`**, PF **0.365**,
+expectancy **−0.425R**, max drawdown ≈−₹51,047 (deepened from ≈−₹48,646). No
+gate flip. Full readout: [STATUS.md](STATUS.md)'s 08-26 post-session section.
+Dashboard API still unreachable (connection failure, exit 56/HTTP 000) from
+this environment — all numbers measured directly against Supabase.
 
-**New finding this pass: [C7] root-caused and fixed same-day** (brain
-`eb75ded`, not pushed) — `market_data._get_historical` ignored its `days`
-param, so `inplay_list` never locked after a weekend. See
-[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §C7 and **[P-39]**
-below.
+**[P-39] closed this pass: [C7] fix confirmed live.** Session `c40c5634`
+stamps a NEW `git_sha=2e884587d855` (was `893267c447e3` the prior two
+sessions), and `inplay_list` locked all 10 candidates for 2026-08-26 with
+`or_rvol` populated — verify **I-4 PASS**. See
+[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) §C7. ⚠️ Today follows
+Tuesday's own session, not a weekend gap — the scenario [C7] actually broke
+on. The definitive stress test is the next post-weekend session, due
+**Monday 2026-08-31**; keep the check open in spirit even though [P-39]'s
+literal measure-of-done is met.
 
-**Advisor calibration:** `graded_calls` unchanged at 98, ECE 22.6%→22.1%,
-still `monotonic=false` — no new movement since [P-18] was answered.
+**Advisor calibration:** `graded_calls` unchanged at 98, ECE unchanged at
+22.1%, still `monotonic=false` — no new movement since [P-18] was answered
+08-25.
 
-**git log check (step 4):** commit `493ee92` (08-23 23:58 IST — fixed a
-same-night regression where the new stale-token banner could infinite-loop
-and wipe a token being pasted on `/connect`) was never logged on this board,
-even though the 08-24 automated review's `git log -25` sweep ran after it —
-added to Done below. Nothing else in `git log -25` is undocumented (the two
-docs-only analysis commits `703d65f`/`e818fa8` already updated this board
-directly; the `9d07c79` [C7] finding is new, handled above).
+**git log check (step 4):** commits since the last pass (`8c11a3d` through
+`5e5e908`) are all docs-only — [C7]/[P-18] already recorded, two
+ADVISOR_LAB/FACTOR_LAB writeups with no board item, two multi-tenant
+design-plan commits. Nothing undocumented found.
 
 **Prior pass (08-23 weekly review), for reference:** full gate re-measure came
 back numerically identical to 08-16 (no session since 08-10 at the time).
@@ -63,11 +65,11 @@ up from −1.211R at n=15 — see VERIFY.md V-2.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-25
+## 📊 Gate re-measure — latest 2026-08-26
 
-**PF 0.325 · expectancy −0.442R · max drawdown ≈−₹48,646 · advisor ECE 22.1%
-(n=98).** Session `f821de37` closed 30 trades today (PF 0.102, weakest single
-session on record). No gate flipped; PF has never left the reject zone.
+**PF 0.365 · expectancy −0.425R · max drawdown ≈−₹51,047 · advisor ECE 22.1%
+(n=98).** Session `c40c5634` closed 69 trades today (PF 0.724, a rebound off
+08-25's 0.102 low). No gate flipped; PF has never left the reject zone.
 Advisor `graded_calls` unchanged at 98; still `monotonic=false`. This is a
 post-session reading, not the weekly 3-lens re-measure — full history, method
 and the 3-lens read: **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)**
@@ -193,23 +195,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   extra urgency has accrued this week._
 
 ## 🟢 READY — pull these now (no blocker, [me])
-
-- **[P-39] Push + deploy the [C7] in-play-lock fix, verify it locks live.**
-  [me] · *done =* brain `eb75ded` pushed and confirmed live via `git_sha` on
-  the next session, **and** that session's `inplay_list` gets ≥1 lock row
-  (clears verify **I-4**, which currently warns on the two-consecutive-day
-  no-lock pattern). · *source:* [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md)
-  §C7, root-caused 2026-08-25.
-  _Root cause: `market_data._get_historical` hardcoded a 3-calendar-day
-  candle window regardless of the caller's `days` argument, so after any
-  weekend (≤1 prior trading day) `opening_range_stats` couldn't get its
-  required ≥2 days and every candidate came back `or_rvol=None` —
-  `inplay.rank()` returned empty and the list never locked. Matches the
-  exact pattern on record: locked 08-05/06/07, silent 08-10/24/25. Fix
-  floors the per-interval window instead of fixing it, so callers asking for
-  more get more. Proven live on INFY (`or_rvol` None → 0.5221), suite 943.
-  Committed but **not pushed** — the 08-25 session was still running when it
-  was found, and a push auto-deploys/restarts the brain._
 
 - ~~**[P-36] Aggregate at the data, not in Node.**~~ ✅ **SHIPPED 2026-08-10.**
   Architect pass over the API layer. The codebase already had the right pattern
@@ -434,6 +419,27 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- ~~**[P-39] Push + deploy the [C7] in-play-lock fix, verify it locks live.**~~
+  ✅ **DONE 2026-08-26** — brain `eb75ded` confirmed live: session `c40c5634`
+  stamps a new `git_sha=2e884587d855` (was `893267c447e3`), and
+  `inplay_list` locked all 10 candidates for the day with `or_rvol`
+  populated on every row (first lock 05:02:50 UTC). **Verify I-4: PASS**
+  (was NOT-YET). · *source:* [reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md)
+  §C7, root-caused 2026-08-25.
+  _Root cause: `market_data._get_historical` hardcoded a 3-calendar-day
+  candle window regardless of the caller's `days` argument, so after any
+  weekend (≤1 prior trading day) `opening_range_stats` couldn't get its
+  required ≥2 days and every candidate came back `or_rvol=None` —
+  `inplay.rank()` returned empty and the list never locked. Fix floors the
+  per-interval window instead of fixing it, so callers asking for more get
+  more. Proven live on INFY pre-push (`or_rvol` None → 0.5221), suite 943._
+  _⚠️ **Today is not the scenario that actually broke.** 08-26 is mid-week
+  (Wed, after Tue's own session ran) — the bug specifically hit sessions
+  after a weekend gap. The literal measure-of-done (git_sha moved + a lock)
+  is met, so this closes, but the real stress test is the next session after
+  a weekend — **Monday 2026-08-31**. Watch I-4 that day; if it warns again,
+  re-open._
 
 - **2026-08-23 (23:58 IST) — infinite-reload regression fixed same night,
   undocumented until this pass.** `493ee92` (`components/TokenAlert.tsx`,
