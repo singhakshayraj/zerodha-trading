@@ -37,6 +37,35 @@ _2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 
 _2026-08-26: **I-4 PASSED — [C7] is verified live.** `inplay_list` locked on session `c40c5634`: 10 rows, `locked_at` 10:32:54 IST, top `or_rvol` 15.89. The series gap 08-07 → 08-26 is exactly the three failures the fix targeted (08-10, 08-24, 08-25). First session able to judge it._
 _2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
+### V-15 · [P-38] TOAST compression actually applies
+Ships 2026-08-27 as `scripts/storage_toast_compression_2026-08-27.sql` (brain),
+run by hand post-close. Design:
+`docs/superpowers/specs/2026-08-27-storage-toast-compression-design.md`.
+`brain_decisions.indicators` averaged **1,100 B of a 1,344 B row** and was never
+compressed — only 92 of 32,145 rows exceeded the default 2032 B
+`toast_tuple_target`, so the largest column in the database was stored raw.
+
+```sql
+select c.relname,
+       pg_size_pretty(pg_total_relation_size(c.oid))                        total,
+       pg_size_pretty(coalesce(pg_total_relation_size(c.reltoastrelid), 0)) toast,
+       (select round(avg(pg_column_size(indicators))) from brain_decisions)  avg_ind_decisions,
+       (select round(avg(pg_column_size(indicators))) from portfolio_advice) avg_ind_advice
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname='public' and c.relname in ('brain_decisions','portfolio_advice');
+```
+**PASS** = `avg_ind_decisions` **1,100 → ≤ 700** and `brain_decisions` total
+**52 MB → ≤ 40 MB**.
+**GUARD (the real risk)** = `brain_decisions.toast` must stay **< 5 MB**. Tens
+of MB means the values went **out-of-line**, which costs an extra fetch on
+every read and hits the labelling pass and edge study hardest — roll back and
+raise `toast_tuple_target`.
+**NOT-YET** = the migration has not been run.
+
+Expected once applied: database 114 → ~95.3 MB (−16.4%), growth 7.88 → 6.51
+MB/session (−17.4%), runway 49 → 62 sessions (+27%). This moves the [P-38]
+tier decision from ~February to ~April; it does not remove it.
+
 ### V-13 · TARGET_HIT fills stop losing the poll-latency tail
 Shipped 2026-08-27 (brain `f1c7d35`). [P-05] capped the ~30s poll tail on the
 STOP side and left the TARGET side raw, so target exits booked the pullback as
