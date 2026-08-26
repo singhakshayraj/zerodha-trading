@@ -74,30 +74,59 @@ Expected once applied: database 114 → ~95.3 MB (−16.4%), growth 7.88 → 6.5
 MB/session (−17.4%), runway 49 → 62 sessions (+27%). This moves the [P-38]
 tier decision from ~February to ~April; it does not remove it.
 
-### V-13 · TARGET_HIT fills stop losing the poll-latency tail
-Shipped 2026-08-27 (brain `f1c7d35`). [P-05] capped the ~30s poll tail on the
-STOP side and left the TARGET side raw, so target exits booked the pullback as
-lost gain: **+1.389R against a planned 2.08R**, with `avg mfe_r` 1.610R — below
-the target the trade must have touched to be classified TARGET_HIT at all.
-`_target_fill_price` now mirrors `_stop_fill_price` (cap 0.25R, never better
-than target).
+### V-13 · TARGET_HIT fills obey the cap band
+Shipped 2026-08-27 (brain `f1c7d35`). ⚠️ **Pass condition rewritten the same
+day — the original was wrong.**
+
+**What the original said, and why it was wrong.** It claimed PASS = `avg_r ≥
+1.60`, on the reasoning that the cap recovers gain lost to the ~30s poll
+pulling back from the target. A replay of **222 real trades** through
+`_exit_fill_price` says the opposite: the cap also clamps **overshoots** — polls
+that caught a price *beyond* the target — and on this history those outweigh
+the pullbacks.
+
+| exit | n | mean R change | worst |
+|---|---|---|---|
+| STOP_LOSS_HIT | 149 | **+0.117** | +0.000 |
+| TARGET_HIT | 73 | **−0.062** | **−2.043** |
+
+So TARGET_HIT `avg_r` is expected to drift **down**, roughly 1.389 → ~1.33.
+The original `≥ 1.60` would have failed a change that is working exactly as
+designed and triggered a pointless rollback.
+
+**The change still stands**, on realism rather than on the effect size: a
+resting target-limit fills at its limit, so a fill booked 2R beyond the target
+was never achievable. The error now runs toward *understating* performance,
+which is the safe direction for a go/no-go gate. (Caveat: a genuine gap
+through a sell-limit *can* fill better than the limit, so clamping is slightly
+conservative in that case.)
+
+**Test the mechanism, not the effect size:**
 
 ```sql
-select case when created_at < '2026-08-27' then 'before' else 'after' end period,
-       count(*) n, round(avg(r_multiple)::numeric,3) avg_r,
-       round(avg(mfe_r)::numeric,3) avg_mfe
-from trades where exit_reason='TARGET_HIT' and r_multiple is not null
-group by 1 order by 1;
+select count(*) n,
+       count(*) filter (
+         where (position_type = 'LONG'  and exit_price between
+                  target_price - 0.25*abs(entry_price-stop_loss_price) - 0.01
+                  and target_price + 0.01)
+            or (position_type = 'SHORT' and exit_price between
+                  target_price - 0.01
+                  and target_price + 0.25*abs(entry_price-stop_loss_price) + 0.01)
+       ) inside_band,
+       round(avg(r_multiple)::numeric,3) avg_r
+from trades
+where exit_reason = 'TARGET_HIT' and created_at >= '2026-08-27'
+  and entry_price is not null and stop_loss_price is not null
+  and target_price is not null and exit_price is not null;
 ```
-**PASS** = `after` avg_r **≥ 1.60** on n ≥ 15 (the cap floors the fill at
-2.08 − 0.25 = 1.83R before charges; the `before` baseline is 1.389R).
-**FAIL** = still ≈1.4R → the cap is not reaching the fill path.
-**NOT-YET** = n < 15 target hits since the deploy.
+**PASS** = `inside_band = n` (every target fill lands in the band) on n ≥ 10.
+**FAIL** = any fill outside it → the cap is not reaching the exit path, or a
+long/short sign is inverted.
+**NOT-YET** = fewer than 10 TARGET_HIT trades since the deploy.
 
-⚠️ This changes reported performance **upward** by construction. It is a
-symmetry correction, not an improvement — expectancy moves from ≈−0.425R to
-≈−0.365R and **no gate flips**. Do not read a PF rise after 08-27 as the
-strategy improving.
+*Pre-verified offline 2026-08-27:* 222 real trades replayed through
+`_exit_fill_price`, **0 band violations** across both directions, so the sign
+logic is confirmed on real geometry before it ever runs live.
 
 ### V-14 · the win rate keeps moving past 1000 closed trades
 Shipped 2026-08-27 (brain `49b76e5`). `get_win_rate` selected every closed
