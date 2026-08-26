@@ -74,6 +74,33 @@ Expected once applied: database 114 → ~95.3 MB (−16.4%), growth 7.88 → 6.5
 MB/session (−17.4%), runway 49 → 62 sessions (+27%). This moves the [P-38]
 tier decision from ~February to ~April; it does not remove it.
 
+### I-7 · every session's decisions are actually labelled
+**Standing invariant, added 2026-08-27 after this check found a live gap.**
+`decision_outcomes` is what the edge study reads. On 2026-08-26 only **77 of
+724** directional decisions were labelled, so that day's figure was computed on
+11% of the data and read **+0.488R**; with the remaining 647 labelled it is
+**+0.071R**. The pooled verdict did not move (+0.008 → +0.009R, t=+0.3,
+n 1,858 → 2,051), but a per-day number was badly wrong and nothing caught it.
+
+```sql
+select bd.created_at::date::text the_day,
+       count(*) directional,
+       count(*) filter (where do2.decision_id is not null) labelled,
+       count(*) filter (where do2.decision_id is null)     missing
+from brain_decisions bd
+left join decision_outcomes do2 on do2.decision_id = bd.id
+where bd.signal in ('BUY','SELL') and bd.created_at >= '2026-07-15'
+group by 1 having count(*) filter (where do2.decision_id is null) > 0
+order by 1 desc;
+```
+**PASS** = no rows returned. **FAIL** = any date with `missing > 0` → run
+`python3 scripts/label_decisions.py <date>` (no token needed) and re-run the
+edge study before trusting that day's number.
+
+Scoped to **≥ 2026-07-15** deliberately: the candle archive is empty for 07-14
+and earlier, so May and early-July decisions can never be labelled and would
+fail this check forever.
+
 ### V-13 · TARGET_HIT fills obey the cap band
 Shipped 2026-08-27 (brain `f1c7d35`). ⚠️ **Pass condition rewritten the same
 day — the original was wrong.**
