@@ -774,6 +774,59 @@ candidate tested there has failed. The design review's standing conclusion:
 
 ---
 
+<a id="11b"></a>
+## 11b. External review findings (2026-08-27) — three results that close §11
+
+An external architectural review was run against this document. Three of its
+proposed tests were executed; all three are recorded here because each changes
+what §11 can claim.
+
+**The deployment branch does not exist.** SEBI circular
+`SEBI/HO/MIRSD/MIRSD-PoD/P/CIR/2025/0000013` (2025-02-04) and its September
+2025 extension require, from **2026-04-01**, that algorithmic orders carry an
+exchange-assigned **Algo-ID** and reach the broker via a
+**vendor-client-specific API key on a whitelisted static IP**. Unregistered
+API-based strategies are explicitly in scope. This system authenticates with a
+scraped retail `enc_token` against `kite.zerodha.com/oms` — outside that
+framework, not a lenient corner of it. **Verified independently against SEBI
+and NSE sources, not taken on trust.** The go/no-go gates were therefore
+answering a question whose "go" branch had already closed.
+
+**The open-window cell is closed.** The review's one identified weakness was
+that the ORB thesis lives at 09:30–10:30 IST and that token-paste failures
+under-sample exactly that hour. Measured:
+
+| segment | n | mean R | t |
+|---|---|---|---|
+| all trades | 832 | −0.425 | −12.86 |
+| entry 09:30–10:30 IST | **159** | **−0.410** | −4.70 |
+| …and session started on time | 86 | −0.411 | −4.31 |
+
+n = 159 against a decision threshold of ~150, mean R = −0.410 against ≤ −0.2.
+The open window is neither under-sampled nor better. **"No edge exists in this
+approach" needs no narrowing.**
+
+**The benchmark, measured for the first time.** Nothing in this system ever
+compared itself to doing nothing:
+
+| 2026-05-19 → 2026-08-26 | |
+|---|---|
+| Nifty 50 buy-and-hold | **+3.03%** |
+| This system (paper) | **−50.85%** |
+| **Alpha vs doing nothing** | **−53.88 pp (−₹53,883)** |
+| Rupees per operator-hour | **−₹565/h** (~90 sessions, excluding build time) |
+
+**A methodological correction to §11.3:** `pull_daily_history.py` caches the
+*current* Nifty 500 constituents, so the factor lab carries **survivorship
+bias** — tilted toward finding edge, especially on the long side, and it still
+found nothing. The null in §11.3 is therefore **stronger** than stated, and
+`mom_12_1`'s IC of 0.022–0.025 is if anything optimistic.
+
+**Actioned:** the real-money order path is now hard-disabled in code
+(`order_manager._refuse_live_orders`); arming requires two separate flags.
+
+---
+
 <a id="12"></a>
 ## 12. Known defects, open items, and decisions owed
 
