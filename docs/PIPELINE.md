@@ -196,6 +196,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
+- **[P-40] Storage Option B — de-duplicate per-cycle data out of `brain_decisions.indicators`.** [me] · *done =* `market_context` and `event_policy` no longer stored per decision; measured bytes/row drop recorded in VERIFY.
+  `market_context` (232 B) and `event_policy` (92 B) are **byte-identical for every decision in a cycle** — ~85 rows per cycle, ~2,900 times a session. Compression cannot touch this: pglz compresses each row independently, so cross-row duplication is invisible to it. Only a foreign key removes it, and a `market_context` table already exists (235 rows) to point at.
+  Estimated ~25–30% off the largest table — **larger than the compression attempt was ever going to deliver**, and it does not depend on any codec behaving.
+  Deferred by the user 2026-08-27 ("we'll come back to it later"); raised only when they ask.
+  ⚠️ Sequencing: this needs the `event_policy` sparse-drop bug looked at too — the logic is supposed to omit `NORMAL`, yet it is present on every sampled row with min = max.
+
+- **[P-41] Settle whether this data compresses at all.** [me] · *done =* pglz's real in-database ratio measured on `brain_decisions.indicators`, recorded with a number.
+  The [P-38] attempt assumed 42% from a `zlib-1` proxy. lz4 measured **18.3%**, and pglz refuses to store a compressed value that saves **<25%** — so the true ratio may be under its own floor, which alone would explain the failure. Measure before designing anything further. Cheap, and it closes out a wrong number now sitting in the record.
+
+
+
 - ~~**[P-36] Aggregate at the data, not in Node.**~~ ✅ **SHIPPED 2026-08-10.**
   Architect pass over the API layer. The codebase already had the right pattern
   (`/api/analytics/insights` calls Postgres RPCs) and applied it inconsistently;

@@ -1,6 +1,56 @@
 # Storage: make TOAST compression actually apply — design
 
-**Date:** 2026-08-27 · **Status:** approved, ready to implement · **Relates to:** [P-38]
+**Date:** 2026-08-27 · **Status:** ⛔ **ATTEMPTED AND REVERTED — the mechanism
+in this spec does not work as written** · **Relates to:** [P-38]
+
+> ## What happened when it was applied
+>
+> Applied to production 2026-08-27 ~01:30 IST (brain IDLE, no session, 0 open
+> trades). It produced **no compression at all**, was reverted to stock
+> PostgreSQL defaults, and the tables were vacuumed back to a clean state.
+> Final state verified: 32,145 decision rows, **0 with null `indicators`** —
+> no data was lost, because the rewrites used the value-preserving
+> `indicators = indicators` and neither table has triggers.
+>
+> **Net effect kept: 110 MB → 108 MB, purely dead-tuple reclaim from
+> `VACUUM FULL`.** None of it was compression.
+>
+> ### Error 1 — `VACUUM FULL` does not recompress
+> Step 4 of this spec assumed a table rewrite would apply the new storage
+> settings to existing rows. It does not. `VACUUM FULL` copies existing datums
+> **as-is**; TOAST compression is applied on *write*, so only genuinely
+> re-writing a value (`UPDATE ... SET col = col`) routes it through the TOAST
+> path. The whole "apply to existing rows" section was inoperative.
+>
+> ### Error 2 — the target was set ABOVE most rows
+> `toast_tuple_target = 1400` was chosen so a *compressed* row would still fit
+> inline. But TOAST only engages when a row **exceeds** the target, and large
+> parts of the table are well under it — rows from 2026-08-10 average
+> **1,050 B**. For those, nothing ever triggered. The p50 of 1,632 quoted
+> below is a whole-table figure that hides a very heterogeneous distribution.
+>
+> ### The tension the design missed
+> To compress a 1,050 B row the target must be **below** 1,050. But a 1,632 B
+> row compresses to roughly 1,180 B, which is still above any target low
+> enough to have triggered the smaller rows. **No single `toast_tuple_target`
+> both compresses the small rows and keeps the large ones inline.**
+> Out-of-lining is unavoidable across a distribution this wide, so the
+> "stays inline" property this spec was built around cannot hold.
+>
+> ### The 42% number is unproven, and probably optimistic
+> It came from `zlib-1` used as a "pglz proxy". pglz is a weaker LZ77 variant,
+> and it **refuses to store a compressed value unless it saves ≥25%**. Measured
+> lz4 on the same sample was only **18.3%**. pglz's true ratio on this data was
+> never measured in-database and may well fall under its own threshold — which
+> would explain the result independently of Errors 1 and 2.
+>
+> ### What a correct next attempt needs
+> 1. Measure pglz's **actual** in-database ratio before changing any setting.
+> 2. Recompress via `UPDATE`, not `VACUUM FULL`, then `VACUUM FULL` to reclaim.
+> 3. Accept out-of-lining as the normal outcome and measure its read cost,
+>    rather than designing to avoid it.
+>
+> Everything below is the original design, kept for the record.
 
 ## Problem
 

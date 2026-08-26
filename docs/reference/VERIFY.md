@@ -60,7 +60,15 @@ where n.nspname='public' and c.relname in ('brain_decisions','portfolio_advice')
 of MB means the values went **out-of-line**, which costs an extra fetch on
 every read and hits the labelling pass and edge study hardest — roll back and
 raise `toast_tuple_target`.
-**NOT-YET** = the migration has not been run.
+**RESULT 2026-08-27 — FAIL, reverted.** Applied with the brain IDLE; produced
+**no compression**: `avg_ind_decisions` stayed at exactly **1,100** and
+`brain_decisions` moved 50 → 49 MB, which was dead-tuple reclaim, not encoding.
+Two mechanism errors — `VACUUM FULL` does not recompress (TOAST applies on
+write, so only an `UPDATE` re-routes a value), and `toast_tuple_target = 1400`
+sat *above* much of the table (08-10 rows average 1,050 B), so nothing
+triggered. Reverted to stock defaults; 32,145 rows intact, 0 null `indicators`.
+Kept: 110 → 108 MB of bloat reclaim. See the spec header for what a correct
+attempt requires.
 
 Expected once applied: database 114 → ~95.3 MB (−16.4%), growth 7.88 → 6.51
 MB/session (−17.4%), runway 49 → 62 sessions (+27%). This moves the [P-38]
