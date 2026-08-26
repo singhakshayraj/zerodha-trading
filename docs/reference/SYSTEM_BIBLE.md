@@ -774,6 +774,67 @@ candidate tested there has failed. The design review's standing conclusion:
 
 ---
 
+<a id="11c"></a>
+## 11c. Phase A finding (2026-08-27) — the cost decomposition was wrong
+
+Run as the first step of decommissioning: measure everything before touching
+anything. It produced a correction large enough to change the loss story.
+
+**The risk unit is not what the configuration says.**
+
+| | measured (n=907) |
+|---|---|
+| configured `RISK_PER_TRADE_PCT` | **1.0%** (₹1,000) |
+| **actual mean risk per trade (1R)** | **₹140 = 0.140% of capital** |
+| median 1R | ₹151 |
+| mean position value | ₹26,878 (26.9% of capital) |
+| mean stop distance | 0.62% of entry price |
+
+The position-size cap dominates the risk rule. Sizing resolves through
+`qty = max(1, min(qty_risk, qty_max))`, and with stops averaging 0.62% of
+price the risk-derived quantity is far larger than the position cap allows —
+so `qty_max` binds and the realised risk per trade lands ~7× below the 1%
+design.
+
+**Consequence: fixed costs are 7× heavier in R than assumed.**
+
+| | |
+|---|---|
+| mean charges (entry leg) | 5.34 bps |
+| mean slippage incl. charges (entry leg) | 10.34 bps |
+| **round-trip cost** | **₹55.6 = 0.398R** |
+| documented figure | −0.240R |
+| **cost share of the −0.425R total** | **~94%**, not ~60% |
+| the same rupee cost at a true 1% risk unit | **0.056R** |
+
+Arithmetic check: 914 × −0.425R × ₹140 ≈ −₹54,000 against an actual −₹50,849.
+Consistent.
+
+**What this does and does not mean.** It does *not* create an edge — the
+residual after costs remains statistically zero, consistent with the entry
+study's t = +0.3. What it does is reclassify the loss: this book is very
+close to **the cost of trading**, not a signal that lost money. It also means
+every R-denominated figure in this document rests on a **₹140** risk unit, not
+the ₹1,000 the configuration implies, so R-multiples are larger in magnitude
+than the intended sizing would have produced.
+
+**It also corrects the external review's §2 arithmetic**, which took the
+−0.240R cost figure at face value and derived a −0.067R residual from it.
+
+**A note on the charge-model validation that was requested:** it cannot be run
+as specified. `tradebook` holds fills only — `symbol, isin, trade_date,
+exchange, segment, series, trade_type, quantity, price, trade_id, order_id,
+executed_at, source` — with **no charge columns**, because Zerodha's tradebook
+export does not carry the contract-note breakdown. Those 215 rows are also
+`segment = EQ` and dated 2026-02-11 → 2026-05-25, so they are largely delivery
+trades from before the paper period and would not be a like-for-like charge
+comparison anyway. What *was* verifiable: the modelled schedule matches
+Zerodha's published intraday card (brokerage min(₹20, 0.03%), STT 0.025%
+sell-side, exchange 0.00297%, SEBI 0.0001%, GST 18%, stamp 0.003% buy-side).
+An empirical validation would need actual contract notes.
+
+---
+
 <a id="11b"></a>
 ## 11b. External review findings (2026-08-27) — three results that close §11
 
