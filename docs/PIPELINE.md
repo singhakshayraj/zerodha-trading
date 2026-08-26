@@ -202,8 +202,9 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   Deferred by the user 2026-08-27 ("we'll come back to it later"); raised only when they ask.
   ⚠️ Sequencing: this needs the `event_policy` sparse-drop bug looked at too — the logic is supposed to omit `NORMAL`, yet it is present on every sampled row with min = max.
 
-- **[P-41] Settle whether this data compresses at all.** [me] · *done =* pglz's real in-database ratio measured on `brain_decisions.indicators`, recorded with a number.
-  The [P-38] attempt assumed 42% from a `zlib-1` proxy. lz4 measured **18.3%**, and pglz refuses to store a compressed value that saves **<25%** — so the true ratio may be under its own floor, which alone would explain the failure. Measure before designing anything further. Cheap, and it closes out a wrong number now sitting in the record.
+- ~~**[P-41] Settle whether this data compresses at all.**~~ ✅ **DONE 2026-08-27 — answer is NO.**
+  Measured in-database with a scratch table and an uncompressed control column, same 500 real blobs: **pglz compressed 0 of 500 rows, lz4 compressed 0 of 500** (1,427 B → 1,431 B, a 4-byte header difference). Harness validated in the same table — a repetitive blob compressed 2,015 → 51 B, ~97%.
+  The old 42% estimate measured the JSON **text** form; Postgres stores **jsonb binary**, which has already stripped the quotes/colons/commas that made text look compressible. **Compression is closed as a storage lever.** Remaining levers: [P-40] de-duplication, and storing less.
 
 
 

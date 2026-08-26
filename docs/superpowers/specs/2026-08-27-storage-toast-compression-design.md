@@ -44,6 +44,37 @@ in this spec does not work as written** · **Relates to:** [P-38]
 > never measured in-database and may well fall under its own threshold — which
 > would explain the result independently of Errors 1 and 2.
 >
+> ### ✅ SETTLED 2026-08-27 — this data does not compress. At all.
+> [P-41] measured it definitively in-database, using a scratch table
+> (`toast_tuple_target = 128`, `STORAGE MAIN`) holding 500 real `indicators`
+> blobs, with a second column forced uncompressed (`STORAGE EXTERNAL`) as the
+> control. Same 500 values, same rows:
+>
+> | | avg bytes | rows compressed |
+> |---|---|---|
+> | uncompressed control | 1,427 | — |
+> | **pglz** | 1,431 | **0 of 500** |
+> | **lz4** | 1,431 | **0 of 500** |
+>
+> Neither codec compressed a single row. The harness itself was validated in
+> the same table: a deliberately repetitive blob went **2,015 B → 51 B (pglz)
+> / 42 B (lz4)**, ~97%. So the probe works; the data simply has no exploitable
+> redundancy once stored.
+>
+> **Why the 42% estimate was wrong, precisely:** it compressed the JSON **text**
+> representation locally. PostgreSQL compresses the **jsonb binary** form, which
+> has already stripped the punctuation — the quotes, colons and commas that made
+> the text look compressible. The estimate measured a representation the
+> database never stores. That, not the pglz-vs-zlib difference, is the root
+> error.
+>
+> **Consequence: compression is not a lever for this workload.** No target
+> tuning, codec choice, or rewrite strategy would have produced a saving, so
+> the two mechanism errors below, while real, were not what doomed it. The
+> remaining levers are de-duplication ([P-40]) and storing less.
+>
+> The scratch table was dropped; 0 probe objects remain.
+
 > ### What a correct next attempt needs
 > 1. Measure pglz's **actual** in-database ratio before changing any setting.
 > 2. Recompress via `UPDATE`, not `VACUUM FULL`, then `VACUUM FULL` to reclaim.
