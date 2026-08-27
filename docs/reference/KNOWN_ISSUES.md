@@ -275,6 +275,43 @@ Not tracked as work: it self-corrected, the guards did their job, and there is
 no evidence of harm. If a session ever ends the day still marked ABORTED with
 open trades, that is the version worth chasing.
 
+### C10 — `_auto_close_longs_if_eod` never runs; EOD exits split by side 🟡 **OPEN, found 2026-08-27**
+
+Caught by **I-2** on the Phase A sweep. Two staggered paths close the day, and
+both write `EOD_CLOSE`:
+
+- `_auto_cover_shorts_if_eod` — fires at **15:15 IST**
+- `_auto_close_longs_if_eod` — fires at **15:20 IST**
+
+But session teardown *also* runs at 15:20 and **always wins the race**, so the
+long path never executes and longs are written `SESSION_END` instead. Measured
+since 2026-08-07:
+
+| | n | median exit | range |
+|---|---|---|---|
+| `EOD_CLOSE` SHORT | 49 | 15:16 IST | 15:15–15:19 |
+| `SESSION_END` LONG | 26 | **15:22 IST** | 15:21–15:25 |
+
+Zero longs in one bucket, zero shorts in the other.
+
+**Two separate problems, and the second is the real one.**
+
+1. *Reporting:* `EOD_CLOSE` performance is really **short-side** EOD
+   performance and `SESSION_END` is **long-side**. Every per-exit-reason table
+   in this project is side-confounded on those two rows. Expectancy is
+   unaffected — the trades and their R are unchanged — but the exit-reason
+   decomposition must not be read as two policies.
+2. *Dead path:* **`_auto_close_longs_if_eod` is dead code in practice.** It has
+   never executed. That is the same defect class as the deleted
+   `get_nifty_level` stub and the `event_policy` string-vs-dict check: code
+   that reads as live and is reached by nothing.
+
+**Deliberately not fixed.** The obvious repair — moving the long EOD earlier —
+changes *when longs actually close*, which changes P&L. That is a live
+exit-path behaviour change, not label hygiene, and it is not worth making while
+the system's future is undecided. Recorded because the historical record is
+what the post-mortem rests on.
+
 ### C9 — no portfolio-level exposure cap 🔴 **OPEN, found 2026-08-27**
 
 `MAX_POSITION_PERCENT = 0.40` caps each position at 40% of capital

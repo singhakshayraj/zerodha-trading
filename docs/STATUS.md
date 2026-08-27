@@ -64,6 +64,26 @@ independently**. Phase A measurement found the risk unit is **₹140, not the
 **Live order path now hard-disabled in code** (brain `c604c0d`).
 
 
+**PHASE A + B EXECUTED 2026-08-27/28** (brain IDLE, no session, 0 open trades).
+Measurement and preservation only — nothing disabled, the decommission decision
+is untouched.
+- **All seven invariants swept.** I-1/I-3/I-4/I-5/I-6/I-7 PASS (I-6: 499/499
+  pinned tokens still match the live NSE master). **I-2 FAILED → [C10]**.
+- **Headline frozen** at `2026-08-27 21:48:32 UTC`: 984 trades, expectancy
+  **−0.4118R**, PF **0.3798**, net **−₹54,788.84**, 30 session days, 35,413
+  decisions, 10,209 labelled, 119 MB.
+- **Snapshot verified**: `~/Desktop/zerodha-snapshot-2026-08-27/`, 21 tables,
+  **161,516 rows**, 16.1 MB gzipped, exact head-count **21/21 match, 0
+  mismatches**, archives read back. Repos tagged `intraday-phase-a-2026-08-27`.
+- **[C10] NEW** — `_auto_close_longs_if_eod` never executes (session teardown
+  beats it at 15:20), so EOD exits are labelled by side: `EOD_CLOSE` is 49
+  shorts / 0 longs, `SESSION_END` 26 longs / 0 shorts. Per-exit-reason tables
+  are side-confounded on those rows. Not fixed — the repair changes live exit
+  timing.
+- **Still owed by you:** an **offsite copy** of the snapshot (it is local-only,
+  and Supabase pauses inactive free-tier projects), and removal of
+  `KITE_TOTP_SECRET` / `KITE_PASSWORD` from Railway env.
+
 Prior entries: `git log docs/STATUS.md`._
 
 ---
