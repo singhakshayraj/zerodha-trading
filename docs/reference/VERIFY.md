@@ -98,6 +98,12 @@ order by 1 desc;
 `python3 scripts/label_decisions.py <date>` (no token needed) and re-run the
 edge study before trusting that day's number.
 
+**FIRST CATCH 2026-08-27.** I-7 fired on its first real use: 928 directional
+decisions logged, **0 labelled**. Fixed with
+`python3 scripts/label_decisions.py 2026-08-27` (928/928), after which the edge
+study moved to **+0.010R, t=+0.4, n=2,428** — verdict unchanged. Without this
+invariant the day would have silently entered the record 100% unlabelled.
+
 Scoped to **≥ 2026-07-15** deliberately: the candle archive is empty for 07-14
 and earlier, so May and early-July decisions can never be labelled and would
 fail this check forever.
@@ -393,6 +399,12 @@ starvation. Tracked as [P-18], whose action gate is ≥50 graded calls.
 ## ✅ PASSED — kept for the record
 
 ### V-13 · TARGET_HIT fills obey the cap band — PASSED 2026-08-27
+
+**Live result (session `a73fbf67`, `git_sha` `c604c0d94f31`): 14 TARGET_HIT
+trades, 0 outside the band, mean R +1.266.** Predicted 1.389 → ~1.33 by the
+offline replay; observed 1.266. Direction correct, magnitude slightly larger.
+The mechanism is confirmed on live data and the effect direction was corrected
+before it could mislead.
 Shipped 2026-08-27 (brain `f1c7d35`). ⚠️ **Pass condition rewritten the same
 day — the original was wrong.**
 

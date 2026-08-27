@@ -275,6 +275,31 @@ Not tracked as work: it self-corrected, the guards did their job, and there is
 no evidence of harm. If a session ever ends the day still marked ABORTED with
 open trades, that is the version worth chasing.
 
+### C9 — no portfolio-level exposure cap 🔴 **OPEN, found 2026-08-27**
+
+`MAX_POSITION_PERCENT = 0.40` caps each position at 40% of capital
+**individually**. Nothing caps **concurrent aggregate** exposure, and there is
+no `MAX_CONCURRENT_POSITIONS`, `MAX_GROSS_EXPOSURE` or equivalent in config.
+
+Measured on session `a73fbf67` (2026-08-27): **peak gross exposure ₹785,346
+against ₹100,000 deployed = 7.85×**, with **20 concurrent positions**, at
+09:03 UTC.
+
+Why it has been invisible: `PaperBroker` simulates fills and never checks
+margin, so the constraint that would bind in reality does not exist in the
+simulator. Zerodha MIS equity leverage is typically ~5×, so with real money a
+broker would have rejected orders or raised a margin shortfall well before
+7.85×.
+
+**Consequence: the paper book is not reproducible with real money at this
+capital.** Roughly a third of the concurrent positions could not have been
+taken, and which ones get dropped changes the P&L. This does not alter the
+"no edge" conclusion — expectancy is negative either way — but it is a fifth
+item for the "paper is silently flattered" list, and arguably the largest.
+
+Fix if the engine is ever revived: a gross-exposure gate in `risk_manager`
+checked before entry, defaulting well under the broker's MIS multiple.
+
 ### C7 — `inplay_list` never locks after a weekend — ✅ **FIXED 2026-08-25, VERIFIED LIVE 2026-08-26** (brain `eb75ded`)
 
 **Verified on session `c40c5634`:** the list locked with 10 rows at 10:32:54 IST, top `or_rvol` 15.89 — the first session after the fix, and the first lock since 08-07. I-4 PASS. The day's trade count (69) rose with the restored candidate pool, but one session cannot separate that from the tape, so no performance claim is attached to this fix.

@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-27** (Thu, ~16:35 IST). **Session 08-27 audited.**
+_Last updated: **2026-08-28** (Fri, ~02:40 IST). **Session 08-27 audited.**
 `a73fbf67`, 09:52–15:23 IST, `COMPLETED`/`MARKET_CLOSED`: **70 trades, all
 closed, zero left open**, −₹3,940.16, **PF 0.520**, expectancy **−0.257R**
 (21 win / 49 loss, 39 short / 31 long), 3,268 decisions. Start 09:52 IST is
@@ -15,51 +15,54 @@ only **~37min past** the 09:15 target — the smallest gap yet (08-24 +2.5h,
 **−0.412R**, max drawdown deepened to **≈−₹54,907**. No gate flip.
 
 **git_sha moved again — `c604c0d94f31`** (was `2e884587d855` on 08-26),
-confirming two brain fixes shipped overnight (market shut, brain IDLE) went
-live: `f1c7d35` (TARGET_HIT fill-cap, V-13) and `49b76e5` (exact server-side
-win-rate past 1000 trades, V-14).
+confirming the overnight brain fixes went live (market shut, brain IDLE).
 
 **V-13 PASS.** All **14/14** `TARGET_HIT` fills since the deploy land inside
-the cap band (`n≥10` required), `avg_r` **1.266** — drifted down from the
-1.389 baseline exactly as the corrected pass condition predicted (the cap
-also clamps overshoots, not just pullbacks; the error now runs toward
-understating performance, the safe direction for a go/no-go gate).
+the cap band (`n≥10` required), `avg_r` **1.266** — drifted down from the 1.389
+baseline exactly as the corrected pass condition predicted. The cap clamps
+overshoots as well as pullbacks, so the error now runs toward *understating*
+performance, the safe direction for a gate.
 
-**V-14 still NOT-YET** — cumulative closed trades **984**, has not yet
-crossed 1000.
+**V-14 still NOT-YET** — cumulative closed trades **984**, not yet past 1000.
 
-**I-4 (inplay lock) PASS again** — `inplay_list` locked all 10 candidates,
-first lock 04:23:27 UTC (09:53 IST). Still not the scenario [C7] actually
-broke on (mid-week, after Wednesday's own session) — the real stress test is
-still the next post-weekend session, **Monday 08-31**.
+**I-4 PASS again** — `inplay_list` locked all 10 candidates, first lock
+04:23:27 UTC (09:53 IST), despite the 09:52 start (the lock time is a floor,
+not a window). Still mid-week, so **Monday 08-31 remains the real [C7] test**.
 
-Also confirmed: advisor ran normally, 741 rows 09:57–15:17 IST, no stall.
-Exits: BRAIN_SIGNAL 23 / STOP_LOSS_HIT 18 / TARGET_HIT 14 / EOD_CLOSE 11 /
-SESSION_END 4.
+**Three more of the overnight changes verified live:**
+- **`event_policy` sparse drop** — 185 decisions in 30 minutes, **0** carrying
+  the key (was ~70%); `indicators` down to 825 B.
+- **`mom_12_1` + `counter_case` on 200/200 advice rows.**
+- **I-7 fired on its FIRST real use** — 928 directional decisions, **0
+  labelled**. Fixed (928/928); edge study now **+0.010R, t=+0.4, n=2,428**,
+  verdict unchanged. Without the invariant added the night before, the day
+  would have entered the record 100% unlabelled.
 
-**Advisor calibration:** recomputed same-day, unchanged — `graded_calls` 98,
-ECE 22.1%, still `monotonic=false`. Nothing newly matured; next MACRO batch
-due ~09-02.
+⚠️ **[C9] NEW — no portfolio-level exposure cap.** Peak gross exposure
+**₹785,346 against ₹100,000 deployed = 7.85×**, across **20 concurrent
+positions**. `MAX_POSITION_PERCENT` caps each position at 40% *individually*;
+nothing caps the aggregate, and `PaperBroker` never checks margin. Zerodha MIS
+equity leverage is ~5×, so a real broker would have rejected orders or raised a
+margin shortfall. **The paper book is not reproducible with real money at this
+capital.** Does not change the no-edge conclusion; it is a fifth entry on the
+"paper is silently flattered" list and arguably the largest. See KNOWN_ISSUES.
 
-**Verify:** V-10/V-11/I-1/I-2/I-3/I-4 PASS (carried), **V-13 now PASS** (was
-NOT-YET). V-9, V-14 still NOT-YET.
+Advisor ran normally, 741 rows 09:57–15:17 IST, no stall. Exits: BRAIN_SIGNAL
+23 / STOP_LOSS_HIT 18 / TARGET_HIT 14 / EOD_CLOSE 11 / SESSION_END 4.
+**Advisor calibration:** unchanged — `graded_calls` 98, ECE 22.1%,
+`monotonic=false`. Next MACRO batch due ~09-02.
 
-**Overnight pre-market work (market shut, 08-27 00:38–04:04 IST, already
-recorded by the session that did it — not re-litigated here):** [P-38] TOAST
-compression attempted on prod, produced no compression, root-caused (two
-design errors) and reverted; [P-41] settled — this data does not compress
-under any codec once stored as jsonb binary; **decommission Phase A finding**
-(SYSTEM_BIBLE, no P-nn/K-id yet) — the realised risk unit measures ~₹140/trade
-(0.140% of capital) against the
-1.0% config, because the position-size cap binds before the risk-derived
-quantity does, so round-trip costs are **0.398R** (not the 0.240R this
-project had been quoting) and are **~94%** of the −0.425R loss; **I-7**
-registered (own-session decision labelling is a separate script run, not
-automatic — today's 928 directional decisions show 0 labelled, which is
-expected, not a new gap); an unreproducible AUC (0.4556) corrected to 0.4917
-across docs. See `git log docs/STATUS.md` and
-[reference/VERIFY.md](reference/VERIFY.md) for the full detail — this pass
-only adds the day's trading-session readout above.
+**Verify:** V-10/V-11/I-1/I-2/I-3/I-4 PASS (carried), **V-13 now PASS**,
+**I-7 caught-and-fixed**. V-9, V-14 still NOT-YET.
+
+**External review (2026-08-27):** two rounds against the SYSTEM_BIBLE;
+recommendation is to decommission. Its headline — SEBI's Algo-ID framework from
+2026-04-01 leaves no compliant path from a scraped `enc_token` — **verified
+independently**. Phase A measurement found the risk unit is **₹140, not the
+₹1,000** configured, making costs **~94% of the loss, not 60%**. Full record:
+[reference/EXTERNAL_REVIEW_2026-08-27.md](reference/EXTERNAL_REVIEW_2026-08-27.md).
+**Live order path now hard-disabled in code** (brain `c604c0d`).
+
 
 Prior entries: `git log docs/STATUS.md`._
 
