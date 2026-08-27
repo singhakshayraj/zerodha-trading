@@ -4,51 +4,62 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-27** (Thu, ~00:40 IST). **Session 08-26 audited.**
-`c40c5634`, 10:31–15:21 IST, `COMPLETED`/`MARKET_CLOSED`: **69 trades, all
-closed, zero left open**, −₹2,214.01, **PF 0.724**, expectancy **−0.232R**
-(24 win / 45 loss, 32 short / 37 long), 2,953 decisions. A rebound off 08-25's
-record-low 0.102, back inside the established per-session range — **not a
-record**: 0.724 ranks 6th, behind 05-21 (1.631), 05-20 (1.419), 05-19 (1.129),
-07-13 (1.032) and 07-14 (0.867). Start 10:31 IST is still ~76min past the
-09:15 target, but the smallest gap of the last three sessions (08-24 +2.5h,
-08-25 +2.75h, today +1.25h).
+_Last updated: **2026-08-27** (Thu, ~16:35 IST). **Session 08-27 audited.**
+`a73fbf67`, 09:52–15:23 IST, `COMPLETED`/`MARKET_CLOSED`: **70 trades, all
+closed, zero left open**, −₹3,940.16, **PF 0.520**, expectancy **−0.257R**
+(21 win / 49 loss, 39 short / 31 long), 3,268 decisions. Start 09:52 IST is
+only **~37min past** the 09:15 target — the smallest gap yet (08-24 +2.5h,
+08-25 +2.75h, 08-26 +76min, today +37min).
 
-**Cumulative:** 914 trades / 832 with `r_multiple`, PF **0.365**, expectancy
-**−0.425R**, max drawdown deepened to **≈−₹51,047**. No gate flip.
+**Cumulative:** 984 trades / 902 with `r_multiple`, PF **0.380**, expectancy
+**−0.412R**, max drawdown deepened to **≈−₹54,907**. No gate flip.
 
-**[P-39] DONE — [C7] fix confirmed live, git_sha moved.** Today stamps
-`git_sha=2e884587d855` (was `893267c447e3` the prior two sessions — the brain
-push finally landed), and `inplay_list` locked **all 10 candidates**, first
-lock 05:02:50 UTC (10:32 IST), top `or_rvol` 15.89 — **I-4 PASS**, the first
-lock since 08-07 and the gap since then is exactly the three failures the fix
-targeted (08-10, 08-24, 08-25).
+**git_sha moved again — `c604c0d94f31`** (was `2e884587d855` on 08-26),
+confirming two brain fixes shipped overnight (market shut, brain IDLE) went
+live: `f1c7d35` (TARGET_HIT fill-cap, V-13) and `49b76e5` (exact server-side
+win-rate past 1000 trades, V-14).
 
-⚠️ **But this was a mid-week session** (Wed, after Tue's own session ran), not
-the post-weekend case [C7] actually broke on. The real stress test is the
-next session after a weekend gap — **Monday 08-31**. [P-39] is DONE on its
-literal measure-of-done (git_sha moved + a lock); the harder check is still
-ahead.
+**V-13 PASS.** All **14/14** `TARGET_HIT` fills since the deploy land inside
+the cap band (`n≥10` required), `avg_r` **1.266** — drifted down from the
+1.389 baseline exactly as the corrected pass condition predicted (the cap
+also clamps overshoots, not just pullbacks; the error now runs toward
+understating performance, the safe direction for a go/no-go gate).
 
-**Do not attribute the day's PF or the 69-trade count to the fix.** A locked
-list restores the candidate pool, which moves volume (30 → 69); one session
-cannot separate that from the tape.
+**V-14 still NOT-YET** — cumulative closed trades **984**, has not yet
+crossed 1000.
 
-Also confirmed: advisor ran (20 official rows), both paper books snapshotted,
-exits spread across BRAIN_SIGNAL 23 / TARGET_HIT 18 / STOP_LOSS_HIT 17 /
-EOD_CLOSE 8 / SESSION_END 3. Clean shutdown — `IDLE`, pointer cleared,
-heartbeat back to "Waiting for START command".
+**I-4 (inplay lock) PASS again** — `inplay_list` locked all 10 candidates,
+first lock 04:23:27 UTC (09:53 IST). Still not the scenario [C7] actually
+broke on (mid-week, after Wednesday's own session) — the real stress test is
+still the next post-weekend session, **Monday 08-31**.
 
-**Advisor calibration:** unchanged — `graded_calls` 98, ECE 22.1%, still
-`monotonic=false`. Nothing newly matured; next MACRO batch due ~09-02.
+Also confirmed: advisor ran normally, 741 rows 09:57–15:17 IST, no stall.
+Exits: BRAIN_SIGNAL 23 / STOP_LOSS_HIT 18 / TARGET_HIT 14 / EOD_CLOSE 11 /
+SESSION_END 4.
 
-**Verify:** V-10/V-11/I-1/I-2/I-3 PASS (carried from 08-25), **I-4 now PASS**
-(was NOT-YET). V-9 still NOT-YET.
+**Advisor calibration:** recomputed same-day, unchanged — `graded_calls` 98,
+ECE 22.1%, still `monotonic=false`. Nothing newly matured; next MACRO batch
+due ~09-02.
 
-**Shipped post-close 08-26** (market shut): advisor variant lab + factor lab
-(brain `7d85944`, `b2ba4d9`), 12-1 momentum logged as a **dark flag**
-(`2e88458`), dead `get_nifty_level` stub deleted (`78ca4be`), multi-tenant
-design + architecture review (`f5359bf`, `5e5e908`). Suite **950**.
+**Verify:** V-10/V-11/I-1/I-2/I-3/I-4 PASS (carried), **V-13 now PASS** (was
+NOT-YET). V-9, V-14 still NOT-YET.
+
+**Overnight pre-market work (market shut, 08-27 00:38–04:04 IST, already
+recorded by the session that did it — not re-litigated here):** [P-38] TOAST
+compression attempted on prod, produced no compression, root-caused (two
+design errors) and reverted; [P-41] settled — this data does not compress
+under any codec once stored as jsonb binary; **decommission Phase A finding**
+(SYSTEM_BIBLE, no P-nn/K-id yet) — the realised risk unit measures ~₹140/trade
+(0.140% of capital) against the
+1.0% config, because the position-size cap binds before the risk-derived
+quantity does, so round-trip costs are **0.398R** (not the 0.240R this
+project had been quoting) and are **~94%** of the −0.425R loss; **I-7**
+registered (own-session decision labelling is a separate script run, not
+automatic — today's 928 directional decisions show 0 labelled, which is
+expected, not a new gap); an unreproducible AUC (0.4556) corrected to 0.4917
+across docs. See `git log docs/STATUS.md` and
+[reference/VERIFY.md](reference/VERIFY.md) for the full detail — this pass
+only adds the day's trading-session readout above.
 
 Prior entries: `git log docs/STATUS.md`._
 
@@ -117,6 +128,67 @@ python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
 - **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 📈 2026-08-27 post-session — V-13 verified, git_sha moved again
+
+Session `a73fbf67` 04:22:12–09:53:04 UTC (09:52–15:23 IST), `COMPLETED`,
+**git_sha `c604c0d94f31`** (new build — was `2e884587d855` on 08-26). **70
+trades, all closed, −₹3,940.16, PF 0.520** (gross win ₹4,266.71 / gross loss
+₹8,206.87), **expectancy −0.257R** (21 win / 49 loss, 39 short / 31 long) —
+inside the established per-session PF range. Start 09:52 IST was **~37min**
+past the 09:15 IST target, the smallest gap measured yet.
+
+**V-13 (`f1c7d35`, TARGET_HIT fill cap) check: PASS.** Every `TARGET_HIT`
+fill since the deploy lands inside the cap band — **14/14** (n≥10 required),
+`avg_r` **1.266**. The corrected pass condition (VERIFY.md, rewritten same
+day the fix shipped) predicted `avg_r` would drift *down* from the 1.389
+baseline because the cap also clamps overshoots, not just recovers
+pullbacks — that is exactly what happened, so this reads as the fix working
+as designed, not a regression.
+
+**V-14 (`49b76e5`, exact win-rate past 1000) check: still NOT-YET.**
+Cumulative closed trades **984** — has not yet crossed the 1000-row
+PostgREST cap this fix targets.
+
+**[C7]/I-4 check: PASS again.** `inplay_list` locked all 10 candidates,
+first lock 04:23:27 UTC (09:53 IST). Today is Thursday, following
+Wednesday's own session — still not the post-weekend scenario [C7] actually
+broke on. That stress test is still ahead: **Monday 2026-08-31**.
+
+**Cumulative (all-time, now 984 closed trades / 902 carrying `r_multiple`):**
+PF **0.380** (gross win ₹33,546.87 / gross loss ₹88,335.71), expectancy
+**−0.412R**, total P&L **−₹54,788.84**. Max drawdown (peak-to-trough of
+realized P&L, all-time) deepened to **≈−₹54,907** (was ≈−₹51,047 on 08-26) —
+consistent with the soft-stop design, not treated as a new regression. No
+gate flip — PF stays deep in reject territory (gate: >1.3 go / <1.1 reject).
+
+**Advisor calibration:** `advisor_calibration_latest` recomputed same-day
+(`built_at=2026-08-27`) — `graded_calls` unchanged at **98**, ECE unchanged
+at **22.1%**, still `monotonic=false`. No new movement; next MACRO batch due
+~09-02.
+
+Also confirmed: advisor ran normally, 741 rows 04:27:14–09:47:34 UTC
+(09:57–15:17 IST), no stall. Exits: BRAIN_SIGNAL 23 / STOP_LOSS_HIT 18 /
+TARGET_HIT 14 / EOD_CLOSE 11 / SESSION_END 4.
+
+**I-7 (per-session labelling) checked for today: 0 of 928 directional
+decisions labelled.** Expected, not a new gap — labelling runs as a separate
+script (`label_decisions.py`), not automatically same-day; I-7's own finding
+(08-26 audit) was about a *stale* labelling run undercounting a past day, not
+same-day absence.
+
+**Dashboard API** (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again this pass (`curl`: `CONNECT tunnel failed, response 403`,
+exit 56) — same as every recent pass. All numbers above measured directly
+against Supabase prod.
+
+_This pass does not re-litigate the substantial pre-market docs work already
+recorded by the 08-27 00:38–04:04 IST session (TOAST compression
+attempt+revert, [P-41] settled, the risk-unit decommission Phase A finding,
+I-7 registered, AUC correction) — see the entry above and
+[reference/VERIFY.md](reference/VERIFY.md) for that detail. `git log -25`
+shows nothing shipped since then that isn't already covered by V-13/V-14
+above._
 
 ## 📈 2026-08-26 post-session — [P-39] verified live
 
@@ -733,11 +805,15 @@ still broken, get a screenshot + the specific page/symptom **before** changing
 anything — emulation never reproduced the original bug.
 
 ## Deployed versions
+- **Brain:** session `a73fbf67` (08-27) stamps `git_sha=c604c0d94f31` — a new
+  build, confirming `f1c7d35` (V-13 TARGET_HIT fill cap) and `49b76e5` (V-14
+  exact win-rate) were pushed (see 08-27 post-session above). This session
+  (docs-only, no brain-repo access) cannot independently confirm the sha
+  against the brain repo's commit log — recorded as measured from prod, not
+  cross-checked. Prior:
 - **Brain:** session `c40c5634` (08-26) stamps `git_sha=2e884587d855` — a new
   build, confirming **[C7]'s fix (`eb75ded`) was pushed** ([P-39] DONE, see
-  08-26 post-session above). This session (docs-only, no brain-repo access)
-  cannot independently confirm the sha against the brain repo's commit log —
-  recorded as measured from prod, not cross-checked. Prior:
+  08-26 post-session above). Prior:
 - **Brain:** session `f821de37` (08-25) stamped `git_sha=893267c447e3` — same
   as 08-24, since [C7]'s fix was committed locally but not yet pushed at that
   time. Prior:
@@ -866,6 +942,7 @@ Two sessions ran 08-03 (autopilot 09:30 + a manual afternoon after the −3R-sof
 | 08-24 | 42 (short — late token paste, 3.6h) | −₹3,288.77 | 0.282 | −0.472R |
 | 08-25 | 30 (short — late token paste, 3.45h) | −₹3,550.78 | 0.102 | −0.706R |
 | 08-26 | 69 (full-day, −3R soft) | −₹2,214.01 | 0.724 | −0.232R |
+| 08-27 | 70 (full-day, −3R soft) | −₹3,940.16 | 0.520 | −0.257R |
 
 _08-03 note: capital raised 25k→100k (so ₹ losses ~4× prior days; R is the
 comparable unit). First full-day session (PM) since −3R went soft — PF 0.66,
@@ -880,18 +957,22 @@ never locking) was live for this session too since its fix wasn't pushed
 until after close. Small n (30 trades) — read the weak PF as noise until a
 mechanism is shown, not as a new regression._
 
-Cumulative (all-time, **914 closed trades**, 832 carrying `r_multiple`) ≈ PF
-**0.365** (gross win ₹29,280.16 / gross loss ₹80,128.84), expectancy
-**−0.425R avg**, total **−₹50,848.68** — measured directly from `trades` this
-pass (08-26 post-close; see §"2026-08-26 post-session" above for the full
+Cumulative (all-time, **984 closed trades**, 902 carrying `r_multiple`) ≈ PF
+**0.380** (gross win ₹33,546.87 / gross loss ₹88,335.71), expectancy
+**−0.412R avg**, total **−₹54,788.84** — measured directly from `trades` this
+pass (08-27 post-close; see §"2026-08-27 post-session" above for the full
 readout and method).
-08-26 added 69 trades / −₹2,214.01 (PF 0.724, a rebound off 08-25's 0.102
-low); no gate flip (still deep reject zone, PF gate is >1.3 go / <1.1 reject).
+08-27 added 70 trades / −₹3,940.16 (PF 0.520); no gate flip (still deep
+reject zone, PF gate is >1.3 go / <1.1 reject).
 **Standing conclusion unchanged: no edge yet → gate #6 is the priority.** Max
-drawdown (peak-to-trough equity, all-time) is now **≈−₹51,047** (was
-≈−₹48,646 on 08-25) — deeper, consistent with the soft daily-stop design (a
+drawdown (peak-to-trough equity, all-time) is now **≈−₹54,907** (was
+≈−₹51,047 on 08-26) — deeper, consistent with the soft daily-stop design (a
 session can bleed past −3R rather than hard-cutting), not treated as a new
-regression. Trade-quality note (T4): the "opening hour is the only +EV
+regression. See also the decommission Phase A finding recorded above: the
+realised risk unit is ~₹140/trade against the 1.0% config, which reclassifies
+round-trip cost as ~0.398R (≈94% of the loss) rather than the 0.240R this
+project had been quoting — a correction to how this loss is read, not a new
+measurement of it. Trade-quality note (T4): the "opening hour is the only +EV
 window" thesis stays **dented** — 08-04's open vs after-open R (−0.63R vs
 −0.64R) converged to both-negative, no spread left to exploit either way. See
 the FLAG log; re-measure over more full-day sessions.

@@ -35,6 +35,7 @@ _2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverag
 _2026-08-10: V-12 added ([P-35] entry edge — re-run after each session's labeling)._
 _2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 advisor run._
 _2026-08-26: **I-4 PASSED — [C7] is verified live.** `inplay_list` locked on session `c40c5634`: 10 rows, `locked_at` 10:32:54 IST, top `or_rvol` 15.89. The series gap 08-07 → 08-26 is exactly the three failures the fix targeted (08-10, 08-24, 08-25). First session able to judge it._
+_2026-08-27: **I-4 PASSED again** — `inplay_list` locked 10/10 on session `a73fbf67`, first lock 09:53 IST. Still mid-week (Thu, after Wed's own session); the post-weekend stress test is still Monday 08-31. **V-13 PASSED** (moved to ✅ below) and **V-14 checked, still NOT-YET** (984 ≤ 1000)._
 _2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
 ### V-15 · [P-38] TOAST compression actually applies
@@ -101,60 +102,6 @@ Scoped to **≥ 2026-07-15** deliberately: the candle archive is empty for 07-14
 and earlier, so May and early-July decisions can never be labelled and would
 fail this check forever.
 
-### V-13 · TARGET_HIT fills obey the cap band
-Shipped 2026-08-27 (brain `f1c7d35`). ⚠️ **Pass condition rewritten the same
-day — the original was wrong.**
-
-**What the original said, and why it was wrong.** It claimed PASS = `avg_r ≥
-1.60`, on the reasoning that the cap recovers gain lost to the ~30s poll
-pulling back from the target. A replay of **222 real trades** through
-`_exit_fill_price` says the opposite: the cap also clamps **overshoots** — polls
-that caught a price *beyond* the target — and on this history those outweigh
-the pullbacks.
-
-| exit | n | mean R change | worst |
-|---|---|---|---|
-| STOP_LOSS_HIT | 149 | **+0.117** | +0.000 |
-| TARGET_HIT | 73 | **−0.062** | **−2.043** |
-
-So TARGET_HIT `avg_r` is expected to drift **down**, roughly 1.389 → ~1.33.
-The original `≥ 1.60` would have failed a change that is working exactly as
-designed and triggered a pointless rollback.
-
-**The change still stands**, on realism rather than on the effect size: a
-resting target-limit fills at its limit, so a fill booked 2R beyond the target
-was never achievable. The error now runs toward *understating* performance,
-which is the safe direction for a go/no-go gate. (Caveat: a genuine gap
-through a sell-limit *can* fill better than the limit, so clamping is slightly
-conservative in that case.)
-
-**Test the mechanism, not the effect size:**
-
-```sql
-select count(*) n,
-       count(*) filter (
-         where (position_type = 'LONG'  and exit_price between
-                  target_price - 0.25*abs(entry_price-stop_loss_price) - 0.01
-                  and target_price + 0.01)
-            or (position_type = 'SHORT' and exit_price between
-                  target_price - 0.01
-                  and target_price + 0.25*abs(entry_price-stop_loss_price) + 0.01)
-       ) inside_band,
-       round(avg(r_multiple)::numeric,3) avg_r
-from trades
-where exit_reason = 'TARGET_HIT' and created_at >= '2026-08-27'
-  and entry_price is not null and stop_loss_price is not null
-  and target_price is not null and exit_price is not null;
-```
-**PASS** = `inside_band = n` (every target fill lands in the band) on n ≥ 10.
-**FAIL** = any fill outside it → the cap is not reaching the exit path, or a
-long/short sign is inverted.
-**NOT-YET** = fewer than 10 TARGET_HIT trades since the deploy.
-
-*Pre-verified offline 2026-08-27:* 222 real trades replayed through
-`_exit_fill_price`, **0 band violations** across both directions, so the sign
-logic is confirmed on real geometry before it ever runs live.
-
 ### V-14 · the win rate keeps moving past 1000 closed trades
 Shipped 2026-08-27 (brain `49b76e5`). `get_win_rate` selected every closed
 trade and counted in Python; PostgREST caps a rowset at 1000 and the book was
@@ -171,6 +118,7 @@ from trades where status='CLOSED' and pnl is not null;
 the session log reports the **same T** as this query. **FAIL** = the log says
 1000 while the query says more — the cap is back.
 **NOT-YET** = total ≤ 1000 (no session has crossed it yet).
+_2026-08-27 checked post-session `a73fbf67`: total **984** — still NOT-YET._
 
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
 Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
@@ -443,6 +391,66 @@ starvation. Tracked as [P-18], whose action gate is ≥50 graded calls.
 ---
 
 ## ✅ PASSED — kept for the record
+
+### V-13 · TARGET_HIT fills obey the cap band — PASSED 2026-08-27
+Shipped 2026-08-27 (brain `f1c7d35`). ⚠️ **Pass condition rewritten the same
+day — the original was wrong.**
+
+**What the original said, and why it was wrong.** It claimed PASS = `avg_r ≥
+1.60`, on the reasoning that the cap recovers gain lost to the ~30s poll
+pulling back from the target. A replay of **222 real trades** through
+`_exit_fill_price` says the opposite: the cap also clamps **overshoots** — polls
+that caught a price *beyond* the target — and on this history those outweigh
+the pullbacks.
+
+| exit | n | mean R change | worst |
+|---|---|---|---|
+| STOP_LOSS_HIT | 149 | **+0.117** | +0.000 |
+| TARGET_HIT | 73 | **−0.062** | **−2.043** |
+
+So TARGET_HIT `avg_r` is expected to drift **down**, roughly 1.389 → ~1.33.
+The original `≥ 1.60` would have failed a change that is working exactly as
+designed and triggered a pointless rollback.
+
+**The change still stands**, on realism rather than on the effect size: a
+resting target-limit fills at its limit, so a fill booked 2R beyond the target
+was never achievable. The error now runs toward *understating* performance,
+which is the safe direction for a go/no-go gate. (Caveat: a genuine gap
+through a sell-limit *can* fill better than the limit, so clamping is slightly
+conservative in that case.)
+
+**Test the mechanism, not the effect size:**
+
+```sql
+select count(*) n,
+       count(*) filter (
+         where (position_type = 'LONG'  and exit_price between
+                  target_price - 0.25*abs(entry_price-stop_loss_price) - 0.01
+                  and target_price + 0.01)
+            or (position_type = 'SHORT' and exit_price between
+                  target_price - 0.01
+                  and target_price + 0.25*abs(entry_price-stop_loss_price) + 0.01)
+       ) inside_band,
+       round(avg(r_multiple)::numeric,3) avg_r
+from trades
+where exit_reason = 'TARGET_HIT' and created_at >= '2026-08-27'
+  and entry_price is not null and stop_loss_price is not null
+  and target_price is not null and exit_price is not null;
+```
+**PASS** = `inside_band = n` (every target fill lands in the band) on n ≥ 10.
+**FAIL** = any fill outside it → the cap is not reaching the exit path, or a
+long/short sign is inverted.
+**NOT-YET** = fewer than 10 TARGET_HIT trades since the deploy.
+
+*Pre-verified offline 2026-08-27:* 222 real trades replayed through
+`_exit_fill_price`, **0 band violations** across both directions, so the sign
+logic is confirmed on real geometry before it ever runs live.
+
+**PASSED live 2026-08-27, session `a73fbf67`:** `n=14`, `inside_band=14`
+(every TARGET_HIT fill lands in the band), `avg_r=1.266` — drifted down from
+the 1.389 baseline exactly as predicted, confirming the corrected pass
+condition rather than the original (which would have failed this same
+result).
 
 ### V-4 · [P-24] advisor paper book de-duplicated — PASSED 2026-08-10
 Repair run against prod `gilmuwmtdpjccibfhqtx` at ~01:20 IST pre-market, via the
