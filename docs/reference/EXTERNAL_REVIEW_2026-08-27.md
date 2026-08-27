@@ -4,7 +4,9 @@ Two rounds of adversarial review of the whole system by an external model,
 run against [SYSTEM_BIBLE.md](SYSTEM_BIBLE.md). This records what it said, what
 was verified, what was actioned, and what is still open.
 
-**Status: round 3 drafted and ready to send** — [FABLE_ROUND3_PROMPT.md](FABLE_ROUND3_PROMPT.md). Nothing
+**Status: CONCLUDED after three rounds.** Recommendation unchanged and now
+better supported: decommission. See §8 for the closing identity and §9 for
+what transfers. Nothing
 from the decommission plan has been executed beyond Phase A measurement and one
 safety fix.
 
@@ -192,3 +194,100 @@ market (rationalisation) and quietly returning (relapse).
   risk unit, whether [C9] changes its analysis, whether the contract-note check
   is still worth manual effort, and precisely which part of the measurement
   apparatus should transfer versus be left behind.
+
+
+---
+
+## 8. Round 3 — the closing identity, verified
+
+The review owned a miss first: the ₹140 risk unit was derivable from the
+round-one headline table by one division (₹50,849 ÷ 914 = ₹55.6; ÷ 0.425R ⇒
+~₹131), and it built a decomposition on the documented −0.240R without running
+it. Recorded because it is the same failure mode this project kept finding in
+itself — a plausible number accepted at measured-number confidence.
+
+**Its central contribution, verified against 859 trades:** for proportional
+costs,
+
+```
+cost_R = round-trip friction (bps of position) / stop width (bps of price)
+```
+
+Position size, capital and `RISK_PER_TRADE_PCT` all cancel.
+
+| | predicted | measured |
+|---|---|---|
+| round-trip friction | 20.6 bps | **20.60 bps** |
+| stop width | ~50 bps | **52.30 bps** |
+| stop needed to reach 0.056R | ~3.7% | **3.68%** |
+| **friction ÷ stop** | — | **0.424R** |
+| **measured expectancy** | — | **−0.425R** |
+
+**The loss is the cost ratio, to three decimals.** Full statement in
+[SYSTEM_BIBLE §11d](SYSTEM_BIBLE.md#11d).
+
+Its answers to the four questions:
+
+1. **−0.425R is not a distorted scale** — it is the true cost-to-risk ratio,
+   invariant to sizing. Proper 1% sizing gives the same R and ~7× the rupee
+   loss (≈ −₹388k, ruin territory). The misconfiguration was an accidental
+   safety multiplier.
+2. **[C9] splits the evidence.** Per-trade numbers survive; portfolio-level
+   rupee figures describe an inexecutable book and carry an asterisk. Its
+   stopping ground #2 needed one word changed, not withdrawal: "the average
+   trade is a taxed coin flip" holds; "the book was a coin-flip portfolio"
+   never described a real book.
+3. **Contract-note validation: killed for cause.** Charges are deterministic
+   and rate-card-verified; live slippage is unmeasurable in paper by
+   construction (contract notes hold fills, not decision-time prices); and no
+   pending decision consumes the number. Filed with the paper-flattery items
+   as permanently open.
+4. **What transfers** — §9 below.
+
+## 9. What transfers, and what to leave behind
+
+The durable output of the whole exercise.
+
+**Take (fits in a notebook and a habit, ~zero code):**
+- pre-registration with the deciding number written **before** building
+- **detectability budgeting** — required n at the target effect, as a gate on
+  starting. This alone would have killed the 9-day filter celebration and the
+  advisor-confidence question before they cost engineering time.
+- **data-completeness invariants** with runnable checks. They check the
+  *pipeline*, not the hypothesis, which is why I-7 paid for itself in a day.
+- predicted-vs-measured verification of every shipped change
+- corrections recorded, never overwritten
+- the multiplicity reflex — "I tested eight things, discount the winner"
+
+**Take conditionally:** counterfactual labelling, but only where the untaken
+path has observable outcomes (alert grading, forecast scoring, estimate
+calibration). Most product decisions do not qualify — there is no candle data
+for the feature you did not ship. Rebuilding a labeller by habit would be
+building the instrument before the question.
+
+**Leave behind:** the always-on daemon, heartbeat, watchdog and autopilot
+(artifacts of unattended 300-second cycles — a weekly loop needs a cron); the
+telemetry lake ([P-40] showed most of it stored ~94 bytes to say nothing
+happened — log the decision and the outcome, not the sensor dump); ambient
+dashboards (the peeking surface — a weekly digest replaces them); and the test
+fortress around the *hypothesis* layer, which should be cheap to rewrite. Test
+the measurement path instead.
+
+**The deepest one:** the instinct that rigour is expressed in infrastructure.
+Here the ratio ran roughly 48 modules of apparatus to one page of epistemics,
+and the one page did all the work. **An experiment earns code only after its
+deciding number and required n exist on paper.**
+
+## 10. On the decommission staging
+
+The objection was accepted as stated: delete the trading-cycle call, keep the
+frozen dump as the sole re-analysis medium, gate re-instantiation on the
+Phase D reopening criteria. Two points dissolve the residual worry — the
+2027-03-31 reads are advisor-side and need nothing from the intraday layer,
+and deletion in git is never technically irreversible.
+
+The distinction that matters: **reversibility through a paper trail is not the
+hedge that keeps a dead project alive; reversibility through configuration
+was.** Deleting the call converts relapse from an env-var flip into a
+deliberate act requiring a commit, a push, and a written justification against
+your own criteria.

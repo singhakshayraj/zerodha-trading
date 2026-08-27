@@ -888,6 +888,72 @@ found nothing. The null in §11.3 is therefore **stronger** than stated, and
 
 ---
 
+<a id="11d"></a>
+## 11d. The closing identity — the loss IS the cost ratio
+
+The single cleanest statement of what this project found. It came out of the
+external review's round 3 and was verified against 859 trades.
+
+For proportional costs, the cost of a trade measured in R is:
+
+```
+cost_R  =  round-trip friction (bps of position)  /  stop width (bps of price)
+```
+
+Position value, deployed capital and `RISK_PER_TRADE_PCT` **all cancel out**.
+Measured:
+
+| | |
+|---|---|
+| mean round-trip friction | **20.60 bps** |
+| mean stop width | **52.30 bps** (0.52% of price) |
+| **mean per-trade friction ÷ stop** | **0.424R** |
+| **measured expectancy** | **−0.425R** |
+| implied residual | **≈ 0.001R** |
+
+**The strategy's entire loss is its cost-to-risk ratio, to three decimals.**
+The signal contributes not "statistically nothing" — arithmetically nothing.
+
+### Why no intraday configuration escapes it
+
+To push cost below 0.056R at 20.6 bps of friction you need a **3.68% stop**.
+A 3.68% stop on Indian large-caps is a multi-day holding distance. Intraday
+stops built on 5-minute structure live at 0.3–0.8%; retail friction lives at
+15–25 bps; so the ratio is **0.25–0.8R in every configuration**. There is no
+intraday variant of this system that escapes it, and this is now established
+from measurement alone — it needs no factor evidence and no `mom_12_1` prior.
+
+### Three consequences
+
+**1. The sizing misconfiguration was an accidental safety multiplier.** Because
+the identity is scale-invariant, running at the *designed* 1% risk would have
+produced the **same −0.425R** and roughly **7× the rupee loss** — about
+−₹388,000, which is ruin territory and would have collided with margin limits
+long before it got there. The same information was bought for a seventh of the
+tuition. Related: `DAILY_STOP_R = 3` at a ₹140 risk unit was quietly a
+**₹420/day** stop, not the ₹3,000/day it was designed to be.
+
+**2. Per-trade evidence survives; portfolio-level evidence carries an
+asterisk.** A trade's R does not depend on what else was open, and dropping the
+infeasible third of a negative-expectancy book leaves a negative-expectancy
+book — expectation is preserved under margin-driven subsetting; only variance
+and path change. So **−0.425R is load-bearing**, while **−₹50,849, the −53.88pp
+benchmark and the −₹565/hour are outcomes of a portfolio that was never
+executable** ([C9], 7.85× gross) and are illustrative only.
+
+**3. The fill-gap analysis is subsumed.** The 10.34 bps entry-leg figure already
+includes slippage, so the earlier "plan-vs-fill gap" line double-counts against
+this decomposition. Carry this one; note the fill-gap work as absorbed.
+
+### The invariant that never existed
+
+Caps must exist at **every aggregation level you report at**. This system had a
+position-level cap and day-level stops and **nothing at the portfolio level** —
+the missing check being *gross exposure ≤ margin capacity*. Call it the I-8
+that never was; it belongs in the lessons even though it will never run.
+
+---
+
 <a id="12"></a>
 ## 12. Known defects, open items, and decisions owed
 
