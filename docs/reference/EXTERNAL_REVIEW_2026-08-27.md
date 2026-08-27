@@ -4,7 +4,7 @@ Two rounds of adversarial review of the whole system by an external model,
 run against [SYSTEM_BIBLE.md](SYSTEM_BIBLE.md). This records what it said, what
 was verified, what was actioned, and what is still open.
 
-**Status: paused mid-engagement.** Round 3 is drafted but not sent. Nothing
+**Status: round 3 drafted and ready to send** — [FABLE_ROUND3_PROMPT.md](FABLE_ROUND3_PROMPT.md). Nothing
 from the decommission plan has been executed beyond Phase A measurement and one
 safety fix.
 
@@ -182,5 +182,13 @@ market (rationalisation) and quietly returning (relapse).
   secret plus password is full account takeover on a real brokerage account,
   and both exist only to enable the TOTP path already declined. Worth removing
   regardless. **[P-04]** (rotate the Telegram bot token) is also still open.
-- **Round 3.** Drafted, not sent — it would report the §11c cost correction
-  back, since it invalidates the review's own decomposition arithmetic.
+- **Round 3.** Written and ready: [FABLE_ROUND3_PROMPT.md](FABLE_ROUND3_PROMPT.md).
+  It reports back that the review's §2 decomposition is wrong (costs −0.398R,
+  not −0.240R, so the residual is −0.027R rather than −0.067R — its
+  qualitative claim holds and tightens); adds **[C9]** as a sixth and largest
+  "paper is flattered" item (7.85× gross exposure, book not executable with
+  real money); tells it the charge-model validation cannot be run as specified;
+  and asks four questions — whether −0.425R is a distorted scale given the ₹140
+  risk unit, whether [C9] changes its analysis, whether the contract-note check
+  is still worth manual effort, and precisely which part of the measurement
+  apparatus should transfer versus be left behind.
