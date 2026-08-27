@@ -291,3 +291,91 @@ hedge that keeps a dead project alive; reversibility through configuration
 was.** Deleting the call converts relapse from an env-var flip into a
 deliberate act requiring a commit, a push, and a written justification against
 your own criteria.
+
+
+---
+
+## 11. Phase A + B — EXECUTED 2026-08-27/28
+
+Run with the brain **IDLE**, no active session, **0 open trades**, 03:15 IST.
+Nothing was disabled — this is measurement and preservation only, correct under
+every branch of the decision still outstanding.
+
+### Phase A — final measurement
+
+**Invariant sweep, all seven:**
+
+| | result |
+|---|---|
+| I-1 duplicate paper exits | **0** — PASS |
+| I-2 exit reasons side-symmetric | **FAIL — see [C10] below** |
+| I-3 closed trades missing risk unit | **0** — PASS |
+| I-4 in-play list locks | 2026-08-27, **n=10** — PASS |
+| I-5 phantom executions | none — PASS |
+| I-6 Nifty-500 pin vs live master | **499 match, 0 wrong, 0 absent** — PASS |
+| I-7 labelling completeness | **no gaps** — PASS |
+
+**Frozen headline, single timestamp `2026-08-27 21:48:32 UTC`:**
+
+| | |
+|---|---|
+| trades | **984** (902 with `r_multiple`) |
+| expectancy | **−0.4118R** |
+| profit factor | **0.3798** |
+| net P&L | **−₹54,788.84** |
+| win rate | **23.88%** |
+| session days | 30 |
+| decisions | 35,413 |
+| labelled decisions | 10,209 |
+| graded advisor calls | 98 |
+| database | 119 MB |
+
+⚠️ Per [SYSTEM_BIBLE §11d](SYSTEM_BIBLE.md#11d), the **per-trade** figures are
+load-bearing; the rupee totals describe a portfolio that [C9] showed was never
+executable and are illustrative only.
+
+### [C10] — EOD exits are labelled by side, not by event
+
+I-2 caught this on the final sweep. Two staggered paths close the day:
+`_auto_cover_shorts_if_eod` at **15:15**, `_auto_close_longs_if_eod` at
+**15:20**. Both write `EOD_CLOSE`. But session teardown also runs at 15:20 and
+**always wins the race**, so longs are written `SESSION_END` instead.
+Measured since 2026-08-07:
+
+| | n | median exit | range |
+|---|---|---|---|
+| `EOD_CLOSE` SHORT | 49 | 15:16 IST | 15:15–15:19 |
+| `SESSION_END` LONG | 26 | **15:22 IST** | 15:21–15:25 |
+
+Zero longs in one bucket, zero shorts in the other. **`EOD_CLOSE` performance
+is really short-side EOD performance, and `SESSION_END` is long-side** — so
+every per-exit-reason table in this project is side-confounded on those two
+rows. It does not move expectancy (the trades and their R are unchanged), but
+the exit-reason decomposition must not be read as two policies. Same bug class
+as [P-27]/B2, recurring in a new form. **Not fixed** — recorded, because the
+historical record is what the post-mortem rests on.
+
+### Phase B — snapshot
+
+`pg_dump` was unavailable (no database password; the service key does not grant
+it), so every table was exported through the client **with explicit
+pagination** — the PostgREST 1,000-row cap is precisely the trap here.
+
+**`~/Desktop/zerodha-snapshot-2026-08-27/`** — 21 tables, **161,516 rows**,
+16.1 MB gzipped, plus `MANIFEST.json`.
+
+**Verified complete:** exact head-count per table against live — **21/21 match,
+0 mismatches** — and the archives were read back to confirm they parse.
+
+Repos tagged `intraday-phase-a-2026-08-27` (brain `c604c0d`, dashboard
+`0571b97`); SHAs recorded in the manifest.
+
+### Still owed
+
+- **An offsite copy of the snapshot.** It is local-only. Supabase pauses
+  inactive free-tier projects, which becomes a live risk the moment activity
+  drops — this is the one Phase B item an agent cannot do.
+- **`KITE_TOTP_SECRET` and `KITE_PASSWORD` in Railway env.** Full account
+  takeover on a real brokerage account, existing only to enable a path already
+  declined. Independent of the decommission decision.
+- **Phase C onward** — untouched, and it is a decision, not a measurement.
