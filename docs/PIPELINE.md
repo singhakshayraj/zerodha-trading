@@ -5,63 +5,44 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-27** (Thu, post-session) · Burn-down: **24 shipped +
+_Last updated: **2026-08-28** (Fri, post-session) · Burn-down: **24 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (No PIPELINE item
-moved this pass — V-13/V-14 are VERIFY-ledger checks, not board items; V-13
-verified PASS below.)
+moved this pass — no code shipped since 08-27, only docs commits, all already
+reflected below.)
 
-**This pass (post-session):** A trading session ran 08-27 — `a73fbf67`,
-04:22:12–09:53:04 UTC, `COMPLETED`, 70 trades, PF **0.520**, expectancy
-**−0.257R**. Session started 09:52 IST, only ~37min past the 09:15 IST
-target — the smallest gap measured yet. Cumulative now **984 closed / 902
-`r_multiple`**, PF **0.380**, expectancy **−0.412R**, max drawdown
-≈−₹54,907 (deepened from ≈−₹51,047). No gate flip. Full readout:
-[STATUS.md](STATUS.md)'s 08-27 post-session section. Dashboard API still
-unreachable (`CONNECT tunnel failed, response 403`, exit 56) from this
+**This pass (post-session):** A trading session ran 08-28 — `f4419be8`,
+06:54:59–09:55:57 UTC (12:25–15:26 IST), `COMPLETED`, 34 trades, PF **0.184**,
+expectancy **−0.673R** — a weak session, inside the established per-session PF
+range. Session started 12:25 IST, **~3h10min past** the 09:15 IST target, the
+largest gap yet among sessions that actually ran (prior worst 08-25 +2.75h).
+Cumulative now **1,018 closed / 936 `r_multiple`**, PF **0.368**, expectancy
+**−0.421R**, max drawdown ≈−₹59,206 (deepened from ≈−₹54,907). No gate flip.
+Full readout: [STATUS.md](STATUS.md)'s 08-28 post-session section. Dashboard
+API still unreachable (`curl` exit 56, connect failure) from this
 environment — all numbers measured directly against Supabase.
 
-**git_sha moved again — `c604c0d94f31`** (was `2e884587d855`), confirming two
-brain fixes shipped overnight (market shut) went live:
+**git_sha unchanged (`c604c0d94f31`)** — no new brain deploy since 08-27, so
+V-13/I-4 aren't re-checked (nothing new to check against). One milestone:
 
-- **V-13 (`f1c7d35`, TARGET_HIT fill cap) → PASS this pass.** 14/14 TARGET_HIT
-  fills since deploy land inside the cap band (n≥10 required), `avg_r` 1.266 —
-  drifted down from the 1.389 baseline exactly as the corrected pass condition
-  predicted. Working as designed, not a regression.
-- **V-14 (`49b76e5`, exact win-rate past 1000) → still NOT-YET.** Cumulative
-  closed trades 984, hasn't crossed 1000.
-- **I-4 ([C7] inplay lock) → PASS again.** 10/10 locked, first lock 09:53 IST.
-  Still mid-week, not the post-weekend scenario [C7] broke on — that stress
-  test is still **Monday 2026-08-31**.
+- **V-14 (`49b76e5`, exact win-rate past 1000) → trigger crossed, not
+  verified.** Cumulative closed trades passed 1000 for the first time
+  (**1,018**). PASS needs the session's `[kelly] Historical win rate: W/T` log
+  line compared to the SQL exact count; this environment has no Railway log
+  access this pass, so the comparison carries to the next pass that has it.
 
 **Advisor calibration:** `graded_calls` unchanged at 98, ECE unchanged at
 22.1%, still `monotonic=false` — recomputed same-day, no new movement.
 
-**git log check (step 4):** commits since the last pass (`941a13e` through
-`d54da2e`, 12 commits, all pre-market 08-27 00:38–04:04 IST while the market
-was shut) are already fully recorded by the session that made them: V-13/V-14
-registered and now verified above, [P-38] TOAST attempt documented as
-attempted-and-reverted, [P-41] closed (see Ready below), I-7 registered, an
-unreproducible AUC corrected, SYSTEM_BIBLE written, and the risk-unit
-decommission Phase A finding recorded in STATUS. Nothing shipped in that
-window needs a board move beyond V-13 above — none of it was a Ready/
-In-Progress PIPELINE item to begin with.
+**git log check (step 4):** commits since the last pass's chore commit
+(`5c5e1c4`) are `0272ce7`…`61ee4ef` (5 commits) — all docs, made in the same
+interactive session that ran the 08-27 audit: the round-3 external-review
+response, the cost-ratio writeup, and Phase A+B execution ([C10] recorded).
+Already reflected in STATUS.md and here; nothing shipped needing a board move.
 
-**Prior pass (08-23 weekly review), for reference:** full gate re-measure came
-back numerically identical to 08-16 (no session since 08-10 at the time).
-[P-05]'s stop-fill cap re-verified at −1.226R (n=43). I-1 still 0 rows.
-Supabase DB size was 97 MB / 500 MB (19%) — that runway clock resumes now
-that a session has written data again; not yet re-measured this pass.
-
-**08-16 weekly review (prior pass):** Re-measured the gate metrics directly
-against prod: numerically identical to 08-10 (same 773 closed / 691
-`r_multiple` trades). Found and fixed a **docs-sync gap**: this section and
-[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)'s "Latest" table were
-still carrying 08-07/08-09's advisor-calibration read (ECE 35.6%, n=31) two
-review cycles after STATUS's own 08-10 post-session entry had already recorded
-the real latest number (ECE 30.3%, n=37) — corrected both, see
-GATE_MEASURES.md. Re-verified **[P-05]**'s stop-fill cap holds on a much larger
-sample: pooled `STOP_LOSS_HIT` since the 08-07 fix is now **−1.226R (n=43)**,
-up from −1.211R at n=15 — see VERIFY.md V-2.
+**Prior pass (08-27), for reference:** session `a73fbf67`, 70 trades, PF
+0.520. V-13 verified PASS (14/14 TARGET_HIT fills in cap band). I-4 PASS
+again (10/10 locked). git_sha moved to `c604c0d94f31` that day (two overnight
+brain fixes went live). Full detail: `git log docs/PIPELINE.md`.
 
 > **Where the history went.** This preamble used to stack every prior update,
 > and the weekly gate re-measures sat above the board — together pushing the
@@ -72,10 +53,10 @@ up from −1.211R at n=15 — see VERIFY.md V-2.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-27
+## 📊 Gate re-measure — latest 2026-08-28
 
-**PF 0.380 · expectancy −0.412R · max drawdown ≈−₹54,907 · advisor ECE 22.1%
-(n=98).** Session `a73fbf67` closed 70 trades today (PF 0.520). No gate
+**PF 0.368 · expectancy −0.421R · max drawdown ≈−₹59,206 · advisor ECE 22.1%
+(n=98).** Session `f4419be8` closed 34 trades today (PF 0.184). No gate
 flipped; PF has never left the reject zone. Advisor `graded_calls` unchanged
 at 98; still `monotonic=false`. This is a post-session reading, not the
 weekly 3-lens re-measure — full history, method and the 3-lens read:

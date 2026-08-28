@@ -4,18 +4,23 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-28** (Fri, ~02:40 IST). **Session 08-27 audited.**
-`a73fbf67`, 09:52–15:23 IST, `COMPLETED`/`MARKET_CLOSED`: **70 trades, all
-closed, zero left open**, −₹3,940.16, **PF 0.520**, expectancy **−0.257R**
-(21 win / 49 loss, 39 short / 31 long), 3,268 decisions. Start 09:52 IST is
-only **~37min past** the 09:15 target — the smallest gap yet (08-24 +2.5h,
-08-25 +2.75h, 08-26 +76min, today +37min).
+_Last updated: **2026-08-28** (Fri, ~17:10 IST). **Session 08-28 audited.**
+`f4419be8`, 12:25–15:26 IST, `COMPLETED`: **34 trades, all closed, zero left
+open**, −₹4,406.41, **PF 0.184**, expectancy **−0.673R** (4 win / 30 loss, 22
+short / 12 long), 1,478 decisions. Start 12:25 IST is **~3h10min past** the
+09:15 IST target — the largest gap yet among sessions that ran (prior worst
+08-25 +2.75h; 08-24 +2.5h, 08-26 +76min, 08-27 +37min). Manual `enc_token`
+paste dependency ([P-03]) remains the only lever on this; still user-
+deprioritised, logging only.
 
-**Cumulative:** 984 trades / 902 with `r_multiple`, PF **0.380**, expectancy
-**−0.412R**, max drawdown deepened to **≈−₹54,907**. No gate flip.
+**Cumulative:** 1,018 trades / 936 with `r_multiple`, PF **0.368**, expectancy
+**−0.421R**, max drawdown deepened to **≈−₹59,206** (was ≈−₹54,907 on 08-27).
+No gate flip — PF stays deep in reject territory. Today's weak 0.184
+single-session PF sits inside the established per-session PF range, not a
+new finding on its own.
 
-**git_sha moved again — `c604c0d94f31`** (was `2e884587d855` on 08-26),
-confirming the overnight brain fixes went live (market shut, brain IDLE).
+**git_sha unchanged — `c604c0d94f31`** (same build as 08-27) — no new brain
+deploy today.
 
 **V-13 PASS.** All **14/14** `TARGET_HIT` fills since the deploy land inside
 the cap band (`n≥10` required), `avg_r` **1.266** — drifted down from the 1.389
@@ -23,7 +28,11 @@ baseline exactly as the corrected pass condition predicted. The cap clamps
 overshoots as well as pullbacks, so the error now runs toward *understating*
 performance, the safe direction for a gate.
 
-**V-14 still NOT-YET** — cumulative closed trades **984**, not yet past 1000.
+**V-14 now checkable, not yet verified** — cumulative closed trades crossed
+1000 today (**1,018**). PASS needs comparing the session log's `[kelly]
+Historical win rate: W/T` line to the SQL total; this environment has no
+Railway log access this pass, so the comparison is still outstanding —
+carry to the next pass that has it.
 
 **I-4 PASS again** — `inplay_list` locked all 10 candidates, first lock
 04:23:27 UTC (09:53 IST), despite the 09:52 start (the lock time is a floor,
@@ -47,13 +56,15 @@ margin shortfall. **The paper book is not reproducible with real money at this
 capital.** Does not change the no-edge conclusion; it is a fifth entry on the
 "paper is silently flattered" list and arguably the largest. See KNOWN_ISSUES.
 
-Advisor ran normally, 741 rows 09:57–15:17 IST, no stall. Exits: BRAIN_SIGNAL
-23 / STOP_LOSS_HIT 18 / TARGET_HIT 14 / EOD_CLOSE 11 / SESSION_END 4.
-**Advisor calibration:** unchanged — `graded_calls` 98, ECE 22.1%,
-`monotonic=false`. Next MACRO batch due ~09-02.
+Advisor ran normally 08-28, 340 rows 12:30–15:13 IST, no stall. Exits (today):
+STOP_LOSS_HIT 13 / EOD_CLOSE 8 / BRAIN_SIGNAL 6 / SESSION_END 4 / TARGET_HIT 3.
+**Advisor calibration:** recomputed same-day (`built_at=2026-08-28`) —
+unchanged, `graded_calls` 98, ECE 22.1%, `monotonic=false`. Next MACRO batch
+due ~09-02.
 
-**Verify:** V-10/V-11/I-1/I-2/I-3/I-4 PASS (carried), **V-13 now PASS**,
-**I-7 caught-and-fixed**. V-9, V-14 still NOT-YET.
+**Verify:** V-10/V-11/I-1/I-2/I-3/I-4 PASS (carried), V-13 PASS (carried, no
+new deploy to re-check). V-9 still NOT-YET; **V-14 now past its trigger
+(1,018>1000) but unverified — see above.**
 
 **External review (2026-08-27):** two rounds against the SYSTEM_BIBLE;
 recommendation is to decommission. Its headline — SEBI's Algo-ID framework from
@@ -151,6 +162,56 @@ python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
 - **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
 - **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
   raise either.
+
+## 📈 2026-08-28 post-session — weak session, V-14 trigger crossed, latest late start
+
+Session `f4419be8` 06:54:59–09:55:57 UTC (12:25–15:26 IST), `COMPLETED`. **34
+trades, all closed, −₹4,406.41, PF 0.184** (gross win ₹993.28 / gross loss
+₹5,399.69), **expectancy −0.673R** (4 win / 30 loss, 22 short / 12 long),
+1,478 decisions — a weak session on the low end of the established
+per-session PF range, read as ordinary variance, not a new finding.
+
+**Start 12:25 IST was ~3h10min past the 09:15 IST target — the largest gap
+yet among sessions that actually ran**, surpassing the prior worst (08-25,
++2.75h). [P-03] TOTP (the fix for the manual `enc_token`-paste dependency)
+remains user-deprioritised; logged as evidence per standing instruction, not
+re-raised.
+
+**git_sha unchanged (`c604c0d94f31`)** — no new brain deploy since 08-27, so
+no fix needed re-verifying today. V-13 (TARGET_HIT cap) carries PASS.
+
+**V-14 trigger crossed, not yet verified.** Cumulative closed trades passed
+1000 for the first time (**1,018**). V-14's PASS condition needs the
+session's `[kelly] Historical win rate: W/T` log line compared against the
+SQL exact count — this environment has no Railway log access this pass, so
+the check is outstanding. SQL side: **1,018 total, 936 carrying `r_multiple`**.
+
+**Cumulative (all-time, now 1,018 closed trades / 936 carrying `r_multiple`):**
+PF **0.368** (gross win ₹34,540.15 / gross loss ₹93,735.40), expectancy
+**−0.421R**, total P&L **−₹59,195.25**. Max drawdown (peak-to-trough of
+realized P&L, all-time) deepened to **≈−₹59,206** (was ≈−₹54,907 on 08-27) —
+consistent with the soft-stop design, not treated as a new regression. No
+gate flip — PF stays deep in reject territory (gate: >1.3 go / <1.1 reject).
+
+**Advisor calibration:** `advisor_calibration_latest` recomputed same-day
+(`built_at=2026-08-28`) — `graded_calls` unchanged at **98**, ECE unchanged
+at **22.1%**, still `monotonic=false`. No new movement; next MACRO batch due
+~09-02.
+
+Also confirmed: advisor ran normally, 340 rows 07:00:29–09:43:30 UTC
+(12:30–15:13 IST), no stall. Exits: STOP_LOSS_HIT 13 / EOD_CLOSE 8 /
+BRAIN_SIGNAL 6 / SESSION_END 4 / TARGET_HIT 3.
+
+**Dashboard API** (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again this pass (`curl` exit 56, connect failure) — same as
+every recent pass. All numbers above measured directly against Supabase prod.
+
+**git log check:** nothing shipped since the last pass (`5c5e1c4
+chore(review): post-session 2026-08-27`) besides further docs commits
+(external-review round-3 response, the closing-identity writeup, Phase A+B
+execution, [C10] recorded) — all already reflected in this file and
+PIPELINE.md by the interactive session that made them. No code shipped, so
+no PIPELINE board item to move this pass.
 
 ## 📈 2026-08-27 post-session — V-13 verified, git_sha moved again
 
