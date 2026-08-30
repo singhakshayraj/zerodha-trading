@@ -104,6 +104,14 @@ decisions logged, **0 labelled**. Fixed with
 study moved to **+0.010R, t=+0.4, n=2,428** — verdict unchanged. Without this
 invariant the day would have silently entered the record 100% unlabelled.
 
+**2026-08-30 (weekly review): SECOND GAP, still open.** 08-24 through 08-27
+are fully labelled (0 missing each day, confirmed). **08-28's 409 directional
+decisions are 0% labelled**, two days after close (spans the weekend) —
+`python3 scripts/label_decisions.py 2026-08-28` has not been run. This
+environment cannot run it (docs-only, no brain repo). Not a code regression —
+labelling is a manual/scheduled step — but V-12's edge study is blind to
+08-28 until it runs; flag for the next session/pass that can execute scripts.
+
 Scoped to **≥ 2026-07-15** deliberately: the candle archive is empty for 07-14
 and earlier, so May and early-July decisions can never be labelled and would
 fail this check forever.
@@ -125,6 +133,12 @@ the session log reports the **same T** as this query. **FAIL** = the log says
 1000 while the query says more — the cap is back.
 **NOT-YET** = total ≤ 1000 (no session has crossed it yet).
 _2026-08-27 checked post-session `a73fbf67`: total **984** — still NOT-YET._
+_2026-08-28: trigger crossed — total **1,018** — but unverified (no Railway
+log access in that environment)._
+_2026-08-30 (weekly review): SQL side re-confirmed — `total=1018, wins=239,
+win_rate=0.2348`. Still unverified against the session log line for the same
+reason; this environment also lacks Railway log access. Carries to the next
+pass that has it._
 
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
 Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
@@ -463,6 +477,10 @@ logic is confirmed on real geometry before it ever runs live.
 the 1.389 baseline exactly as predicted, confirming the corrected pass
 condition rather than the original (which would have failed this same
 result).
+
+**Re-checked 2026-08-30 (weekly review), larger sample:** `n=17` (08-28's
+session added 3 more TARGET_HIT fills), **17/17 still inside the band**,
+`avg_r=1.266` — unchanged. The fix continues to hold as fills accumulate.
 
 ### V-4 · [P-24] advisor paper book de-duplicated — PASSED 2026-08-10
 Repair run against prod `gilmuwmtdpjccibfhqtx` at ~01:20 IST pre-market, via the

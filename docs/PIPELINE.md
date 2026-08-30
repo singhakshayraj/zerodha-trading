@@ -5,44 +5,89 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-28** (Fri, post-session) · Burn-down: **24 shipped +
+_Last updated: **2026-08-30** (Sun, weekly review) · Burn-down: **24 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (No PIPELINE item
-moved this pass — no code shipped since 08-27, only docs commits, all already
-reflected below.)
+moved this pass — nothing shipped since 08-28's chore commit, and no session
+ran over the weekend, so nothing to move.)
 
-**This pass (post-session):** A trading session ran 08-28 — `f4419be8`,
-06:54:59–09:55:57 UTC (12:25–15:26 IST), `COMPLETED`, 34 trades, PF **0.184**,
-expectancy **−0.673R** — a weak session, inside the established per-session PF
-range. Session started 12:25 IST, **~3h10min past** the 09:15 IST target, the
-largest gap yet among sessions that actually ran (prior worst 08-25 +2.75h).
-Cumulative now **1,018 closed / 936 `r_multiple`**, PF **0.368**, expectancy
-**−0.421R**, max drawdown ≈−₹59,206 (deepened from ≈−₹54,907). No gate flip.
-Full readout: [STATUS.md](STATUS.md)'s 08-28 post-session section. Dashboard
-API still unreachable (`curl` exit 56, connect failure) from this
-environment — all numbers measured directly against Supabase.
+**This pass (weekly review):** re-measured the gate metrics fresh against
+prod (not carried from STATUS) and re-ran every re-checkable VERIFY row over
+the week's growth. No new trading session since `f4419be8` (08-28, Fri) —
+08-29/08-30 are the weekend, confirmed via `trading_sessions` (no row
+`started_at >= 2026-08-28` besides Friday's).
 
-**git_sha unchanged (`c604c0d94f31`)** — no new brain deploy since 08-27, so
-V-13/I-4 aren't re-checked (nothing new to check against). One milestone:
+**Gate re-measure vs the last weekly baseline (08-23 → 08-30, 5 sessions'
+growth: 08-24 through 08-28):**
 
-- **V-14 (`49b76e5`, exact win-rate past 1000) → trigger crossed, not
-  verified.** Cumulative closed trades passed 1000 for the first time
-  (**1,018**). PASS needs the session's `[kelly] Historical win rate: W/T` log
-  line compared to the SQL exact count; this environment has no Railway log
-  access this pass, so the comparison carries to the next pass that has it.
+| Metric | 08-23 | 08-30 | Δ |
+|---|---|---|---|
+| Profit factor | 0.343 | **0.3685** | +0.026, still deep reject |
+| Expectancy | −0.429R | **−0.4213R** | +0.008R, still negative |
+| Max drawdown | ≈−₹41,817 | **≈−₹59,206.27** | −₹17,389 deeper, by design (soft stop) |
+| Advisor ECE | 30.3%, n=37 | **22.1%, n=98** | pool +61 (MACRO wave matured), ECE fell further — not new evidence, see below |
 
-**Advisor calibration:** `graded_calls` unchanged at 98, ECE unchanged at
-22.1%, still `monotonic=false` — recomputed same-day, no new movement.
+**No gate flipped.** PF stays far below the 1.1 reject line and nowhere near
+1.3 go (VISION §6.1). This is paper-book performance on entries already
+taken, not the edge verdict — gate #6 ([P-01]) remains the real hinge and is
+still blocked on the ₹500/mo Kite decision.
 
-**git log check (step 4):** commits since the last pass's chore commit
-(`5c5e1c4`) are `0272ce7`…`61ee4ef` (5 commits) — all docs, made in the same
-interactive session that ran the 08-27 audit: the round-3 external-review
-response, the cost-ratio writeup, and Phase A+B execution ([C10] recorded).
-Already reflected in STATUS.md and here; nothing shipped needing a board move.
+**VERIFY re-checks with more data this week:**
+- **V-13 (TARGET_HIT fill cap) — still PASSING, larger sample.** `n=17`
+  (was 14 at the 08-27 pass), **17/17 inside the cap band**, `avg_r` **1.266**
+  unchanged. The fix keeps holding as fills accumulate.
+- **[P-05] stop-execution cap — still holding, larger sample.** Pooled
+  `STOP_LOSS_HIT` since 08-07 is now **LONG −1.248R (n=42) / SHORT −1.214R
+  (n=72) / pooled ≈−1.227R (n=114)** — was −1.226R (n=43) at the 08-23 review.
+  Essentially unchanged as n nearly tripled; the fix is not decaying.
+- **V-14 (exact win-rate past 1000) — still unverifiable in this
+  environment.** SQL side: `total=1018, wins=239, win_rate=0.2348`. PASS needs
+  comparing this to the session's `[kelly] Historical win rate: W/T` log line,
+  which needs Railway log access this environment does not have — carries to
+  the next pass that has it, as it has every pass since 08-28.
+- **I-4 (in-play lock) — PASS through 08-28,** all three sessions this week
+  that could lock did (08-26/27/28, 10/10 each). **Monday 2026-08-31 is still
+  the decisive post-weekend stress test** ([C7] specifically broke after a
+  weekend) — not yet reached from this Sunday pass.
+- **I-1 (no duplicate paper exits) — PASS, 0 rows.** **I-3 (every closed
+  trade carries `r_multiple`) — PASS, 0 missing every day 08-24→08-28.**
+  **I-2 (exit-reason side symmetry) — PASS** on the two reasons the check
+  actually watches (`STOP_LOSS_HIT` 25L/46S, `TARGET_HIT` 20L/22S, both
+  two-sided); `EOD_CLOSE`/`SESSION_END` stay one-sided each, which is [C10]'s
+  already-documented teardown-race artifact, not a new asymmetry.
+- **I-7 (session labelling) — ⚠️ gap on the newest session.** 08-24 through
+  08-27 are fully labelled (0 missing each day). **08-28's 409 directional
+  decisions are 0% labelled**, two days after close — `label_decisions.py
+  2026-08-28` hasn't been run yet. Not a code regression (labelling is a
+  manual/scheduled step, not automatic same-day per I-7's own design), but
+  it's now sat two days including a weekend — run it before the edge study
+  (V-12) is next re-read, or that day's decisions stay invisible to it.
 
-**Prior pass (08-27), for reference:** session `a73fbf67`, 70 trades, PF
-0.520. V-13 verified PASS (14/14 TARGET_HIT fills in cap band). I-4 PASS
-again (10/10 locked). git_sha moved to `c604c0d94f31` that day (two overnight
-brain fixes went live). Full detail: `git log docs/PIPELINE.md`.
+**Advisor ECE fell further (30.3%→22.1%) as the graded pool nearly tripled
+(37→98) — read this as continued confirmation of [P-18]'s closed verdict, not
+new movement.** [P-18] was answered 2026-08-25 on the discrimination measure
+(AUC ≈0.49, corr 0.02 — confidence carries no information) specifically
+*because* ECE improving is compression toward the base rate, not a
+calibration gain (see [P18_CALIBRATION.md](reference/P18_CALIBRATION.md)).
+No AUC re-check ran this pass (needs `scripts/advisor_discrimination.py`,
+not available in this docs-only environment); nothing here contradicts the
+closed verdict.
+
+**git log check:** nothing shipped since the last pass's chore commit
+(`2a6b7b8`) — `git log` on `main` is unchanged, confirmed via `git pull`
+(fast-forward, no new commits beyond `2a6b7b8`). No board move needed.
+
+**No new PIPELINE item from this pass.** [C9] (no portfolio-level exposure
+cap, found 08-27) and [C10] (EOD exit side-confound, found 08-27) are both
+already recorded in KNOWN_ISSUES and both explicitly "not fixed by design"
+pending the decommission decision — nothing this week's data changes about
+either. Dashboard API (`zerodha-trading-liard.vercel.app`) still unreachable
+from this environment (proxy `403 CONNECT tunnel failed`) — same as every
+recent pass; all numbers above measured directly against Supabase.
+
+**Prior pass (08-28 post-session), for reference:** session `f4419be8`, 34
+trades, PF 0.184 — weak but inside range. V-14's trigger crossed (1,018 >
+1000) but stayed unverified for the same Railway-log-access reason as this
+pass. Full detail: `git log docs/PIPELINE.md`.
 
 > **Where the history went.** This preamble used to stack every prior update,
 > and the weekly gate re-measures sat above the board — together pushing the
@@ -53,15 +98,15 @@ brain fixes went live). Full detail: `git log docs/PIPELINE.md`.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-28
+## 📊 Gate re-measure — latest 2026-08-30 (weekly)
 
-**PF 0.368 · expectancy −0.421R · max drawdown ≈−₹59,206 · advisor ECE 22.1%
-(n=98).** Session `f4419be8` closed 34 trades today (PF 0.184). No gate
-flipped; PF has never left the reject zone. Advisor `graded_calls` unchanged
-at 98; still `monotonic=false`. This is a post-session reading, not the
-weekly 3-lens re-measure — full history, method and the 3-lens read:
+**PF 0.3685 · expectancy −0.4213R · max drawdown ≈−₹59,206.27 · advisor ECE
+22.1% (n=98).** Re-measured fresh against prod this pass, over all 1,018
+closed trades (936 carrying `r_multiple`). No gate flipped; PF has never left
+the reject zone, nowhere near the 1.1 reject or 1.3 go lines (VISION §6.1).
+Full history, method and the 3-lens read:
 **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** (next due Sunday
-08-30).
+09-06).
 
 ## The feedback loop (how this board is fed + drained)
 

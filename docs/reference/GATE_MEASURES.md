@@ -9,40 +9,107 @@ numbers and links here.
 **The gates** (VISION §6.1): profit factor **>1.3 go / <1.1 reject**; expectancy
 positive; advisor calibration is DARK and not scored.
 
-## Latest — 2026-08-23 (data unchanged since 08-10)
+## Latest — 2026-08-30 (weekly, 5 sessions' growth since 08-23)
 
 | Metric | Value | vs prior |
 |---|---|---|
-| Profit factor | **0.343** | 0.358 (08-09) → 0.343 |
-| Expectancy | **−0.429R** | −0.4155R → −0.429R |
-| Max drawdown | **≈−₹41,817** | ≈−₹33,378 → −₹41,817 |
-| Advisor calibration ECE | **30.3%**, non-monotonic, n=37 | 35.6% (n=31) → 30.3% |
+| Profit factor | **0.3685** | 0.343 (08-23) → 0.3685 |
+| Expectancy | **−0.4213R** | −0.429R → −0.4213R |
+| Max drawdown | **≈−₹59,206.27** | ≈−₹41,817 → −₹59,206 |
+| Advisor calibration ECE | **22.1%**, non-monotonic, n=98 | 30.3% (n=37) → 22.1% (n=98) |
 
-Measured directly from `trades` (773 closed, 691 carrying `r_multiple`) and
-`app_config.advisor_calibration_latest` (`built_at=2026-08-10`) this pass —
-the same underlying data as STATUS's 08-10 post-session entry, since no
-session has run since. **Corrects a docs-sync gap:** this table and
-PIPELINE's summary line had kept carrying 08-07/08-09's calibration read (ECE
-35.6%, n=31) through two more review cycles (08-13, 08-14) after STATUS
-recorded the real 08-10 numbers the day they were measured — the
-weekly-tracking tables just hadn't been refreshed to match. No hidden new
-data; the STATUS entry was correct throughout.
+Measured directly from `trades` (1,018 closed, 936 carrying `r_multiple`) and
+`app_config.advisor_calibration_latest` (`built_at=2026-08-28`) this pass.
+Five sessions ran since the 08-23 review (08-24 through 08-28); none since —
+08-29/08-30 are the weekend, confirmed via `trading_sessions`.
 
 **No gate has ever flipped.** PF has sat in the reject zone at every measure and
-is nowhere near either threshold. The drawdown deepening is *by design* — the
-−3R daily stop went soft on 08-03 so full-day sessions bleed past the marker;
-that is data collection working as intended, not a regression.
+is nowhere near either threshold — this week's move (0.343→0.3685) is well
+inside the established per-session PF range's noise, not a trend. The drawdown
+deepening is *by design* — the −3R daily stop is soft, so full-day sessions
+bleed past the marker; that is data collection working as intended, not a
+regression.
 
-**Advisor ECE keeps improving as the graded pool grows**: 48.5% (n=22) →
-35.6% (n=31) → 30.3% (n=37). Still non-monotonic, still under the ≥50-graded
-action threshold ([P-18], now ~74% of the way there), and expected to keep
-crawling until the 30-day MACRO wave matures ~late August.
+**Advisor ECE fell further as the graded pool nearly tripled** (37→98,
+crossing [P-18]'s ≥50-graded action gate on 08-24): 30.3% → 22.1%. **This is
+not new evidence** — [P-18] closed 2026-08-25 on the *discrimination* measure
+(AUC ≈0.49, corr(confidence, correct) = 0.02, n=98 — confidence carries no
+information), specifically because ECE improving is compression toward the
+48% base rate, not a calibration gain. See
+[P18_CALIBRATION.md](P18_CALIBRATION.md). Re-open only on AUC materially
+above 0.5 under both labels — never on a better ECE. No AUC re-check ran this
+pass (needs `scripts/advisor_discrimination.py`, not available in this
+docs-only environment).
 
 ⚠️ **None of this is the edge verdict.** Paper PF measures entries the book
 already took; gate #6 (a historical backtest, [P-01]) is the verdict, and it is
 blocked. [P-30] sharpened the surrounding picture — no exit policy clears
 breakeven *even at zero transaction cost* — so the edge has to come from the
 entries.
+
+---
+
+## 📊 Weekly gate re-measure (2026-08-30)
+
+**Five sessions ran this week** (08-24 through 08-28) — the first real
+multi-session week since the 08-11→08-21 silent stretch. `trading_sessions`
+confirms no new session since `f4419be8` (08-28); 08-29/08-30 are the
+weekend.
+
+| Metric | Value | Δ vs 08-23 |
+|---|---|---|
+| Profit factor | **0.3685** | +0.026 |
+| Expectancy | **−0.4213R** | +0.008R |
+| Max drawdown | **≈−₹59,206.27** | −₹17,389 deeper (by design) |
+| Advisor calibration ECE | **22.1%**, non-monotonic, n=98 | pool +61, ECE −8.2pp |
+
+**Recently-Done pipeline items re-verified over the week's growth — did they
+move their measure-of-done?**
+- **[P-05] stop-execution fill cap — HELPS, still holding.** Pooled
+  `STOP_LOSS_HIT` since 08-07: LONG −1.248R (n=42), SHORT −1.214R (n=72),
+  pooled **≈−1.227R (n=114)** — was −1.226R (n=43) at 08-23. Unchanged as the
+  sample nearly tripled: the cap is not decaying, and the bucket stays inside
+  the −1.25R design target.
+- **V-13 TARGET_HIT fill cap (brain `f1c7d35`, shipped 08-27) — confirmed,
+  more data.** `n=17` (was 14), **17/17 inside the cap band**, `avg_r` 1.266
+  unchanged. Working as designed: the realism fix understates rather than
+  overstates performance, the safe direction for a gate.
+- **[C7]/I-4 in-play-lock fix (brain `eb75ded`) — held mid-week, decisive test
+  still ahead.** Locked 10/10 on 08-26, 08-27 and 08-28. All three were
+  mid-week sessions (Wed/Thu/Fri) — [C7] specifically broke the first session
+  *after a weekend*. **Monday 2026-08-31 is that test**, not yet reached from
+  this Sunday review.
+- **[P-18] advisor calibration (closed 08-25) — verdict holds, ECE move is
+  not new information.** Graded pool grew 37→98 as the MACRO wave matured;
+  ECE fell 30.3%→22.1%. Per [P-18]'s own corrected criterion this is expected
+  compression toward the base rate, not discrimination improving — no AUC
+  re-check available in this environment to test the actual open question.
+
+**One data-quality gap found this pass:** I-7 shows 08-24 through 08-27 fully
+labelled but **08-28's 409 directional decisions 0% labelled**, two days
+after close (spans the weekend). Not a regression — `label_decisions.py` is a
+manual step — but it means V-12's edge study is currently blind to 08-28
+until it runs.
+
+**3-lens sanity:**
+- **Trader** — PF 0.3685, deep reject zone, no flip. This week's move from
+  0.343 is noise inside the established per-session range (0.04–1.03
+  observed), not a trend — five sessions is too few to read as a direction.
+- **Advisor** — ECE 22.1% (n=98) continues falling as predicted, but the
+  question that matters (does confidence discriminate right-vs-wrong calls)
+  was already answered negatively on 08-25 and nothing this week's ECE move
+  changes that. No new risk.
+- **Engineer** — no new operational finding. [C9] (no portfolio-level
+  exposure cap) and [C10] (EOD exit side-confound) both remain open by
+  deliberate choice, pending the decommission decision — unchanged from
+  08-27. [P-03]/[P-04] token-paste dependency: still user-deprioritised, not
+  re-raised. One new action surfaced: run `label_decisions.py 2026-08-28`
+  (see I-7 above).
+
+**No go/no-go gate flipped.** Nothing regressed; the two verified-live fixes
+([P-05], V-13) both continued to hold on larger samples rather than decaying.
+No item moved on this board — see [PIPELINE.md](../PIPELINE.md) for the full
+readout.
 
 ---
 
