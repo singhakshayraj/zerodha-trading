@@ -210,6 +210,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   worst case (4 days). Still not re-raised per standing user
   deprioritization — logging only, so the next priority review has the
   number._
+  _**08-31 post-session evidence:** the streak broke 08-24→08-28 (five
+  sessions ran that week), but **today missed** — `brain_heartbeat` at
+  11:15:58 UTC (16:45 IST, past close) still shows ONLINE / `current_cycle=0`
+  / "Waiting for START command", `trades` closed-count unchanged at **1,018**
+  (same as 08-28). Same signature as every prior gap: the token was never
+  pasted. Notable only because today was the **Monday post-weekend session
+  [C7]/I-4 was supposed to stress-test** (see STATUS 08-27/08-28 and the
+  Ready-board note above) — that test did not happen and carries to the next
+  session that runs after a weekend gap. Still not re-raised — logging
+  only._
 - **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
   decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
   `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
