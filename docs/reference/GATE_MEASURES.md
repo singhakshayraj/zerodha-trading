@@ -9,7 +9,32 @@ numbers and links here.
 **The gates** (VISION §6.1): profit factor **>1.3 go / <1.1 reject**; expectancy
 positive; advisor calibration is DARK and not scored.
 
-## Latest — 2026-08-30 (weekly, 5 sessions' growth since 08-23)
+## Latest — 2026-09-06 (weekly, 0 sessions' growth since 08-30)
+
+| Metric | Value | vs prior |
+|---|---|---|
+| Profit factor | **0.3685** | unchanged — no new trades |
+| Expectancy | **−0.4213R** | unchanged |
+| Max drawdown | **≈−₹59,206.27** | unchanged (re-derived via a fresh running peak-to-trough query, matches exactly) |
+| Advisor calibration ECE | **22.1%**, non-monotonic, n=98 | unchanged, `built_at` still 2026-08-28 |
+
+Measured directly from `trades` (1,018 closed, 936 carrying `r_multiple`) and
+`app_config.advisor_calibration_latest` (`built_at=2026-08-28`) this pass —
+identical to the 08-30 reading. **Zero trading sessions ran the entire week**
+(08-31 through 09-05), confirmed via `trading_sessions`
+(`max(started_at) = 2026-08-28 06:54:59 UTC`). `app_config.brain_status =
+IDLE` as of 09-04 09:49 UTC. This is the same manual-token-paste signature as
+every prior silent stretch ([P-04]/[P-03], PIPELINE.md) — notably it means
+**Monday 08-31's decisive post-weekend [C7]/I-4 stress test still has not
+happened** on any Monday since the fix shipped.
+
+**New data point: Supabase DB size grew 97 MB → 135 MB (19% → 27.1% of the
+500 MB free-tier cap)** across the five sessions that *did* run 08-24→08-28,
+≈7.6 MB/session — confirms [P-37]'s ≈7.88 MB/session estimate. See [P-38] in
+PIPELINE.md for the runway math; the growth clock is paused again with zero
+sessions since 08-28.
+
+## Prior — 2026-08-30 (weekly, 5 sessions' growth since 08-23)
 
 | Metric | Value | vs prior |
 |---|---|---|
@@ -46,6 +71,66 @@ already took; gate #6 (a historical backtest, [P-01]) is the verdict, and it is
 blocked. [P-30] sharpened the surrounding picture — no exit policy clears
 breakeven *even at zero transaction cost* — so the edge has to come from the
 entries.
+
+---
+
+## 📊 Weekly gate re-measure (2026-09-06)
+
+**Zero trading sessions ran this week.** `trading_sessions` confirms
+`max(started_at) = 2026-08-28 06:54:59 UTC`; no row `started_at >= 2026-08-29`.
+That means all five weekdays 08-31→09-04 were silent, same signature as every
+prior gap: `app_config.brain_status = IDLE` (09-04 09:49 UTC), no
+`token_incident` update since 08-31 04:00 UTC. `trades` closed-count
+unchanged at 1,018 throughout.
+
+| Metric | Value | Δ vs 08-30 |
+|---|---|---|
+| Profit factor | **0.3685** | unchanged |
+| Expectancy | **−0.4213R** | unchanged |
+| Max drawdown | **≈−₹59,206.27** | unchanged |
+| Advisor calibration ECE | **22.1%**, non-monotonic, n=98 | unchanged |
+
+**Recently-Done pipeline items re-verified — nothing to re-verify against,
+since there is no new data.** All figures below are the same underlying
+08-28 dataset, re-queried fresh rather than carried, and they match exactly:
+- **[P-05] stop-execution fill cap** — pooled `STOP_LOSS_HIT` since 08-07:
+  LONG −1.248R (n=42), SHORT −1.214R (n=72), pooled **−1.226R (n=114)** —
+  identical to 08-30.
+- **V-13 TARGET_HIT fill cap** — `n=17`, **17/17 inside the cap band**,
+  `avg_r` 1.266 — identical to 08-30.
+- **[C7]/I-4 in-play-lock fix — still cannot be re-verified.** `inplay_list`
+  has zero rows for the entire 08-29→09-06 window (no session ran). The
+  decisive first-post-weekend test (08-31) did not occur, and has now missed
+  every subsequent weekday too. This is now the third weekly review in a row
+  noting this test hasn't happened.
+- **[P-18] advisor calibration** — `app_config.advisor_calibration_latest`
+  unchanged, `built_at` still 2026-08-28, `graded_calls` 98, ECE 22.1%. No
+  new MICRO/MACRO rows to grade with zero sessions running.
+
+**New this pass — Supabase DB size grew as projected.** 97 MB → **135 MB**
+(19% → 27.1% of the 500 MB free-tier cap), all of it from the five sessions
+that ran 08-24→08-28 (≈7.6 MB/session, matching [P-37]'s ≈7.88 MB/session
+estimate). First real confirmation of the growth rate since [P-38] was
+flagged. Runway math and the decision itself are unchanged — see [P-38] in
+PIPELINE.md.
+
+**3-lens sanity:**
+- **Trader** — PF 0.3685, deep reject zone, literally no new trades to read.
+  Nothing to conclude beyond "still rejected."
+- **Advisor** — ECE 22.1% (n=98), unchanged; [P-18]'s verdict (confidence
+  carries no information) stands, no new evidence either way.
+- **Engineer** — the operational story is unchanged and worsening only in
+  duration: the manual-token-paste dependency ([P-03]/[P-04]) cost the
+  entire trading week, and the one open technical question this blocks
+  ([C7]/I-4's post-weekend re-test) still has no data. [C9]/[C10] remain
+  open by deliberate choice, unchanged. New, actionable-when-possible item:
+  I-7 shows 08-28 still 0% labelled, now 9 days after close — flag for the
+  next environment with brain-repo script access.
+
+**No go/no-go gate flipped.** Nothing regressed (there was nothing new to
+regress); nothing moved on the PIPELINE board this pass beyond evidence
+notes on [P-04] and [P-38]. See [PIPELINE.md](../PIPELINE.md) for the full
+readout.
 
 ---
 

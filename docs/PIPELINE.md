@@ -5,62 +5,83 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-08-30** (Sun, weekly review) · Burn-down: **24 shipped +
+_Last updated: **2026-09-06** (Sun, weekly review) · Burn-down: **24 shipped +
 verified live / 0 in-progress / 4 ready / 5 blocked**._ (No PIPELINE item
-moved this pass — nothing shipped since 08-28's chore commit, and no session
-ran over the weekend, so nothing to move.)
+moved this pass — nothing shipped since 08-28, and **zero trading sessions
+ran all week**, so nothing new to move.)
 
 **This pass (weekly review):** re-measured the gate metrics fresh against
-prod (not carried from STATUS) and re-ran every re-checkable VERIFY row over
-the week's growth. No new trading session since `f4419be8` (08-28, Fri) —
-08-29/08-30 are the weekend, confirmed via `trading_sessions` (no row
-`started_at >= 2026-08-28` besides Friday's).
+prod (not carried from PIPELINE/STATUS). **No new trading session since
+`f4419be8` (2026-08-28)** — confirmed via `trading_sessions`
+(`max(started_at) = 2026-08-28 06:54:59 UTC`, 0 rows `started_at >= 2026-08-29`).
+That means **all five trading weekdays this past week (08-31, 09-01, 09-02,
+09-03, 09-04) were silent**, same signature as every prior gap (see [P-04]
+evidence log below) — `app_config.brain_status = IDLE` as of 09-04 09:49 UTC.
+⚠️ **08-31 was supposed to be the decisive post-weekend [C7]/I-4 stress test
+flagged in the last three reviews — it did not happen.** No session ran that
+day (or any day since), so `inplay_list` has zero rows for the whole
+08-29→09-06 window and the test still has not been observed. Carries to the
+next session that runs after a weekend gap.
 
-**Gate re-measure vs the last weekly baseline (08-23 → 08-30, 5 sessions'
-growth: 08-24 through 08-28):**
+**Gate re-measure vs the last weekly baseline (08-30 → 09-06, 0 sessions'
+growth — figures are a re-confirmation, not new information):**
 
-| Metric | 08-23 | 08-30 | Δ |
+| Metric | 08-30 | 09-06 | Δ |
 |---|---|---|---|
-| Profit factor | 0.343 | **0.3685** | +0.026, still deep reject |
-| Expectancy | −0.429R | **−0.4213R** | +0.008R, still negative |
-| Max drawdown | ≈−₹41,817 | **≈−₹59,206.27** | −₹17,389 deeper, by design (soft stop) |
-| Advisor ECE | 30.3%, n=37 | **22.1%, n=98** | pool +61 (MACRO wave matured), ECE fell further — not new evidence, see below |
+| Profit factor | 0.3685 | **0.3685** | unchanged, no new trades |
+| Expectancy | −0.4213R | **−0.4213R** | unchanged |
+| Max drawdown | ≈−₹59,206.27 | **≈−₹59,206.27** | unchanged (re-derived fresh via a running peak-to-trough query, matches exactly) |
+| Advisor ECE | 22.1%, n=98 | **22.1%, n=98** | unchanged, `built_at` still 2026-08-28 — no new graded calls |
 
 **No gate flipped.** PF stays far below the 1.1 reject line and nowhere near
 1.3 go (VISION §6.1). This is paper-book performance on entries already
 taken, not the edge verdict — gate #6 ([P-01]) remains the real hinge and is
 still blocked on the ₹500/mo Kite decision.
 
-**VERIFY re-checks with more data this week:**
-- **V-13 (TARGET_HIT fill cap) — still PASSING, larger sample.** `n=17`
-  (was 14 at the 08-27 pass), **17/17 inside the cap band**, `avg_r` **1.266**
-  unchanged. The fix keeps holding as fills accumulate.
-- **[P-05] stop-execution cap — still holding, larger sample.** Pooled
-  `STOP_LOSS_HIT` since 08-07 is now **LONG −1.248R (n=42) / SHORT −1.214R
-  (n=72) / pooled ≈−1.227R (n=114)** — was −1.226R (n=43) at the 08-23 review.
-  Essentially unchanged as n nearly tripled; the fix is not decaying.
+**VERIFY re-checks — no new data this week, all carried figures re-confirmed
+byte-for-byte against prod:**
+- **V-13 (TARGET_HIT fill cap) — still PASSING, same sample.** `n=17`,
+  **17/17 inside the cap band**, `avg_r` **1.266** — identical to the 08-30
+  reading (no new TARGET_HIT fills since 08-28).
+- **[P-05] stop-execution cap — still holding, same sample.** Pooled
+  `STOP_LOSS_HIT` since 08-07: **LONG −1.248R (n=42) / SHORT −1.214R (n=72) /
+  pooled −1.226R (n=114)** — identical to 08-30. No decay, no new data either
+  way.
 - **V-14 (exact win-rate past 1000) — still unverifiable in this
-  environment.** SQL side: `total=1018, wins=239, win_rate=0.2348`. PASS needs
-  comparing this to the session's `[kelly] Historical win rate: W/T` log line,
-  which needs Railway log access this environment does not have — carries to
-  the next pass that has it, as it has every pass since 08-28.
-- **I-4 (in-play lock) — PASS through 08-28,** all three sessions this week
-  that could lock did (08-26/27/28, 10/10 each). **Monday 2026-08-31 is still
-  the decisive post-weekend stress test** ([C7] specifically broke after a
-  weekend) — not yet reached from this Sunday pass.
+  environment.** SQL side unchanged: `total=1018, wins=239, win_rate=0.2348`.
+  Needs the session's `[kelly] Historical win rate: W/T` log line via Railway
+  log access this environment does not have — carries to the next pass that
+  has it, as it has every pass since 08-28.
+- **I-4 (in-play lock) — ⚠️ no data this week; the decisive post-weekend test
+  still hasn't happened.** `inplay_list` has **zero rows for 08-29 through
+  09-06** — no session ran, so there is nothing to check. **Monday 2026-08-31
+  was supposed to be the [C7] post-weekend stress test** flagged in the last
+  three weekly reviews; it did not occur because no session ran that day
+  either. Still open, still not reached.
 - **I-1 (no duplicate paper exits) — PASS, 0 rows.** **I-3 (every closed
-  trade carries `r_multiple`) — PASS, 0 missing every day 08-24→08-28.**
-  **I-2 (exit-reason side symmetry) — PASS** on the two reasons the check
-  actually watches (`STOP_LOSS_HIT` 25L/46S, `TARGET_HIT` 20L/22S, both
-  two-sided); `EOD_CLOSE`/`SESSION_END` stay one-sided each, which is [C10]'s
+  trade carries `r_multiple`) — PASS, 0 missing on 08-28 (re-checked, same
+  result).** **I-2 (exit-reason side symmetry) — PASS** on the two reasons
+  the check watches (`STOP_LOSS_HIT` 25L/46S, `TARGET_HIT` 20L/22S, both
+  two-sided, re-measured over 08-24→09-06 — unchanged since 08-28 was the
+  last session); `EOD_CLOSE`/`SESSION_END` stay one-sided each, [C10]'s
   already-documented teardown-race artifact, not a new asymmetry.
-- **I-7 (session labelling) — ⚠️ gap on the newest session.** 08-24 through
-  08-27 are fully labelled (0 missing each day). **08-28's 409 directional
-  decisions are 0% labelled**, two days after close — `label_decisions.py
-  2026-08-28` hasn't been run yet. Not a code regression (labelling is a
-  manual/scheduled step, not automatic same-day per I-7's own design), but
-  it's now sat two days including a weekend — run it before the edge study
-  (V-12) is next re-read, or that day's decisions stay invisible to it.
+- **I-7 (session labelling) — ⚠️ gap has now sat open for over a week,
+  itself a finding per this ledger's own rule.** 08-28's 409 directional
+  decisions are **still 0% labelled**, now **9 days after close** (was 2 days
+  at the 08-30 pass). `label_decisions.py 2026-08-28` still hasn't been run —
+  this docs-only environment cannot run it. Not a code regression (labelling
+  is a manual/scheduled step), but V-12's edge study has now been blind to a
+  full session's worth of decisions for over a week. Flagging for the next
+  session/pass that can execute brain-repo scripts — this is the one action
+  item this review surfaces.
+
+**New this pass — Supabase DB size grew as [P-38] projected, first real data
+point since the tier decision was flagged.** `pg_database_size` now
+**135 MB / 500 MB (27.1%)**, up from 97 MB (19%) at the 08-23/08-30 baseline.
+The 08-24→08-28 sessions (5 of them) drove the entire +38 MB, ≈7.6 MB/session
+— matching [P-37]'s original ≈7.88 MB/session estimate almost exactly. The
+runway clock is paused again now (0 sessions since 08-28), same pattern as
+the 08-11→08-23 silent stretch. See [P-38] below for the updated runway math.
 
 **Advisor ECE fell further (30.3%→22.1%) as the graded pool nearly tripled
 (37→98) — read this as continued confirmation of [P-18]'s closed verdict, not
@@ -98,15 +119,16 @@ pass. Full detail: `git log docs/PIPELINE.md`.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-08-30 (weekly)
+## 📊 Gate re-measure — latest 2026-09-06 (weekly)
 
 **PF 0.3685 · expectancy −0.4213R · max drawdown ≈−₹59,206.27 · advisor ECE
 22.1% (n=98).** Re-measured fresh against prod this pass, over all 1,018
-closed trades (936 carrying `r_multiple`). No gate flipped; PF has never left
-the reject zone, nowhere near the 1.1 reject or 1.3 go lines (VISION §6.1).
+closed trades (936 carrying `r_multiple`) — identical to 08-30 since zero
+sessions ran this week. No gate flipped; PF has never left the reject zone,
+nowhere near the 1.1 reject or 1.3 go lines (VISION §6.1).
 Full history, method and the 3-lens read:
 **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** (next due Sunday
-09-06).
+09-13).
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -220,6 +242,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   Ready-board note above) — that test did not happen and carries to the next
   session that runs after a weekend gap. Still not re-raised — logging
   only._
+  _**09-06 weekly-review evidence:** the gap did not stop at 08-31 — **zero
+  sessions ran the entire week** (08-31 through 09-04, all five weekdays),
+  confirmed via `trading_sessions` (`max(started_at)` still 08-28) and
+  `app_config.brain_status = IDLE` (updated 09-04 09:49 UTC). `trades`
+  closed-count unchanged at 1,018 throughout. This extends the outage to
+  **6 consecutive silent weekdays** (08-31→09-04, plus the earlier miss) and
+  means the [C7]/I-4 post-weekend stress test still has not been observed on
+  any Monday since the fix shipped. Still not re-raised — logging only, per
+  standing user deprioritization.__
 - **[P-38] Storage-scaling plan — execute or defer.** [you→me] · *done =* a
   decision on Supabase tier (upgrade to Pro vs. stay free), then the plan at
   `docs/superpowers/plans/2026-08-10-storage-scaling.md` either runs (6 tasks,
@@ -236,6 +267,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   than continued counting down. Not a reason to deprioritize the decision
   (it resumes ticking the moment sessions restart), just a note that no
   extra urgency has accrued this week._
+  _**09-06 weekly review — first real growth data point since the tier
+  decision was flagged.** DB size is now **135 MB / 500 MB (27.1%)**, up
+  **+38 MB** from the 97 MB baseline. All of that growth came from the five
+  sessions that ran 08-24→08-28 (≈**7.6 MB/session**), confirming [P-37]'s
+  original ≈7.88 MB/session estimate almost exactly — not a surprise, but the
+  first live confirmation. At that rate the remaining 365 MB is
+  **≈48 sessions of runway** if sessions resumed at a normal weekday cadence;
+  the clock is paused again now (zero sessions since 08-28, see [P-04]
+  evidence above). Decision still not made; not re-raising beyond this
+  number update._
 
 ## 🟢 READY — pull these now (no blocker, [me])
 

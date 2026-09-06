@@ -112,6 +112,15 @@ environment cannot run it (docs-only, no brain repo). Not a code regression —
 labelling is a manual/scheduled step — but V-12's edge study is blind to
 08-28 until it runs; flag for the next session/pass that can execute scripts.
 
+**2026-09-06 (weekly review): STILL OPEN, now 9 days.** Re-queried against
+prod: 08-24 through 08-27 remain fully labelled (0 missing), **08-28's 409
+decisions are still 0% labelled** — no session ran this week to change
+anything, and this docs-only environment still cannot execute
+`label_decisions.py`. Per this ledger's own rule ("a check that nothing ever
+satisfies is itself a finding"), this has now sat open past a week with no
+in-environment path to close it — flagging explicitly rather than repeating
+silently next week. Needs a pass with brain-repo/script access.
+
 Scoped to **≥ 2026-07-15** deliberately: the candle archive is empty for 07-14
 and earlier, so May and early-July decisions can never be labelled and would
 fail this check forever.
@@ -139,6 +148,8 @@ _2026-08-30 (weekly review): SQL side re-confirmed — `total=1018, wins=239,
 win_rate=0.2348`. Still unverified against the session log line for the same
 reason; this environment also lacks Railway log access. Carries to the next
 pass that has it._
+_2026-09-06 (weekly review): unchanged — `total=1018, wins=239,
+win_rate=0.2348`, no new sessions to move the count. Still carries._
 
 ### V-7 · [P-25] a real trade is captured and linked, with no manual step
 Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
@@ -642,3 +653,10 @@ have no lock — that is no longer a quiet tape, it is a broken lock path.
 08-24 and 08-25. Standing invariant, so it stays open and keeps running.
 
 ⚠️ **This was a mid-week session**, not the post-weekend case [C7] broke on. The real stress test is the first session after a weekend gap — **Monday 2026-08-31**.
+
+**2026-09-06 (weekly review): still no post-weekend data.** `inplay_list` has
+zero rows for the entire 08-29→09-06 window — no session ran on 08-31 or any
+day since (see PIPELINE.md [P-04] evidence log), so the decisive test this
+row has been waiting for still has not happened. Third weekly review in a
+row noting this; carries to the next session that runs after any weekend
+gap, whichever comes first.
