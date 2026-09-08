@@ -378,6 +378,19 @@ export default function LearnPage() {
                 paper-trades its own advice in two books — one managing your real holdings, one picking fresh names
                 with imaginary cash — so its record can be scored against a do-nothing baseline.
               </p>
+              <Callout kind="plain" title="How a verdict is graded — changed 2026-09-09">
+                <p>
+                  A verdict used to be scored &ldquo;right&rdquo; on <em>absolute</em> return: a HOLD counted correct
+                  whenever the stock rose. In a rising market that flatters every HOLD — it measures the market, not the
+                  advice. Grading now uses the <strong className="text-[#f5f5f5]">market-neutral</strong> result: did the
+                  stock beat the Nifty over the window, not merely go up. On the 98 calls graded so far this lifts the
+                  measured hit rate from <strong className="text-[#f5f5f5]">0.480 to 0.551</strong> — the advisor looks a
+                  little better against the index than in absolute terms, but at n=98 neither is yet distinguishable from
+                  chance, and the verdict stays an <strong className="text-[#f5f5f5]">unvalidated prediction</strong> until
+                  its pre-registered sample (n=400 graded calls) is reached. The old absolute score is kept alongside,
+                  marked superseded, so the change is legible later.
+                </p>
+              </Callout>
               <Callout kind="key" title="Every verdict now argues against itself">
                 <p>
                   A recent addition: each verdict carries a <strong className="text-[#f5f5f5]">counter-case</strong> —

@@ -29,6 +29,59 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-17 · advisor correctness label is market-neutral (alpha) [item 2]
+Shipped 2026-09-09 (brain: grader + `get_track_record_summary` +
+`factor_attribution` + `calibration_curve` + `db_records` selects; dashboard
+track-record API). `outcome_correct_alpha` is authoritative; absolute
+`outcome_correct` retained, marked superseded. Column + backfill in
+`scripts/advisor_alpha_label_2026-09-09.sql` (operator-applied).
+
+**Regression (already verified by recomputation, before shipping):** on the 98
+originally-graded calls the alpha label gives hit rate **0.5510**, AUC
+**0.5133** (vs absolute 0.480 / 0.4917). After the `.sql` runs, confirm the
+stored column reproduces it:
+```sql
+select round(avg((outcome_correct_alpha)::int)::numeric,4) alpha_hit_rate, count(*) n
+from portfolio_advice
+where outcome_correct is not null and outcome_correct_alpha is not null
+  and evaluated_at::date <= '2026-08-24';
+```
+**PASS** = `alpha_hit_rate` = 0.5510 on n = 98. **NOT-YET** = `.sql` not yet
+applied (`outcome_correct_alpha` all NULL).
+
+### I-8 · whole-book coverage reconciles [item 5, rule-class]
+The sum of all valued holdings must reconcile to the brokerage-reported total
+portfolio value within **0.5%**. This is the check that proves whole-book
+coverage is real, not claimed; a breach means something is unpriced or
+double-counted. Valued = equity holdings (Kite) + NAV-based holdings
+(`holding_scheme_map.units` × latest `amfi_nav.nav`).
+```sql
+-- NAV-based sleeve value (equity side added once holdings ingest lands):
+select round(sum(m.units * n.nav)::numeric, 2) as nav_based_value
+from holding_scheme_map m
+join lateral (select nav from amfi_nav a where a.scheme_code = m.amfi_scheme_code
+              order by nav_date desc limit 1) n on true
+where m.confirmed;
+```
+**PASS** = `abs(sum_valued − brokerage_total) / brokerage_total ≤ 0.005`.
+**NOT-YET** = `holding_scheme_map` unconfirmed (item 3 mapping pending) or the
+brokerage total has not been supplied.
+
+### I-9 · price/NAV freshness [item 5, rule-class]
+No holding may carry a price or NAV older than **1 trading day**.
+```sql
+select m.holding_label, m.amfi_scheme_code, max(n.nav_date) latest_nav,
+       (current_date - max(n.nav_date)) days_old
+from holding_scheme_map m
+left join amfi_nav n on n.scheme_code = m.amfi_scheme_code
+where m.confirmed
+group by 1,2
+having max(n.nav_date) is null or (current_date - max(n.nav_date)) > 3;
+```
+**PASS** = no rows (every mapped NAV ≤ 1 trading day old; >3 calendar days
+allows a weekend). **NOT-YET** = `amfi_nav` empty / mapping unconfirmed.
+
+
 ### V-16 · the advisor survives the intraday decommission
 Shipped 2026-09-09 (brain: scheduler.py trading cycle + intraday jobs deleted,
 watchdog reduced to liveness, token inverted to pull; dashboard `/learn`

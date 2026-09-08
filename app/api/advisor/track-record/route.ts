@@ -15,7 +15,7 @@ export async function GET() {
     const { data, error } = await supabaseServer
       .from("portfolio_advice")
       .select(
-        "run_date, symbol, verdict, quantity, last_price, outcome_return_pct, outcome_vs_nifty_pct, outcome_correct"
+        "run_date, symbol, verdict, quantity, last_price, outcome_return_pct, outcome_vs_nifty_pct, outcome_correct, outcome_correct_alpha"
       )
       // is_official: the 2026-07-14 intraday refresh writes extra snapshot
       // rows per symbol/day that are never backtest-evaluated (evaluated_at
@@ -26,7 +26,8 @@ export async function GET() {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const judged = (data ?? []).filter((r) => r.outcome_correct !== null);
+    // Authoritative correctness label is market-neutral (alpha), 2026-09-09.
+    const judged = (data ?? []).filter((r) => r.outcome_correct_alpha !== null);
     if (judged.length === 0) {
       return NextResponse.json({
         evaluatedCalls: 0, hitRatePct: null, avgReturnPct: null,
@@ -34,7 +35,7 @@ export async function GET() {
       });
     }
 
-    const hits = judged.filter((r) => r.outcome_correct).length;
+    const hits = judged.filter((r) => r.outcome_correct_alpha).length;
     const rets = judged.map((r) => r.outcome_return_pct).filter((v): v is number => v !== null);
     const alphas = judged.map((r) => r.outcome_vs_nifty_pct).filter((v): v is number => v !== null);
 
@@ -43,7 +44,7 @@ export async function GET() {
     for (const r of judged) {
       const s = (byVerdict[r.verdict] ??= { calls: 0, hits: 0 });
       s.calls += 1;
-      if (r.outcome_correct) s.hits += 1;
+      if (r.outcome_correct_alpha) s.hits += 1;
       const w = EXIT_WEIGHT[r.verdict];
       if (w && r.outcome_return_pct !== null) {
         // exit call: rupees saved = what the kept position would have lost
