@@ -75,7 +75,7 @@ const GLOSSARY: { slug: string; term: string; short: string; body: string }[] = 
   { slug: "verify", term: "VERIFY ledger", short: "Every fix owes a runnable check.",
     body: "When something is fixed, a row is added to a ledger containing SQL and the number that counts as a pass. The post-session audit runs them. The rule: a fix with no VERIFY row is not shipped, it is unmeasured." },
   { slug: "enctoken", term: "enctoken", short: "The daily login key.",
-    body: "The session token that lets the system read prices from Zerodha. It expires every morning and must be pasted in before the market opens. Forgetting costs a session — on 2026-08-07 it cost about 55% of the day's data." },
+    body: "The session token that lets the system read prices from Zerodha. It expires every morning. While the intraday trader ran, it had to be pasted before the open every day, and forgetting cost a session (on 2026-08-07, about 55% of the day's data). Since the 2026-09-09 decommission it is pull-only: a token is pasted just when a portfolio-advisor run is wanted, and nothing is lost by skipping days." },
 ];
 
 function T({ g, children }: { g: string; children: React.ReactNode }) {
@@ -228,6 +228,18 @@ export default function LearnPage() {
                 Neither spends real money. Everything is <T g="paper">paper trading</T> — real prices, simulated
                 orders. That is the entire point: find out whether the idea works <em>before</em> funding it.
               </p>
+              <Callout kind="warn" title="The intraday trader was decommissioned on 2026-09-09">
+                <p>
+                  After 1,018 paper trades it lost money with no edge — expectancy <strong className="text-[#f5f5f5]">−0.42R</strong>,
+                  and over the same window a plain Nifty index fund returned <strong className="text-[#f5f5f5]">+3.03%</strong> while
+                  this returned <strong className="text-[#f5f5f5]">−59%</strong>. The decisive finding was that its loss almost
+                  exactly equals its trading costs: cost in risk-units ≈ friction ÷ stop width, a ratio no setting escapes at
+                  intraday stop distances. So the trading half was stopped: the code that opens and closes positions is deleted,
+                  and it will not run again without a deliberate rebuild. <strong className="text-[#f5f5f5]">The portfolio advisor
+                  keeps running</strong> — it has two honest verdicts still pending — and everything below describes how the trader
+                  worked while it was live, in the past tense.
+                </p>
+              </Callout>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 my-4">
                 {facts.map((f) => (

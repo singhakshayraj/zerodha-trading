@@ -29,6 +29,32 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-16 · the advisor survives the intraday decommission
+Shipped 2026-09-09 (brain: scheduler.py trading cycle + intraday jobs deleted,
+watchdog reduced to liveness, token inverted to pull; dashboard `/learn`
+updated). The decommission's one hard risk is that removing the trading cycle
+also kills the advisor, which shares the scheduler. The advisor runs from the
+idle loop (`_maybe_run_advisor`, independent of sessions) and is token-gated
+(pull-mode), so the check is conditional on a token being supplied.
+
+**Deciding number — the first trading day a token is pasted after the deploy,
+a new `portfolio_advice` row with `is_official = true` must appear with that
+day's `run_date`:**
+```sql
+select run_date::text, count(*) filter (where is_official) official_rows,
+       max(created_at) last_written
+from portfolio_advice
+where run_date >= '2026-09-09'
+group by 1 order by 1 desc limit 3;
+```
+**PASS** = an `is_official` row exists for the first post-deploy trading day on
+which a token was supplied. **FAIL** = a token was supplied on a trading day and
+no official row appeared → the change killed the advisor; **revert the brain
+commit immediately, do not forward-fix on the live service.**
+**NOT-YET** = no token has been supplied since the deploy (pull-mode — not a
+failure; the advisor legitimately does not run without a token).
+
+
 _2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
 _2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
 _2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
