@@ -196,3 +196,35 @@ So "passive" cannot silently become "ongoing":
   · I-4 PASS · I-5 PASS · **I-6 FAIL** (2 pinned tokens, HEG and HFCL, now absent
   from Kite's live master — pin drift; not fixed, the system is decommissioned)
   · I-7 PASS.
+
+---
+
+## Addendum — 2026-09-10 · advisor verdict skill is null out of sample
+
+This postdates the post-mortem above and closes the record on the advisor's
+directional skill.
+
+The unmodified verdict function (`advisor_scoring.advise`) was replayed over
+**5.2 years and ~500 names**, alpha-graded on **non-overlapping** windows,
+Fama–MacBeth across dates:
+
+| horizon | independent dates | verdicts | hit rate | FM t(hit−0.50) |
+|---|---|---|---|---|
+| MICRO 10d | 123 | 54,795 | **0.5085** | **+1.56** |
+| MACRO 30d | 41 | 18,228 | **0.4999** | **−0.03** |
+
+**Advisor verdict skill is null out of sample.** This **supersedes** the
+interim n = 187 reading of 0.631, which spanned approximately **one**
+independent forward window and therefore carried a wrong (too-narrow) CI.
+
+Taken at face value, the MICRO point estimate is a **0.85pp lift**, 95% CI
+**[−0.22pp, +1.92pp]** — it includes zero. It would need **~202 independent
+dates** to reach t = 2, against the 123 in hand, and it is **survivorship-
+flattered** (the cache is current constituents, biased toward skill) *before*
+any multiplicity haircut (the trial ledger's threshold is z ≥ 3.72, not 1.96).
+
+**The surviving output class is risk measurement, not prediction.** The
+covariance-based structure estimators (Ledoit–Wolf, risk contributions,
+effective bets, HRP, correlation regime) are rule-class — true by inspection,
+valid at n = 1, requiring no forecasting skill. Nothing in the return-
+prediction class survived.

@@ -53,9 +53,45 @@ per-date alpha is positive, t≈3.1–3.5, but that is the survivorship drift of
 surviving constituents vs the index, not verdict skill; the hit rate is the
 clean directional test and it is null.)
 
+**Reproduce** (brain repo; reads the `data/daily_history.pkl` cache shipped
+with the frozen export — no token, no DB writes):
+```
+python3 scripts/advisor_verdict_replay.py
+```
+MICRO point estimate at face value: +0.85pp lift, 95% CI [−0.22pp, +1.92pp]
+(includes 0); ~202 independent dates needed for t = 2 vs 123 in hand;
+survivorship-flattered; un-haircut (see V-19, z ≥ 3.72).
+
 This does **not** touch the pre-registered live decision read at n = 400 — it
 is an independent out-of-sample test, and it says the prior should be a null.
 
+
+
+### V-19 · trial ledger + multiplicity haircut (standing artifact)
+Registered 2026-09-10. `docs/reference/TRIAL_LEDGER.md` enumerates every
+hypothesis this project has tested — **253 accumulated trials** — and the
+Harvey–Liu–Zhu deflated two-sided 5% threshold for that count: **z ≥ 3.72**
+(`advisor_eval.deflated_threshold(253)`).
+
+**Standing rule:** every new hypothesis increments the ledger, and any future
+result is reported against the **then-current** threshold, not 1.96. Nothing
+tested to date clears it; several avenues fail even un-haircut |t| ≥ 2 once the
+Fama–MacBeth standard error is used. PASS/FAIL is per-result against this
+artifact, not a one-shot check.
+
+### V-20 · pre-registered interpretation of the n = 400 live read (2026-09-10)
+Written **before the data exists**. The advisor's one live decision read stays
+at **n = 400 graded calls**, deciding condition a hit-rate CI excluding 0.50 —
+**unchanged by Part B / V-18 / V-19.**
+
+**Pre-commitment:** the out-of-sample replay covers **164 independent dates**
+(123 MICRO + 41 MACRO) and is null. If the n = 400 live read returns
+**positive**, contradicting those 164 dates, it is **an anomaly requiring
+explanation, not a discovery**, and must clear the then-current deflated
+threshold (V-19), not 1.96, before it counts. A positive on ~one forward window
+against a 164-date OOS null is the exact shape of this project's recorded
+failure (entry filter: t = +3.0 on nine correlated days → −0.003R on the
+tenth). Recorded 2026-09-10.
 
 ### V-17 · advisor correctness label is market-neutral (alpha) [item 2]
 Shipped 2026-09-09 (brain: grader + `get_track_record_summary` +
