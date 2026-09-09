@@ -29,6 +29,34 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-18 · [Part B] the 0.631 alpha hit rate does NOT survive out-of-sample
+Ran the EXACT current verdict function (`advisor_scoring.advise`, unchanged)
+across the 5.2-year daily cache, graded with the stored alpha rule on
+**non-overlapping** windows, Fama-MacBeth across dates. Harness:
+`scripts/advisor_verdict_replay.py` (brain), reusing `advise()` and
+`advisor_lab._t_and_p`.
+
+**Deciding number = across-date t on (hit rate − 0.50):**
+
+| horizon | independent dates (real n) | verdicts | hit rate | **FM t** |
+|---|---|---|---|---|
+| MICRO 10d | 123 | 54,795 | 0.5085 | **+1.56** |
+| MACRO 30d | 41 | 18,228 | **0.4999** | **−0.03** |
+
+**RESULT: does NOT survive |t| ≥ 2 at either horizon.** The live 0.631 (187
+calls, ~1 window) does not reproduce — verdict directional skill is ~0.50 out
+of sample; MACRO is a literal coin flip.
+
+Survivorship caveat: the cache is CURRENT Nifty-500 constituents, so this is
+biased TOWARD finding skill — the null is **stronger** than it looks. (Mean
+per-date alpha is positive, t≈3.1–3.5, but that is the survivorship drift of
+surviving constituents vs the index, not verdict skill; the hit rate is the
+clean directional test and it is null.)
+
+This does **not** touch the pre-registered live decision read at n = 400 — it
+is an independent out-of-sample test, and it says the prior should be a null.
+
+
 ### V-17 · advisor correctness label is market-neutral (alpha) [item 2]
 Shipped 2026-09-09 (brain: grader + `get_track_record_summary` +
 `factor_attribution` + `calibration_curve` + `db_records` selects; dashboard
