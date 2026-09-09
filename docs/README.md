@@ -64,6 +64,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 - [reference/EDGE_STUDY_P35.md](reference/EDGE_STUDY_P35.md) — **current** entry-edge verdict (2026-08-10); supersedes P-21's conclusion.
 - [reference/EDGE_STUDY_P21.md](reference/EDGE_STUDY_P21.md) — the original entry-edge study + method (conclusion since reversed).
 - [reference/ADVISOR_LAB.md](reference/ADVISOR_LAB.md) — offline advisor scoring experiments: method, the pre-registered variants, and why reweighting is a dead axis.
+- [reference/TRIAL_LEDGER.md](reference/TRIAL_LEDGER.md) — every hypothesis ever tested (253) + the multiplicity haircut (z≥3.72); re-scores the closed avenues.
 - [reference/POST_MORTEM.md](reference/POST_MORTEM.md) — **the decommission post-mortem** (2026-09-09): verdict, closed avenues, the cost identity, lessons, reopening criteria.
 - [reference/SYSTEM_BIBLE.md](reference/SYSTEM_BIBLE.md) — **the complete system reference**: architecture, the trading loop, every table, every flag, every module, every page, what has been proven and disproven. Written for external review.
 - [reference/FABLE_ROUND2_PROMPT.md](reference/FABLE_ROUND2_PROMPT.md) — round-2 follow-up: reports the test results back and asks for decommission design.
