@@ -5,11 +5,37 @@
 [VISION.md](VISION.md). Full three-lens system evaluation (2026-07-27) that
 seeded this plan: [archive/SYSTEM_EVALUATION_2026-07-27.md](archive/SYSTEM_EVALUATION_2026-07-27.md).
 
-_Last updated: 2026-08-02._
+_Last updated: **2026-09-13** — superseded by the 2026-09-09 decommission;
+everything below this point is history, kept for the record._
 
 ---
 
-## 🎯 The hinge: run gate #6
+## ⛔ Superseded 2026-09-09 — the intraday strategy is decommissioned, not pending gate #6
+
+Everything below assumed the plan was to eventually run gate #6 and decide
+go/no-go from it. That did not happen — the project stopped **without**
+running gate #6, because a positive result would have been unactionable
+anyway (SEBI's Algo-ID framework leaves no compliant path for this system's
+auth). Full verdict: [reference/POST_MORTEM.md](reference/POST_MORTEM.md).
+
+**The forward plan now** is not a sprint list — it's the three accrual clocks
+POST_MORTEM §6 pre-registers, under an engineering freeze (no market-layer
+commits except fixes to those three):
+1. **Advisor grading → n = 400** graded calls, one read, hit-rate CI vs 0.50
+   on the alpha label. At 194 as of 2026-09-13 (was blocked on an expired
+   token this week — see PIPELINE.md [P-42]).
+2. **Two paper books (PICKING, MANAGEMENT) → 2027-03-31**, one read each,
+   book-minus-Nifty at t ≥ 2.
+3. **Zero engineering** on the market layer otherwise — reopening needs all
+   three of POST_MORTEM §5's criteria (compliant broker access, an
+   externally-certified edge, capital clearing the ~₹643/operator-hour
+   opportunity cost measured here), none of which is close.
+
+The sprint history below predates all of this and is kept only as a record of
+how the project got to the decommission decision — do not resume any of it
+without first checking whether the freeze has actually lifted.
+
+## 🎯 (historical) The hinge: run gate #6
 
 Everything else is secondary to one question — **does the strategy have an
 edge?** Paper PF ≈ 0.33 over 3 recent days is real but tiny-sample and
@@ -20,6 +46,7 @@ decision)**. Verdict thresholds (VISION §6.1): **PF > 1.3 = go, < 1.1 = reject.
 
 > Until gate #6 runs, the dashboard shows an **EDGE UNVERIFIED** banner and this
 > roadmap treats every other item as enrichment.
+> **2026-09-13: this never happened — see the supersession note above.**
 
 ## Sprint status
 

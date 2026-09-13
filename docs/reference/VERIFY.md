@@ -264,6 +264,12 @@ satisfies is itself a finding"), this has now sat open past a week with no
 in-environment path to close it — flagging explicitly rather than repeating
 silently next week. Needs a pass with brain-repo/script access.
 
+**2026-09-13 (weekly review): CLOSED.** Re-queried: 08-24 through 08-28 are
+now all fully labelled (0 missing across every day). Someone with brain-repo
+access ran the labeler before or during the 2026-09-09 decommission work; not
+reflected on any board until this pass. Moot going forward regardless — the
+trading engine is decommissioned, so no new day will ever need labelling.
+
 Scoped to **≥ 2026-07-15** deliberately: the candle archive is empty for 07-14
 and earlier, so May and early-July decisions can never be labelled and would
 fail this check forever.
@@ -803,3 +809,10 @@ day since (see PIPELINE.md [P-04] evidence log), so the decisive test this
 row has been waiting for still has not happened. Third weekly review in a
 row noting this; carries to the next session that runs after any weekend
 gap, whichever comes first.
+
+**2026-09-13 (weekly review): RETIRED, will never be reached.** The trading
+engine was decommissioned 2026-09-09 (see
+[POST_MORTEM.md](POST_MORTEM.md)) — there is no future session, weekend or
+otherwise, for this invariant to check. Left at PASS (its last real reading,
+2026-08-28) rather than reopened; the post-weekend stress test this row
+tracked simply never got its second data point.

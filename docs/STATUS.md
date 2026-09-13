@@ -4,14 +4,98 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-08-28** (Fri, ~17:10 IST). **Session 08-28 audited.**
+_Last updated: **2026-09-13** (Sun, weekly review) — see the decommission
+notice and this week's findings immediately below._
+
+_Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
+**Session 08-28 audited.**
 `f4419be8`, 12:25–15:26 IST, `COMPLETED`: **34 trades, all closed, zero left
 open**, −₹4,406.41, **PF 0.184**, expectancy **−0.673R** (4 win / 30 loss, 22
 short / 12 long), 1,478 decisions. Start 12:25 IST is **~3h10min past** the
 09:15 IST target — the largest gap yet among sessions that ran (prior worst
 08-25 +2.75h; 08-24 +2.5h, 08-26 +76min, 08-27 +37min). Manual `enc_token`
 paste dependency ([P-03]) remains the only lever on this; still user-
-deprioritised, logging only.
+deprioritised, logging only._
+
+---
+
+## ⛔ The intraday trading engine is DECOMMISSIONED (2026-09-09)
+
+Full record: [reference/POST_MORTEM.md](reference/POST_MORTEM.md). Frozen
+forever at **1,018 closed trades** (936 with `r_multiple`), PF **0.3685**,
+expectancy **−0.4213R**, net **−₹59,195**, win rate 23.48%. No entry or exit
+edge survived testing, and the loss decomposes to ~94% transaction-cost
+friction that no intraday configuration escapes; decisively, SEBI's Algo-ID
+framework (binding 2026-04-01) leaves no compliant path for this system's
+scraped-session-token auth regardless. **The trading cycle is deleted from the
+brain** — `trading_sessions`/`trades` will never grow again; every trading
+number in this file is now a fixed historical fact. **The portfolio advisor
+was NOT decommissioned** — it keeps giving daily HOLD/TRIM/SELL guidance and
+keeps accruing grades, under an explicit engineering freeze (POST_MORTEM §6):
+no market-layer commits except accrual/grading fixes, one pre-registered read
+at **n = 400 graded calls**, the two paper books read once on **2027-03-31**.
+
+⚠️ **This decommission sat undocumented here for 4 days.** The decommission
+commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
+`VERIFY.md` but never this file or `PIPELINE.md` — both still read "next
+trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
+*before* the decommission). Fixed this pass; nothing about the decision
+itself is new, it was already final.
+
+## 📈 2026-09-13 weekly review
+
+**Trading gate metrics — unchanged, as expected (frozen).** Re-measured
+directly against `trades`: PF **0.3685**, expectancy **−0.4213R**, max
+drawdown **≈−₹59,206.27**, net **−₹59,195.25** — byte-identical to every
+reading since the freeze. No gate flip; none is possible now.
+
+**Advisor calibration moved for a real reason — a MACRO wave matured.**
+`graded_calls` **98 → 194** (`built_at` now 2026-09-10): 81 MACRO + 8 MICRO
+rows matured 2026-09-08. **ECE 22.1% → 12.4%**, still `monotonic=false`. Hit
+rate is now **0.6134 absolute / 0.6340 alpha** (n=194), well above the ~48%
+base rate at n=98. Re-derived directly from `portfolio_advice` this pass:
+**corr(confidence,correct) 0.0930 absolute / 0.1465 alpha**, rank-based
+**AUC ≈0.5216 (alpha)** — higher than the 08-25 read (AUC 0.4917/0.5133, corr
+0.02) but **not materially above 0.5**, and [P-18]/V-19/V-20's own discipline
+holds: no interim conclusion before **n = 400**, and any positive must clear
+the deflated multiplicity threshold (z≥3.72), not 1.96. Recorded as a data
+point, not a reopening — 194/400 is 48.5% of the way to the one pre-registered
+read.
+
+**🔴 NEW — grading stalled 2026-09-13 on an expired token.**
+`app_config.grading_incident` (written 2026-09-12 18:31 UTC / 00:01 IST
+2026-09-13): `TOKEN_EXPIRED 2026-09-13: 169/204 due rows could not
+authenticate; 0 graded.` `enc_token` was last refreshed 2026-09-10 03:17 UTC
+and hasn't been pasted since. **204 rows are currently due and ungraded**
+(≥100 confirmed MACRO-overdue by this pass's own query) — pasting a fresh
+token and re-running grading would land the pool at very nearly **n=400**
+(194 graded + up to 204 due ≈ 398), i.e. this single action could trigger the
+project's one remaining pre-registered read. This is [P-03]/[P-04]'s
+token-paste dependency in its post-decommission form: it no longer costs a
+trading session (there are none left to run), it costs **grading accrual
+toward the only number this project still owes a verdict on**. Action: [you]
+paste a fresh `enc_token`, then re-run grading.
+
+**I-7 (session labelling) — the long-open gap is now CLOSED.** Re-queried
+08-24→08-28: all five days show **0 missing** (08-28's 409 decisions, open
+since the 08-30 review, are now fully labelled — someone with brain-repo
+access ran the labeler before/during the decommission work, not previously
+reflected on this board).
+
+**Supabase DB size:** **135 MB → 148 MB** (27.1% → 29.6% of the 500 MB free
+tier) — growing much slower now that only advisor/grading writes land, no more
+trading-session data. [P-38]'s tier decision is undecided but not urgent on
+this trajectory.
+
+**Paper books (accrual toward the 2027-03-31 read):** MANAGEMENT 19 open / 27
+closed, PICKING 2 open / 19 closed; both books now carry **9 equity
+snapshots each**, latest 2026-09-10.
+
+---
+
+_Below: history, most-recent-superseded-entry first. "Cumulative" trading
+figures in older entries were the running total as of that date and are now
+subsumed by the frozen 1,018 above._
 
 **Cumulative:** 1,018 trades / 936 with `r_multiple`, PF **0.368**, expectancy
 **−0.421R**, max drawdown deepened to **≈−₹59,206** (was ≈−₹54,907 on 08-27).
@@ -99,69 +183,38 @@ Prior entries: `git log docs/STATUS.md`._
 
 ---
 
-## ▶️ START HERE NEXT SESSION
+## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-_Written 2026-08-24 (Mon) ~16:00 IST, post-session. **Next session Tue
-2026-08-25.**_
-Board: [PIPELINE.md](PIPELINE.md) · open checks:
-[reference/VERIFY.md](reference/VERIFY.md) · findings:
-[reference/KNOWN_ISSUES.md](reference/KNOWN_ISSUES.md) · who owes what:
-[OPEN_ITEMS.md](OPEN_ITEMS.md) · paste-block:
-[reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md).
+_Superseded — this whole section described a daily trading runbook. There is
+no more trading engine to run a runbook for; kept below for the historical
+record only._
 
-**Deployed:** brain `893267c447e3` (session git_sha, 08-24), dashboard `git log`.
+**Current mode (since 2026-09-09):** no daily session prep. The only recurring
+action is **grading accrual** — paste a fresh `enc_token` when
+`app_config.grading_incident` reports a stall (see 2026-09-13 above) so the
+advisor's matured MICRO/MACRO calls can grade, moving the pool toward the
+**n=400** pre-registered read. Everything else is the weekly review re-measure
++ the two dated stopping-criteria checks in
+[reference/POST_MORTEM.md](reference/POST_MORTEM.md) §6 (advisor grading at
+n=400; paper books on 2027-03-31). Engineering freeze holds: no market-layer
+commits except fixes to that accrual path.
 
-### Where things stand
+### Historical: last live runbook (2026-08-24, for the record)
 
 Session `1d45ab4a` ran 08-24, but late: token pasted **06:18 UTC (11:48
 IST)**, ~2.5h past the 09:15 IST target, so the session only got 06:18–09:55
-UTC (11:48–15:25 IST), 3.6h, 42 trades, 2,150 decisions, `COMPLETED`. The
-labeling + edge-study re-run (V-12) is still an open action for whoever runs
-the trading-day runbook — this docs-only pass does not execute those scripts.
+UTC (11:48–15:25 IST), 3.6h, 42 trades, 2,150 decisions, `COMPLETED`.
 
-### Do these, in this order — Tuesday 2026-08-25
-
-**① BEFORE 09:15 IST — paste the `enc_token`, then run the pacing runbook. [you]**
-```bash
-bash scripts/premarket_pacing.sh   # brain repo
-```
-The token is flushed daily at **~04:34 IST** (measured 08-23); paste window is
-anything after ~04:35. **08-24 missed the 09:15 target by ~2.5h** — worth
-watching whether this becomes a pattern, since the manual-paste dependency is
-otherwise the whole story on lost session time.
-
-**② [P-26] seed-basis decision. [you→me]** — still the one item waiting on you.
-Seed at **seed-day price** (recommended) so the advisor owns only what happened
-after it spoke, rather than inheriting RVNL −46.3% and NBCC +73.0%.
-
-**③ Post-close — `/post-session-check`, then `/counterfactual-audit`.**
-Only after 15:30 IST. Then **label the session and re-run the edge study** —
-that is V-12, still the check that matters most:
-```bash
-python3 scripts/label_decisions.py 2026-08-25 && python3 scripts/edge_study.py
-```
-
-**④ Then pull the top Ready item.** [P-32] still needs your `stop_level` answer
-(thesis invalidation vs suggested stop). [P-34] and [P-06] need nothing.
-
-### Standing facts a new session must not re-litigate
+### Standing facts (historical — the trading conclusions, kept for context)
 
 - **There is no entry edge, and no exit edge.** [P-30]: 0 of 180 exit policies
   clear breakeven *even at zero cost*. [P-35]: the one entry filter that
-  survived ten days died on the eleventh. The verdict rests on gate #6.
-- **The token is flushed ~04:34 IST daily** (measured). Not an idle timeout — a
-  probe hitting the API throughout did not keep it alive, so **no keep-alive
-  scheme can work**. Not a ~3h TTL either: sessions have run 5.75h and 5.85h on
-  one token.
-- **The 09:16 IST Telegram alert is LIVE** (verified 2026-08-23 against
-  Railway + Telegram `getMe`/`getChat`). Earlier notes claiming it was dormant
-  for want of a bot token were **wrong**. So the nine silent weekdays were not
-  a technical failure — the alarm fires. The only remaining technical lever is
-  **[P-03] TOTP** (needs `KITE_USER_ID`/`KITE_PASSWORD`/`KITE_TOTP_SECRET`,
-  none set). [P-03] stays deprioritised by owner choice — recorded, not raised.
-- **Trend-tells stays dark.** +0.134, +0.182, then −0.093.
-- **[P-01] Kite ₹500 and [P-03] TOTP are deprioritised** — do not proactively
-  raise either.
+  survived ten days died on the eleventh. Superseded by the full decommission
+  verdict — see [reference/POST_MORTEM.md](reference/POST_MORTEM.md).
+- **The 09:16 IST Telegram alert** and the token-flush timing notes below are
+  moot for trading (no more sessions) but the token-paste mechanic itself is
+  now what grading depends on — see the 2026-09-13 finding above.
+- **Trend-tells stays dark** — moot, the engine it would have gated is gone.
 
 ## 📈 2026-08-28 post-session — weak session, V-14 trigger crossed, latest late start
 

@@ -9,7 +9,50 @@ numbers and links here.
 **The gates** (VISION §6.1): profit factor **>1.3 go / <1.1 reject**; expectancy
 positive; advisor calibration is DARK and not scored.
 
-## Latest — 2026-09-06 (weekly, 0 sessions' growth since 08-30)
+## Latest — 2026-09-13 (weekly, post-decommission)
+
+**Trading engine decommissioned 2026-09-09** (full record:
+[POST_MORTEM.md](POST_MORTEM.md)). PF/expectancy/max-drawdown are now frozen
+forever — `trading_sessions`/`trades` cannot grow again. The advisor was not
+decommissioned and its calibration is the only row here that can still move.
+
+| Metric | Value | vs prior |
+|---|---|---|
+| Profit factor | **0.3685** | frozen — cannot change again |
+| Expectancy | **−0.4213R** | frozen |
+| Max drawdown | **≈−₹59,206.27** | frozen |
+| Advisor calibration ECE | **12.4%**, non-monotonic, n=194 | 22.1% (n=98) → 12.4% (n=194) — an 81-row MACRO wave + 8 MICRO matured 2026-09-08 |
+
+Re-derived directly from `portfolio_advice` this pass (not stored in
+`advisor_calibration_latest`): hit rate **0.6134 absolute / 0.6340 alpha**
+(was ~48% at n=98), corr(confidence,correct) **0.0930 absolute / 0.1465
+alpha**, rank-based **AUC ≈0.5216 (alpha)** — up from 0.4917/0.5133 at n=98
+but **not materially above 0.5**. Per [P-18]/V-19/V-20's own pre-committed
+discipline this is a data point on the way to the **n=400** pre-registered
+read (POST_MORTEM §6), not a reopening — no interim conclusion before then,
+and any eventual positive must clear the deflated multiplicity threshold
+(z≥3.72), not 1.96.
+
+🔴 **Grading itself stalled 2026-09-13** on an expired `enc_token` (last
+refreshed 09-10) — `app_config.grading_incident` reports 169 of 204 due rows
+failed to authenticate, 0 graded. Clearing this backlog would bring the
+graded pool to ≈398, on the doorstep of the n=400 read. Tracked as
+[P-42] in [PIPELINE.md](../PIPELINE.md).
+
+**3-lens sanity:** trader — nothing to read, the book is closed for good.
+Advisor — calibration keeps moving in a direction consistent with the
+post-mortem's null-out-of-sample replay (V-18) being about the *unmodified
+verdict function over history*, not this *live, evolving* graded sample; the
+two are not in tension, and neither licenses a conclusion yet. Engineer — the
+operational risk has narrowed from "no trading session" (irrelevant now) to
+"no grading run" (the one thing that still matters); [P-42] is the action.
+
+No go/no-go gate flipped — none can, on the trading side. See
+[PIPELINE.md](../PIPELINE.md) for the full readout.
+
+---
+
+## Latest (historical) — 2026-09-06 (weekly, 0 sessions' growth since 08-30)
 
 | Metric | Value | vs prior |
 |---|---|---|
