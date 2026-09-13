@@ -58,6 +58,7 @@ export function StockLookup() {
   const [res, setRes] = useState<{ match: Match | null; suggestions: string[]; query: string } | null>(null);
   const [opts, setOpts] = useState<Option[]>([]);
   const [queue, setQueue] = useState<"idle" | "sending" | "queued" | "failed">("idle");
+  const [live, setLive] = useState<"idle" | "sending" | "polling" | "done" | "timeout" | "failed">("idle");
 
   // Ask the brain to re-score. Uses the shared `api` client deliberately: this
   // IS a user action, so the 401-redirect-to-/connect behaviour is correct here
@@ -69,6 +70,33 @@ export function StockLookup() {
       setQueue("queued");
     } catch {
       setQueue("failed");
+    }
+  }
+
+  // On-demand: score just THIS name now, then poll until its scoredAt advances.
+  // Faster than the full ~500-name scan — the brain's _maybe_serve_lookup picks
+  // up the single request and scores it via score_one_symbol (reuses advise()).
+  async function analyseLive() {
+    if (!m) return;
+    const sym = m.symbol;
+    const before = m.scoredAt;
+    setLive("sending");
+    try {
+      await api.post(`/advisor/lookup?symbol=${encodeURIComponent(sym)}`);
+      setLive("polling");
+      for (let i = 0; i < 20; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const r = await fetch(`/api/advisor/lookup?symbol=${encodeURIComponent(sym)}`);
+        const j = await r.json();
+        if (j?.match?.scoredAt && j.match.scoredAt !== before) {
+          setRes(j);
+          setLive("done");
+          return;
+        }
+      }
+      setLive("timeout");
+    } catch {
+      setLive("failed");
     }
   }
 
@@ -211,6 +239,30 @@ export function StockLookup() {
               </>
             )}
           </p>
+
+          {!m.held && m.inScanUniverse !== false && (
+            <div className="mt-2 flex items-center gap-3 flex-wrap">
+              <button
+                onClick={analyseLive}
+                disabled={live === "sending" || live === "polling"}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] bg-[#22c55e]/10 border border-[#22c55e]/40 text-[#7ee2a8] disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3 h-3 ${live === "sending" || live === "polling" ? "animate-spin" : ""}`} />
+                {live === "sending" || live === "polling" ? "Analysing…" : live === "done" ? "Updated" : "Analyse this name live"}
+              </button>
+              <span className="text-[11px] text-[#6a6a6a]">
+                {live === "polling"
+                  ? "Scoring just this name with the live token — updates here in ~30s."
+                  : live === "timeout"
+                  ? "Still working — refresh in a moment (needs a live token)."
+                  : live === "failed"
+                  ? "Could not run — is a token live?"
+                  : live === "done"
+                  ? "Freshly scored just now."
+                  : "One name, on demand — no full scan."}
+              </span>
+            </div>
+          )}
 
           {m.detail && m.detail.verdict !== "INSUFFICIENT" && (
             <div className="mt-3 pt-3 border-t border-[#1f1f1f] space-y-3">

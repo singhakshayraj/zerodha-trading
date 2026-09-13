@@ -92,3 +92,30 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
 }
+
+// POST — queue an ON-DEMAND live score for one name. The brain's idle loop
+// (_maybe_serve_lookup) claims the request, scores that single symbol with the
+// live token via score_one_symbol (reusing advise(), no re-implementation), and
+// writes the fresh result to stock_universe — so the GET above then returns a
+// current scoredAt. Poll the GET until scoredAt advances. Needs a live token.
+export async function POST(req: Request) {
+  const token = req.headers.get("x-enc-token");
+  if (!token) return NextResponse.json({ error: "token is required" }, { status: 401 });
+  const symbol = (new URL(req.url).searchParams.get("symbol") || "")
+    .trim().toUpperCase();
+  if (!symbol) return NextResponse.json({ error: "symbol required" }, { status: 400 });
+  try {
+    const { error } = await supabaseServer.from("app_config").upsert(
+      { key: "advisor_lookup_request",
+        value: JSON.stringify({ symbol, requested_at: new Date().toISOString() }),
+        updated_at: new Date().toISOString() },
+      { onConflict: "key" });
+    if (error) throw new Error(error.message);
+    return NextResponse.json({
+      queued: true, symbol,
+      note: "Queued. The brain scores this name on its next idle tick (~30s) if it holds a live token; poll the lookup until scoredAt advances.",
+    });
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+  }
+}
