@@ -5,9 +5,23 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-09-13** (Sun, weekly review) · Burn-down: **24 shipped +
-verified live / 0 in-progress / 6 ready (all but [P-42] paused by the
-engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+_Last updated: **2026-09-14** (Mon, post-session review — no session ran, see
+below) · Burn-down: **24 shipped + verified live / 0 in-progress / 6 ready
+(all but [P-42] paused by the engineering freeze) / 4 blocked / 1 retired
+([P-01], decommission)**._
+
+**2026-09-14 post-session pass:** no new trading session (none ever will —
+decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
+both unchanged (1,018) since 08-28. Advisor calibration unchanged too
+(`graded_calls` 194, ECE 12.4%, `built_at=2026-09-13`) — no successful
+grading run since the last pass. `app_config.grading_incident` recurred with
+today's date (`TOKEN_EXPIRED 2026-09-14: 169/204 due rows`), same 169/204
+count as 09-13 — **[P-42] is still open, nothing new to add.** One
+docs-sync gap found via `git log -25`: `cc547da` (09-13 22:43 IST, shipped
+after the weekly-review commit) — logged in Done below. Dashboard API
+(`zerodha-trading-liard.vercel.app`) unreachable from this environment again
+(`connect_rejected`, org policy) — same as every recent pass; all numbers
+above measured directly against Supabase prod.
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
 
@@ -526,6 +540,19 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- **2026-09-13 (22:43 IST) — "Analyse this name live" shipped, undocumented
+  until this pass.** `cc547da` (dashboard: `app/api/advisor/lookup/route.ts`,
+  `components/StockLookup.tsx`), companion to brain `45428c7`. Adds an
+  on-demand button to `StockLookup` that queues `app_config
+  .advisor_lookup_request={symbol}` and polls until `scoredAt` advances
+  (~30s) — reuses the brain's existing `score_one_symbol`/`advise`, no
+  scoring re-implemented in TS. Distinct from the full-scan "Re-run
+  analysis". Landed a few hours after the 09-13 weekly review commit
+  (`91bd9cd`), so missed by that pass; caught via `git log -25` this pass.
+  Not a tracked `P-nn` item, so not counted in the burn-down; recorded here
+  per the same convention as the undocumented 08-23 dashboard features
+  above it in this list.
 
 - ~~**[P-39] Push + deploy the [C7] in-play-lock fix, verify it locks live.**~~
   ✅ **DONE 2026-08-26** — brain `eb75ded` confirmed live: session `c40c5634`
