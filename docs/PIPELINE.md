@@ -5,23 +5,31 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-09-14** (Mon, post-session review — no session ran, see
-below) · Burn-down: **24 shipped + verified live / 0 in-progress / 6 ready
-(all but [P-42] paused by the engineering freeze) / 4 blocked / 1 retired
-([P-01], decommission)**._
+_Last updated: **2026-09-17** (Thu, post-session review) · Burn-down: **24
+shipped + verified live / 0 in-progress / 6 ready (all but [P-42] paused by
+the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
 
-**2026-09-14 post-session pass:** no new trading session (none ever will —
+**2026-09-17 post-session pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
-both unchanged (1,018) since 08-28. Advisor calibration unchanged too
-(`graded_calls` 194, ECE 12.4%, `built_at=2026-09-13`) — no successful
-grading run since the last pass. `app_config.grading_incident` recurred with
-today's date (`TOKEN_EXPIRED 2026-09-14: 169/204 due rows`), same 169/204
-count as 09-13 — **[P-42] is still open, nothing new to add.** One
-docs-sync gap found via `git log -25`: `cc547da` (09-13 22:43 IST, shipped
-after the weekly-review commit) — logged in Done below. Dashboard API
+both unchanged (1,018) since 08-28. Advisor calibration unchanged
+(`graded_calls` 194, ECE 12.4%, `built_at=2026-09-13`). `app_config
+.grading_incident` recurred with today's date (`TOKEN_EXPIRED 2026-09-17:
+169/204 due rows`), same 169/204 count as every reading since 09-13 —
+**[P-42] is still open**, sharpened by new evidence below. `git log -25`
+shows nothing shipped since the last chore commit (`270c65e`, 09-14) besides
+this pass's own docs edits — no board move needed. Dashboard API
 (`zerodha-trading-liard.vercel.app`) unreachable from this environment again
 (`connect_rejected`, org policy) — same as every recent pass; all numbers
 above measured directly against Supabase prod.
+
+**🔴 NEW evidence this pass — the advisor has produced zero new guidance
+for 5 straight weekdays.** `portfolio_advice` has **0 rows since
+2026-09-10** (1,220 rows that day; 0 on 09-11, 09-14, 09-15, 09-16, 09-17),
+`brain_status=IDLE` since 2026-09-13 17:14 UTC. Same root cause as [P-42]
+(`enc_token` stale since 2026-09-10 03:17 UTC — the exact day this stopped):
+a fresh token paste should restore the daily advisor run as well as clear
+the grading backlog. Folded into [P-42] below rather than a new item, since
+the fix is identical.
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
 
@@ -289,6 +297,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   freeze's one exception ("fixes to the grading/accrual path"), so it's the
   one item on this board actually worth doing this week. Action is a token
   paste, not code — no engineering-freeze conflict either way.
+  _**2026-09-17 evidence:** the same stale token has now also silenced the
+  advisor's own daily run — `portfolio_advice` carries **0 rows since
+  2026-09-10** (5 straight weekdays: 09-11, 09-14, 09-15, 09-16, 09-17),
+  `brain_status=IDLE`. Not a new item — the fix is the same token paste —
+  but this raises the cost of leaving it unpasted from "grading backlog
+  grows" to "the advisor has stopped giving guidance at all."_
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual

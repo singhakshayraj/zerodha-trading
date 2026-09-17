@@ -4,8 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-13** (Sun, weekly review) — see the decommission
-notice and this week's findings immediately below._
+_Last updated: **2026-09-17** (Thu, post-session review) — see today's
+finding immediately below; last substantive weekly review remains
+2026-09-13._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -41,6 +42,36 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-17 post-session — no session (frozen, expected), advisor silent 5 straight weekdays
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**Grading incident recurred, same backlog as every reading since 09-13.**
+`app_config.grading_incident`: `TOKEN_EXPIRED 2026-09-17: 169/204 due rows
+could not authenticate; 0 graded.` Identical **169/204** count to every prior
+reading — `enc_token` still hasn't been pasted since **2026-09-10 03:17
+UTC**. Advisor calibration unchanged (`graded_calls` 194, ECE 12.4%,
+`built_at=2026-09-13`). [P-42] stays the one open item; nothing new there
+beyond the evidence below. DB size **148 → 152 MB** (29.6% → 30.4%), in line
+with the slow post-decommission growth rate — not urgent, [P-38] unchanged.
+
+**🔴 NEW evidence — the advisor itself has produced zero new guidance for 5
+straight weekdays.** `portfolio_advice` has **0 rows since 2026-09-10**
+(1,220 rows that day; 0 on every weekday since: 09-11, 09-14, 09-15, 09-16,
+09-17), and `brain_status=IDLE` (last updated 2026-09-13 17:14 UTC — itself
+stale). This is a sharper symptom of [P-42]'s root cause, not a separate
+item: the daily advisor run needs the same `enc_token` grading does, and the
+token has been stale since exactly the day this went dark. A single fresh
+token paste should both clear the grading backlog *and* restore the
+advisor's core daily HOLD/TRIM/SELL output, which had quietly stopped on top
+of the already-known grading stall.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-09-13 weekly review
 
