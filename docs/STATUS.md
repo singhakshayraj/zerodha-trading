@@ -4,9 +4,8 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-17** (Thu, post-session review) — see today's
-finding immediately below; last substantive weekly review remains
-2026-09-13._
+_Last updated: **2026-09-20** (Sun, weekly review) — see today's findings
+immediately below._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -42,6 +41,55 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-20 weekly review — token 10 days stale, third straight review with zero remediation
+
+**Trading gate metrics — re-confirmed byte-identical, as expected
+(frozen forever).** `trades`: 1,018 closed / 936 with `r_multiple`, PF
+**0.3685** (gross win ₹34,540.15 / gross loss ₹93,735.40), expectancy
+**−0.4213R**, net **−₹59,195.25**. `trading_sessions.max(started_at)`
+unchanged at 2026-08-28 06:54:59 UTC. No gate flip; none is possible now.
+
+**Advisor calibration unchanged since 09-13 — the direct consequence of
+the grading stall below.** `advisor_calibration_latest`: `graded_calls`
+**194** (still), ECE **12.4%**, `monotonic=false`, `built_at=2026-09-13`.
+194/400 = 48.5% of the way to the pre-registered read, unmoved for two
+consecutive weekly reviews because no new MICRO/MACRO batch has been able
+to grade.
+
+**🔴 [P-42] STILL OPEN — third consecutive review, zero remediation,
+`enc_token` now 10 days stale.** `app_config.grading_incident` (written
+2026-09-19 18:31 UTC): `TOKEN_EXPIRED 2026-09-20: 169/204 due rows could
+not authenticate; 0 graded.` Identical 169/204 count to every reading
+since 09-13. `enc_token` last refreshed **2026-09-10 03:17 UTC**. This is
+the same finding raised 09-13 (Ready) and sharpened 09-17 (advisor also
+silenced) — this pass adds a third week of identical evidence, no new
+mechanism. Pasting a fresh token would clear the 204-row backlog and put
+the graded pool at ≈398, on the doorstep of the n=400 read.
+
+**Advisor has now produced zero guidance for 6 straight weekdays.**
+`portfolio_advice`: max `created_at` = 2026-09-10 09:43:37 UTC (8,887
+total rows all-time, 0 since). Silent weekdays: 09-11, 09-14, 09-15,
+09-16, 09-17, 09-18. `brain_status=IDLE`, last write 2026-09-13 17:14 UTC
+(~6.5 days stale). Same root cause as [P-42].
+
+**Supabase DB size: 152 → 158 MB (30.4% → 31.6%), +6 MB in 3 days —
+despite the brain being fully dark.** `brain_activity`, `brain_decisions`
+and `portfolio_advice` all show **0 new rows in the last 10 days**, so
+this growth is not resumed trading/advisor writes. Traced it: `amfi_nav`
+(19 MB, 68,486 rows) is fresh as of **2026-09-19 18:30 UTC** — a separate
+NAV-ingestion job running on its own schedule, independent of `enc_token`.
+This corrects the 09-13 read that DB growth had "paused" during the
+outage — a second, independent writer keeps the clock running. [P-38]'s
+tier decision stays undecided, not urgent on this trajectory.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (connection timeout) — same as every recent pass; all
+numbers above measured directly against Supabase prod.
+
+**git log check:** nothing shipped since the last chore commit (`d9357b5`,
+09-17 post-session) besides this pass's own docs edits — no board move
+needed beyond [P-42]'s evidence update.
 
 ## 📈 2026-09-17 post-session — no session (frozen, expected), advisor silent 5 straight weekdays
 

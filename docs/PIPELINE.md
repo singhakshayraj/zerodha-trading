@@ -5,31 +5,50 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-09-17** (Thu, post-session review) · Burn-down: **24
+_Last updated: **2026-09-20** (Sun, weekly review) · Burn-down: **24
 shipped + verified live / 0 in-progress / 6 ready (all but [P-42] paused by
 the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
 
-**2026-09-17 post-session pass:** no new trading session (none ever will —
-decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
-both unchanged (1,018) since 08-28. Advisor calibration unchanged
-(`graded_calls` 194, ECE 12.4%, `built_at=2026-09-13`). `app_config
-.grading_incident` recurred with today's date (`TOKEN_EXPIRED 2026-09-17:
-169/204 due rows`), same 169/204 count as every reading since 09-13 —
-**[P-42] is still open**, sharpened by new evidence below. `git log -25`
-shows nothing shipped since the last chore commit (`270c65e`, 09-14) besides
-this pass's own docs edits — no board move needed. Dashboard API
-(`zerodha-trading-liard.vercel.app`) unreachable from this environment again
-(`connect_rejected`, org policy) — same as every recent pass; all numbers
-above measured directly against Supabase prod.
+**2026-09-20 weekly review pass — gate metrics re-confirmed frozen; nothing
+moved this week except the age of the one open item.** Trading gate: PF
+**0.3685**, expectancy **−0.4213R**, max drawdown **≈−₹59,206.27** —
+byte-identical to every reading since the 08-28 freeze; `trading_sessions
+.max(started_at)` still 2026-08-28, `trades` closed-count still 1,018. No
+gate flip; none is possible now. Advisor calibration also unchanged this
+week: `graded_calls` **194**, ECE **12.4%**, `monotonic=false`,
+`built_at=2026-09-13` — no new MACRO/MICRO wave matured, because grading
+itself still hasn't run successfully since before that date.
 
-**🔴 NEW evidence this pass — the advisor has produced zero new guidance
-for 5 straight weekdays.** `portfolio_advice` has **0 rows since
-2026-09-10** (1,220 rows that day; 0 on 09-11, 09-14, 09-15, 09-16, 09-17),
-`brain_status=IDLE` since 2026-09-13 17:14 UTC. Same root cause as [P-42]
-(`enc_token` stale since 2026-09-10 03:17 UTC — the exact day this stopped):
-a fresh token paste should restore the daily advisor run as well as clear
-the grading backlog. Folded into [P-42] below rather than a new item, since
-the fix is identical.
+**🔴 [P-42] STILL OPEN — third straight review, zero remediation, token now
+10 days stale.** `app_config.grading_incident` (written 2026-09-19 18:31
+UTC): `TOKEN_EXPIRED 2026-09-20: 169/204 due rows could not authenticate; 0
+graded.` Identical 169/204 count to every reading since 09-13. `enc_token`
+last refreshed **2026-09-10 03:17 UTC**. Same root cause silences the
+advisor's own daily run: `portfolio_advice` has had **0 rows since
+2026-09-10** (8,887 total rows all-time) — **6 straight silent weekdays**
+now (09-11, 09-14, 09-15, 09-16, 09-17, 09-18), `brain_status=IDLE` since
+09-13 17:14 UTC. Nothing new mechanically; this pass adds only more of the
+same evidence, now spanning three consecutive reviews with no action taken.
+A fresh token paste would clear the 204-row backlog and put the graded pool
+at ≈398 — on the doorstep of the n=400 read.
+
+**🔵 New this pass — Supabase DB growth has NOT paused despite the brain
+being fully dark.** DB size **152 → 158 MB (30.4% → 31.6%)**, +6 MB in 3
+days, while `brain_activity`/`brain_decisions`/`portfolio_advice` all show
+**0 new rows in the last 10 days**. Traced it: `amfi_nav` (19 MB, 68,486
+rows) is fresh as of **2026-09-19 18:30 UTC** — a separate NAV-ingestion job
+that runs on its own schedule, independent of `enc_token` and the brain.
+This corrects the 09-13 read that growth had "paused" during the outage —
+it hadn't, a second independent writer keeps the clock running. Still not
+urgent on this trajectory; noted for whoever finally makes the [P-38] tier
+call.
+
+`git log -25` shows nothing shipped since the last chore commit (`d9357b5`,
+09-17 post-session) besides this pass's own docs edits — no board move
+needed beyond [P-42]'s evidence update. Dashboard API
+(`zerodha-trading-liard.vercel.app`) unreachable from this environment again
+(connection timeout) — same as every recent pass; all numbers above measured
+directly against Supabase prod.
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
 
@@ -44,41 +63,39 @@ intact. The board's live surface going forward is the **advisor's grading
 accrual** (toward n=400, POST_MORTEM §6) and routine docs/data hygiene
 ([P-38] DB size) — nothing else earns new engineering.
 
-**This pass (weekly review):** re-measured the gate metrics fresh against
-prod. **Trading metrics are frozen and always will be** — `trades`/
-`trading_sessions` cannot grow, confirmed via `trading_sessions`
+**This pass (weekly review, 2026-09-20):** re-measured the gate metrics
+fresh against prod. **Trading metrics are frozen and always will be** —
+`trades`/`trading_sessions` cannot grow, confirmed via `trading_sessions`
 (`max(started_at) = 2026-08-28 06:54:59 UTC`, 0 rows since). PF **0.3685**,
 expectancy **−0.4213R**, max drawdown **≈−₹59,206.27** — identical to every
 reading since the 08-28 freeze, and identical to POST_MORTEM's frozen
 headline. No gate flip; none is possible now.
 
-**What actually moved this week — the advisor, which is still live:**
-- `graded_calls` **98 → 194** (an 81-row MACRO wave + 8 MICRO matured
-  2026-09-08), ECE **22.1% → 12.4%**, hit rate 0.6134 absolute / 0.6340 alpha,
-  rank-based AUC (alpha) **≈0.5216** (was 0.4917/0.5133 at n=98) — a real
-  move, but not materially above 0.5 and well short of the n=400
-  pre-registered read; recorded as a data point per V-19/V-20's own
-  no-interim-peeking discipline, not a reopening of [P-18].
-- **🔴 NEW finding — grading itself stalled 2026-09-13.**
-  `app_config.grading_incident`: `TOKEN_EXPIRED 2026-09-13: 169/204 due rows
-  could not authenticate; 0 graded.` `enc_token` stale since 2026-09-10
-  03:17 UTC. **204 rows are due and blocked on a token paste** — clearing
-  this would put the graded pool at ≈398, on the doorstep of the n=400 read.
-  See **[P-42]** below, the one live Ready item this pass produces.
-- **I-7 (session labelling)** — the gap that sat open 3 straight weekly
-  reviews (08-28's 409 decisions unlabelled) is now **CLOSED**: re-queried,
-  0 missing across 08-24→08-28. Closed by someone with brain-repo access
-  before/during the decommission work, not previously reflected here.
-- Supabase DB: **135 MB → 148 MB** (27.1% → 29.6%), growing far slower now
-  that only advisor/grading writes land. [P-38] undecided, not urgent on this
-  trajectory.
+**The advisor — the only metric that can still move — didn't move this
+week, because it's still blocked:**
+- `graded_calls` **stuck at 194** (was 98 → 194 on the 09-08 MACRO wave;
+  nothing has matured since), ECE **12.4%**, still `monotonic=false`,
+  `built_at=2026-09-13` unchanged. 194/400 = 48.5% of the way to the
+  pre-registered read — unmoved for two consecutive weekly reviews.
+- **[P-42] grading stall is now in its third consecutive weekly reading
+  with zero remediation.** `app_config.grading_incident` (2026-09-20):
+  `TOKEN_EXPIRED: 169/204 due rows could not authenticate; 0 graded.`
+  Identical 169/204 count since 09-13. `enc_token` last refreshed
+  **2026-09-10 03:17 UTC — 10 days stale**. Same block silences the
+  advisor's daily run: `portfolio_advice` 0 rows since 2026-09-10, **6
+  straight silent weekdays** (09-11, 09-14→09-18), `brain_status=IDLE`
+  since 09-13. Clearing the backlog would put the graded pool at ≈398 — on
+  the doorstep of n=400. See **[P-42]** below, still the one live Ready item.
+- Supabase DB: **152 → 158 MB** (30.4% → 31.6%), +6 MB in 3 days —
+  **despite zero new rows in `brain_activity`/`brain_decisions`/
+  `portfolio_advice` over the same window.** The growth is `amfi_nav` (a
+  separate NAV-ingestion job, fresh as of 2026-09-19), independent of the
+  brain outage. [P-38] undecided, not urgent on this trajectory, but the
+  "growth paused during the outage" read from 09-13 is corrected: it hasn't.
 
-**git log check:** three commits landed since the last pass's chore commit
-(`b8fe60a`, 09-06) — `64f578c`/`153b7c5` (review housekeeping, already
-reflected above) and the decommission chain `b68153e`…`8918ecb` (09-09/09-10:
-POST_MORTEM, V-16/V-17/V-18/V-19/V-20, alpha-label grading). All now
-reflected in this pass; no further board move needed beyond [P-42] below and
-the retirements noted throughout.
+**git log check:** nothing shipped since the last chore commit (`d9357b5`,
+09-17 post-session) besides this pass's own docs edits — no board move
+needed beyond [P-42]'s evidence update.
 
 **Prior weekly gate-measure detail (08-23 through 09-06, all pre-decommission
 and now historical):** [reference/GATE_MEASURES.md](reference/GATE_MEASURES.md).
@@ -96,22 +113,22 @@ and POST_MORTEM §7's final invariant sweep for the closing numbers.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-09-13 (weekly, post-decommission)
+## 📊 Gate re-measure — latest 2026-09-20 (weekly, post-decommission)
 
 **PF 0.3685 · expectancy −0.4213R · max drawdown ≈−₹59,206.27 — frozen
 forever, decommissioned 2026-09-09.** These three numbers can never move
 again; re-confirmed byte-identical fresh against prod this pass. **Advisor
-ECE 12.4% (n=194)**, up from n=98 as a MACRO wave matured 09-08 — the one
-metric that still moves, since the advisor was not decommissioned. No gate
-flip on either front: the trading gate is frozen deep in reject territory
-(VISION §6.1) and the advisor's own pre-registered read is not due until
-n=400 graded calls (currently 194, plus 204 due-but-blocked on a token — see
-[P-42]).
+ECE 12.4% (n=194), unchanged since 09-13** — the one metric that can still
+move is currently not moving, because grading has been blocked on a stale
+`enc_token` for 10 straight days (see [P-42]). No gate flip on either front:
+the trading gate is frozen deep in reject territory (VISION §6.1) and the
+advisor's own pre-registered read is not due until n=400 graded calls
+(currently 194, plus 204 due-but-blocked on a token — see [P-42]).
 Full history, method and the 3-lens read:
 **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** (historical from
 here on — trading figures cannot change; only the advisor rows will update).
-Next due Sunday 09-20, though a fresh token paste clearing the grading
-backlog could trigger the n=400 read before then.
+Next due Sunday 09-27, unless a token paste clears the backlog first and
+triggers the n=400 read before then.
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -303,6 +320,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   `brain_status=IDLE`. Not a new item — the fix is the same token paste —
   but this raises the cost of leaving it unpasted from "grading backlog
   grows" to "the advisor has stopped giving guidance at all."_
+  _**2026-09-20 evidence — third straight review, still unpasted.**
+  `enc_token` is now **10 days stale** (since 2026-09-10 03:17 UTC).
+  `app_config.grading_incident` recurred again (`TOKEN_EXPIRED 2026-09-20:
+  169/204 due rows`), identical count to every prior reading.
+  `portfolio_advice` now shows **6 straight silent weekdays** (through
+  09-18). No mechanism has changed — this is the same one-token-paste fix
+  that has been sitting Ready since 09-13. Flagging plainly: this is the
+  single highest-leverage action available on the entire board and remains
+  untaken._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
