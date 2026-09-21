@@ -4,8 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-20** (Sun, weekly review) — see today's findings
-immediately below._
+_Last updated: **2026-09-21** (Mon, post-session review) — see today's
+finding immediately below; last substantive weekly review remains
+2026-09-20._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -41,6 +42,48 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-21 post-session — [P-42] token finally refreshed, grading resumed; daily advisor guidance still dark
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**🟢 [P-42]'s root cause moved for the first time since 09-13.** `enc_token`
+was refreshed **2026-09-20 08:00:36 UTC (13:30 IST)** — the first paste in
+10 days. `app_config.grading_incident` went from `TOKEN_EXPIRED` to
+**blank** on its next scheduled write (2026-09-20 18:31:12 UTC): the nightly
+grading run authenticated and processed its backlog. Directly verified
+against `portfolio_advice`: **83 rows graded that run** (max
+`evaluated_at` = 2026-09-20 18:31:11 UTC), taking the graded pool
+(`outcome_correct is not null`) from **194 → 277** — **69.25% of the way**
+to the n=400 pre-registered read (was 48.5% on 09-20).
+
+**⚠️ Two things have NOT moved despite the working token, so [P-42] stays
+open rather than closing:**
+1. **`app_config.advisor_calibration_latest` is stale** — still shows
+   `graded_calls=194`, ECE 12.4%, `built_at=2026-09-13`, none of which
+   reflects the new 277-row pool. This snapshot needs its own recompute
+   before the ECE/monotonicity numbers on this board mean anything current.
+2. **`portfolio_advice` still has zero new rows since 2026-09-10** — max
+   `created_at` unchanged at `2026-09-10 09:43:37 UTC`, and `brain_status`
+   is still `IDLE` (last updated 2026-09-13 17:14 UTC). That is **7 straight
+   silent weekdays** now (09-11, 09-14, 09-15, 09-16, 09-17, 09-18, and
+   today 09-21). Since the same token now authenticates fine for grading,
+   the daily HOLD/TRIM/SELL advisor cycle silence can no longer be blamed
+   purely on a stale token — something else is keeping that run from
+   firing, and it needs its own look rather than assuming the token paste
+   alone will fix it.
+
+DB size unchanged at **158 MB (31.6%)** — no material growth since 09-20,
+consistent with a grading run (mostly `UPDATE`s) rather than new session
+writes. `git log -25` shows nothing shipped since the last chore commit
+(`8707bfb`, 09-20 weekly review) besides this pass's own docs edits — no
+code-based board move.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-09-20 weekly review — token 10 days stale, third straight review with zero remediation
 
