@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-21** (Mon, post-session review) — see today's
+_Last updated: **2026-09-22** (Tue, post-session review) — see today's
 finding immediately below; last substantive weekly review remains
 2026-09-20._
 
@@ -42,6 +42,41 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-22 post-session — the 09-20 token already expired again; grading blocked a second time in 2 days
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**🔴 [P-42] regressed — the `enc_token` pasted 2026-09-20 08:00:36 UTC has
+already expired.** `app_config.grading_incident` (written today):
+`TOKEN_EXPIRED 2026-09-22: 100/121 due rows could not authenticate; 0
+graded.` The graded pool is unchanged at **277** (69.25% of n=400) since
+the 09-20 run — today's incident blocked before grading any of the 121
+newly-due rows. **New data point on the token's own lifespan: this paste
+lasted ~2 days before expiring**, far shorter than the 10-day span the
+prior paste (09-10 → grading-blocked-by-09-13) implied. Not enough
+readings yet to call a pattern, but worth carrying forward for [P-03]/
+[P-42] — a token that expires this fast makes the grading path fragile
+even with regular manual pastes.
+
+`advisor_calibration_latest` remains stale (`graded_calls=194`,
+`built_at=2026-09-13`, unchanged) — still not recomputed against the 277
+pool from 09-20, now further behind.
+
+`portfolio_advice` still has **zero new rows since 2026-09-10**,
+`brain_status=IDLE` (unchanged since 09-13) — **8 straight silent
+weekdays** now (09-11, 09-14→09-18, 09-21, 09-22).
+
+DB size **158 → 159 MB (31.6% → 31.8%)** — negligible, in line with the
+slow post-decommission growth rate; not a new finding.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (curl returned nothing / connection failure) — same as
+every recent pass; all numbers above measured directly against Supabase
+prod. `git log -25` shows nothing shipped since the last chore commit
+(`31eff05`, 09-21 post-session) — no code-based board move.
 
 ## 📈 2026-09-21 post-session — [P-42] token finally refreshed, grading resumed; daily advisor guidance still dark
 
