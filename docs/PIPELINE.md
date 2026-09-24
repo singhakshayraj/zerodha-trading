@@ -5,33 +5,33 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-09-23** (Wed, post-session review) · Burn-down: **24
+_Last updated: **2026-09-24** (Thu, post-session review) · Burn-down: **24
 shipped + verified live / 0 in-progress / 6 ready (all but [P-42] paused by
 the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
 
-**2026-09-23 post-session pass:** no new trading session (none ever will —
+**2026-09-24 post-session pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
 both unchanged (1,018) since 08-28. `git log -25` shows nothing shipped
-since the last chore commit (`b65e55b`, 09-22 post-session) besides this
+since the last chore commit (`6d610f3`, 09-23 post-session) besides this
 pass's own docs edits — no code-based board move. Dashboard API
 (`zerodha-trading-liard.vercel.app`) unreachable from this environment again
 — same as every recent pass; all numbers below measured directly against
 Supabase prod.
 
-**🔴 [P-42] still open — same expired token, third straight day, no repaste.**
-`app_config.grading_incident` (written today): `TOKEN_EXPIRED 2026-09-23:
+**🔴 [P-42] still open — same expired token, fourth straight day, no repaste.**
+`app_config.grading_incident` (written today): `TOKEN_EXPIRED 2026-09-24:
 100/121 due rows could not authenticate; 0 graded.` — identical **100/121**
-count to yesterday. `enc_token.updated_at` confirms still **2026-09-20
-08:00:36 UTC**, no repaste since — the token that (per 09-22) expired only
-~2 days after that paste has now sat unfixed for a third consecutive
-weekday. Graded pool unchanged at **277** (69.25% of n=400).
+count to both 09-22 and 09-23. `enc_token.updated_at` confirms still
+**2026-09-20 08:00:36 UTC**, no repaste since — the token that (per 09-22)
+expired only ~2 days after that paste has now sat unfixed for a fourth
+consecutive weekday. Graded pool unchanged at **277** (69.25% of n=400).
 `advisor_calibration_latest` remains stale (`graded_calls=194`,
 `built_at=2026-09-13`). `portfolio_advice` still 0 new rows since
-2026-09-10, `brain_status=IDLE` — **9 straight silent weekdays**
-(09-11, 09-14→09-18, 09-21, 09-22, 09-23). See updated evidence under
+2026-09-10, `brain_status=IDLE` — **10 straight silent weekdays**
+(09-11, 09-14→09-18, 09-21, 09-22, 09-23, 09-24). See updated evidence under
 [P-42] below.
 
-DB size **159 → 160 MB (32.0%)** — negligible growth, in line with the
+DB size **160 → 163 MB (32.5%)** — negligible growth, in line with the
 slow post-decommission rate.
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
@@ -340,6 +340,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   extends to **9 straight silent weekdays** (09-11, 09-14→09-18, 09-21,
   09-22, 09-23). No new mechanism — same one-token-paste fix, still
   untaken._
+  _**2026-09-24 evidence — fourth straight day, identical reading a third
+  time.** `grading_incident` today: `TOKEN_EXPIRED 2026-09-24: 100/121 due
+  rows` — the same count as both 09-22 and 09-23 (three consecutive
+  identical readings). `enc_token.updated_at` still 2026-09-20 08:00:36
+  UTC. Graded pool still 277. `portfolio_advice` extends to **10 straight
+  silent weekdays** (09-11, 09-14→09-18, 09-21, 09-22, 09-23, 09-24). No
+  new mechanism — same one-token-paste fix, still untaken._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual

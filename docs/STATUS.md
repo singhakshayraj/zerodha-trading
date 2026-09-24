@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-23** (Wed, post-session review) — see today's
+_Last updated: **2026-09-24** (Thu, post-session review) — see today's
 finding immediately below; last substantive weekly review remains
 2026-09-20._
 
@@ -42,6 +42,35 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-24 post-session — [P-42] still open, third straight identical reading (100/121); advisor now 10 silent weekdays
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**[P-42] unchanged — third straight day with the identical signature, no
+repaste.** `app_config.grading_incident` (written today): `TOKEN_EXPIRED
+2026-09-24: 100/121 due rows could not authenticate; 0 graded.` — identical
+**100/121** count to both 09-22 and 09-23. `enc_token.updated_at` confirms
+still **2026-09-20 08:00:36 UTC** (no repaste since) — the token that
+expired ~2 days after that paste has now sat unfixed for a fourth
+consecutive weekday. Graded pool unchanged at **277** (69.25% of n=400).
+`advisor_calibration_latest` still stale (`graded_calls=194`,
+`built_at=2026-09-13`).
+
+`portfolio_advice` still **0 new rows since 2026-09-10**, `brain_status=IDLE`
+— **10 straight silent weekdays** now (09-11, 09-14→09-18, 09-21, 09-22,
+09-23, 09-24).
+
+DB size **160 → 163 MB (32.0% → 32.5%)** — negligible, in line with the
+slow post-decommission growth rate; not a new finding.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod. `git log
+-25` shows nothing shipped since the last chore commit (`6d610f3`, 09-23
+post-session) — no code-based board move.
 
 ## 📈 2026-09-23 post-session — [P-42] still open, third straight day on the same expired token; advisor now 9 silent weekdays
 
