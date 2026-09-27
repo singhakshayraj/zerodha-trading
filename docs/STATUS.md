@@ -4,9 +4,8 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-24** (Thu, post-session review) — see today's
-finding immediately below; last substantive weekly review remains
-2026-09-20._
+_Last updated: **2026-09-27** (Sun, weekly review) — see today's entry
+immediately below._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -42,6 +41,70 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-27 weekly review — fourth straight week zero remediation; the automated daily review itself went dark two days
+
+**Trading gate metrics — re-confirmed byte-identical, as expected (frozen
+forever).** `trades`: 1,018 closed / 936 with `r_multiple`. PF **0.3685**
+(gross win ₹34,540.15 / gross loss ₹93,735.40), expectancy **−0.4213R**, net
+**−₹59,195.25**. `trading_sessions.max(started_at)` unchanged at 2026-08-28
+06:54:59 UTC. No gate flip; none is possible now (VISION §6.1: >1.3 go /
+<1.1 reject — PF stays deep in reject territory). Gate #6 (the historical
+backtest) remains retired/blocked on the user decision; not treated as an
+edge conclusion.
+
+**Advisor calibration — still stale, now a full week behind the graded
+pool it should reflect.** `app_config.advisor_calibration_latest`:
+`graded_calls` **194** (unchanged), ECE **12.4%**, `monotonic=false`,
+`built_at=2026-09-13`. The actual graded pool in `portfolio_advice`
+(`outcome_correct is not null`) is **277** — unchanged since 09-21, so no
+new MICRO/MACRO batch has matured this week either, but the snapshot has
+now sat stale for two full weekly reviews (09-20, 09-27) despite 83 rows'
+worth of headroom to recompute against. 277/400 = 69.25% of the way to the
+pre-registered n=400 read.
+
+**🔴 [P-42] STILL OPEN — fourth consecutive weekly review, zero
+remediation, `enc_token` now 7 days stale.** `enc_token.updated_at`
+unchanged at **2026-09-20 08:00:36 UTC**. `app_config.grading_incident`
+(written 2026-09-26 18:30:50 UTC / 00:00 IST 09-27): `TOKEN_EXPIRED
+2026-09-27: 100/121 due rows could not authenticate; 0 graded` — the
+identical **100/121** signature every daily reading has shown since
+09-22. Pasting a fresh token would clear the backlog and push the graded
+pool to ≈398, on the doorstep of n=400.
+
+**`portfolio_advice` — zero new rows since 2026-09-10, now 12 silent
+weekdays** (09-11, 09-14→09-18, 09-21→09-26). `brain_status=IDLE` since
+2026-09-13 17:14 UTC.
+
+**⚠️ NEW this pass — the automated daily post-session review itself went
+dark for two weekdays.** `git log` shows a `chore(review): post-session`
+commit for every weekday from 09-13 through 09-24 (`a1ff8ec` on 09-24), then
+**nothing for 09-25 (Thu) or 09-26 (Fri)** — no docs commit either day,
+unlike every prior weekday since the cadence started. The brain's own
+nightly job kept writing `grading_incident` on schedule (confirmed above),
+so the underlying infra is alive; this is specifically the scheduled
+Claude review that stopped firing or stopped committing. Nothing material
+was missed as evidence (the token/grading signature is unchanged from
+09-24), so this is logged as an operational gap worth a look, not a new
+trading/advisor finding — check the routine's trigger
+(`trig_01SfvoCZ5tb7kecKwU6koDrY`) at claude.ai/code/routines.
+
+**Supabase DB size: 163 → 168 MB (32.5% → 33.5% of the 500 MB free tier)** —
++5 MB over three days (175,672,467 bytes exact), consistent with the slow
+post-decommission growth rate (`amfi_nav` ingestion, independent of the
+dark brain). [P-38]'s tier decision stays undecided, not urgent on this
+trajectory.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`CONNECT tunnel failed, response 403`) — same as every
+recent pass; all numbers above measured directly against Supabase prod.
+
+**3-lens sanity:** advisor lens — confidence still carries no measured
+discrimination (AUC not materially above 0.5, [P-18] verdict stands),
+unchanged this week. Trader lens — PF gate frozen deep in reject territory,
+no flip possible. Engineer lens — the one open risk is still [P-42]'s
+single-token dependency, now compounded by the review-cadence gap noted
+above; no new code risk found.
 
 ## 📈 2026-09-24 post-session — [P-42] still open, third straight identical reading (100/121); advisor now 10 silent weekdays
 

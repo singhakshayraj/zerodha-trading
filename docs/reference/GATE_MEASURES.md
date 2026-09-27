@@ -9,7 +9,44 @@ numbers and links here.
 **The gates** (VISION §6.1): profit factor **>1.3 go / <1.1 reject**; expectancy
 positive; advisor calibration is DARK and not scored.
 
-## Latest — 2026-09-13 (weekly, post-decommission)
+## Latest — 2026-09-27 (weekly, post-decommission)
+
+**No change on either front.** PF/expectancy/max-drawdown remain frozen
+forever (decommissioned 2026-09-09). Advisor calibration snapshot is
+unchanged too, but for a worse reason than "nothing matured" — grading has
+been blocked on the same expired `enc_token` for **7 straight days**, and
+the snapshot itself is now stale against the DB even for what has accrued.
+
+| Metric | Value | vs prior |
+|---|---|---|
+| Profit factor | **0.3685** | frozen — cannot change again |
+| Expectancy | **−0.4213R** | frozen |
+| Max drawdown | **≈−₹59,206.27** | frozen |
+| Advisor calibration ECE (snapshot) | **12.4%**, non-monotonic, n=194, `built_at=2026-09-13` | unchanged since 09-13 — snapshot not recomputed |
+| Advisor graded pool (actual, `portfolio_advice`) | **277** (69.25% of n=400) | unchanged since 09-21 |
+
+🔴 **[P-42] now in its fourth consecutive weekly reading with zero
+remediation.** `app_config.grading_incident` (2026-09-27): `TOKEN_EXPIRED:
+100/121 due rows could not authenticate; 0 graded` — identical to every
+daily reading since 09-22. `enc_token.updated_at` unchanged at 2026-09-20
+08:00:36 UTC. Clearing the backlog would put the graded pool at ≈398, on
+the doorstep of n=400. `portfolio_advice` has had **zero new rows since
+2026-09-10** — 12 straight silent weekdays.
+
+**3-lens sanity:** trader — nothing to read, book closed for good. Advisor
+— no new data to interpret; the 277-row pool hasn't grown and the snapshot
+hasn't caught up to it either. Engineer — same single-token dependency as
+every prior week, now compounded by a separate, newly-noticed gap: the
+automated daily post-session review produced no commit on 09-25 or 09-26
+(last chore commit `a1ff8ec`, 09-24) — worth checking the trigger, not
+itself a trading/advisor finding.
+
+No go/no-go gate flipped — none can, on the trading side. See
+[PIPELINE.md](../PIPELINE.md) for the full readout.
+
+---
+
+## Latest (historical) — 2026-09-13 (weekly, post-decommission)
 
 **Trading engine decommissioned 2026-09-09** (full record:
 [POST_MORTEM.md](POST_MORTEM.md)). PF/expectancy/max-drawdown are now frozen
