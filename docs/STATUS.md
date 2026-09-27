@@ -4,8 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-27** (Sun, weekly review) — see today's entry
-immediately below._
+_Last updated: **2026-09-27** (Sun, weekly review). See the **▶️ START HERE**
+block below for the exact resume point (the "📍 Exact resume point" sub-block);
+this week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -462,6 +463,53 @@ Prior entries: `git log docs/STATUS.md`._
 ---
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
+
+### 📍 Exact resume point — 2026-09-27
+
+**Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
+`brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
+decommissioned 2026-09-09 — do not restart it without an explicit decision; it
+fails its own reopening criteria, see POST_MORTEM §5).
+
+**The one high-value action, ~one token-paste away — the n=400 decision read:**
+- Grading is at **277 graded calls**, with **121 more matured but token-blocked**
+  (`app_config.grading_incident` = "TOKEN_EXPIRED 2026-09-27: 100/121 due rows
+  could not authenticate" — item-1's loud-failure surface working as designed).
+- **277 + 121 ≈ 398 → n=400 is essentially reachable in one grading pass.**
+- **Do this:** paste a fresh `enc_token`, then run grading
+  (`python3 scripts/grade_advice.py` in the brain, or let the idle loop's
+  catch-up fire). Draining the 121 due rows takes the pool to ~398.
+- **If it crosses 400, execute the pre-registered read (V-20):** hit-rate CI vs
+  0.50 on the **alpha** label (`outcome_correct_alpha`), judged against the
+  **deflated threshold z ≥ 3.72** (trial ledger = 253 trials), NOT 1.96. Per
+  V-20's pre-commitment: a positive that contradicts the 164-date out-of-sample
+  null (Part B / V-18) is **an anomaly requiring explanation, not a discovery.**
+  Do NOT interim-peek at the 277 before the token drains it to n=400.
+
+**Healthy, needs nothing:** AMFI NAV ingest — 108,632 rows, current to today
+(the 8-column parser fix holds). Advisor last ran 09-10, so `/advisor` universe
+scores are stale ~17d — use the new per-name **"Analyse this name live"** button
+(brain `score_one_symbol` / `_maybe_serve_lookup`), or force a full refresh via
+`app_config.advisor_run_now='true'` once a token is live.
+
+**Gated on the operator (name them, don't guess):**
+- **Whole-book Part A** — needs the 3 FoF mappings CONFIRMED in
+  `holding_scheme_map` (currently `0 confirmed`): scheme code + units per fund,
+  plus any other funds held. Candidate FoF codes already produced (Direct-Growth:
+  DSP 153487, ICICI 149775, Motilal 150642 — confirm the exact plan/option).
+  Then a token → fresh holdings snapshot (only one exists, 2026-09-09) → Part A
+  whole-book numbers.
+- **Sleeve drift/band layer** — needs target sleeve weights + band widths.
+- **Housekeeping:** offsite copy of `~/Desktop/zerodha-decommission-2026-09-09/`;
+  verify/delete `KITE_TOTP_SECRET` + `KITE_PASSWORD` from Railway; rotate the
+  Telegram bot token via BotFather.
+
+**Do NOT:** restart trading (needs explicit reversal of the decommission); run
+new return-prediction analysis (trial ledger z ≥ 3.72 — nothing in that class
+survives; the design review said stop building analysis).
+
+---
+
 
 _Superseded — this whole section described a daily trading runbook. There is
 no more trading engine to run a runbook for; kept below for the historical

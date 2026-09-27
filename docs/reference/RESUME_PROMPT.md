@@ -49,23 +49,27 @@ Context up front:
   than re-querying prod, and they leave the full audit queued, so expect to
   rebase and still run the real sweep yourself.
 
-If a session is running or has run today, verify + audit:
-- git_sha on the session stamps the deployed brain SHA (confirms the deploy chain).
-- Capture health: trades / brain_decisions nulls + decision→trade link count,
-  portfolio_advice run cadence, stock_observations phases, candles.
-- Then /post-session-check + /counterfactual-audit — but only AFTER market close
-  (~10:00 UTC / 15:30 IST); auditing a live session misreports.
+NOTE (since 2026-09-09): the intraday TRADING engine is DECOMMISSIONED — no
+sessions run any more, so the session-audit flow below is HISTORICAL. Do not
+restart trading without an explicit decision (it fails its own reopening
+criteria; POST_MORTEM §5). The live subsystem is the advisor only.
+- (historical) git_sha stamped the deployed brain SHA; capture health was
+  trades/decisions/link-count/advice cadence/candles; /post-session-check +
+  /counterfactual-audit ran only after market close. None of this applies now.
 
-Standing conclusion: no proven edge, now with a sharper number. [P-21] found no
-feature-based entry edge that holds out-of-sample, and no dark flag has earned
-ENABLE (trend-tells went +0.134, +0.182, then −0.093 — streak broken, stays dark).
-[P-29] `/autopsy` then showed **no exit policy rescues the book either**, and
-[P-30]'s candle replay sharpened that to an exact number: none of 180 policies
-clears breakeven, and **none clears it even at zero transaction cost** (best
-−0.077R). So the entries are slightly worse than a coin flip and there is no
-cost structure that rescues them — the edge has to come from the entries. The
-verdict still rests on gate #6, blocked on the Kite ₹500 decision. Work the
-PIPELINE board; pull the top Ready item.
+Standing conclusion (SETTLED — the trading engine is decommissioned, 2026-09-09):
+no edge, and the loss is an identity — cost in R = friction ÷ stop ≈ 0.424R,
+which equals measured expectancy, so no configuration escapes it. The
+out-of-sample verdict replay (Part B / V-18: 164 independent dates) is null, and
+SEBI's Algo-ID framework makes the scraped-token architecture non-compliant for
+live automation. Full record: reference/POST_MORTEM.md; every hypothesis counted
+in reference/TRIAL_LEDGER.md (253 trials → significance bar z ≥ 3.72).
+
+Current mode = advisor-only + engineering freeze. Do NOT "work the board" or
+re-open gate #6 — both are superseded. The ONE live thing is the pre-registered
+advisor decision read at n=400 (V-20). Start at STATUS's "▶️ START HERE" block
+(the "📍 Exact resume point" sub-block) — it names the immediate action and what
+is gated on the operator. Do not run new return-prediction analysis.
 ```
 
 ---
