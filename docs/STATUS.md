@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-27** (Sun, weekly review). See the **▶️ START HERE**
+_Last updated: **2026-09-28** (Mon, post-session). See the **▶️ START HERE**
 block below for the exact resume point (the "📍 Exact resume point" sub-block);
 this week's review entry and older entries follow._
 
@@ -42,6 +42,37 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-09-28 post-session — [P-42] unchanged, enc_token now 8 days stale; review cadence resumed
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**[P-42] unchanged — same signature, no repaste.** `app_config
+.grading_incident` (written today): `TOKEN_EXPIRED 2026-09-28: 100/121 due
+rows could not authenticate; 0 graded.` — identical **100/121** count to
+every recorded reading since 09-22. `enc_token.updated_at` confirms still
+**2026-09-20 08:00:36 UTC — now 8 days stale**. Graded pool unchanged at
+**277** (69.25% of n=400). `advisor_calibration_latest` still stale
+(`graded_calls=194`, `built_at=2026-09-13`, now unreflective of the 277 pool
+for a second week running).
+
+`portfolio_advice` still **0 new rows since 2026-09-10**, `brain_status=IDLE`
+(unchanged since 2026-09-13) — **13 straight silent weekdays** now (09-11,
+09-14→09-18, 09-21→09-26, 09-28).
+
+DB size **168 → 169 MB (33.5% → 33.8%)** — negligible, consistent with the
+slow post-decommission `amfi_nav` growth rate; not a new finding.
+
+**Review-cadence gap from last week (09-25/09-26, flagged 09-27) — no new
+evidence on cause.** This pass posted normally, so the cadence has resumed;
+`git log -25` shows nothing shipped since the 09-27 weekly-review commits
+(`5ee0967`, `5d6319c`) — no code-based board move.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`CONNECT tunnel failed, response 403`) — same as every
+recent pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-09-27 weekly review — fourth straight week zero remediation; the automated daily review itself went dark two days
 
@@ -464,7 +495,7 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-09-27
+### 📍 Exact resume point — 2026-09-28
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
@@ -473,7 +504,7 @@ fails its own reopening criteria, see POST_MORTEM §5).
 
 **The one high-value action, ~one token-paste away — the n=400 decision read:**
 - Grading is at **277 graded calls**, with **121 more matured but token-blocked**
-  (`app_config.grading_incident` = "TOKEN_EXPIRED 2026-09-27: 100/121 due rows
+  (`app_config.grading_incident` = "TOKEN_EXPIRED 2026-09-28: 100/121 due rows
   could not authenticate" — item-1's loud-failure surface working as designed).
 - **277 + 121 ≈ 398 → n=400 is essentially reachable in one grading pass.**
 - **Do this:** paste a fresh `enc_token`, then run grading

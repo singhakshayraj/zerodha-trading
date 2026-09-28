@@ -5,36 +5,30 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-09-27** (Sun, weekly review) · Burn-down: **24
+_Last updated: **2026-09-28** (Mon, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 6 ready (all but [P-42] paused by
 the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
 
-**2026-09-27 weekly review pass:** no new trading session (none ever will —
+**2026-09-28 post-session pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
-both unchanged (1,018) since 08-28. Gate metrics re-measured fresh against
-prod, byte-identical to every reading since the freeze (PF 0.3685,
-expectancy −0.4213R, net −₹59,195.25) — no gate flip, none possible. `git
-log` shows the last chore commit is `a1ff8ec` (09-24 post-session); **no
-docs commit landed 09-25 or 09-26**, the first gap in the daily review
-cadence since it started — see the STATUS.md 09-27 entry for detail.
-Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
-environment again — same as every recent pass; all numbers below measured
-directly against Supabase prod.
+both unchanged (1,018) since 08-28. `git log -25` shows nothing shipped since
+the 09-27 weekly-review commits (`5ee0967`, `5d6319c`) — no code-based board
+move. Review cadence resumed normally this pass after last week's 09-25/09-26
+gap. Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`CONNECT tunnel failed, response 403`) — same as every
+recent pass; all numbers below measured directly against Supabase prod.
 
-**🔴 [P-42] still open — same expired token, now 7 days stale, fourth
-consecutive weekly review with zero remediation.** `app_config
-.grading_incident` (written 2026-09-26 18:30:50 UTC / 00:00 IST 09-27):
-`TOKEN_EXPIRED 2026-09-27: 100/121 due rows could not authenticate; 0
-graded.` — identical **100/121** count to every reading since 09-22.
-`enc_token.updated_at` confirms still **2026-09-20 08:00:36 UTC**, no
-repaste in a week. Graded pool unchanged at **277** (69.25% of n=400).
-`advisor_calibration_latest` remains stale (`graded_calls=194`,
-`built_at=2026-09-13` — now two weekly reviews behind the 277 pool it
-should reflect). `portfolio_advice` still 0 new rows since 2026-09-10,
-`brain_status=IDLE` — **12 straight silent weekdays** (09-11, 09-14→09-18,
-09-21→09-26). See updated evidence under [P-42] below.
+**🔴 [P-42] still open — same expired token, now 8 days stale.** `app_config
+.grading_incident` (written today): `TOKEN_EXPIRED 2026-09-28: 100/121 due
+rows could not authenticate; 0 graded.` — identical **100/121** count to
+every reading since 09-22. `enc_token.updated_at` confirms still
+**2026-09-20 08:00:36 UTC**. Graded pool unchanged at **277** (69.25% of
+n=400). `advisor_calibration_latest` remains stale (`graded_calls=194`,
+`built_at=2026-09-13`). `portfolio_advice` still 0 new rows since
+2026-09-10, `brain_status=IDLE` — **13 straight silent weekdays** (09-11,
+09-14→09-18, 09-21→09-26, 09-28). See updated evidence under [P-42] below.
 
-DB size **163 → 168 MB (32.5% → 33.5%)** — negligible growth, in line with
+DB size **168 → 169 MB (33.5% → 33.8%)** — negligible growth, in line with
 the slow post-decommission rate (`amfi_nav` ingestion).
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
@@ -367,6 +361,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   commit `a1ff8ec`, 09-24) — the first gap in that cadence since it
   started; flagged in STATUS.md, not a new [P-42] mechanism. Action is
   unchanged: [you] paste a fresh `enc_token`._
+  _**2026-09-28 evidence — review cadence resumed, `enc_token` now 8 days
+  stale.** `grading_incident` today: `TOKEN_EXPIRED 2026-09-28: 100/121 due
+  rows` — identical count to every reading since 09-22. Graded pool still
+  277. `portfolio_advice` extends to **13 straight silent weekdays** (09-11,
+  09-14→09-18, 09-21→09-26, 09-28). No new mechanism — same one-token-paste
+  fix, still untaken._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
