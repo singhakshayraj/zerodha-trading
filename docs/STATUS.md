@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-09-28** (Mon, post-session). See the **▶️ START HERE**
+_Last updated: **2026-10-01** (Thu, post-session). See the **▶️ START HERE**
 block below for the exact resume point (the "📍 Exact resume point" sub-block);
 this week's review entry and older entries follow._
 
@@ -42,6 +42,48 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-01 post-session — [P-42] unchanged, enc_token now 11 days stale; review cadence gapped a second time (09-29, 09-30 missed)
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` total unchanged at **1,018**) — expected forever
+post-decommission, not re-flagged as a finding on its own.
+
+**[P-42] unchanged — same signature, no repaste.** `app_config
+.grading_incident` (written 2026-09-30 18:30:27 UTC / 00:00 IST 10-01):
+`TOKEN_EXPIRED 2026-10-01: 100/121 due rows could not authenticate; 0
+graded.` — identical **100/121** count to every recorded reading since
+09-22. `enc_token.updated_at` confirms still **2026-09-20 08:00:36 UTC —
+now 11 days stale**. Graded pool unchanged at **277** (69.25% of n=400).
+`advisor_calibration_latest` still stale (`graded_calls=194`,
+`built_at=2026-09-13`, now unreflective of the 277 pool for a third week
+running).
+
+`portfolio_advice` still **0 new rows since 2026-09-10**, `brain_status=IDLE`
+(unchanged since 09-13) — **16 straight silent weekdays** now (09-11,
+09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01).
+
+DB size **169 → 171 MB (33.8% → 34.2%)** — negligible, consistent with the
+slow post-decommission `amfi_nav` growth rate; not a new finding.
+
+**⚠️ NEW this pass — the automated daily review gapped again, a second
+occurrence of the 09-27-flagged pattern.** `git log` shows no
+`chore(review): post-session` commit for **09-29 (Tue) or 09-30 (Wed)** —
+the last commit before this one is `a24977e` (09-28). Neither date is a
+known NSE/bank holiday, and the brain's own nightly job kept writing
+`grading_incident` on schedule regardless (confirmed above, same 100/121
+signature carried through), so this is specifically the scheduled Claude
+review failing to fire or failing to commit, same symptom as the 09-25/
+09-26 gap. Nothing material was missed as evidence (the token/grading
+signature is unchanged since 09-28), so still logged as an operational gap,
+not a new trading/advisor finding — but two occurrences in five reviews is
+a pattern worth the operator checking the routine's trigger
+(`trig_01SfvoCZ5tb7kecKwU6koDrY` at claude.ai/code/routines), not
+assumed self-healing a second time.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-09-28 post-session — [P-42] unchanged, enc_token now 8 days stale; review cadence resumed
 
@@ -495,7 +537,7 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-09-28
+### 📍 Exact resume point — 2026-10-01
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine

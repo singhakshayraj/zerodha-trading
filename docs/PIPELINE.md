@@ -5,30 +5,32 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-09-28** (Mon, post-session) · Burn-down: **24
+_Last updated: **2026-10-01** (Thu, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 6 ready (all but [P-42] paused by
 the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
 
-**2026-09-28 post-session pass:** no new trading session (none ever will —
+**2026-10-01 post-session pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
 both unchanged (1,018) since 08-28. `git log -25` shows nothing shipped since
 the 09-27 weekly-review commits (`5ee0967`, `5d6319c`) — no code-based board
-move. Review cadence resumed normally this pass after last week's 09-25/09-26
-gap. Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
-environment again (`CONNECT tunnel failed, response 403`) — same as every
-recent pass; all numbers below measured directly against Supabase prod.
+move. **Review cadence gapped a second time** — no `chore(review)` commit for
+09-29 or 09-30 (neither an NSE holiday); see STATUS.md 10-01 entry. Dashboard
+API (`zerodha-trading-liard.vercel.app`) unreachable from this environment
+again (`connect_rejected`, org policy) — same as every recent pass; all
+numbers below measured directly against Supabase prod.
 
-**🔴 [P-42] still open — same expired token, now 8 days stale.** `app_config
-.grading_incident` (written today): `TOKEN_EXPIRED 2026-09-28: 100/121 due
-rows could not authenticate; 0 graded.` — identical **100/121** count to
-every reading since 09-22. `enc_token.updated_at` confirms still
-**2026-09-20 08:00:36 UTC**. Graded pool unchanged at **277** (69.25% of
-n=400). `advisor_calibration_latest` remains stale (`graded_calls=194`,
-`built_at=2026-09-13`). `portfolio_advice` still 0 new rows since
-2026-09-10, `brain_status=IDLE` — **13 straight silent weekdays** (09-11,
-09-14→09-18, 09-21→09-26, 09-28). See updated evidence under [P-42] below.
+**🔴 [P-42] still open — same expired token, now 11 days stale.** `app_config
+.grading_incident` (written 2026-09-30 18:30:27 UTC): `TOKEN_EXPIRED
+2026-10-01: 100/121 due rows could not authenticate; 0 graded.` — identical
+**100/121** count to every reading since 09-22. `enc_token.updated_at`
+confirms still **2026-09-20 08:00:36 UTC**. Graded pool unchanged at **277**
+(69.25% of n=400). `advisor_calibration_latest` remains stale
+(`graded_calls=194`, `built_at=2026-09-13`). `portfolio_advice` still 0 new
+rows since 2026-09-10, `brain_status=IDLE` — **16 straight silent
+weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01).
+See updated evidence under [P-42] below.
 
-DB size **168 → 169 MB (33.5% → 33.8%)** — negligible growth, in line with
+DB size **169 → 171 MB (33.8% → 34.2%)** — negligible growth, in line with
 the slow post-decommission rate (`amfi_nav` ingestion).
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
@@ -367,6 +369,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   277. `portfolio_advice` extends to **13 straight silent weekdays** (09-11,
   09-14→09-18, 09-21→09-26, 09-28). No new mechanism — same one-token-paste
   fix, still untaken._
+  _**2026-10-01 evidence — review cadence gapped again (09-29, 09-30
+  missed), `enc_token` now 11 days stale.** `grading_incident` (written
+  2026-09-30 18:30:27 UTC): `TOKEN_EXPIRED 2026-10-01: 100/121 due rows` —
+  identical count to every reading since 09-22. Graded pool still 277.
+  `portfolio_advice` extends to **16 straight silent weekdays** (09-11,
+  09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01). No new mechanism on
+  the grading side — same one-token-paste fix, still untaken. Separately,
+  this is the second time the automated review itself has skipped weekdays
+  (first 09-25/09-26, now 09-29/09-30) — worth the operator checking the
+  routine's trigger rather than assuming a one-off._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
