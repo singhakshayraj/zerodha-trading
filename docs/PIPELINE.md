@@ -5,32 +5,40 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-01** (Thu, post-session) · Burn-down: **24
+_Last updated: **2026-10-04** (Sun, weekly review) · Burn-down: **24
 shipped + verified live / 0 in-progress / 6 ready (all but [P-42] paused by
 the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
 
-**2026-10-01 post-session pass:** no new trading session (none ever will —
+**2026-10-04 weekly review pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
-both unchanged (1,018) since 08-28. `git log -25` shows nothing shipped since
-the 09-27 weekly-review commits (`5ee0967`, `5d6319c`) — no code-based board
-move. **Review cadence gapped a second time** — no `chore(review)` commit for
-09-29 or 09-30 (neither an NSE holiday); see STATUS.md 10-01 entry. Dashboard
-API (`zerodha-trading-liard.vercel.app`) unreachable from this environment
-again (`connect_rejected`, org policy) — same as every recent pass; all
-numbers below measured directly against Supabase prod.
+both unchanged (1,018) since 08-28. Gate metrics re-measured fresh against
+prod and re-confirmed byte-identical (PF 0.3685, expectancy −0.4213R) — see
+the Gate re-measure section below. `git log -25` shows nothing shipped since
+the 09-27 weekly-review commits (`5ee0967`, `5d6319c`) plus the 10-01
+post-session commit (`abac841`) — no code-based board move, nothing to
+re-verify this pass. **Review cadence held** — the only weekday since 10-01
+is 2026-10-02 (Gandhi Jayanti, a fixed NSE/BSE trading holiday), so no
+`chore(review)` commit that day is expected, not a third cadence gap; see
+STATUS.md 10-04 entry. Dashboard API (`zerodha-trading-liard.vercel.app`)
+unreachable from this environment again (`connect_rejected`, org policy) —
+same as every recent pass; all numbers below measured directly against
+Supabase prod.
 
-**🔴 [P-42] still open — same expired token, now 11 days stale.** `app_config
-.grading_incident` (written 2026-09-30 18:30:27 UTC): `TOKEN_EXPIRED
-2026-10-01: 100/121 due rows could not authenticate; 0 graded.` — identical
-**100/121** count to every reading since 09-22. `enc_token.updated_at`
-confirms still **2026-09-20 08:00:36 UTC**. Graded pool unchanged at **277**
-(69.25% of n=400). `advisor_calibration_latest` remains stale
-(`graded_calls=194`, `built_at=2026-09-13`). `portfolio_advice` still 0 new
-rows since 2026-09-10, `brain_status=IDLE` — **16 straight silent
-weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01).
-See updated evidence under [P-42] below.
+**🔴 [P-42] still open — same expired token, now 14 days stale (longest gap
+on record).** `app_config.grading_incident` (written 2026-10-03 18:30:47
+UTC): `TOKEN_EXPIRED 2026-10-04: 100/121 due rows could not authenticate; 0
+graded.` — identical **100/121** count to every reading since 09-22 (8th
+consecutive identical reading). `enc_token.updated_at` confirms still
+**2026-09-20 08:00:36 UTC**. Graded pool unchanged at **277** (69.25% of
+n=400). `advisor_calibration_latest` remains stale (`graded_calls=194`,
+`built_at=2026-09-13` — now stale against the 277 pool for a third
+consecutive weekly review: 09-20, 09-27, 10-04). `portfolio_advice` still 0
+new rows since 2026-09-10, `brain_status=IDLE` — **16 straight silent
+weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01);
+the streak does not extend to 17 because 10-02 is a trading holiday, not a
+missed weekday. See updated evidence under [P-42] below.
 
-DB size **169 → 171 MB (33.8% → 34.2%)** — negligible growth, in line with
+DB size **171 → 176 MB (34.2% → 35.2%)** — negligible growth, in line with
 the slow post-decommission rate (`amfi_nav` ingestion).
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
@@ -96,25 +104,28 @@ and POST_MORTEM §7's final invariant sweep for the closing numbers.
 
 ---
 
-## 📊 Gate re-measure — latest 2026-09-27 (weekly, post-decommission)
+## 📊 Gate re-measure — latest 2026-10-04 (weekly, post-decommission)
 
 **PF 0.3685 · expectancy −0.4213R · max drawdown ≈−₹59,206.27 — frozen
 forever, decommissioned 2026-09-09.** These three numbers can never move
-again; re-confirmed byte-identical fresh against prod this pass. **Advisor
-calibration snapshot still ECE 12.4% (n=194 as recorded, `built_at=2026-09-13`)
-— the one metric that can still move is currently not moving**, because
-grading has been blocked on a stale `enc_token` for 7 straight days (see
-[P-42]). Note the snapshot itself is now stale against the DB: the actual
-graded pool is **277**, not 194 — the calibration recompute is a separate
-gap from the grading stall and hasn't been triggered since 09-13 despite
-83 rows of headroom. No gate flip on either front: the trading gate is
-frozen deep in reject territory (VISION §6.1) and the advisor's own
-pre-registered read is not due until n=400 graded calls (currently 277,
-plus 121 due-but-blocked on a token — see [P-42]).
+again; re-confirmed fresh against prod this pass (PF and expectancy
+byte-identical; drawdown re-derived via a running peak-to-trough sum landed
+≈−₹59,196.80, within ₹10 — exit-time tie-ordering noise, not a new figure).
+**Advisor calibration snapshot still ECE 12.4% (n=194 as recorded,
+`built_at=2026-09-13`) — the one metric that can still move is currently
+not moving**, because grading has been blocked on a stale `enc_token` for
+**14 straight days**, the longest gap on record (see [P-42]). Note the
+snapshot itself is now stale against the DB for a third consecutive weekly
+review: the actual graded pool is **277**, not 194 — the calibration
+recompute is a separate gap from the grading stall and hasn't been
+triggered since 09-13 despite 83 rows of headroom. No gate flip on either
+front: the trading gate is frozen deep in reject territory (VISION §6.1)
+and the advisor's own pre-registered read is not due until n=400 graded
+calls (currently 277, plus 121 due-but-blocked on a token — see [P-42]).
 Full history, method and the 3-lens read:
 **[reference/GATE_MEASURES.md](reference/GATE_MEASURES.md)** (historical from
 here on — trading figures cannot change; only the advisor rows will update).
-Next weekly review due Sunday 2026-10-04, unless a token paste clears the
+Next weekly review due Sunday 2026-10-11, unless a token paste clears the
 backlog first and triggers the n=400 read before then.
 
 ## The feedback loop (how this board is fed + drained)
@@ -379,6 +390,21 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   this is the second time the automated review itself has skipped weekdays
   (first 09-25/09-26, now 09-29/09-30) — worth the operator checking the
   routine's trigger rather than assuming a one-off._
+  _**2026-10-04 weekly-review evidence — fourth consecutive weekly review,
+  `enc_token` now 14 days stale, the longest gap on record.**
+  `grading_incident` (written 2026-10-03 18:30:47 UTC): `TOKEN_EXPIRED
+  2026-10-04: 100/121 due rows` — identical count to every reading since
+  09-22 (8th consecutive identical reading). Graded pool still 277 (69.25%
+  of n=400). `advisor_calibration_latest` still `built_at=2026-09-13`
+  /`graded_calls=194` — stale against the 277 pool for a third consecutive
+  weekly review (09-20, 09-27, 10-04). `portfolio_advice` stays at **16
+  straight silent weekdays** (not 17): the only weekday since 10-01 is
+  2026-10-02, Gandhi Jayanti, a fixed NSE/BSE trading holiday, not a missed
+  day. Review cadence itself held this pass — no gap, since 10-02's missing
+  commit is explained by the holiday rather than a repeat of the 09-25/
+  09-26 and 09-29/09-30 pattern. Action is unchanged: [you] paste a fresh
+  `enc_token`. This is now the fourth consecutive weekly review (09-20,
+  09-27, 10-01 post-session, 10-04) this exact fix has sat Ready, untaken._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual

@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-01** (Thu, post-session). See the **▶️ START HERE**
+_Last updated: **2026-10-04** (Sun, weekly review). See the **▶️ START HERE**
 block below for the exact resume point (the "📍 Exact resume point" sub-block);
 this week's review entry and older entries follow._
 
@@ -42,6 +42,76 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-04 weekly review — [P-42] 14 days stale (longest yet, zero remediation in 4 weekly reviews); review cadence held, calibration snapshot now 3 straight weekly reviews stale
+
+**Trading gate metrics — re-confirmed fresh against prod, frozen forever
+(decommissioned 2026-09-09).** `trades`: **1,018 closed / 936 with
+`r_multiple`**. PF **0.3685** (gross win ₹34,540.15 / gross loss
+₹93,735.40), expectancy **−0.4213R**. Max drawdown re-derived this pass via
+a running peak-to-trough sum over `exit_time` order: **≈−₹59,196.80**,
+within ₹10 of the recorded ≈−₹59,206.27 (exit-time ties ordering
+differently in the running sum; not a new figure, not a regression — the
+gate conclusion is unaffected either way). `trading_sessions.max(started_at)`
+unchanged at 2026-08-28 06:54:59 UTC. **No gate flip; none is possible now**
+(VISION §6.1: >1.3 go / <1.1 reject — PF stays deep in reject territory).
+Gate #6 (the historical backtest) remains retired/blocked on the user
+decision; not treated as an edge conclusion.
+
+**Advisor calibration snapshot — stale for a third consecutive weekly
+review.** `app_config.advisor_calibration_latest`: `graded_calls` **194**
+(unchanged), ECE **12.4%**, `monotonic=false`, `built_at=2026-09-13` —
+now **21 days** behind its own `built_at` and stale against the actual
+277-row graded pool for the 09-20, 09-27, and now 10-04 weekly reviews
+(three in a row). No new MICRO/MACRO batch has matured this week either
+(graded pool unchanged at 277), so there is nothing new to recompute
+against yet — the staleness itself is the only finding, same root cause
+as [P-42].
+
+**🔴 [P-42] STILL OPEN — fourth consecutive weekly review with zero
+remediation, `enc_token` now 14 days stale, the longest gap on record.**
+`app_config.grading_incident` (written 2026-10-03 18:30:47 UTC / 00:00 IST
+2026-10-04): `TOKEN_EXPIRED 2026-10-04: 100/121 due rows could not
+authenticate; 0 graded.` — identical **100/121** signature to every
+reading since 2026-09-22 (now 8 consecutive identical readings).
+`enc_token.updated_at` confirms no repaste since **2026-09-20 08:00:36
+UTC**. Graded pool unchanged at **277** (69.25% of n=400); pasting a fresh
+token would still clear the backlog to ≈398, on the doorstep of the
+pre-registered n=400 read.
+
+**`portfolio_advice` — zero new rows since 2026-09-10; silent-weekday
+streak holds at 16, not 17, because the one weekday since the last
+reading (2026-10-02) is Gandhi Jayanti, a fixed-date NSE/BSE trading
+holiday, not a missed day.** Streak: 09-11, 09-14→09-18, 09-21→09-26,
+09-28, 09-29, 09-30, 10-01 (16 weekdays). `brain_status=IDLE` unchanged
+since 2026-09-13.
+
+**Review cadence held this pass — no new gap.** `git log` shows a
+`chore(review): post-session 2026-10-01` commit (`abac841`) and nothing
+expected for 10-02 (the Gandhi Jayanti holiday) or the 10-03/10-04 weekend.
+Unlike the 09-25/09-26 and 09-29/09-30 gaps (both confirmed non-holiday
+weekdays), this is the normal shape of the calendar — not a recurrence of
+the pattern flagged in the last two weekly reviews. The brain's own
+nightly job kept writing `grading_incident` on schedule through the
+holiday/weekend regardless (confirmed above), consistent with it being a
+cron job independent of NSE market hours.
+
+**Supabase DB size: 171 → 176 MB (34.2% → 35.2%)** — +5 MB in 3 days,
+consistent with the slow post-decommission `amfi_nav` growth rate; not a
+new finding. [P-38]'s tier decision stays undecided, not urgent on this
+trajectory.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
+
+**3-lens sanity:** advisor lens — no new calibration or discrimination
+data this week (pool unchanged at 277); [P-18]'s verdict stands unchanged.
+Trader lens — PF gate frozen deep in reject territory, no flip possible,
+none pending. Engineer lens — the one open risk is still [P-42]'s
+single-token dependency, now at its longest stale streak yet (14 days);
+no new code risk found, nothing shipped this week to verify (`git log`
+shows only this pass's own docs commits since `abac841`).
 
 ## 📈 2026-10-01 post-session — [P-42] unchanged, enc_token now 11 days stale; review cadence gapped a second time (09-29, 09-30 missed)
 
@@ -537,7 +607,7 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-01
+### 📍 Exact resume point — 2026-10-04
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
@@ -546,8 +616,10 @@ fails its own reopening criteria, see POST_MORTEM §5).
 
 **The one high-value action, ~one token-paste away — the n=400 decision read:**
 - Grading is at **277 graded calls**, with **121 more matured but token-blocked**
-  (`app_config.grading_incident` = "TOKEN_EXPIRED 2026-09-28: 100/121 due rows
-  could not authenticate" — item-1's loud-failure surface working as designed).
+  (`app_config.grading_incident` = "TOKEN_EXPIRED 2026-10-04: 100/121 due rows
+  could not authenticate" — item-1's loud-failure surface working as designed,
+  now on its 8th identical consecutive reading; `enc_token` is 14 days stale,
+  the longest gap on record).
 - **277 + 121 ≈ 398 → n=400 is essentially reachable in one grading pass.**
 - **Do this:** paste a fresh `enc_token`, then run grading
   (`python3 scripts/grade_advice.py` in the brain, or let the idle loop's
