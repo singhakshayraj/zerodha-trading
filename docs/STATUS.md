@@ -4,9 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-04** (Sun, weekly review). See the **▶️ START HERE**
-block below for the exact resume point (the "📍 Exact resume point" sub-block);
-this week's review entry and older entries follow._
+_Last updated: **2026-10-06** (Tue, post-session review). See the **▶️ START
+HERE** block below for the exact resume point (the "📍 Exact resume point"
+sub-block); this week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -42,6 +42,55 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-06 post-session — enc_token finally repasted after 16 days stale; grading outcome not yet confirmed; third review-cadence gap (10-05 missed)
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**🟢 [P-42] moved for the first time since 2026-09-20.** `enc_token
+.updated_at` is now **2026-10-05 21:39:20 UTC** — the first repaste since
+**2026-09-20 08:00:36 UTC**, ending the 14+ day stale streak flagged every
+review since 09-27. **But the outcome is not yet confirmed grading-side**:
+`app_config.grading_incident` (written **2026-10-05 18:31:01 UTC**, ~3h
+*before* the paste) still reads `TOKEN_EXPIRED 2026-10-06: 100/121 due rows
+could not authenticate; 0 graded` — identical signature to every reading
+since 09-22, because last night's grading run executed on the old expired
+token before the new one landed. Graded pool unchanged at **277**. The next
+nightly grading run (tonight, ~18:30 UTC) is the first one that will actually
+see the fresh token — carry this to the next pass to confirm whether grading
+resumes and the pool moves toward n=400, rather than assuming success from
+the paste alone.
+
+`advisor_calibration_latest` unchanged (`graded_calls=194`, ECE 12.4%,
+`built_at=2026-09-13`) — still stale against the 277 actual pool, now a
+fourth consecutive reading; no new MICRO/MACRO batch has matured to
+recompute against regardless.
+
+**`portfolio_advice` — zero new rows since 2026-09-10, now 18 straight silent
+weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01,
+10-05, 10-06; 10-02 excluded — confirmed Gandhi Jayanti NSE/BSE holiday).
+`brain_status=IDLE` unchanged since 09-13. The fresh token, even if it holds,
+only fixes grading, not this separate advisor-silence symptom — [P-42]'s own
+09-21 entry already established that needs its own diagnosis once a working
+token is confirmed.
+
+**⚠️ NEW — third occurrence of the automated review itself failing to
+fire/commit on a plain trading weekday.** `git log` shows the last commit
+before this one is `189b7d7` (`chore(review): weekly 2026-10-04`) — **nothing
+for 2026-10-05 (Mon)**, confirmed a non-holiday NSE/BSE trading weekday (next
+holiday is Dussehra, 2026-10-20). Same symptom as the 09-25/09-26 and
+09-29/09-30 gaps. Promoted to a tracked PIPELINE item this pass ([P-43])
+since this is now the third occurrence with zero remediation.
+
+**Supabase DB size: 176 → 179 MB (35.2% → 35.8%)** — +3 MB in 2 days,
+consistent with the slow post-decommission `amfi_nav` growth rate; not a new
+finding.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-04 weekly review — [P-42] 14 days stale (longest yet, zero remediation in 4 weekly reviews); review cadence held, calibration snapshot now 3 straight weekly reviews stale
 
@@ -607,23 +656,28 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-04
+### 📍 Exact resume point — 2026-10-06
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
 decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
 
-**The one high-value action, ~one token-paste away — the n=400 decision read:**
-- Grading is at **277 graded calls**, with **121 more matured but token-blocked**
-  (`app_config.grading_incident` = "TOKEN_EXPIRED 2026-10-04: 100/121 due rows
-  could not authenticate" — item-1's loud-failure surface working as designed,
-  now on its 8th identical consecutive reading; `enc_token` is 14 days stale,
-  the longest gap on record).
-- **277 + 121 ≈ 398 → n=400 is essentially reachable in one grading pass.**
-- **Do this:** paste a fresh `enc_token`, then run grading
-  (`python3 scripts/grade_advice.py` in the brain, or let the idle loop's
-  catch-up fire). Draining the 121 due rows takes the pool to ~398.
+**The one high-value action, ~one grading-run away — the n=400 decision read:**
+- `enc_token` was **finally repasted 2026-10-05 21:39:20 UTC** (first since
+  09-20), but the nightly grading job ran 3h *earlier* that day (18:31 UTC)
+  on the old token, so `app_config.grading_incident` still reads
+  `TOKEN_EXPIRED 2026-10-06: 100/121 due rows` as of this pass. **Not yet
+  confirmed whether the fresh token actually authenticates** — that only
+  gets tested on tonight's (10-06) nightly run.
+- Grading is at **277 graded calls**, with **121 more matured, pending that
+  first clean run on the new token.**
+- **277 + 121 ≈ 398 → n=400 is essentially reachable in one grading pass,
+  once the token is confirmed working.**
+- **Next check:** re-read `app_config.grading_incident` after tonight's run
+  (~18:30 UTC 10-06 onward). If it's blank/clean, the pool should jump to
+  ≈398 — on the doorstep of n=400. If it still says `TOKEN_EXPIRED`, the
+  fresh paste itself didn't work and needs its own look.
 - **If it crosses 400, execute the pre-registered read (V-20):** hit-rate CI vs
   0.50 on the **alpha** label (`outcome_correct_alpha`), judged against the
   **deflated threshold z ≥ 3.72** (trial ledger = 253 trials), NOT 1.96. Per
