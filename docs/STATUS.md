@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-06** (Tue, post-session review). See the **▶️ START
+_Last updated: **2026-10-07** (Wed, post-session review). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,42 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-07 post-session — confirmed: the 10-05 enc_token repaste did not fix grading, identical 100/121 signature on its first real test
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**🔴 [P-42] — the repaste's first real test failed.** `app_config
+.grading_incident` was rewritten **2026-10-06 18:30:28 UTC** — the first
+nightly grading run to fire *after* the **2026-10-05 21:39:20 UTC** token
+paste (≈21h later), unlike the 10-06 pass's reading which predated the
+paste by ~3h and couldn't actually test it. This run **still** reads
+`TOKEN_EXPIRED 2026-10-07: 100/121 due rows could not authenticate; 0
+graded` — the identical **100/121** signature carried since 09-22.
+`enc_token.updated_at` confirms no further repaste since **2026-10-05
+21:39:20 UTC**. **This resolves the open question the last pass left
+hanging: the fresh token did not authenticate** — not "outcome unknown,"
+now "repaste attempt failed." Graded pool unchanged at **277**.
+`advisor_calibration_latest` unchanged (`graded_calls=194`, ECE 12.4%,
+`built_at=2026-09-13`) — a fifth consecutive stale reading.
+
+`portfolio_advice` — zero new rows since 2026-09-10, now **19 straight
+silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05, 10-06, 10-07; 10-02 excluded, confirmed Gandhi Jayanti
+NSE/BSE holiday). `brain_status=IDLE` unchanged since 09-13.
+
+**Review cadence held — [P-43] no new gap.** `git log` shows
+`chore(review): post-session 2026-10-06` (`601797a`) as the commit
+immediately before this pass; no weekday skipped since.
+
+**Supabase DB size: 179 MB (35.8%)** — unchanged since the last reading;
+not a new finding.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-06 post-session — enc_token finally repasted after 16 days stale; grading outcome not yet confirmed; third review-cadence gap (10-05 missed)
 
@@ -656,28 +692,30 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-06
+### 📍 Exact resume point — 2026-10-07
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
 decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
 
-**The one high-value action, ~one grading-run away — the n=400 decision read:**
-- `enc_token` was **finally repasted 2026-10-05 21:39:20 UTC** (first since
-  09-20), but the nightly grading job ran 3h *earlier* that day (18:31 UTC)
-  on the old token, so `app_config.grading_incident` still reads
-  `TOKEN_EXPIRED 2026-10-06: 100/121 due rows` as of this pass. **Not yet
-  confirmed whether the fresh token actually authenticates** — that only
-  gets tested on tonight's (10-06) nightly run.
-- Grading is at **277 graded calls**, with **121 more matured, pending that
-  first clean run on the new token.**
-- **277 + 121 ≈ 398 → n=400 is essentially reachable in one grading pass,
-  once the token is confirmed working.**
-- **Next check:** re-read `app_config.grading_incident` after tonight's run
-  (~18:30 UTC 10-06 onward). If it's blank/clean, the pool should jump to
-  ≈398 — on the doorstep of n=400. If it still says `TOKEN_EXPIRED`, the
-  fresh paste itself didn't work and needs its own look.
+**The one high-value action, confirmed blocked again — the n=400 decision read:**
+- `enc_token` was repasted **2026-10-05 21:39:20 UTC** (first since 09-20).
+  Its first real test — the nightly grading run at **2026-10-06 18:30:28
+  UTC**, ~21h *after* the paste — **also returned `TOKEN_EXPIRED`**, same
+  100/121 signature as every reading since 09-22. **Confirmed this pass:
+  the fresh token did not authenticate.** No further repaste since.
+- Grading is still at **277 graded calls**, with the same ~121 matured rows
+  blocked.
+- **277 + 121 ≈ 398 → n=400 is still reachable in one clean grading pass**,
+  but needs a token paste that actually authenticates — two consecutive
+  attempts (09-20, 10-05) have now failed to deliver one that works for a
+  full run.
+- **Next check:** once/if a new `enc_token` is pasted, re-read `app_config
+  .grading_incident` after the following nightly run (~18:30 UTC) to see if
+  it goes blank/clean. If it still says `TOKEN_EXPIRED`, worth asking
+  whether the paste mechanism itself (not just token lifespan) is the
+  problem.
 - **If it crosses 400, execute the pre-registered read (V-20):** hit-rate CI vs
   0.50 on the **alpha** label (`outcome_correct_alpha`), judged against the
   **deflated threshold z ≥ 3.72** (trial ledger = 253 trials), NOT 1.96. Per
