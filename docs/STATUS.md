@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-07** (Wed, post-session review). See the **▶️ START
+_Last updated: **2026-10-09** (Fri, post-session review). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,40 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-09 post-session — [P-42] unchanged; NEW [P-43] cadence gap — no review commit for 2026-10-08 (Thu), fourth occurrence
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018**) — expected
+forever post-decommission, not re-flagged as a finding on its own.
+
+**[P-42] unchanged — same signature, no further repaste.** `app_config
+.grading_incident` (written 2026-10-09): `TOKEN_EXPIRED 2026-10-09: 100/121
+due rows could not authenticate; 0 graded` — identical **100/121** signature
+carried since 09-22. `enc_token.updated_at` still **2026-10-05 21:39:20
+UTC** — no repaste since the failed 10-05 attempt. Graded pool unchanged at
+**277**. `advisor_calibration_latest` unchanged (`graded_calls=194`, ECE
+12.4%, `built_at=2026-09-13`) — a sixth consecutive stale reading.
+
+`portfolio_advice` — zero new rows since 2026-09-10, now **21 straight
+silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05, 10-06, 10-07, 10-08, 10-09; 10-02 excluded, confirmed Gandhi
+Jayanti NSE/BSE holiday). `brain_status=IDLE` unchanged since 09-13.
+
+**⚠️ NEW — [P-43] cadence gapped again, a fourth occurrence.** `git log`
+shows the last `chore(review)` commit before this pass is `eed0102`
+(2026-10-07 post-session) — **nothing for 2026-10-08 (Thu)**, confirmed a
+plain NSE/BSE trading weekday (next holiday is Dussehra, 2026-10-20). This
+resets [P-43]'s own measure-of-done ("two consecutive calendar weeks with a
+commit for every non-holiday weekday") for a fourth time — see updated
+evidence under [P-43] in PIPELINE.md.
+
+**Supabase DB size: 179 → 180 MB (35.8% → 36.0%)** — negligible, consistent
+with the slow post-decommission `amfi_nav` growth rate; not a new finding.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-07 post-session — confirmed: the 10-05 enc_token repaste did not fix grading, identical 100/121 signature on its first real test
 
@@ -692,12 +726,17 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-07
+### 📍 Exact resume point — 2026-10-09
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
 decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
+
+**Also open: [P-43] review cadence.** The automated post-session review has
+now gapped a fourth time — no commit for 2026-10-08 (Thu), a confirmed
+non-holiday weekday — see PIPELINE.md [P-43]. Worth checking the routine's
+trigger/run history at claude.ai/code/routines.
 
 **The one high-value action, confirmed blocked again — the n=400 decision read:**
 - `enc_token` was repasted **2026-10-05 21:39:20 UTC** (first since 09-20).

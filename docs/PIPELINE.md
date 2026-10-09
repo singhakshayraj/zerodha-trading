@@ -5,42 +5,40 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-07** (Wed, post-session) · Burn-down: **24
+_Last updated: **2026-10-09** (Fri, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
 paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
 decommission)**._
 
-**2026-10-07 post-session pass:** no new trading session (none ever will —
+**2026-10-09 post-session pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` and `trades` closed-count
-both unchanged (1,018) since 08-28. **The 10-05 `enc_token` repaste's first
-real test failed.** `grading_incident` was rewritten **2026-10-06 18:30:28
-UTC** — ~21h *after* the 2026-10-05 21:39:20 UTC paste, so unlike the 10-06
-pass's reading this one actually tested the new token — and it still reads
-`TOKEN_EXPIRED 100/121 due rows; 0 graded`, same signature as every reading
-since 09-22. This closes out the "outcome pending" question from the last
-pass: the repaste did not fix grading. `git log -25` shows nothing shipped
-since the 10-06 post-session commit (`601797a`) — no code-based board move.
-**[P-43] cadence check: no gap** — `601797a` covers 10-06, and today's pass
-is this commit. Dashboard API (`zerodha-trading-liard.vercel.app`)
+both unchanged (1,018) since 08-28. **[P-42] unchanged** — `grading_incident`
+(written 2026-10-09): `TOKEN_EXPIRED 100/121 due rows; 0 graded`, same
+signature as every reading since 09-22; `enc_token.updated_at` still
+**2026-10-05 21:39:20 UTC** (no further repaste attempt since the 10-05 one
+that failed its first test on 10-06). `git log -25` shows nothing shipped
+since the 10-07 post-session commit (`eed0102`) — no code-based board move.
+**[P-43] cadence check: GAP FOUND** — no `chore(review)` commit exists for
+**2026-10-08 (Thu)**, a confirmed non-holiday NSE/BSE trading weekday (next
+holiday Dussehra, 2026-10-20). Fourth occurrence of this pattern; see updated
+[P-43] evidence below. Dashboard API (`zerodha-trading-liard.vercel.app`)
 unreachable from this environment again (`connect_rejected`, org policy) —
 same as every recent pass; all numbers below measured directly against
 Supabase prod.
 
-**🔴 [P-42] — confirmed still broken, not just unverified.**
-`enc_token.updated_at` is still **2026-10-05 21:39:20 UTC** (no further
-repaste). `grading_incident` (written 2026-10-06 18:30:28 UTC, *after* the
-paste): `TOKEN_EXPIRED 2026-10-07: 100/121 due rows could not authenticate;
-0 graded` — identical signature to every reading since 09-22, and this time
-the paste genuinely predates the failed run, so it's proof, not stale
-evidence. Graded pool unchanged at **277** (69.25% of n=400).
+**🔴 [P-42] — still broken, no new repaste attempt.**
+`enc_token.updated_at` is still **2026-10-05 21:39:20 UTC**. `grading_incident`
+(written 2026-10-09): `TOKEN_EXPIRED 2026-10-09: 100/121 due rows could not
+authenticate; 0 graded` — identical signature to every reading since 09-22.
+Graded pool unchanged at **277** (69.25% of n=400).
 `advisor_calibration_latest` remains stale (`graded_calls=194`,
-`built_at=2026-09-13` — now a fifth consecutive stale reading).
+`built_at=2026-09-13` — now a sixth consecutive stale reading).
 `portfolio_advice` still 0 new rows since 2026-09-10, `brain_status=IDLE` —
-**19 straight silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28,
-09-29, 09-30, 10-01, 10-05, 10-06, 10-07; 10-02 excluded, a confirmed trading
-holiday). See updated evidence under [P-42] below.
+**21 straight silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28,
+09-29, 09-30, 10-01, 10-05, 10-06, 10-07, 10-08, 10-09; 10-02 excluded, a
+confirmed trading holiday). See updated evidence under [P-42] below.
 
-DB size **179 MB (35.8%)** — unchanged since the last reading.
+DB size **180 MB (36.0%)** — +1 MB since the last reading, negligible.
 
 ## ⛔ The trading engine is DECOMMISSIONED (2026-09-09) — read this before the board below
 
@@ -437,26 +435,37 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   paste mechanism itself, not just token lifespan, is the fault once a new
   paste is tried. Action unchanged: [you] paste a fresh `enc_token` and
   confirm the next nightly run actually clears._
+  _**2026-10-09 evidence — still no further repaste.** `enc_token.updated_at`
+  unchanged at **2026-10-05 21:39:20 UTC**. `grading_incident` (written
+  2026-10-09): `TOKEN_EXPIRED 2026-10-09: 100/121 due rows` — identical
+  signature. Graded pool still 277. `advisor_calibration_latest` unchanged
+  (`built_at=2026-09-13`/`graded_calls=194`) — a sixth consecutive stale
+  reading. `portfolio_advice` extends to **21 straight silent weekdays**
+  (through 10-09). No new mechanism — same one-token-paste fix, still
+  untaken._
 
 - **[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
   consecutive calendar weeks with a `chore(review): post-session` (or
   `weekly`) commit for every non-holiday weekday, confirmed via `git log`.
-  · *source:* this pass, 2026-10-06 (promoted from narrative evidence logged
-  in STATUS.md on 09-27 and 10-01).
+  · *source:* 2026-10-06 (promoted from narrative evidence logged in
+  STATUS.md on 09-27 and 10-01); recurred 2026-10-09.
   No `chore(review)` commit exists for **2026-10-05 (Mon)** — the last commit
-  before this pass is `189b7d7` (10-04 weekly review). 10-05 is confirmed not
-  an NSE/BSE holiday (the next one is Dussehra, 2026-10-20), so this is a real
-  gap, not an expected skip. This is the **third** occurrence of the same
-  symptom: the 09-25/09-26 gap (flagged 09-27) and the 09-29/09-30 gap
-  (flagged 10-01) were both logged in STATUS.md as evidence only, with no
-  tracked item and no remediation — promoting it here so it isn't lost a
-  third time. The brain's own independent nightly cron (`grading_incident`)
-  kept writing on schedule through all three gaps, so the underlying infra is
-  alive; this is specifically the scheduled Claude review (`trig_01Sfvo
-  CZ5tb7kecKwU6koDrY`, weekdays 16:30 IST per the Cadence section below)
-  failing to fire or failing to commit. Action: [you] check the routine's
-  config/run history at claude.ai/code/routines.
+  before the 10-06 pass was `189b7d7` (10-04 weekly review). 10-05 is
+  confirmed not an NSE/BSE holiday (the next one is Dussehra, 2026-10-20), so
+  that was a real gap, not an expected skip. The brain's own independent
+  nightly cron (`grading_incident`) kept writing on schedule through every
+  gap, so the underlying infra is alive; this is specifically the scheduled
+  Claude review (`trig_01SfvoCZ5tb7kecKwU6koDrY`, weekdays 16:30 IST per the
+  Cadence section below) failing to fire or failing to commit. Action: [you]
+  check the routine's config/run history at claude.ai/code/routines.
+  _**2026-10-09 evidence — fourth occurrence, clock reset again.** No
+  `chore(review)` commit exists for **2026-10-08 (Thu)** either — the last
+  commit before this pass was `eed0102` (10-07 post-session). 10-08 is
+  confirmed not an NSE/BSE holiday. This is the fourth distinct gap since
+  the pattern first appeared (09-25/09-26, 09-29/09-30, 10-05, now 10-08) —
+  the item has never once reached its own two-clean-weeks measure-of-done.
+  Action unchanged: [you] check the routine's trigger/run history._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
