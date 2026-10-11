@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-09** (Fri, post-session review). See the **▶️ START
+_Last updated: **2026-10-11** (Sun, weekly review). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,80 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-11 weekly review — gate metrics re-confirmed byte-identical; [P-42] still broken (6 days stale, zero repaste since the failed 10-05 attempt); [P-43] no new gap (weekend), clean streak still 1 day
+
+**Trading gate metrics — re-measured directly against `trades`, byte-identical
+to the frozen headline.** `status='CLOSED'`: **1,018** rows, **936** with
+`r_multiple`. Gross win **₹34,540.15** / gross loss **₹93,735.40** → PF
+**0.3685**. Expectancy **−0.4213R**. Net **−₹59,195.25**. Max drawdown
+re-derived via a running peak-to-trough sum over `coalesce(exit_time,
+entry_time)` order: **−₹59,206.27**, exactly matching the recorded figure (no
+tie-ordering drift this pass). `trading_sessions.max(started_at)` unchanged at
+**2026-08-28 06:54:59 UTC** (92 sessions total, never to grow again). **No
+gate flip; none is possible** (VISION §6.1: PF >1.3 go / <1.1 reject — 0.3685
+stays deep in reject territory). Gate #6 remains retired/blocked on the user
+decision, not treated as an edge conclusion. Exit-reason averages unchanged
+from every prior reading (`STOP_LOSS_HIT` avg **−1.31R**, `TARGET_HIT` avg
+**+1.38R**) — the trade set is frozen, so these cannot move either; recorded
+only to confirm nothing silently changed.
+
+**Advisor calibration — a seventh consecutive stale weekly reading.**
+`app_config.advisor_calibration_latest` unchanged: `graded_calls` **194**, ECE
+**12.4%**, `monotonic=false`, `built_at=2026-09-13`. The actual graded pool in
+`portfolio_advice` (`outcome_correct is not null`) is **277**, unchanged since
+09-20 — no new MICRO/MACRO batch has matured, so there is nothing new to
+recompute against; the staleness itself is not a new finding, same root cause
+as [P-42].
+
+**🔴 [P-42] — still broken, and the 10-05 repaste is now 6 days old with no
+follow-up attempt.** `enc_token.updated_at` unchanged at **2026-10-05
+21:39:20 UTC**. `app_config.grading_incident` (written **2026-10-10 18:30:50
+UTC** / 00:00 IST 10-11): `TOKEN_EXPIRED 2026-10-11: 100/121 due rows could
+not authenticate; 0 graded` — the identical **100/121** signature carried
+since 09-22. Graded pool unchanged at **277** (69.25% of n=400). Two
+consecutive repaste attempts (09-20, 10-05) have now failed to produce a
+token that survives even to its first grading run, and no third attempt has
+been made in the 6 days since the second failure was confirmed (10-07).
+
+`portfolio_advice` — zero new rows since 2026-09-10. Silent-weekday count
+**unchanged at 21** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05, 10-06, 10-07, 10-08, 10-09; 10-02 excluded, confirmed holiday):
+no new NSE/BSE trading weekday has elapsed since the 10-09 pass — 10-10 is a
+Saturday, 10-11 (today) a Sunday. `brain_status=IDLE` unchanged since 09-13.
+
+**[P-43] — no new gap this pass, but the measure-of-done is still far off.**
+`git log` shows commits for every weekday since the last-known gap:
+`2e4cf29` (10-09 post-session), `eed0102` (10-07), `601797a` (10-06),
+`189b7d7` (10-04 weekly) — nothing was due for 10-10/10-11 (weekend). The
+last confirmed gap remains **2026-10-08 (Thu)**, so the clean streak this
+item needs (two full calendar weeks with a commit for every non-holiday
+weekday) currently stands at just **one day** (10-09) since that gap. Not
+closed; still logged as Ready.
+
+**Supabase DB size: 180 → 185 MB (36.0% → 37.0%)**, +5 MB in 2 days — faster
+than the recent slow trickle but still driven by the same source: `amfi_nav`
+is now the second-largest table at **45 MB**, `brain_decisions` the largest
+at **56 MB** (frozen, no new writes). Not urgent; [P-38]'s tier decision
+stays undecided.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`ENOTFOUND` — DNS resolution failure, consistent with the
+org-policy block seen on every recent pass); all numbers above measured
+directly against Supabase prod.
+
+**3-lens sanity:** advisor lens — no new calibration or discrimination data
+this week (pool unchanged at 277); [P-18]'s verdict stands unchanged
+(confidence carries no information, never promote it). Trader lens — PF gate
+frozen deep in reject territory, no flip possible, none pending; gate #6
+stays retired. Engineer lens — the one open risk is still [P-42]'s
+single-token dependency, now compounded by zero follow-up after the second
+failed repaste; [P-43]'s cadence gap from 10-08 is still open, clean streak
+reset to 1 day. No new code shipped this week (`git log` shows only
+`chore(review)` docs commits since the 10-04 weekly review) — nothing to
+verify on the "recently Done" front; every previously-Done item (P-05 stop
+execution fix, P-18 calibration verdict, etc.) is a frozen historical fact
+with no new data to re-check it against.
 
 ## 📈 2026-10-09 post-session — [P-42] unchanged; NEW [P-43] cadence gap — no review commit for 2026-10-08 (Thu), fourth occurrence
 
@@ -726,30 +800,33 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-09
+### 📍 Exact resume point — 2026-10-11
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
 decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
 
-**Also open: [P-43] review cadence.** The automated post-session review has
-now gapped a fourth time — no commit for 2026-10-08 (Thu), a confirmed
-non-holiday weekday — see PIPELINE.md [P-43]. Worth checking the routine's
+**Also open: [P-43] review cadence.** No new gap this pass (10-10/10-11 are
+weekend, not trading days), but the last confirmed gap (2026-10-08, Thu) still
+resets the two-clean-week measure-of-done — the streak since then is just one
+day (10-09) — see PIPELINE.md [P-43]. Worth checking the routine's
 trigger/run history at claude.ai/code/routines.
 
-**The one high-value action, confirmed blocked again — the n=400 decision read:**
+**The one high-value action, still blocked — the n=400 decision read:**
 - `enc_token` was repasted **2026-10-05 21:39:20 UTC** (first since 09-20).
   Its first real test — the nightly grading run at **2026-10-06 18:30:28
-  UTC**, ~21h *after* the paste — **also returned `TOKEN_EXPIRED`**, same
-  100/121 signature as every reading since 09-22. **Confirmed this pass:
-  the fresh token did not authenticate.** No further repaste since.
+  UTC** — returned `TOKEN_EXPIRED`, confirming that repaste failed. **No
+  further repaste attempt has been made since — the token is now 6 days
+  stale on a confirmed-dead paste**, and the 2026-10-11 reading
+  (`grading_incident`, written 2026-10-10 18:30:50 UTC) still shows the
+  identical `TOKEN_EXPIRED 100/121` signature.
 - Grading is still at **277 graded calls**, with the same ~121 matured rows
   blocked.
 - **277 + 121 ≈ 398 → n=400 is still reachable in one clean grading pass**,
   but needs a token paste that actually authenticates — two consecutive
   attempts (09-20, 10-05) have now failed to deliver one that works for a
-  full run.
+  full run, and no third attempt has been tried yet.
 - **Next check:** once/if a new `enc_token` is pasted, re-read `app_config
   .grading_incident` after the following nightly run (~18:30 UTC) to see if
   it goes blank/clean. If it still says `TOKEN_EXPIRED`, worth asking
@@ -762,11 +839,12 @@ trigger/run history at claude.ai/code/routines.
   null (Part B / V-18) is **an anomaly requiring explanation, not a discovery.**
   Do NOT interim-peek at the 277 before the token drains it to n=400.
 
-**Healthy, needs nothing:** AMFI NAV ingest — 108,632 rows, current to today
-(the 8-column parser fix holds). Advisor last ran 09-10, so `/advisor` universe
-scores are stale ~17d — use the new per-name **"Analyse this name live"** button
-(brain `score_one_symbol` / `_maybe_serve_lookup`), or force a full refresh via
-`app_config.advisor_run_now='true'` once a token is live.
+**Healthy, needs nothing:** AMFI NAV ingest — **179,662 rows**, current to
+today (the 8-column parser fix holds). Advisor last ran 09-10, so `/advisor`
+universe scores are stale ~1 month — use the new per-name **"Analyse this
+name live"** button (brain `score_one_symbol` / `_maybe_serve_lookup`), or
+force a full refresh via `app_config.advisor_run_now='true'` once a token is
+live.
 
 **Gated on the operator (name them, don't guess):**
 - **Whole-book Part A** — needs the 3 FoF mappings CONFIRMED in
