@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-11** (Sun, weekly review). See the **▶️ START
+_Last updated: **2026-10-13** (Tue, post-session). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,53 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-13 post-session — no trading session (expected); [P-42] unchanged, enc_token now 8 days stale; NEW [P-43] gap — no review commit for 2026-10-12 (Mon), fifth occurrence, streak reset to 0
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018** / 936 with
+`r_multiple`) — expected forever post-decommission, not re-flagged as a
+finding on its own.
+
+**[P-42] unchanged — same signature, no further repaste.** `enc_token
+.updated_at` still **2026-10-05 21:39:20 UTC — now 8 days stale** on the
+confirmed-dead 10-05 paste; no third attempt has been tried. `app_config
+.grading_incident` (written 2026-10-12 18:30:57 UTC / 00:00 IST 10-13):
+`TOKEN_EXPIRED 2026-10-13: 100/121 due rows could not authenticate; 0
+graded` — identical **100/121** signature carried since 09-22. Graded pool
+unchanged at **277** (69.25% of n=400). `advisor_calibration_latest`
+unchanged (`graded_calls=194`, ECE 12.4%, `built_at=2026-09-13`) — an
+**eighth** consecutive stale reading.
+
+`portfolio_advice` — zero new rows since 2026-09-10, now **23 straight
+silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05, 10-06, 10-07, 10-08, 10-09, 10-12, 10-13; 10-02 excluded,
+confirmed Gandhi Jayanti NSE/BSE holiday; 10-10/10-11 weekend excluded).
+`brain_status=IDLE` unchanged since 09-13.
+
+**🔴 NEW — [P-43] gapped again, a fifth distinct occurrence; streak reset
+to 0.** `git log` shows the last `chore(review)` commit before this pass is
+`013e34c` (2026-10-11 weekly review) — **nothing for 2026-10-12 (Mon)**,
+confirmed a plain NSE/BSE trading weekday (next holiday is Dussehra,
+2026-10-20). The brain's own independent nightly cron kept writing
+`grading_incident` on schedule through the gap (confirmed above), so this is
+specifically the scheduled Claude review failing to fire or failing to
+commit — same symptom as the four prior gaps (09-25/09-26, 09-29/09-30,
+10-05, 10-08). This is the **fifth** distinct gap since the pattern first
+appeared, and the item has never once reached its own two-clean-week
+measure-of-done; the one-day streak the 10-11 entry recorded is wiped, back
+to **0**. Action unchanged: [you] check the routine's trigger/run history at
+claude.ai/code/routines — five occurrences in under three weeks is a strong
+signal this is not self-healing.
+
+**Supabase DB size: 185 → 188 MB (37.0% → 37.6%)** — +3 MB in 2 days,
+consistent with the ongoing `amfi_nav` growth (45 → 48 MB); `brain_decisions`
+unchanged at 56 MB (frozen, no new writes). Not urgent, [P-38]'s tier
+decision stays undecided.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-11 weekly review — gate metrics re-confirmed byte-identical; [P-42] still broken (6 days stale, zero repaste since the failed 10-05 attempt); [P-43] no new gap (weekend), clean streak still 1 day
 
@@ -800,26 +847,26 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-11
+### 📍 Exact resume point — 2026-10-13
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
 decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
 
-**Also open: [P-43] review cadence.** No new gap this pass (10-10/10-11 are
-weekend, not trading days), but the last confirmed gap (2026-10-08, Thu) still
-resets the two-clean-week measure-of-done — the streak since then is just one
-day (10-09) — see PIPELINE.md [P-43]. Worth checking the routine's
-trigger/run history at claude.ai/code/routines.
+**Also open: [P-43] review cadence — NEW gap, fifth occurrence.** No
+`chore(review)` commit exists for **2026-10-12 (Mon)**, a confirmed plain
+NSE/BSE trading weekday — the streak resets to **0** again (was 1 day as of
+10-11). See PIPELINE.md [P-43]. Worth checking the routine's trigger/run
+history at claude.ai/code/routines — five gaps in under three weeks.
 
 **The one high-value action, still blocked — the n=400 decision read:**
 - `enc_token` was repasted **2026-10-05 21:39:20 UTC** (first since 09-20).
   Its first real test — the nightly grading run at **2026-10-06 18:30:28
   UTC** — returned `TOKEN_EXPIRED`, confirming that repaste failed. **No
-  further repaste attempt has been made since — the token is now 6 days
-  stale on a confirmed-dead paste**, and the 2026-10-11 reading
-  (`grading_incident`, written 2026-10-10 18:30:50 UTC) still shows the
+  further repaste attempt has been made since — the token is now 8 days
+  stale on a confirmed-dead paste**, and the 2026-10-13 reading
+  (`grading_incident`, written 2026-10-12 18:30:57 UTC) still shows the
   identical `TOKEN_EXPIRED 100/121` signature.
 - Grading is still at **277 graded calls**, with the same ~121 matured rows
   blocked.

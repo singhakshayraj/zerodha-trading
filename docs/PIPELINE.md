@@ -5,10 +5,20 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-11** (Sun, weekly review) · Burn-down: **24
+_Last updated: **2026-10-13** (Tue, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
 paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
 decommission)**._
+
+**2026-10-13 post-session pass:** no new trading session (none ever will —
+decommissioned); `trades` closed-count unchanged (1,018, 936 with
+`r_multiple`). **[P-42] unchanged** — same `TOKEN_EXPIRED 100/121` signature,
+`enc_token.updated_at` still 2026-10-05 21:39:20 UTC (now 8 days stale on a
+confirmed-dead paste), graded pool still 277. **🔴 [P-43] NEW gap** — no
+`chore(review)` commit for 2026-10-12 (Mon), a confirmed plain trading
+weekday; this is the fifth distinct occurrence of this pattern and resets the
+clean streak to 0. Dashboard API unreachable again (`connect_rejected`, org
+policy); all numbers measured directly against Supabase prod.
 
 **2026-10-11 weekly review pass:** no new trading session (none ever will —
 decommissioned); `trading_sessions.max(started_at)` unchanged at 2026-08-28
@@ -476,6 +486,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   10-04, 10-11) this exact fix has sat Ready, untaken, and the second
   consecutive weekly review where a repaste attempt itself (not just the
   wait) has gone untried for a full week._
+  _**2026-10-13 evidence — still no further repaste, `enc_token` now 8 days
+  stale.** `grading_incident` (written 2026-10-12 18:30:57 UTC): `TOKEN_EXPIRED
+  2026-10-13: 100/121 due rows could not authenticate; 0 graded` — identical
+  signature to every reading since 09-22. `enc_token.updated_at` unchanged at
+  2026-10-05 21:39:20 UTC. Graded pool still 277. `advisor_calibration_latest`
+  unchanged (`built_at=2026-09-13`/`graded_calls=194`) — an **eighth**
+  consecutive stale reading. `portfolio_advice` extends to **23 straight
+  silent weekdays** (through 10-13, adding 10-12 and 10-13). No new
+  mechanism — same one-token-paste fix, still untaken; this is now the sixth
+  consecutive review pass (09-20, 09-27, 10-01, 10-04, 10-11, 10-13) this
+  exact fix has sat Ready, untaken._
 
 - **[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
@@ -508,6 +529,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   nowhere close to two weeks, and one more weekday miss before 10-23 would
   reset it to zero again. Not closed; stays Ready. Action unchanged:
   [you] check the routine's trigger/run history at claude.ai/code/routines._
+  _**2026-10-13 evidence — fifth distinct gap, streak reset to 0 again.** No
+  `chore(review)` commit exists for **2026-10-12 (Mon)** — the last commit
+  before this pass was `013e34c` (10-11 weekly review). 10-12 is confirmed
+  not an NSE/BSE holiday (next one is Dussehra, 2026-10-20), so this is a
+  real gap, the fifth distinct occurrence (09-25/09-26, 09-29/09-30, 10-05,
+  10-08, now 10-12). The one-day streak the 10-11 pass recorded is wiped —
+  back to **0**. Five gaps in under three weeks with zero remediation is a
+  pattern, not noise; this item has never once come close to its own
+  two-clean-week measure-of-done. Action unchanged: [you] check the
+  routine's trigger/run history at claude.ai/code/routines._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
