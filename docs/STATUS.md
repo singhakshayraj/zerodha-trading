@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-13** (Tue, post-session). See the **▶️ START
+_Last updated: **2026-10-14** (Wed, post-session). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,48 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-14 post-session — [P-42] enc_token repasted after 8 days dead (third attempt); outcome not yet tested; [P-43] no new gap, clean streak 1 day
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018** / 936 with
+`r_multiple`) — expected forever post-decommission, not re-flagged as a
+finding on its own.
+
+**🟢 [P-42] moved for the first time since 10-05 — `enc_token` repasted, but
+the outcome is not yet confirmed grading-side.** `enc_token.updated_at` is
+now **2026-10-13 19:05:28 UTC** — a third repaste attempt, ending the
+8-day-dead 10-05 token. `app_config.grading_incident` (written **2026-10-13
+18:31:00 UTC**, ~34 min *before* the paste) still reads `TOKEN_EXPIRED
+2026-10-14: 100/121 due rows could not authenticate; 0 graded` — identical
+100/121 signature, because that nightly run executed on the old (dead)
+token before the fresh one landed, same inconclusive pattern as the 10-06
+pass. Graded pool unchanged at **277**. The next nightly grading run
+(tonight, ~18:30 UTC) is the first one that will actually test the fresh
+token — carry this to the next pass rather than assuming success from the
+paste alone. `advisor_calibration_latest` unchanged (`graded_calls=194`, ECE
+12.4%, `built_at=2026-09-13`) — a **ninth** consecutive stale reading.
+
+`portfolio_advice` — zero new rows since 2026-09-10, now **24 straight
+silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05, 10-06, 10-07, 10-08, 10-09, 10-12, 10-13, 10-14; 10-02
+excluded, confirmed Gandhi Jayanti NSE/BSE holiday; 10-10/10-11 weekend
+excluded). `brain_status=IDLE` unchanged since 09-13. Even if grading
+resumes, this separate advisor-silence symptom still needs its own
+diagnosis per the 09-21 finding.
+
+**[P-43] — no new gap.** `git log` shows `chore(review): post-session
+2026-10-13` (`e63b0d2`) as the commit immediately before this pass — no
+weekday skipped. Clean streak since the 10-12 gap is now **1 day**; still
+far short of the two-clean-week measure-of-done.
+
+**Supabase DB size: 188 → 189 MB (37.6% → 37.8%)** — +1 MB in 1 day,
+consistent with slow `amfi_nav` growth; not urgent, [P-38]'s tier decision
+stays undecided.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-13 post-session — no trading session (expected); [P-42] unchanged, enc_token now 8 days stale; NEW [P-43] gap — no review commit for 2026-10-12 (Mon), fifth occurrence, streak reset to 0
 
@@ -847,38 +889,38 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-13
+### 📍 Exact resume point — 2026-10-14
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
 decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
 
-**Also open: [P-43] review cadence — NEW gap, fifth occurrence.** No
-`chore(review)` commit exists for **2026-10-12 (Mon)**, a confirmed plain
-NSE/BSE trading weekday — the streak resets to **0** again (was 1 day as of
-10-11). See PIPELINE.md [P-43]. Worth checking the routine's trigger/run
-history at claude.ai/code/routines — five gaps in under three weeks.
+**Also open: [P-43] review cadence — no new gap.** `chore(review)` commit
+`e63b0d2` covers 2026-10-13, immediately preceding this pass. Clean streak
+since the 10-12 gap is now **1 day** — still far short of the two-clean-week
+measure-of-done. See PIPELINE.md [P-43].
 
-**The one high-value action, still blocked — the n=400 decision read:**
-- `enc_token` was repasted **2026-10-05 21:39:20 UTC** (first since 09-20).
-  Its first real test — the nightly grading run at **2026-10-06 18:30:28
-  UTC** — returned `TOKEN_EXPIRED`, confirming that repaste failed. **No
-  further repaste attempt has been made since — the token is now 8 days
-  stale on a confirmed-dead paste**, and the 2026-10-13 reading
-  (`grading_incident`, written 2026-10-12 18:30:57 UTC) still shows the
-  identical `TOKEN_EXPIRED 100/121` signature.
+**The one high-value action, now in a third attempt, outcome not yet known —
+the n=400 decision read:**
+- `enc_token` was repasted **2026-10-05 21:39:20 UTC**, failed its first real
+  test (2026-10-06 18:30:28 UTC, `TOKEN_EXPIRED`), and then sat dead for 8
+  days with no further attempt. **A third repaste just landed — 2026-10-13
+  19:05:28 UTC.** The 2026-10-14 `grading_incident` reading (written
+  2026-10-13 18:31:00 UTC, ~34 min *before* the paste) still shows the stale
+  `TOKEN_EXPIRED 100/121` signature, but that run tested the *old* token —
+  it has not yet tested this new one.
 - Grading is still at **277 graded calls**, with the same ~121 matured rows
   blocked.
 - **277 + 121 ≈ 398 → n=400 is still reachable in one clean grading pass**,
-  but needs a token paste that actually authenticates — two consecutive
-  attempts (09-20, 10-05) have now failed to deliver one that works for a
-  full run, and no third attempt has been tried yet.
-- **Next check:** once/if a new `enc_token` is pasted, re-read `app_config
-  .grading_incident` after the following nightly run (~18:30 UTC) to see if
-  it goes blank/clean. If it still says `TOKEN_EXPIRED`, worth asking
-  whether the paste mechanism itself (not just token lifespan) is the
-  problem.
+  but needs a token paste that actually authenticates for a full run — two
+  prior attempts (09-20, 10-05) have failed that test.
+- **Next check (highest-priority item for the next pass):** read `app_config
+  .grading_incident` written *after* 2026-10-13 19:05:28 UTC (the next
+  nightly run, ~18:30 UTC tonight) to see whether it goes blank/clean. If it
+  still says `TOKEN_EXPIRED`, that's a third consecutive failed repaste —
+  worth asking whether the paste mechanism itself (not just token lifespan)
+  is the problem.
 - **If it crosses 400, execute the pre-registered read (V-20):** hit-rate CI vs
   0.50 on the **alpha** label (`outcome_correct_alpha`), judged against the
   **deflated threshold z ≥ 3.72** (trial ledger = 253 trials), NOT 1.96. Per

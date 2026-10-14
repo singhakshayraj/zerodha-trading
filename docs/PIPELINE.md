@@ -5,10 +5,23 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-13** (Tue, post-session) · Burn-down: **24
+_Last updated: **2026-10-14** (Wed, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
 paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
 decommission)**._
+
+**2026-10-14 post-session pass:** no new trading session (none ever will —
+decommissioned); `trades` closed-count unchanged (1,018, 936 with
+`r_multiple`). **🟢 [P-42] moved** — `enc_token` repasted **2026-10-13
+19:05:28 UTC** (third attempt, ending the 8-day-dead 10-05 token), but the
+only `grading_incident` reading so far (written 18:31:00 UTC, before the
+paste) still tested the old token and reads identical `TOKEN_EXPIRED
+100/121`; outcome of the fresh token is unconfirmed until tonight's run.
+Graded pool still 277. **[P-43] no new gap** — `chore(review)` commit
+exists for 2026-10-13 (`e63b0d2`) immediately before this pass; clean streak
+since the 10-12 gap now 1 day. Dashboard API unreachable again
+(`connect_rejected`, org policy); all numbers measured directly against
+Supabase prod.
 
 **2026-10-13 post-session pass:** no new trading session (none ever will —
 decommissioned); `trades` closed-count unchanged (1,018, 936 with
@@ -497,6 +510,19 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   mechanism — same one-token-paste fix, still untaken; this is now the sixth
   consecutive review pass (09-20, 09-27, 10-01, 10-04, 10-11, 10-13) this
   exact fix has sat Ready, untaken._
+  _**2026-10-14 evidence — third repaste landed, outcome not yet tested.**
+  `enc_token.updated_at` is now **2026-10-13 19:05:28 UTC**, ending the
+  8-day-dead 10-05 token. The only `grading_incident` reading available this
+  pass (written **2026-10-13 18:31:00 UTC**) predates the paste by ~34 min,
+  so it still reflects the old token: `TOKEN_EXPIRED 2026-10-14: 100/121 due
+  rows could not authenticate; 0 graded` — same signature as every reading
+  since 09-22. Graded pool unchanged at 277. `advisor_calibration_latest`
+  unchanged (`built_at=2026-09-13`/`graded_calls=194`) — a **ninth**
+  consecutive stale reading. `portfolio_advice` extends to **24 straight
+  silent weekdays** (through 10-14). This is the third repaste attempt
+  (09-20, 10-05, now 10-13); whether it survives its first real test is the
+  single highest-priority thing for the next pass to check — do not assume
+  success from the paste alone._
 
 - **[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
@@ -539,6 +565,14 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   pattern, not noise; this item has never once come close to its own
   two-clean-week measure-of-done. Action unchanged: [you] check the
   routine's trigger/run history at claude.ai/code/routines._
+  _**2026-10-14 evidence — no new gap, streak 1 day.** `git log` shows
+  `chore(review): post-session 2026-10-13` (`e63b0d2`) as the commit
+  immediately before this pass — 10-13 was not skipped. Clean streak since
+  the 10-12 gap is now **1 day**, same position as after the 10-08 gap;
+  still nowhere near the two-clean-week measure-of-done, and this pattern
+  has reset five times without ever getting past a handful of days. Action
+  unchanged: [you] check the routine's trigger/run history at
+  claude.ai/code/routines._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
