@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-14** (Wed, post-session). See the **▶️ START
+_Last updated: **2026-10-15** (Thu, post-session). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,49 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-15 post-session — [P-42] third repaste (10-13) confirmed failed its first real test, identical 100/121 signature, three-for-three failed repastes now; [P-43] no new gap, clean streak 2 days (3 after this commit)
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018** / 936 with
+`r_multiple`) — expected forever post-decommission, not re-flagged as a
+finding on its own.
+
+**🔴 [P-42] — the third repaste's first real test failed, same as both
+prior attempts.** `enc_token.updated_at` is unchanged at **2026-10-13
+19:05:27 UTC** (no further repaste). `app_config.grading_incident` was
+rewritten **2026-10-14 18:30:54 UTC** — ~23h *after* the 10-13 paste, the
+first nightly grading run that actually tested it (the 10-14 pass's own
+reading, written 2026-10-13 18:31:00 UTC, predated the paste by ~34 min and
+couldn't test it). This run reads `TOKEN_EXPIRED 2026-10-15: 100/121 due
+rows could not authenticate; 0 graded` — the identical **100/121** signature
+carried since 09-22. **This resolves the open question the 10-14 pass left
+hanging: the fresh token did not authenticate**, same outcome as the 09-20
+and 10-05 repaste attempts — three consecutive repaste attempts have now
+failed to produce a token that survives to its first grading run. Graded
+pool unchanged at **277**. `advisor_calibration_latest` unchanged
+(`graded_calls=194`, ECE 12.4%, `built_at=2026-09-13`) — a **tenth**
+consecutive stale reading.
+
+`portfolio_advice` — zero new rows since 2026-09-10, now **25 straight
+silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05, 10-06, 10-07, 10-08, 10-09, 10-12, 10-13, 10-14, 10-15; 10-02
+excluded, confirmed Gandhi Jayanti NSE/BSE holiday; 10-10/10-11 weekend
+excluded). `brain_status=IDLE` unchanged since 09-13.
+
+**[P-43] — no new gap.** `git log` shows `chore(review): post-session
+2026-10-14` (`e58f29d`) as the commit immediately before this pass — no
+weekday skipped. Clean streak since the 10-12 gap is now **2 days**
+(10-13, 10-14), extending to 3 once this pass's commit lands; still far
+short of the two-clean-week measure-of-done.
+
+**Supabase DB size: 189 MB (37.8%)** — byte count 198,487,187, essentially
+unchanged from the last reading; not urgent, [P-38]'s tier decision stays
+undecided.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-14 post-session — [P-42] enc_token repasted after 8 days dead (third attempt); outcome not yet tested; [P-43] no new gap, clean streak 1 day
 

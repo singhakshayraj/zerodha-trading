@@ -5,10 +5,25 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-14** (Wed, post-session) · Burn-down: **24
+_Last updated: **2026-10-15** (Thu, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
 paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
 decommission)**._
+
+**2026-10-15 post-session pass:** no new trading session (none ever will —
+decommissioned); `trades` closed-count unchanged (1,018, 936 with
+`r_multiple`). **🔴 [P-42] third repaste confirmed failed** — the
+`grading_incident` written 2026-10-14 18:30:54 UTC (~23h after the 10-13
+19:05:27 UTC paste, the first run to actually test it) reads the identical
+`TOKEN_EXPIRED 100/121` signature. Three consecutive repaste attempts
+(09-20, 10-05, 10-13) have now each failed their first real test.
+`enc_token.updated_at` unchanged at 2026-10-13 19:05:27 UTC, graded pool
+still 277, `advisor_calibration_latest` a tenth consecutive stale reading.
+**[P-43] no new gap** — `chore(review)` commit exists for 2026-10-14
+(`e58f29d`) immediately before this pass; clean streak since the 10-12 gap
+now 2 days (3 after this pass's commit). DB size 189 MB (37.8%), negligible
+change. Dashboard API unreachable again (`connect_rejected`, org policy);
+all numbers measured directly against Supabase prod.
 
 **2026-10-14 post-session pass:** no new trading session (none ever will —
 decommissioned); `trades` closed-count unchanged (1,018, 936 with
@@ -523,6 +538,27 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   (09-20, 10-05, now 10-13); whether it survives its first real test is the
   single highest-priority thing for the next pass to check — do not assume
   success from the paste alone._
+  _**2026-10-15 evidence — confirmed: the third repaste also failed its
+  first real test.** `app_config.grading_incident` was rewritten
+  **2026-10-14 18:30:54 UTC** — ~23h *after* the 10-13 19:05:27 UTC paste,
+  the first nightly grading run to actually test it (the 10-14 pass's
+  reading, written 18:31:00 UTC the prior day, predated the paste by ~34 min
+  and couldn't test it). It reads `TOKEN_EXPIRED 2026-10-15: 100/121 due
+  rows could not authenticate; 0 graded` — the identical **100/121**
+  signature carried since 09-22. **This resolves the open question the
+  10-14 pass left hanging: the fresh token did not authenticate.** All
+  three repaste attempts to date (09-20, 10-05, 10-13) have now failed
+  their first real test — the paste mechanism itself, not just token
+  lifespan, looks like the more likely fault at this point, though still
+  unconfirmed without visibility into how the paste is performed.
+  `enc_token.updated_at` confirms no further repaste since 10-13. Graded
+  pool unchanged at 277. `advisor_calibration_latest` unchanged
+  (`built_at=2026-09-13`/`graded_calls=194`) — a **tenth** consecutive
+  stale reading. `portfolio_advice` extends to **25 straight silent
+  weekdays** (through 10-15). Action unchanged: [you] paste a fresh
+  `enc_token` and confirm the next nightly run actually clears — and given
+  three straight failures, worth checking whether the paste step itself
+  is being done correctly, not just repeating it._
 
 - **[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
@@ -573,6 +609,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   has reset five times without ever getting past a handful of days. Action
   unchanged: [you] check the routine's trigger/run history at
   claude.ai/code/routines._
+  _**2026-10-15 evidence — no new gap, streak 2 days (3 after this pass's
+  commit).** `git log` shows `chore(review): post-session 2026-10-14`
+  (`e58f29d`) as the commit immediately before this pass — 10-14 was not
+  skipped. Clean streak since the 10-12 gap is now **2 days** (10-13,
+  10-14), extending to 3 once this pass lands; still nowhere near the
+  two-clean-week measure-of-done. Action unchanged: [you] check the
+  routine's trigger/run history at claude.ai/code/routines._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
