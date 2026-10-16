@@ -5,10 +5,24 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-15** (Thu, post-session) · Burn-down: **24
+_Last updated: **2026-10-16** (Fri, post-session) · Burn-down: **24
 shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
 paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
 decommission)**._
+
+**2026-10-16 post-session pass:** no new trading session (none ever will —
+decommissioned); `trades` closed-count unchanged (1,018, 936 with
+`r_multiple`). **[P-42] unchanged** — the 10-13 token's second consecutive
+real test also failed: `grading_incident` written 2026-10-15 18:31:00 UTC
+reads the identical `TOKEN_EXPIRED 100/121` signature (the 10-14 run was the
+first failed test, confirmed last pass). `enc_token.updated_at` unchanged at
+2026-10-13 19:05:27 UTC (no further repaste), graded pool still 277,
+`advisor_calibration_latest` an eleventh consecutive stale reading.
+**[P-43] no new gap** — `chore(review)` commit exists for 2026-10-15
+(`32d8c6c`) immediately before this pass; clean streak since the 10-12 gap
+now 3 days (4 after this pass's commit). DB size 190.4 MB (38.1%), +1.4 MB in
+1 day, negligible. Dashboard API unreachable again (`connect_rejected`, org
+policy); all numbers measured directly against Supabase prod.
 
 **2026-10-15 post-session pass:** no new trading session (none ever will —
 decommissioned); `trades` closed-count unchanged (1,018, 936 with
@@ -559,6 +573,18 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   `enc_token` and confirm the next nightly run actually clears — and given
   three straight failures, worth checking whether the paste step itself
   is being done correctly, not just repeating it._
+  _**2026-10-16 evidence — the 10-13 token's second consecutive real test
+  also failed.** `grading_incident` (written 2026-10-15 18:31:00 UTC):
+  `TOKEN_EXPIRED 2026-10-16: 100/121 due rows could not authenticate; 0
+  graded` — identical signature to every reading since 09-22, and now the
+  second straight nightly run to test the 10-13 paste and fail (the first
+  was 10-14's run). `enc_token.updated_at` unchanged at 2026-10-13 19:05:27
+  UTC — no further repaste attempted. Graded pool still 277.
+  `advisor_calibration_latest` unchanged — an **eleventh** consecutive
+  stale reading. `portfolio_advice` extends to **26 straight silent
+  weekdays** (through 10-16). No new mechanism — action unchanged: [you]
+  paste a fresh `enc_token`, and the paste mechanism itself still warrants
+  checking given four straight failed tests across three attempts._
 
 - **[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
@@ -615,6 +641,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   skipped. Clean streak since the 10-12 gap is now **2 days** (10-13,
   10-14), extending to 3 once this pass lands; still nowhere near the
   two-clean-week measure-of-done. Action unchanged: [you] check the
+  routine's trigger/run history at claude.ai/code/routines._
+  _**2026-10-16 evidence — no new gap, streak 3 days (4 after this pass's
+  commit).** `git log` shows `chore(review): post-session 2026-10-15`
+  (`32d8c6c`) as the commit immediately before this pass — 10-15 was not
+  skipped. Clean streak since the 10-12 gap is now **3 days** (10-13,
+  10-14, 10-15), extending to 4 once this pass lands; still nowhere near
+  the two-clean-week measure-of-done. Action unchanged: [you] check the
   routine's trigger/run history at claude.ai/code/routines._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
