@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-16** (Fri, post-session). See the **▶️ START
+_Last updated: **2026-10-18** (Sun, weekly review). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,77 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-18 weekly review — gate metrics re-confirmed byte-identical; [P-42] 10-13 token has now failed every nightly test through 10-17 (5 days stale, zero repaste attempts); [P-43] no new gap, clean streak 4 days (5 after this commit)
+
+**Trading gate metrics — re-measured directly against `trades`, byte-identical
+to the frozen headline.** `status='CLOSED'`: **1,018** rows, **936** with
+`r_multiple`. Gross win **₹34,540.15** / gross loss **₹93,735.40** → PF
+**0.3685**. Expectancy **−0.4213R**. Net **−₹59,195.25**. `trading_sessions
+.max(started_at)` unchanged at **2026-08-28 06:54:59 UTC** (92 sessions
+total, never to grow again). Exit-reason averages unchanged from every prior
+reading (`STOP_LOSS_HIT` avg **−1.31R** [179 rows], `TARGET_HIT` avg
+**+1.38R** [90 rows]) — the trade set is frozen, so these cannot move
+either; recorded only to confirm nothing silently changed. **No gate flip;
+none is possible** (VISION §6.1: PF >1.3 go / <1.1 reject — 0.3685 stays deep
+in reject territory). Gate #6 remains retired/blocked on the user decision,
+not treated as an edge conclusion.
+
+**Advisor calibration — a twelfth consecutive stale reading.** `app_config
+.advisor_calibration_latest` unchanged: `graded_calls` **194**, ECE **12.4%**,
+`monotonic=false`, `built_at=2026-09-13`. The actual graded pool in
+`portfolio_advice` (`outcome_correct is not null`) is **277**, unchanged
+since 09-20 — no new MICRO/MACRO batch has matured, so there is nothing new
+to recompute against; the staleness itself is not a new finding, same root
+cause as [P-42].
+
+**🔴 [P-42] — the 10-13 repaste has now failed every nightly grading test
+through 10-17, and sits 5 days stale with zero further attempt.**
+`enc_token.updated_at` unchanged at **2026-10-13 19:05:27 UTC**. `app_config
+.grading_incident` (written **2026-10-17 18:30:43 UTC** / 00:00 IST 10-18):
+`TOKEN_EXPIRED 2026-10-18: 100/121 due rows could not authenticate; 0
+graded` — the identical **100/121** signature carried since 09-22. Graded
+pool unchanged at **277**, which confirms the 10-13 paste has failed its
+nightly test on every one of the five nights since (10-13/14 through
+10-17/18) — a sustained failure, not a one-off miss. This is now the
+**third** repaste attempt (09-20, 10-05, 10-13) to fail its first real test,
+and the 10-13 attempt specifically has now failed four consecutive nightly
+re-tests on top of that — the paste mechanism itself, not just token
+lifespan, looks like the more likely fault at this point.
+
+`portfolio_advice` — zero new rows since 2026-09-10, still **26 straight
+silent weekdays** (unchanged since 10-16: no new NSE/BSE trading weekday has
+elapsed — 10-17/10-18 are weekend). `brain_status=IDLE` unchanged since
+09-13.
+
+**[P-43] — no new gap.** `git log` shows `chore(review): post-session
+2026-10-16` (`83004f8`) as the commit immediately before this pass — nothing
+was due for 10-17 (confirmed Saturday). Clean streak since the 10-12 gap is
+now **4 days** (10-13, 10-14, 10-15, 10-16), extending to 5 once this pass's
+commit lands; still far short of the two-clean-week measure-of-done.
+
+**Supabase DB size: 190.4 → 194 MB (38.1% → 38.8%)** — +3.6 MB in 2 days,
+consistent with the slow `amfi_nav` trickle; not urgent, [P-38]'s tier
+decision stays undecided.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`ENOTFOUND` DNS resolution failure) — same as every
+recent pass; all numbers above measured directly against Supabase prod.
+
+**3-lens sanity:** advisor lens — no new calibration or discrimination data
+this week (pool unchanged at 277); [P-18]'s verdict stands unchanged
+(confidence carries no information, never promote it). Trader lens — PF
+gate frozen deep in reject territory, no flip possible, none pending; gate
+#6 stays retired. Engineer lens — the one open risk is still [P-42]'s
+single-token dependency, now sharpened by four failed re-tests of the
+latest (10-13) paste across five nights — worth the operator checking how
+the paste is actually being performed, not just repeating it; [P-43]'s
+cadence streak is building (4 clean days) but still far from its own
+two-week bar. No new code shipped this week (`git log` shows only
+`chore(review)` docs commits since the 10-16 post-session pass) — nothing
+to verify on the "recently Done" front; every previously-Done item (P-05
+stop execution fix, P-18 calibration verdict, etc.) is a frozen historical
+fact with no new data to re-check it against.
 
 ## 📈 2026-10-16 post-session — [P-42] same 10-13 token fails a second consecutive real test, identical 100/121 signature; [P-43] no new gap, clean streak 3 days (4 after this commit)
 
@@ -971,7 +1042,7 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-14
+### 📍 Exact resume point — 2026-10-18
 
 **Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
 `brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
@@ -979,30 +1050,32 @@ decommissioned 2026-09-09 — do not restart it without an explicit decision; it
 fails its own reopening criteria, see POST_MORTEM §5).
 
 **Also open: [P-43] review cadence — no new gap.** `chore(review)` commit
-`e63b0d2` covers 2026-10-13, immediately preceding this pass. Clean streak
-since the 10-12 gap is now **1 day** — still far short of the two-clean-week
-measure-of-done. See PIPELINE.md [P-43].
+`83004f8` covers 2026-10-16, immediately preceding this pass (nothing due
+10-17, a confirmed weekend day). Clean streak since the 10-12 gap is now
+**4 days** (5 after this pass's commit) — still far short of the
+two-clean-week measure-of-done. See PIPELINE.md [P-43].
 
-**The one high-value action, now in a third attempt, outcome not yet known —
-the n=400 decision read:**
-- `enc_token` was repasted **2026-10-05 21:39:20 UTC**, failed its first real
-  test (2026-10-06 18:30:28 UTC, `TOKEN_EXPIRED`), and then sat dead for 8
-  days with no further attempt. **A third repaste just landed — 2026-10-13
-  19:05:28 UTC.** The 2026-10-14 `grading_incident` reading (written
-  2026-10-13 18:31:00 UTC, ~34 min *before* the paste) still shows the stale
-  `TOKEN_EXPIRED 100/121` signature, but that run tested the *old* token —
-  it has not yet tested this new one.
+**The one high-value action — the n=400 decision read, now blocked on a
+repeated failed-repaste pattern:**
+- `enc_token` was repasted **2026-10-13 19:05:28 UTC** (the third attempt)
+  and has now failed its nightly grading test on **every one of the five
+  nights since** (10-13/14 through 10-17/18) — identical `TOKEN_EXPIRED
+  100/121` signature every time, confirmed via the unchanged 277 graded
+  pool.
+- The two prior attempts (09-20, 10-05) also each failed their first real
+  test. **Three consecutive repaste attempts have now failed to authenticate
+  for grading** — this looks less like "tokens expire fast" and more like a
+  problem with the paste mechanism itself.
 - Grading is still at **277 graded calls**, with the same ~121 matured rows
   blocked.
 - **277 + 121 ≈ 398 → n=400 is still reachable in one clean grading pass**,
-  but needs a token paste that actually authenticates for a full run — two
-  prior attempts (09-20, 10-05) have failed that test.
+  but needs a token paste that actually survives to authenticate — something
+  three attempts running have failed to do.
 - **Next check (highest-priority item for the next pass):** read `app_config
-  .grading_incident` written *after* 2026-10-13 19:05:28 UTC (the next
-  nightly run, ~18:30 UTC tonight) to see whether it goes blank/clean. If it
-  still says `TOKEN_EXPIRED`, that's a third consecutive failed repaste —
-  worth asking whether the paste mechanism itself (not just token lifespan)
-  is the problem.
+  .grading_incident` after any new repaste attempt. If a fourth attempt also
+  fails its first real test, that's strong enough evidence to stop repeating
+  the same action and instead look at how the paste is performed (format/
+  encoding, or timing relative to Zerodha's own session-expiry window).
 - **If it crosses 400, execute the pre-registered read (V-20):** hit-rate CI vs
   0.50 on the **alpha** label (`outcome_correct_alpha`), judged against the
   **deflated threshold z ≥ 3.72** (trial ledger = 253 trials), NOT 1.96. Per
