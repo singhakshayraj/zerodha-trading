@@ -4,7 +4,7 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-18** (Sun, weekly review). See the **▶️ START
+_Last updated: **2026-10-19** (Mon, post-session review). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +42,45 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-19 post-session — [P-42] 10-13 token fails a sixth consecutive nightly test (6 days stale, zero repaste attempts); [P-43] no new gap, clean streak 5 days
+
+No trading session ran (`trading_sessions.max(started_at)` still `2026-08-28
+06:54:59 UTC`, `trades` closed-count unchanged at **1,018** / 936 with
+`r_multiple`) — expected forever post-decommission, not re-flagged as a
+finding on its own.
+
+**[P-42] unchanged — the 10-13 token's sixth consecutive real test also
+failed, same signature.** `enc_token.updated_at` is still **2026-10-13
+19:05:27 UTC — now 6 days stale**, zero further repaste attempts.
+`app_config.grading_incident` (written **2026-10-18 18:30:32 UTC** / 00:00
+IST 10-19): `TOKEN_EXPIRED 2026-10-19: 100/121 due rows could not
+authenticate; 0 graded` — the identical **100/121** signature carried since
+09-22, confirming the 10-13 paste has now failed every nightly test across
+six consecutive nights (10-13/14 through 10-18/19). Graded pool unchanged at
+**277**. `advisor_calibration_latest` unchanged (`graded_calls=194`, ECE
+12.4%, `built_at=2026-09-13`) — a **thirteenth** consecutive stale reading.
+
+`portfolio_advice` — zero new rows since 2026-09-10, now **27 straight
+silent weekdays** (09-11, 09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30,
+10-01, 10-05→10-09, 10-12→10-16, 10-19; 10-02 excluded, confirmed Gandhi
+Jayanti NSE/BSE holiday; 10-03/04, 10-10/11, 10-17/18 weekends excluded).
+`brain_status=IDLE` unchanged since 09-13.
+
+**[P-43] — no new gap.** `git log` shows `chore(review): weekly 2026-10-18`
+(`167d4fe`) as the commit immediately before this pass; nothing was due for
+10-17/10-18 (confirmed weekend). 10-19 is a confirmed plain NSE/BSE trading
+weekday (next holiday is Dussehra, 2026-10-20) — this pass's commit extends
+the clean streak since the 10-12 gap to **5 days** (10-13, 10-14, 10-15,
+10-16, 10-19); still far short of the two-clean-week measure-of-done.
+
+**Supabase DB size: 194 → 196 MB (38.8% → 39.2%)** — +2 MB in 1 day,
+consistent with the slow `amfi_nav` trickle; not urgent, [P-38]'s tier
+decision stays undecided.
+
+Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable from this
+environment again (`connect_rejected`, org policy) — same as every recent
+pass; all numbers above measured directly against Supabase prod.
 
 ## 📈 2026-10-18 weekly review — gate metrics re-confirmed byte-identical; [P-42] 10-13 token has now failed every nightly test through 10-17 (5 days stale, zero repaste attempts); [P-43] no new gap, clean streak 4 days (5 after this commit)
 
