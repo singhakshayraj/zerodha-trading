@@ -5,10 +5,26 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-19** (Mon, post-session review) · Burn-down: **24
+_Last updated: **2026-10-21** (Wed, post-session review) · Burn-down: **24
 shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
 paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
 decommission)**._
+
+**2026-10-21 post-session pass:** no new trading session (none ever will —
+decommissioned); `trades` closed-count unchanged (1,018, 936 with
+`r_multiple`). **[P-42] unchanged** — the 10-13 token's eighth consecutive
+real test also failed: `grading_incident` written 2026-10-20 18:30:41 UTC
+reads the identical `TOKEN_EXPIRED 100/121` signature. `enc_token.updated_at`
+unchanged at 2026-10-13 19:05:27 UTC (now 8 days stale, zero further
+repaste), graded pool still 277, `advisor_calibration_latest` a fourteenth
+consecutive stale reading. **[P-43] no new gap** — `chore(review)` commit
+exists for 2026-10-19 (`35e5e80`) immediately before this pass; nothing was
+due for 10-20 (confirmed Dussehra NSE/BSE holiday); clean streak since the
+10-12 gap now 6 days (10-13→10-16, 10-19, 10-21). DB size 201 MB (40.2%), +5
+MB in 2 days, still the slow `amfi_nav` trickle; not urgent, [P-38]
+undecided. Dashboard API (`zerodha-trading-liard.vercel.app`) unreachable
+from this environment again (`connect_rejected`, org policy); all numbers
+measured directly against Supabase prod.
 
 **2026-10-19 post-session pass:** no new trading session (none ever will —
 decommissioned); `trades` closed-count unchanged (1,018, 936 with
@@ -660,6 +676,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   repaste attempts. `advisor_calibration_latest` unchanged
   (`built_at=2026-09-13`/`graded_calls=194`) — a **thirteenth** consecutive
   stale reading. Action unchanged: [you] paste a fresh `enc_token`._
+  _**2026-10-21 evidence — eighth consecutive nightly test failed,
+  `enc_token` now 8 days stale.** `grading_incident` (written 2026-10-20
+  18:30:41 UTC, for 2026-10-21): `TOKEN_EXPIRED 2026-10-21: 100/121 due rows
+  could not authenticate; 0 graded` — identical signature carried since
+  09-22. Graded pool unchanged at 277, confirming the 10-13 paste has now
+  failed its nightly test on every one of eight nights since (10-13/14
+  through 10-20/21). `enc_token.updated_at` unchanged at 2026-10-13 19:05:27
+  UTC — zero further repaste attempts. `advisor_calibration_latest` unchanged
+  (`built_at=2026-09-13`/`graded_calls=194`) — a **fourteenth** consecutive
+  stale reading. Action unchanged: [you] paste a fresh `enc_token`._
 
 - **[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
@@ -740,6 +766,14 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   10-16, 10-19); still nowhere near the two-clean-week measure-of-done.
   Action unchanged: [you] check the routine's trigger/run history at
   claude.ai/code/routines.__
+  _**2026-10-21 evidence — no new gap, streak 6 days.** `git log` shows
+  `chore(review): post-session 2026-10-19` (`35e5e80`) as the commit
+  immediately before this pass; nothing was due for 10-20 (confirmed
+  Dussehra NSE/BSE holiday). 10-21 is a confirmed plain trading weekday —
+  this pass's commit extends the clean streak since the 10-12 gap to **6
+  days** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21); still nowhere near the
+  two-clean-week measure-of-done. Action unchanged: [you] check the
+  routine's trigger/run history at claude.ai/code/routines._
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
