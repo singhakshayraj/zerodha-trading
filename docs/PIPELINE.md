@@ -5,10 +5,22 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-21** (Wed, post-session review) · Burn-down: **24
-shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-43]
-paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
-decommission)**._
+_Last updated: **2026-10-22** (Thu, post-session review — no board move,
+data sources unreachable) · Burn-down: **24 shipped + verified live / 0
+in-progress / 7 ready (all but [P-42]/[P-43] paused by the engineering
+freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-10-22 post-session pass:** both data sources failed this pass — the
+Supabase MCP server failed to connect (`CONNECT_TIMEOUT`, confirmed across
+three retries), and the dashboard API (`zerodha-trading-liard.vercel.app`)
+hit the same org-policy block as every recent pass (`connect_rejected`, not
+new). No evidence available on [P-42] or the trading/advisor numbers this
+pass, so the board is unchanged — nothing moved, nothing fabricated. `git
+log` confirms the review's own cadence held: `8c80eda` (10-21 post-session)
+is on `origin/main`, no gap, so **[P-43] unaffected**. Full detail in
+STATUS.md's 2026-10-22 entry. If this data-access failure recurs next pass,
+it earns its own Ready item (same precedent as [P-43]'s promotion); one
+occurrence is logged, not yet tracked.
 
 **2026-10-21 post-session pass:** no new trading session (none ever will —
 decommissioned); `trades` closed-count unchanged (1,018, 936 with

@@ -4,7 +4,8 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-21** (Wed, post-session review). See the **▶️ START
+_Last updated: **2026-10-22** (Thu, post-session review — data sources
+unreachable, no findings updated, see entry below). See the **▶️ START
 HERE** block below for the exact resume point (the "📍 Exact resume point"
 sub-block); this week's review entry and older entries follow._
 
@@ -42,6 +43,30 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-22 post-session — both data sources unreachable this pass; no trading/advisor finding updated
+
+**New failure mode, distinct from every prior pass.** Every reading since
+this review started has reached Supabase directly even on passes where the
+dashboard API was blocked (`connect_rejected` / `ENOTFOUND`, org policy).
+This pass, **the Supabase MCP connection itself failed** — `CONNECT_TIMEOUT`
+after 30s, confirmed across three retries roughly 8s/15s/20s apart, tools
+never appeared (`ToolSearch` returned no Supabase tools, then explicitly
+reported the server as failed-to-connect). The dashboard API
+(`zerodha-trading-liard.vercel.app`) failed too, with the same org-policy
+block seen on every recent pass (`curl` → connection reset; agent-proxy
+status log confirms `connect_rejected`, gateway 403 to CONNECT, same as
+every prior pass — not new).
+
+**Net effect: no data access at all this pass.** Cannot confirm whether a
+trading session ran, whether [P-42]'s token/grading signature changed, the
+advisor-silence streak, or the DB size — so none of those numbers are
+touched below, and none are fabricated. `git log` confirms the review's own
+cadence held ([P-43] unaffected): `8c80eda` (10-21 post-session) is on
+`origin/main`, no commit gap, nothing shipped besides docs. This is a data-
+*access* failure, not a cadence failure — logging only per the [P-43]
+precedent (narrative evidence first; promote to a tracked PIPELINE item only
+if this recurs on a later pass).
 
 ## 📈 2026-10-21 post-session — [P-42] 10-13 token fails an eighth consecutive nightly test (8 days stale, zero repaste attempts); [P-43] no new gap (10-20 was Dussehra), clean streak 6 days
 
