@@ -5,10 +5,25 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-22** (Thu, post-session review — no board move,
-data sources unreachable) · Burn-down: **24 shipped + verified live / 0
-in-progress / 7 ready (all but [P-42]/[P-43] paused by the engineering
-freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+_Last updated: **2026-10-23** (Fri, post-session review — no board move on
+[P-42]/[P-43] (data sources unreachable again), NEW [P-44] added) ·
+Burn-down: **24 shipped + verified live / 0 in-progress / 8 ready (all but
+[P-42]/[P-43]/[P-44] paused by the engineering freeze) / 4 blocked / 1
+retired ([P-01], decommission)**._
+
+**2026-10-23 post-session pass:** both data sources failed this pass too —
+a second consecutive occurrence, with a different Supabase failure
+signature (**authentication required**, no MCP tools loaded; 10-22 was a
+`CONNECT_TIMEOUT`). The dashboard API hit the same org-policy block as
+every pass on record (`connect_rejected`, not new, never the real data
+source anyway). No evidence available on [P-42] or the trading/advisor
+numbers this pass either, so the board does not move on those — nothing
+fabricated. `git log` confirms the review's own cadence held: `2597f1b`
+(10-22 post-session) is the commit immediately before this pass, no gap, so
+**[P-43] unaffected**. Per the 10-22 entry's own stated precedent, two
+consecutive data-access failures (even with different root causes) earns a
+tracked item rather than staying narrative-only — **new [P-44]** added to
+READY below. Full detail in STATUS.md's 2026-10-23 entry.
 
 **2026-10-22 post-session pass:** both data sources failed this pass — the
 Supabase MCP server failed to connect (`CONNECT_TIMEOUT`, confirmed across
@@ -786,6 +801,34 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   days** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21); still nowhere near the
   two-clean-week measure-of-done. Action unchanged: [you] check the
   routine's trigger/run history at claude.ai/code/routines._
+
+- **[P-44] Review's data-access channel (Supabase MCP) failed two
+  consecutive passes with different root causes.** [you] · *done =* this
+  review reads live Supabase data for two consecutive scheduled passes with
+  no connection failure, OR, if the failures continue, a clear single root
+  cause identified (e.g. the connector consistently needs a fresh OAuth
+  grant). · *source:* 2026-10-23, promoted from narrative evidence logged in
+  STATUS.md/PIPELINE.md on 2026-10-22 per that entry's own stated
+  recurrence precedent.
+  **2026-10-22:** Supabase MCP server failed to connect — `CONNECT_TIMEOUT`
+  after 30s, confirmed across three retries (~8s/15s/20s apart); `ToolSearch`
+  never surfaced Supabase tools, then explicitly reported the server as
+  failed-to-connect. **2026-10-23:** a different signature — the session's
+  own system context reports the Supabase connector as **requiring
+  authentication** before its tools can be used at all (no timeout; no
+  tools ever appeared this pass to even attempt a call). Both passes also
+  saw the dashboard API fail its routine `connect_rejected` org-policy
+  block, as it has on essentially every pass on record — that part is not
+  new and is not part of this finding; the finding is specifically that the
+  *one channel this review actually depends on* (Supabase, used for every
+  number in every STATUS/PIPELINE entry since the dashboard API was first
+  found unreachable) has now failed twice running, for two unrelated
+  reasons. Action: [you] check whether the Supabase connector needs
+  re-authorizing (per the system's own guidance: claude.ai connector
+  settings) — if the next pass can query Supabase cleanly, log it as
+  resolved; if it fails a third time, that is a stronger signal of either a
+  flaky connector or an expiring grant that needs a standing fix (e.g.
+  re-auth cadence), not three independent one-offs.
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual

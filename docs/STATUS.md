@@ -4,10 +4,11 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-22** (Thu, post-session review — data sources
-unreachable, no findings updated, see entry below). See the **▶️ START
-HERE** block below for the exact resume point (the "📍 Exact resume point"
-sub-block); this week's review entry and older entries follow._
+_Last updated: **2026-10-23** (Fri, post-session review — data sources
+unreachable a second consecutive pass, different failure signature;
+promoted to tracked PIPELINE item [P-44], see entry below). See the **▶️
+START HERE** block below for the exact resume point (the "📍 Exact resume
+point" sub-block); this week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -43,6 +44,37 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-23 post-session — both data sources unreachable a second consecutive pass (different signature); promoted to tracked [P-44]
+
+**Recurrence, as the 10-22 entry below said it would be if this happened
+again.** This pass could not reach either data source, same net effect as
+10-22 but a different failure mode on the Supabase side: the Supabase MCP
+tools are not loaded this pass because the connector reports **authentication
+required** (no `CONNECT_TIMEOUT` this time — the server needs an OAuth
+grant before its tools appear at all), whereas 10-22 failed with a
+`CONNECT_TIMEOUT` after three retries. The dashboard API
+(`zerodha-trading-liard.vercel.app`) failed the same way it has on
+essentially every pass on record: `curl` → `connect_rejected` (agent-proxy
+org-policy block) — not new, and never the real data source anyway (every
+prior entry's numbers were read from Supabase directly).
+
+**Net effect: no data access at all, again.** Cannot confirm whether a
+trading session ran (none ever will, post-decommission), [P-42]'s
+token/grading signature, the advisor-silence streak, or the DB size — so
+none of those numbers are touched below, and none are fabricated. `git log`
+confirms the review's own cadence held ([P-43] unaffected): `2597f1b`
+(10-22 post-session) is the commit immediately before this pass, dated
+2026-10-22 11:26:40 UTC — no gap.
+
+**🔴 NEW — promoted to [P-44] in PIPELINE.md.** The 10-22 entry explicitly
+flagged that a second consecutive data-access failure would earn a tracked
+item rather than staying narrative-only ("one occurrence is logged, not yet
+tracked"). Two different failure signatures in a row (connection timeout,
+then auth-required) on the one channel (Supabase) this review depends on
+for every number it reports is now itself the finding, independent of
+whatever [P-42]/[P-43] turn out to show once access is restored. See [P-44]
+in PIPELINE.md for the measure-of-done.
 
 ## 📈 2026-10-22 post-session — both data sources unreachable this pass; no trading/advisor finding updated
 
