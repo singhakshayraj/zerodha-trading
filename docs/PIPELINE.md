@@ -5,11 +5,25 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-23** (Fri, post-session review — no board move on
-[P-42]/[P-43] (data sources unreachable again), NEW [P-44] added) ·
-Burn-down: **24 shipped + verified live / 0 in-progress / 8 ready (all but
-[P-42]/[P-43]/[P-44] paused by the engineering freeze) / 4 blocked / 1
-retired ([P-01], decommission)**._
+_Last updated: **2026-10-25** (Sun, weekly review — no board move on [P-42]
+(data sources unreachable a third consecutive pass, same signature as
+10-23); [P-43] no new gap, clean streak 8 trading weekdays; [P-44] evidence
+updated, stays Ready) · Burn-down: **24 shipped + verified live / 0
+in-progress / 8 ready (all but [P-42]/[P-43]/[P-44] paused by the
+engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-10-25 weekly review pass:** Supabase failed a third consecutive
+pass, and for the second time with the *exact* 10-23 signature (no
+`CONNECT_TIMEOUT`; the connector simply reports auth-required and no tools
+ever load) against one occurrence of the distinct 10-22 timeout signature —
+narrowing this toward a standing OAuth grant that lapsed and hasn't been
+renewed, not three independent flakes. Dashboard API failed its routine
+`connect_rejected`/403 block, as always, not new. No evidence available on
+[P-42] or any trading/advisor number this pass, so the board does not move
+on those. **[P-43] — no new gap**, clean streak now **8 trading weekdays**
+(10-13, 10-14, 10-15, 10-16, 10-19, 10-21, 10-22, 10-23); needs 10-26 and
+10-27 clean too to close the 10-day measure-of-done. Full detail in
+STATUS.md's 2026-10-25 entry.
 
 **2026-10-23 post-session pass:** both data sources failed this pass too —
 a second consecutive occurrence, with a different Supabase failure
@@ -829,6 +843,23 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   resolved; if it fails a third time, that is a stronger signal of either a
   flaky connector or an expiring grant that needs a standing fix (e.g.
   re-auth cadence), not three independent one-offs.
+  **2026-10-25 (weekly review) — third consecutive failure, and it repeats
+  the 10-23 signature exactly** (`ToolSearch` surfaces zero Supabase tools;
+  no `CONNECT_TIMEOUT` this time either, same as 10-23 and unlike 10-22).
+  Two of three failures now share one signature (auth-required / no OAuth
+  grant) against one occurrence of the distinct timeout signature — this
+  is evidence toward the measure-of-done's second branch ("a clear single
+  root cause identified"): the standing-cause read is a Supabase OAuth
+  grant that lapsed once (sometime before 10-23) and has not been renewed
+  since, not a fresh flake each pass. It does not fully close the item
+  (that branch calls for the cause to be *identified and actionable*, and
+  from inside this session there is no way to confirm the grant is in fact
+  the mechanism, only that the symptom repeats). Dashboard API failed the
+  same `connect_rejected`/403 way as always — unrelated, not new. Action
+  unchanged, now sharper: [you] check claude.ai connector settings for the
+  Supabase connector and re-authorize it; if the next pass still can't load
+  Supabase tools even after a fresh grant, that would point at something
+  other than OAuth expiry.
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual

@@ -4,11 +4,13 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-23** (Fri, post-session review — data sources
-unreachable a second consecutive pass, different failure signature;
-promoted to tracked PIPELINE item [P-44], see entry below). See the **▶️
-START HERE** block below for the exact resume point (the "📍 Exact resume
-point" sub-block); this week's review entry and older entries follow._
+_Last updated: **2026-10-25** (Sun, weekly review — data sources unreachable
+a **third** consecutive pass, same signature as 10-23 (Supabase auth
+required, no tools loaded); [P-44] stays open, see entry below). See the
+**▶️ START HERE** block below for the exact resume point (the "📍 Exact
+resume point" sub-block, still dated 10-21 — nothing new to update it with
+since, for the same reason). This week's review entry and older entries
+follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -44,6 +46,50 @@ commits (`b68153e`…`8918ecb`, 2026-09-09/10) updated `POST_MORTEM.md` and
 trading session" as of the last pass (`b8fe60a`, 2026-09-06, three days
 *before* the decommission). Fixed this pass; nothing about the decision
 itself is new, it was already final.
+
+## 📈 2026-10-25 weekly review — third consecutive pass with zero data access, identical signature to 10-23; no gate re-measure, no [P-42] evidence; [P-43] cadence clean (8 trading weekdays)
+
+**Supabase: same failure as 10-23, not a new one.** `ToolSearch` for
+Supabase tools returned nothing this pass — no `CONNECT_TIMEOUT` (that was
+only the 10-22 signature), just zero tools ever surfacing, consistent with
+the session's own system context again reporting the connector as
+**requiring authentication**. This is the second occurrence of this exact
+signature (10-23, now 10-25) against one occurrence of the distinct
+`CONNECT_TIMEOUT` signature (10-22) — the repeat narrows the cause: this
+looks like a standing OAuth grant that lapsed once and has not been
+renewed, not an independent flake each time. Dashboard API
+(`zerodha-trading-liard.vercel.app`) also unreachable, same as every pass
+on record: `curl` → `CONNECT tunnel failed, response 403` (agent-proxy
+org-policy block) — not new, and never the real data source anyway.
+
+**Net effect: no data access at all, a third time running.** Cannot
+re-measure PF/expectancy/drawdown (frozen regardless, but unconfirmed this
+pass), cannot read `advisor_calibration_latest`, `app_config
+.grading_incident`, `enc_token.updated_at`, the graded-pool size, the
+`portfolio_advice` silence streak, or DB size — so none of those numbers
+are touched below, and none are fabricated. [P-42]'s status is therefore
+**unknown this pass**, not unchanged — the last confirmed reading is still
+the 10-21 one (8 consecutive failed nightly tests on the 10-13 token,
+277 graded pool).
+
+**[P-43] — no new gap; clean streak now 8 trading weekdays.** `git log`
+shows a `chore(review)` commit for every weekday since the 10-12 gap:
+10-13, 10-14, 10-15, 10-16, 10-19, 10-21, 10-22 (`2597f1b`), 10-23
+(`6597487`) — 8 consecutive trading weekdays, no gap (10-17/10-18 weekend,
+10-20 confirmed Dussehra holiday, 10-24 Saturday not due). Still short of
+the two-calendar-week (10 trading weekday) measure-of-done; would need
+10-26 and 10-27 to also land clean to close it. This item is unaffected by
+the Supabase outage — it's checked via local `git log`, not prod data.
+
+**3-lens sanity — degraded to engineer-lens only, no data this pass.**
+Advisor/trader lenses need live numbers that are unavailable; nothing to
+report without fabricating. Engineer lens: the **data-access failure is now
+the dominant and sole engineering risk on this board** — three passes
+running (10-22, 10-23, 10-25) with zero prod visibility means no finding,
+fix, or token status can be confirmed, and [P-42]'s real state (whether the
+10-13 token is still dead, whether a repaste was even attempted) is
+unknowable from here. No gate flip possible or checkable; gate #6 stays
+retired/blocked on the user decision regardless.
 
 ## 📈 2026-10-23 post-session — both data sources unreachable a second consecutive pass (different signature); promoted to tracked [P-44]
 
