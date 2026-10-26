@@ -5,12 +5,26 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-25** (Sun, weekly review — no board move on [P-42]
-(data sources unreachable a third consecutive pass, same signature as
-10-23); [P-43] no new gap, clean streak 8 trading weekdays; [P-44] evidence
-updated, stays Ready) · Burn-down: **24 shipped + verified live / 0
-in-progress / 8 ready (all but [P-42]/[P-43]/[P-44] paused by the
-engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+_Last updated: **2026-10-26** (Mon, post-session — no board move on [P-42]
+(data sources unreachable a fourth consecutive pass, same auth-required
+signature as 10-23/10-25); [P-43] no new gap, clean streak 9 trading
+weekdays, needs 10-27 to close; [P-44] evidence updated, stays Ready) ·
+Burn-down: **24 shipped + verified live / 0 in-progress / 8 ready (all but
+[P-42]/[P-43]/[P-44] paused by the engineering freeze) / 4 blocked / 1
+retired ([P-01], decommission)**._
+
+**2026-10-26 post-session pass:** Supabase failed a fourth consecutive
+pass, with the third occurrence of the exact 10-23/10-25 signature (no
+`CONNECT_TIMEOUT`; the connector simply reports auth-required and no tools
+ever load) against one occurrence of the distinct 10-22 timeout signature —
+further narrowing this toward a standing OAuth grant that lapsed and
+hasn't been renewed. Dashboard API failed its routine `connect_rejected`/403
+block, as always, not new. No evidence available on [P-42] or any
+trading/advisor number this pass, so the board does not move on those.
+**[P-43] — no new gap**, clean streak now **9 trading weekdays** (10-13,
+10-14, 10-15, 10-16, 10-19, 10-21, 10-22, 10-23, 10-26); needs 10-27 clean
+too to close the 10-day measure-of-done. Full detail in STATUS.md's
+2026-10-26 entry.
 
 **2026-10-25 weekly review pass:** Supabase failed a third consecutive
 pass, and for the second time with the *exact* 10-23 signature (no
@@ -815,6 +829,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   days** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21); still nowhere near the
   two-clean-week measure-of-done. Action unchanged: [you] check the
   routine's trigger/run history at claude.ai/code/routines._
+  _**2026-10-26 evidence — no new gap, streak 9 days, one more to close.**
+  `git log` shows `chore(review): weekly 2026-10-25` (`332ec00`) as the
+  commit immediately before this pass; 10-25 was a Sunday weekly review, not
+  a weekday skip. 10-26 is a confirmed plain trading weekday (October 2026's
+  only holidays are 10-02 Gandhi Jayanti and 10-20 Dussehra) — this pass's
+  commit extends the clean streak since the 10-12 gap to **9 trading
+  weekdays** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21, 10-22, 10-23, 10-26);
+  one more clean weekday (10-27) reaches the 10-day two-clean-week
+  measure-of-done. Action unchanged: [you] check the routine's trigger/run
+  history at claude.ai/code/routines._
 
 - **[P-44] Review's data-access channel (Supabase MCP) failed two
   consecutive passes with different root causes.** [you] · *done =* this
@@ -860,6 +884,15 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   Supabase connector and re-authorize it; if the next pass still can't load
   Supabase tools even after a fresh grant, that would point at something
   other than OAuth expiry.
+  **2026-10-26 (post-session) — fourth consecutive failure, third
+  occurrence of the auth-required signature (3-to-1 against the single
+  10-22 timeout).** `ToolSearch` again surfaced zero Supabase tools, same
+  as 10-23 and 10-25. Dashboard API failed the same `connect_rejected`/403
+  way as every pass on record — unrelated, not new. This is now four
+  passes running with zero prod visibility; the standing-OAuth-grant read
+  stays the best available explanation but is still unconfirmed from
+  inside this session. Action unchanged: [you] check claude.ai connector
+  settings for the Supabase connector and re-authorize it.
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
