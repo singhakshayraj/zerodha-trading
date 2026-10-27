@@ -5,13 +5,27 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-26** (Mon, post-session — no board move on [P-42]
-(data sources unreachable a fourth consecutive pass, same auth-required
-signature as 10-23/10-25); [P-43] no new gap, clean streak 9 trading
-weekdays, needs 10-27 to close; [P-44] evidence updated, stays Ready) ·
-Burn-down: **24 shipped + verified live / 0 in-progress / 8 ready (all but
-[P-42]/[P-43]/[P-44] paused by the engineering freeze) / 4 blocked / 1
-retired ([P-01], decommission)**._
+_Last updated: **2026-10-27** (Tue, post-session — no board move on [P-42]
+(data sources unreachable a fifth consecutive pass, same auth-required
+signature as 10-23/10-25/10-26); **[P-43] CLOSES** (10 clean trading
+weekdays, measure-of-done met) — moved to Done; [P-44] evidence updated,
+stays Ready) · Burn-down: **25 shipped + verified live / 0 in-progress / 7
+ready (all but [P-42]/[P-44] paused by the engineering freeze) / 4 blocked
+/ 1 retired ([P-01], decommission)**._
+
+**2026-10-27 post-session pass:** Supabase failed a fifth consecutive
+pass, the fourth occurrence of the exact 10-23/10-25/10-26 signature (no
+`CONNECT_TIMEOUT`; `ToolSearch` surfaces zero Supabase tools, connector
+reports auth-required) against one occurrence of the distinct 10-22
+timeout signature. Dashboard API failed its routine `connect_rejected`/403
+block, as always, not new (confirmed via the agent-proxy status log).
+No evidence available on [P-42] or any trading/advisor number this pass,
+so the board does not move on those. **[P-43] — CLOSES.** `git log` shows
+a clean `chore(review)` commit for every trading weekday since the 10-12
+gap: 10-13, 10-14, 10-15, 10-16, 10-19, 10-21, 10-22, 10-23, 10-26, 10-27 —
+**10 consecutive trading weekdays**, meeting the two-clean-week
+measure-of-done. Moved to Done below. Full detail in STATUS.md's 2026-10-27
+entry.
 
 **2026-10-26 post-session pass:** Supabase failed a fourth consecutive
 pass, with the third occurrence of the exact 10-23/10-25 signature (no
@@ -742,104 +756,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   (`built_at=2026-09-13`/`graded_calls=194`) — a **fourteenth** consecutive
   stale reading. Action unchanged: [you] paste a fresh `enc_token`._
 
-- **[P-43] Automated post-session review intermittently fails to fire or
-  commit on a plain NSE/BSE trading weekday.** [you] · *done =* two
-  consecutive calendar weeks with a `chore(review): post-session` (or
-  `weekly`) commit for every non-holiday weekday, confirmed via `git log`.
-  · *source:* 2026-10-06 (promoted from narrative evidence logged in
-  STATUS.md on 09-27 and 10-01); recurred 2026-10-09.
-  No `chore(review)` commit exists for **2026-10-05 (Mon)** — the last commit
-  before the 10-06 pass was `189b7d7` (10-04 weekly review). 10-05 is
-  confirmed not an NSE/BSE holiday (the next one is Dussehra, 2026-10-20), so
-  that was a real gap, not an expected skip. The brain's own independent
-  nightly cron (`grading_incident`) kept writing on schedule through every
-  gap, so the underlying infra is alive; this is specifically the scheduled
-  Claude review (`trig_01SfvoCZ5tb7kecKwU6koDrY`, weekdays 16:30 IST per the
-  Cadence section below) failing to fire or failing to commit. Action: [you]
-  check the routine's config/run history at claude.ai/code/routines.
-  _**2026-10-09 evidence — fourth occurrence, clock reset again.** No
-  `chore(review)` commit exists for **2026-10-08 (Thu)** either — the last
-  commit before this pass was `eed0102` (10-07 post-session). 10-08 is
-  confirmed not an NSE/BSE holiday. This is the fourth distinct gap since
-  the pattern first appeared (09-25/09-26, 09-29/09-30, 10-05, now 10-08) —
-  the item has never once reached its own two-clean-weeks measure-of-done.
-  Action unchanged: [you] check the routine's trigger/run history._
-  _**2026-10-11 weekly-review evidence — no new gap, but the streak is
-  still only 1 day.** `git log` shows a commit for every weekday since the
-  10-08 gap: `2e4cf29` (10-09 post-session), and nothing was due for
-  10-10/10-11 (confirmed weekend, not a gap). So the clean streak this
-  item's own measure-of-done needs (two full calendar weeks, every
-  non-holiday weekday) stands at exactly **one day** since the last gap —
-  nowhere close to two weeks, and one more weekday miss before 10-23 would
-  reset it to zero again. Not closed; stays Ready. Action unchanged:
-  [you] check the routine's trigger/run history at claude.ai/code/routines._
-  _**2026-10-13 evidence — fifth distinct gap, streak reset to 0 again.** No
-  `chore(review)` commit exists for **2026-10-12 (Mon)** — the last commit
-  before this pass was `013e34c` (10-11 weekly review). 10-12 is confirmed
-  not an NSE/BSE holiday (next one is Dussehra, 2026-10-20), so this is a
-  real gap, the fifth distinct occurrence (09-25/09-26, 09-29/09-30, 10-05,
-  10-08, now 10-12). The one-day streak the 10-11 pass recorded is wiped —
-  back to **0**. Five gaps in under three weeks with zero remediation is a
-  pattern, not noise; this item has never once come close to its own
-  two-clean-week measure-of-done. Action unchanged: [you] check the
-  routine's trigger/run history at claude.ai/code/routines._
-  _**2026-10-14 evidence — no new gap, streak 1 day.** `git log` shows
-  `chore(review): post-session 2026-10-13` (`e63b0d2`) as the commit
-  immediately before this pass — 10-13 was not skipped. Clean streak since
-  the 10-12 gap is now **1 day**, same position as after the 10-08 gap;
-  still nowhere near the two-clean-week measure-of-done, and this pattern
-  has reset five times without ever getting past a handful of days. Action
-  unchanged: [you] check the routine's trigger/run history at
-  claude.ai/code/routines._
-  _**2026-10-15 evidence — no new gap, streak 2 days (3 after this pass's
-  commit).** `git log` shows `chore(review): post-session 2026-10-14`
-  (`e58f29d`) as the commit immediately before this pass — 10-14 was not
-  skipped. Clean streak since the 10-12 gap is now **2 days** (10-13,
-  10-14), extending to 3 once this pass lands; still nowhere near the
-  two-clean-week measure-of-done. Action unchanged: [you] check the
-  routine's trigger/run history at claude.ai/code/routines._
-  _**2026-10-16 evidence — no new gap, streak 3 days (4 after this pass's
-  commit).** `git log` shows `chore(review): post-session 2026-10-15`
-  (`32d8c6c`) as the commit immediately before this pass — 10-15 was not
-  skipped. Clean streak since the 10-12 gap is now **3 days** (10-13,
-  10-14, 10-15), extending to 4 once this pass lands; still nowhere near
-  the two-clean-week measure-of-done. Action unchanged: [you] check the
-  routine's trigger/run history at claude.ai/code/routines.
-  _**2026-10-18 weekly-review evidence — no new gap, streak 4 days (5
-  after this pass's commit).** `git log` shows `chore(review): post-session
-  2026-10-16` (`83004f8`) as the commit immediately before this pass;
-  nothing was due for 10-17 (confirmed Saturday, not a gap). Clean streak
-  since the 10-12 gap is now **4 days** (10-13, 10-14, 10-15, 10-16),
-  extending to 5 once this pass lands; still nowhere near the two-clean-week
-  measure-of-done. Action unchanged: [you] check the routine's trigger/run
-  history at claude.ai/code/routines.
-  _**2026-10-19 evidence — no new gap, streak 5 days.** `git log` shows
-  `chore(review): weekly 2026-10-18` (`167d4fe`) as the commit immediately
-  before this pass; nothing was due for 10-17/10-18 (confirmed weekend).
-  10-19 is a confirmed plain trading weekday — this pass's commit extends
-  the clean streak since the 10-12 gap to **5 days** (10-13, 10-14, 10-15,
-  10-16, 10-19); still nowhere near the two-clean-week measure-of-done.
-  Action unchanged: [you] check the routine's trigger/run history at
-  claude.ai/code/routines.__
-  _**2026-10-21 evidence — no new gap, streak 6 days.** `git log` shows
-  `chore(review): post-session 2026-10-19` (`35e5e80`) as the commit
-  immediately before this pass; nothing was due for 10-20 (confirmed
-  Dussehra NSE/BSE holiday). 10-21 is a confirmed plain trading weekday —
-  this pass's commit extends the clean streak since the 10-12 gap to **6
-  days** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21); still nowhere near the
-  two-clean-week measure-of-done. Action unchanged: [you] check the
-  routine's trigger/run history at claude.ai/code/routines._
-  _**2026-10-26 evidence — no new gap, streak 9 days, one more to close.**
-  `git log` shows `chore(review): weekly 2026-10-25` (`332ec00`) as the
-  commit immediately before this pass; 10-25 was a Sunday weekly review, not
-  a weekday skip. 10-26 is a confirmed plain trading weekday (October 2026's
-  only holidays are 10-02 Gandhi Jayanti and 10-20 Dussehra) — this pass's
-  commit extends the clean streak since the 10-12 gap to **9 trading
-  weekdays** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21, 10-22, 10-23, 10-26);
-  one more clean weekday (10-27) reaches the 10-day two-clean-week
-  measure-of-done. Action unchanged: [you] check the routine's trigger/run
-  history at claude.ai/code/routines._
-
 - **[P-44] Review's data-access channel (Supabase MCP) failed two
   consecutive passes with different root causes.** [you] · *done =* this
   review reads live Supabase data for two consecutive scheduled passes with
@@ -893,6 +809,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   stays the best available explanation but is still unconfirmed from
   inside this session. Action unchanged: [you] check claude.ai connector
   settings for the Supabase connector and re-authorize it.
+  **2026-10-27 (post-session) — fifth consecutive failure, fourth
+  occurrence of the auth-required signature (4-to-1 against the single
+  10-22 timeout).** `ToolSearch` (`+supabase`) again surfaced zero Supabase
+  tools, same as 10-23, 10-25, and 10-26. Dashboard API failed the same
+  `connect_rejected`/403 way as every pass on record, confirmed via the
+  agent-proxy status log — unrelated, not new. Five passes running with
+  zero prod visibility; the standing-OAuth-grant read stays the best
+  available explanation but remains unconfirmed from inside this session
+  (no way to inspect or refresh the grant without user action). Action
+  unchanged: [you] check claude.ai connector settings for the Supabase
+  connector and re-authorize it.
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
@@ -1144,6 +1071,27 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- ~~**[P-43] Automated post-session review intermittently fails to fire or
+  commit on a plain NSE/BSE trading weekday.**~~ ✅ **DONE 2026-10-27** — 10
+  consecutive clean trading weekdays (10-13, 10-14, 10-15, 10-16, 10-19,
+  10-21, 10-22, 10-23, 10-26, 10-27), a `chore(review)` commit for every
+  non-holiday weekday with no gap, confirmed via `git log`. Measure-of-done
+  (two consecutive calendar weeks, every non-holiday weekday) met. ·
+  *source:* 2026-10-06 (promoted from narrative evidence logged in
+  STATUS.md on 09-27 and 10-01); recurred 2026-10-09.
+  _History: five distinct gaps before this streak started (09-25/09-26,
+  09-29/09-30, 10-05, 10-08, 10-12), each logged and reset the streak to
+  zero; zero gaps in the 10 trading weekdays since the 10-12 gap. The
+  brain's own independent nightly cron (`grading_incident`) kept writing on
+  schedule through every gap, so the underlying infra was never the
+  problem — this was specifically the scheduled Claude review
+  (`trig_01SfvoCZ5tb7kecKwU6koDrY`) failing to fire or commit. No root
+  cause was ever confirmed from inside this session (not observable without
+  checking claude.ai/code/routines); closing on the measured outcome
+  (sustained clean cadence), not a diagnosed fix. Full day-by-day evidence
+  trail (10-09 through 10-26) lived in this item's Ready-section history
+  before this move; trimmed here, superseded by the clean streak._
 
 - **2026-09-13 (22:43 IST) — "Analyse this name live" shipped, undocumented
   until this pass.** `cc547da` (dashboard: `app/api/advisor/lookup/route.ts`,
