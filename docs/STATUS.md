@@ -4,14 +4,14 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-27** (Tue, post-session — data sources unreachable
-a **fifth** consecutive pass, same auth-required signature as 10-23/10-25/
-10-26 (now 4-for-5 on that exact signature); [P-43] **CLOSES** this pass
-(10 consecutive clean trading weekdays); [P-44] stays open, see entry
-below). See the **▶️ START HERE** block below for the exact resume point
-(the "📍 Exact resume point" sub-block, still dated 10-21 — nothing new to
-update it with since, for the same reason). This week's review entry and
-older entries follow._
+_Last updated: **2026-10-28** (Wed, post-session — data sources unreachable
+a **sixth** consecutive pass, same auth-required signature as 10-23/10-25/
+10-26/10-27 (now 5-for-6 on that exact signature); [P-43] stays Done (clean
+cadence continues, this pass's commit extends it); [P-44] evidence updated,
+stays open, see entry below). See the **▶️ START HERE** block below for the
+exact resume point (the "📍 Exact resume point" sub-block, still dated
+10-21 — nothing new to update it with since, for the same reason). This
+week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -24,6 +24,53 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-10-28 post-session — sixth consecutive pass with zero data access (fifth auth-required occurrence); [P-43] holds Done; [P-44] evidence updated
+
+**Confirmed 2026-10-28 is a plain NSE/BSE trading weekday** — October
+2026's only two trading holidays are Gandhi Jayanti (Fri 10-02) and
+Dussehra (Tue 10-20); today is neither. No trading session will run
+regardless (decommissioned 2026-09-09) — not re-flagged as a finding on
+its own.
+
+**Supabase: sixth consecutive failure, fifth occurrence of the
+auth-required signature.** `ToolSearch` (`+supabase`) returned no matching
+tools again this pass, and the session's own system context again reports
+the connector as requiring authentication before any tools load —
+identical to 10-23, 10-25, 10-26, and 10-27, now 5-to-1 against the single
+10-22 `CONNECT_TIMEOUT` occurrence. Dashboard API
+(`zerodha-trading-liard.vercel.app`) failed the same way it has on every
+pass on record: `curl` → `CONNECT tunnel failed, response 403`, confirmed
+via the agent-proxy status log (`connect_rejected`, "gateway answered 403
+to CONNECT", org-policy block) — not new, and never the real data source
+anyway.
+
+**Net effect: no data access at all, a sixth time running.** Cannot
+re-measure PF/expectancy/drawdown (frozen regardless, but unconfirmed this
+pass), cannot read `advisor_calibration_latest`, `app_config
+.grading_incident`, `enc_token.updated_at`, the graded-pool size, the
+`portfolio_advice` silence streak, or DB size — so none of those numbers
+are touched below, and none are fabricated. [P-42]'s status stays
+**unknown this pass** — the last confirmed reading is still the 10-21 one
+(8 consecutive failed nightly tests on the 10-13 token, 277 graded pool).
+
+**[P-43] — holds Done.** Already closed 2026-10-27 (10 consecutive clean
+trading weekdays, measure-of-done met). This pass's own `chore(review)`
+commit extends the clean cadence further but does not reopen or re-track
+the item — logged only for completeness.
+
+**[P-44] — sixth consecutive failure, logged; see updated evidence in
+PIPELINE.md.** The data-access failure remains the dominant engineering
+risk on this board: six passes running (10-22 through 10-28) with zero
+prod visibility, five of them sharing the identical auth-required
+signature.
+
+**3-lens sanity — degraded to engineer-lens only, no data this pass.** Same
+shape as 10-25 through 10-27: advisor/trader lenses need live numbers that
+are unavailable; nothing to report without fabricating. Engineer lens: the
+data-access failure is now six-for-six, with no finding, fix, or token
+status confirmable; gate #6 stays retired/blocked on the user decision
+regardless.
 
 ## 📈 2026-10-27 post-session — fifth consecutive pass with zero data access (fourth auth-required occurrence); [P-43] CLOSES (10 clean trading weekdays); [P-44] evidence updated
 

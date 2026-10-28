@@ -5,13 +5,24 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-27** (Tue, post-session — no board move on [P-42]
-(data sources unreachable a fifth consecutive pass, same auth-required
-signature as 10-23/10-25/10-26); **[P-43] CLOSES** (10 clean trading
-weekdays, measure-of-done met) — moved to Done; [P-44] evidence updated,
-stays Ready) · Burn-down: **25 shipped + verified live / 0 in-progress / 7
-ready (all but [P-42]/[P-44] paused by the engineering freeze) / 4 blocked
-/ 1 retired ([P-01], decommission)**._
+_Last updated: **2026-10-28** (Wed, post-session — no board move on [P-42]
+(data sources unreachable a sixth consecutive pass, same auth-required
+signature as 10-23/10-25/10-26/10-27); [P-43] holds Done (clean cadence
+continues); [P-44] evidence updated, stays Ready) · Burn-down: **25 shipped
++ verified live / 0 in-progress / 7 ready (all but [P-42]/[P-44] paused by
+the engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-10-28 post-session pass:** Supabase failed a sixth consecutive
+pass, the fifth occurrence of the exact 10-23/10-25/10-26/10-27 signature
+(no `CONNECT_TIMEOUT`; `ToolSearch` surfaces zero Supabase tools, connector
+reports auth-required) against one occurrence of the distinct 10-22
+timeout signature. Dashboard API failed its routine `connect_rejected`/403
+block, as always, not new (confirmed via the agent-proxy status log). No
+evidence available on [P-42] or any trading/advisor number this pass, so
+the board does not move on those. **[P-43] — holds Done**, already closed
+10-27; this pass's own `chore(review)` commit extends the clean cadence
+further without reopening the item. Full detail in STATUS.md's 2026-10-28
+entry.
 
 **2026-10-27 post-session pass:** Supabase failed a fifth consecutive
 pass, the fourth occurrence of the exact 10-23/10-25/10-26 signature (no
@@ -820,6 +831,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   (no way to inspect or refresh the grant without user action). Action
   unchanged: [you] check claude.ai connector settings for the Supabase
   connector and re-authorize it.
+  **2026-10-28 (post-session) — sixth consecutive failure, fifth
+  occurrence of the auth-required signature (5-to-1 against the single
+  10-22 timeout).** `ToolSearch` (`+supabase`) again surfaced zero
+  Supabase tools, same as 10-23, 10-25, 10-26, and 10-27. Dashboard API
+  failed the same `connect_rejected`/403 way as every pass on record,
+  confirmed via the agent-proxy status log — unrelated, not new. Six
+  passes running with zero prod visibility; the standing-OAuth-grant read
+  stays the best available explanation but remains unconfirmed from
+  inside this session. Action unchanged: [you] check claude.ai connector
+  settings for the Supabase connector and re-authorize it.
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
