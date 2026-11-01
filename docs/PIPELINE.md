@@ -5,13 +5,26 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-10-30** (Fri, post-session — no board move on [P-42]
-(data sources unreachable an eighth consecutive pass, same auth-required
-signature as 10-23/10-25/10-26/10-27/10-28/10-29); [P-43] holds Done (clean
-cadence continues); [P-44] evidence updated, stays Ready) · Burn-down: **25
-shipped + verified live / 0 in-progress / 7 ready (all but [P-42]/[P-44]
-paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
-decommission)**._
+_Last updated: **2026-11-01** (Sun, weekly review — no board move on [P-42]
+(data sources unreachable a ninth consecutive pass, eighth occurrence of
+the auth-required signature); [P-43] holds Done (clean cadence continues);
+[P-44] evidence updated, stays Ready) · Burn-down: **25 shipped + verified
+live / 0 in-progress / 7 ready (all but [P-42]/[P-44] paused by the
+engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-11-01 weekly review pass:** Supabase failed a ninth consecutive
+pass, the eighth occurrence of the exact 10-23/10-25/10-26/10-27/10-28/
+10-29/10-30 signature (no `CONNECT_TIMEOUT`; `ToolSearch` surfaces zero
+Supabase tools, connector reports auth-required) against one occurrence of
+the distinct 10-22 timeout signature. Dashboard API failed its routine
+`connect_rejected`/403 block, as always, not new (confirmed via the
+agent-proxy status log). No evidence available on [P-42] or any
+trading/advisor number this pass, so the board does not move on those —
+this is the second weekly review in a row (10-25, now 11-01) where the
+gate re-measure itself could not run. **[P-43] — holds Done**, already
+closed 10-27; this pass's own `chore(review)` commit extends the clean
+cadence further without reopening the item. Full detail in STATUS.md's
+2026-11-01 entry.
 
 **2026-10-30 post-session pass:** Supabase failed an eighth consecutive
 pass, the seventh occurrence of the exact 10-23/10-25/10-26/10-27/10-28/
@@ -372,6 +385,20 @@ grading test through 10-17 night — zero further repaste attempts tried.
 Calibration snapshot staleness extends to a **twelfth** consecutive reading
 (graded pool still 277, unchanged since 09-20). Next weekly review due
 Sunday 2026-10-25, unless a token paste clears the backlog first.
+
+**2026-10-25 weekly-review addendum:** no re-measure possible — Supabase
+unreachable this pass (see [P-44]), the third consecutive data-access
+failure. PF/expectancy/drawdown/calibration all carry forward unconfirmed
+from the 10-18 reading above. Next weekly review due Sunday 2026-11-01,
+unless access is restored first.
+
+**2026-11-01 weekly-review addendum:** no re-measure possible for a
+second straight weekly review — Supabase unreachable this pass too (see
+[P-44]), the ninth consecutive data-access failure overall. PF/expectancy/
+drawdown/calibration all still carry forward unconfirmed from the 10-18
+reading above; nothing below has moved because nothing could be read.
+Next weekly review due Sunday 2026-11-08, unless access is restored
+first.
 
 ## The feedback loop (how this board is fed + drained)
 
@@ -891,6 +918,22 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   pass sent the user a notification pointing at this item rather than
   continuing to log it silently. Action unchanged: [you] check claude.ai
   connector settings for the Supabase connector and re-authorize it.
+  **2026-11-01 (weekly review) — ninth consecutive failure, eighth
+  occurrence of the auth-required signature (8-to-1 against the single
+  10-22 timeout).** `ToolSearch` (`supabase`, `+supabase`) again surfaced
+  zero Supabase tools, same as every pass from 10-23 through 10-30.
+  Dashboard API failed the same `connect_rejected`/403 way as every pass
+  on record, confirmed via the agent-proxy status log. Nine passes running
+  with zero prod visibility, now 11 days since the grant first lapsed —
+  and this is the **second weekly review in a row** (10-25, now 11-01)
+  where this review's core job (re-measure the gate metrics, verify
+  recently-Done items against fresh numbers, check for a gate flip) could
+  not be performed at all, not just [P-42]'s evidence going stale. The
+  standing-OAuth-grant read stays the only available explanation and
+  remains unconfirmed from inside this session. This pass sent the user a
+  second notification given the full week elapsed since the last one with
+  no change. Action unchanged: [you] check claude.ai connector settings
+  for the Supabase connector and re-authorize it.
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual

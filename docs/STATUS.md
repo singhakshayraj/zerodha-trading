@@ -4,9 +4,10 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-10-30** (Fri, post-session — data sources unreachable
-an **eighth** consecutive pass, same auth-required signature as 10-23/10-25/
-10-26/10-27/10-28/10-29 (now 7-for-8 on that exact signature); [P-43] stays Done
+_Last updated: **2026-11-01** (Sun, weekly review — data sources unreachable
+a **ninth** consecutive pass, eighth occurrence of the auth-required
+signature (now 8-for-9 against the single 10-22 `CONNECT_TIMEOUT`); no gate
+re-measure possible for a second straight weekly review; [P-43] stays Done
 (clean cadence continues, this pass's commit extends it); [P-44] evidence
 updated, stays open, see entry below). See the **▶️ START HERE** block below
 for the exact resume point (the "📍 Exact resume point" sub-block, still dated
@@ -24,6 +25,64 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-11-01 weekly review — ninth consecutive pass with zero data access (eighth auth-required occurrence); no gate re-measure for a second straight weekly review; [P-43] holds Done; [P-44] evidence updated
+
+**Confirmed 2026-11-01 is a Sunday** — no trading session was due regardless
+of data access (decommissioned 2026-09-09, and weekends carry no session
+even historically).
+
+**Supabase: ninth consecutive failure, eighth occurrence of the
+auth-required signature.** `ToolSearch` (`supabase`, `+supabase`) returned
+no matching tools this pass, and the session's own system context again
+reports the connector as requiring authentication before any tools load —
+identical to every pass from 10-23 through 10-30, now **8-to-1** against
+the single 10-22 `CONNECT_TIMEOUT` occurrence. Dashboard API
+(`zerodha-trading-liard.vercel.app`) failed the same way it has on every
+pass on record: `curl` → `CONNECT tunnel failed, response 403`, confirmed
+via the agent-proxy status log (`connect_rejected`, "gateway answered 403
+to CONNECT", org-policy block) — not new, and never the real data source
+anyway.
+
+**Net effect: no data access at all, a ninth time running, and the second
+weekly review in a row this review's actual job (re-measure PF/expectancy/
+drawdown, advisor ECE + monotonicity, verify recently-Done items against
+fresh numbers) cannot be performed.** Cannot re-measure the gate metrics
+(frozen regardless per the 2026-09-09 decommission, but unconfirmed this
+pass), cannot read `advisor_calibration_latest`, `app_config
+.grading_incident`, `enc_token.updated_at`, the graded-pool size, the
+`portfolio_advice` silence streak, or DB size — so none of those numbers
+are touched below, and none are fabricated. [P-42]'s status stays
+**unknown this pass** — the last confirmed reading is still the 10-21 one
+(8 consecutive failed nightly tests on the 10-13 token, 277 graded pool).
+No Done item can be verified against fresh data for the same reason —
+every previously-Done item (stop-execution fix, calibration verdict, etc.)
+remains a frozen historical fact with nothing new to re-check it against.
+
+**[P-43] — holds Done.** `git log` shows a `chore(review)` commit for
+every trading weekday since the last gap (10-26, 10-27, 10-28, 10-29,
+10-30), nothing due 10-31/11-01 (weekend) — no new gap. Already closed
+2026-10-27 (10 consecutive clean trading weekdays, measure-of-done met);
+this pass's own commit extends the clean cadence further without
+reopening or re-tracking the item.
+
+**[P-44] — ninth consecutive failure, logged; see updated evidence in
+PIPELINE.md.** The data-access failure remains the dominant engineering
+risk on this board: nine passes running (10-22 through 11-01) with zero
+prod visibility, eight of them sharing the identical auth-required
+signature. This is now **11 days** of standing blockage on the one action
+item ([you] re-authorize the Supabase connector in claude.ai connector
+settings) — flagged to the user via notification again this pass, since a
+full week has now passed since the last notification (10-30) with no
+change and this is the second weekly review in a row the gate re-measure
+itself has been blocked.
+
+**3-lens sanity — degraded to engineer-lens only, no data this pass.** Same
+shape as every pass since 10-25: advisor/trader lenses need live numbers
+that are unavailable; nothing to report without fabricating. Engineer
+lens: the data-access failure is now nine-for-nine, with no finding, fix,
+or token status confirmable; gate #6 stays retired/blocked on the user
+decision regardless.
 
 ## 📈 2026-10-30 post-session — eighth consecutive pass with zero data access (seventh auth-required occurrence); [P-43] holds Done; [P-44] evidence updated
 
