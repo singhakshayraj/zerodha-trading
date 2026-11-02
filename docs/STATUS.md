@@ -4,15 +4,16 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-01** (Sun, weekly review — data sources unreachable
-a **ninth** consecutive pass, eighth occurrence of the auth-required
-signature (now 8-for-9 against the single 10-22 `CONNECT_TIMEOUT`); no gate
-re-measure possible for a second straight weekly review; [P-43] stays Done
-(clean cadence continues, this pass's commit extends it); [P-44] evidence
-updated, stays open, see entry below). See the **▶️ START HERE** block below
-for the exact resume point (the "📍 Exact resume point" sub-block, still dated
-10-21 — nothing new to update it with since, for the same reason). This
-week's review entry and older entries follow._
+_Last updated: **2026-11-02** (Mon, post-session — **Supabase access
+restored** after nine consecutive failed passes (10-22→11-01); it surfaced
+that [P-42] actually resolved mid-blackout — **grading stall cleared,
+graded pool 277→398**, 2 calls short of the POST_MORTEM §6 n=400
+pre-registered advisor read; `portfolio_advice` also resumed today after
+54 silent days; [P-42] moves to Done, [P-44] stays Ready pending one more
+clean pass, [P-43] holds Done). See the **▶️ START HERE** block below for
+the exact resume point — still dated 10-21, now stale against this pass's
+findings; update on a future pass once the next steps from this entry are
+acted on. This week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -25,6 +26,72 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-11-02 post-session — Supabase access restored; [P-42] resolved (grading pool 277→398, 2 short of n=400); advisor resumed after 54 silent days; [P-44] needs one more clean pass; [P-43] holds Done
+
+**Confirmed 2026-11-02 is a plain NSE/BSE trading weekday** (no holiday).
+No trading session ran or ever will (decommissioned 2026-09-09, `trades`
+unchanged at 1,018 closed / 936 with `r_multiple`) — not a finding on its
+own.
+
+**Supabase: first clean read after nine consecutive failures.**
+`mcp__Supabase__execute_sql` loaded and queried prod without error this
+pass — no timeout, no auth-required block, the same signature that failed
+10-22 through 11-01. Dashboard API (`zerodha-trading-liard.vercel.app`)
+still failed its routine `connect_rejected`/403 org-policy block — unrelated,
+unchanged, never the real data source. This is one clean pass, not two —
+[P-44] stays Ready pending confirmation on the next pass (see PIPELINE.md).
+
+**🟢 [P-42] CLOSES — the grading stall resolved during the blackout, not
+visible until this pass.** `app_config.enc_token.updated_at` is fresh
+(**2026-11-02 01:30:03 UTC**). `app_config.grading_incident` reads
+clean/empty (last written **2026-11-02 04:20:59 UTC** — no `TOKEN_EXPIRED`).
+The graded pool jumped **277 → 398**: `portfolio_advice` shows exactly
+**121 rows** with `evaluated_at::date = 2026-10-27` — the stuck backlog
+("100/121 due rows") finally authenticated and graded on that date, inside
+the 10-22→11-01 window this review could not see. Which of the repaste
+attempts made it through, and exactly when between 10-22 and 10-26, is not
+observable from here — only that the backlog cleared clean on 10-27.
+
+**`advisor_calibration_latest` recomputed today** (`built_at=2026-11-02`):
+`graded_calls=398`, ECE **12.4% → 16.3%**, `monotonic` still `false` —
+logged as a trend point, not a reopening of [P-18]'s closed verdict
+(that item's criterion is AUC under both labels, not ECE).
+
+**🟢 `portfolio_advice` resumed today, separately from grading.** Zero new
+rows from 2026-09-10 through 2026-11-01 inclusive (confirmed by grouping
+`created_at` over that full range — the daily-advice silence flagged
+2026-09-21 as needing its own diagnosis never cleared when grading did on
+10-27). Today: **1,063 new rows** (04:20–09:49 UTC, 20 symbols) — in line
+with pre-silence daily volumes (1,220 rows on 09-10, 520–741 in late
+August), not a runaway write. `brain_status = START` (updated 06:02 UTC
+today) — the first non-`IDLE` reading since 09-13.
+
+**398/400 — the POST_MORTEM §6 pre-registered advisor read is two graded
+calls away.** That section's deciding condition is a hit-rate confidence
+interval on the market-neutral label, with an explicit "no interim
+peeking beyond a quarterly glance" rule — so that statistic is deliberately
+*not* computed in this entry, only the accrual count. The next session
+that grades 2+ more calls triggers the read; worth the operator's
+attention on upcoming passes.
+
+**Supabase DB size: 201 → 217 MB (40.2% → 43.4%)**, +16 MB since the last
+reading 12 days ago — faster than the pre-blackout trickle, consistent
+with resumed grading + advice volume; [P-38] tier decision still
+undecided, not urgent yet on this trajectory.
+
+**[P-43] — no new gap.** This pass's commit lands the trading weekday
+immediately after the 11-01 weekly review commit, no gap.
+
+**3-lens sanity.** Advisor lens: the headline this pass is the near-miss
+on n=400 and ECE's move to 16.3% (still non-monotonic) — worth a quarterly
+glance once the read actually triggers, not before. Trader lens: nothing
+new, gate #6 stays retired/blocked on the user decision, trading figures
+frozen forever. Engineer lens: the data-access blackout masked a real
+state change for 9 passes — [P-42] closed days before anyone could see it
+— which is itself worth noting for how this review's evidence trail is
+read going forward: a "no data" pass is not the same as "nothing
+happened."
 
 ## 📈 2026-11-01 weekly review — ninth consecutive pass with zero data access (eighth auth-required occurrence); no gate re-measure for a second straight weekly review; [P-43] holds Done; [P-44] evidence updated
 

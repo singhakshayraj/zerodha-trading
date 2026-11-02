@@ -5,12 +5,44 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-01** (Sun, weekly review — no board move on [P-42]
-(data sources unreachable a ninth consecutive pass, eighth occurrence of
-the auth-required signature); [P-43] holds Done (clean cadence continues);
-[P-44] evidence updated, stays Ready) · Burn-down: **25 shipped + verified
-live / 0 in-progress / 7 ready (all but [P-42]/[P-44] paused by the
-engineering freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+_Last updated: **2026-11-02** (Mon, post-session — Supabase access restored
+after nine consecutive failed passes; **[P-42] CLOSES** (the token/grading
+stall resolved mid-blackout: `enc_token` fresh, `grading_incident` clean,
+graded pool jumped 277→398 as the stuck 121-row backlog graded on
+2026-10-27; `portfolio_advice` also resumed today after 54 silent days);
+**398/400** — the POST_MORTEM §6 pre-registered advisor read is now two
+graded calls away; [P-44] stays Ready (needs one more clean pass to close);
+[P-43] holds Done) · Burn-down: **26 shipped + verified live / 0
+in-progress / 6 ready (all but [P-44] paused by the engineering freeze) /
+4 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-11-02 post-session pass:** Supabase access restored (see [P-44]
+evidence above) — the first successful query since 10-21. It surfaced that
+[P-42] had actually resolved *during* the blackout: `enc_token.updated_at`
+is fresh (2026-11-02 01:30:03 UTC), `app_config.grading_incident` reads
+clean/empty (last written 2026-11-02 04:20:59 UTC, no `TOKEN_EXPIRED`), and
+the graded pool jumped **277 → 398** — the 121-row backlog that had been
+stuck since 09-22 graded with `evaluated_at = 2026-10-27`, inside the
+blackout window this review couldn't see. `advisor_calibration_latest` was
+rebuilt today (`built_at=2026-11-02`, `graded_calls=398`): ECE moved
+**12.4% → 16.3%**, `monotonic` still `false` — logged as a trend point,
+not a re-open of [P-18]'s closed verdict (criterion there is AUC, not ECE).
+**`portfolio_advice` resumed today** — zero rows 2026-09-10→11-01 (confirmed
+via `created_at` grouped by day over that range), then **1,063 new rows**
+today (2026-11-02, 04:20–09:49 UTC, 20 symbols), in line with pre-silence
+daily volumes (e.g. 1,220 rows on 09-10) rather than a runaway write.
+`brain_status=START` (updated 06:02 UTC today) — first non-`IDLE` reading
+since 09-13. **398/400 graded calls is 2 short of the POST_MORTEM §6
+pre-registered read** (hit-rate CI on the market-neutral label); per that
+section's own "no interim peeking" rule, the deciding statistic is
+deliberately not computed here — only the accrual count is reported. No
+new trading session (expected forever, decommissioned); `trades` unchanged
+at 1,018/936. Supabase DB size **201 → 217 MB (40.2% → 43.4%)**, +16 MB
+since the last reading 12 days ago — faster than the pre-blackout trickle,
+consistent with the resumed grading/advice volume; [P-38] tier decision
+still undecided, not urgent yet. **[P-43] — no new gap**, this pass's
+commit lands the day immediately after the 11-01 weekly review. Full
+detail in STATUS.md's 2026-11-02 entry.
 
 **2026-11-01 weekly review pass:** Supabase failed a ninth consecutive
 pass, the eighth occurrence of the exact 10-23/10-25/10-26/10-27/10-28/
@@ -572,253 +604,6 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-42] Grading stalled on an expired token — paste a fresh `enc_token`.**
-  [you] · *done =* `app_config.grading_incident` shows a clean run (no
-  `TOKEN_EXPIRED`) and the ungraded backlog clears. · *source:* this pass,
-  2026-09-13.
-  `app_config.grading_incident`: `TOKEN_EXPIRED 2026-09-13: 169/204 due rows
-  could not authenticate; 0 graded.` `enc_token` last refreshed 2026-09-10
-  03:17 UTC. **204 rows are due and blocked**, and clearing them would put the
-  graded pool at ≈398 — on the doorstep of the **n=400** pre-registered read
-  (POST_MORTEM §6). This is squarely inside the 2026-09-09 engineering
-  freeze's one exception ("fixes to the grading/accrual path"), so it's the
-  one item on this board actually worth doing this week. Action is a token
-  paste, not code — no engineering-freeze conflict either way.
-  _**2026-09-17 evidence:** the same stale token has now also silenced the
-  advisor's own daily run — `portfolio_advice` carries **0 rows since
-  2026-09-10** (5 straight weekdays: 09-11, 09-14, 09-15, 09-16, 09-17),
-  `brain_status=IDLE`. Not a new item — the fix is the same token paste —
-  but this raises the cost of leaving it unpasted from "grading backlog
-  grows" to "the advisor has stopped giving guidance at all."_
-  _**2026-09-20 evidence — third straight review, still unpasted.**
-  `enc_token` is now **10 days stale** (since 2026-09-10 03:17 UTC).
-  `app_config.grading_incident` recurred again (`TOKEN_EXPIRED 2026-09-20:
-  169/204 due rows`), identical count to every prior reading.
-  `portfolio_advice` now shows **6 straight silent weekdays** (through
-  09-18). No mechanism has changed — this is the same one-token-paste fix
-  that has been sitting Ready since 09-13. Flagging plainly: this is the
-  single highest-leverage action available on the entire board and remains
-  untaken._
-  _**2026-09-21 evidence — token pasted 2026-09-20 08:00:36 UTC, grading
-  resumed, but the item does not close.** `grading_incident` cleared same
-  day (18:31 UTC write, blank). 83 rows graded (`portfolio_advice
-  .evaluated_at` max 2026-09-20 18:31:11 UTC), graded pool **194 → 277**
-  (69.25% of n=400). Two residual gaps keep this Ready rather than Done:
-  `app_config.advisor_calibration_latest` still reads `built_at=2026-09-13
-  /graded_calls=194` (needs its own recompute to reflect 277), and
-  `portfolio_advice` still has **0 new rows since 2026-09-10** —
-  **7 straight silent weekdays** (09-11, 09-14→09-18, 09-21) —
-  `brain_status` still `IDLE`. The token now authenticates fine (grading
-  proves it), so the daily-advice silence has a cause beyond the stale
-  token; that needs its own diagnosis, not assumed to clear on its own._
-  _**2026-09-22 evidence — the 09-20 paste already expired, second block
-  in 2 days.** `grading_incident` today: `TOKEN_EXPIRED 2026-09-22:
-  100/121 due rows could not authenticate; 0 graded.` Graded pool
-  unchanged at 277. This token lasted only ~2 days, far shorter than the
-  prior cycle's ~10 days — a data point worth watching, not yet a
-  conclusion. `portfolio_advice` extends to **8 straight silent
-  weekdays** (09-11, 09-14→09-18, 09-21, 09-22). Action is unchanged:
-  [you] paste a fresh `enc_token`._
-  _**2026-09-23 evidence — third straight day, still not repasted.**
-  `grading_incident` today: `TOKEN_EXPIRED 2026-09-23: 100/121 due rows`
-  — identical count to 09-22. `enc_token.updated_at` confirms no repaste
-  since 2026-09-20 08:00:36 UTC. Graded pool still 277. `portfolio_advice`
-  extends to **9 straight silent weekdays** (09-11, 09-14→09-18, 09-21,
-  09-22, 09-23). No new mechanism — same one-token-paste fix, still
-  untaken._
-  _**2026-09-24 evidence — fourth straight day, identical reading a third
-  time.** `grading_incident` today: `TOKEN_EXPIRED 2026-09-24: 100/121 due
-  rows` — the same count as both 09-22 and 09-23 (three consecutive
-  identical readings). `enc_token.updated_at` still 2026-09-20 08:00:36
-  UTC. Graded pool still 277. `portfolio_advice` extends to **10 straight
-  silent weekdays** (09-11, 09-14→09-18, 09-21, 09-22, 09-23, 09-24). No
-  new mechanism — same one-token-paste fix, still untaken._
-  _**2026-09-27 weekly-review evidence — fourth consecutive weekly review,
-  `enc_token` now 7 days stale.** `grading_incident` (written 2026-09-26
-  18:30:50 UTC): `TOKEN_EXPIRED 2026-09-27: 100/121 due rows` — identical
-  count to every reading since 09-22. `enc_token.updated_at` unchanged at
-  2026-09-20 08:00:36 UTC. Graded pool still 277 (69.25% of n=400).
-  `advisor_calibration_latest` still `built_at=2026-09-13`/`graded_calls=194`
-  — now stale against the 277 pool for two consecutive weekly reviews.
-  `portfolio_advice` extends to **12 straight silent weekdays** (09-11,
-  09-14→09-18, 09-21→09-26). Also noted this pass: the daily post-session
-  docs review itself produced no commit on 09-25 or 09-26 (last chore
-  commit `a1ff8ec`, 09-24) — the first gap in that cadence since it
-  started; flagged in STATUS.md, not a new [P-42] mechanism. Action is
-  unchanged: [you] paste a fresh `enc_token`._
-  _**2026-09-28 evidence — review cadence resumed, `enc_token` now 8 days
-  stale.** `grading_incident` today: `TOKEN_EXPIRED 2026-09-28: 100/121 due
-  rows` — identical count to every reading since 09-22. Graded pool still
-  277. `portfolio_advice` extends to **13 straight silent weekdays** (09-11,
-  09-14→09-18, 09-21→09-26, 09-28). No new mechanism — same one-token-paste
-  fix, still untaken._
-  _**2026-10-01 evidence — review cadence gapped again (09-29, 09-30
-  missed), `enc_token` now 11 days stale.** `grading_incident` (written
-  2026-09-30 18:30:27 UTC): `TOKEN_EXPIRED 2026-10-01: 100/121 due rows` —
-  identical count to every reading since 09-22. Graded pool still 277.
-  `portfolio_advice` extends to **16 straight silent weekdays** (09-11,
-  09-14→09-18, 09-21→09-26, 09-28, 09-29, 09-30, 10-01). No new mechanism on
-  the grading side — same one-token-paste fix, still untaken. Separately,
-  this is the second time the automated review itself has skipped weekdays
-  (first 09-25/09-26, now 09-29/09-30) — worth the operator checking the
-  routine's trigger rather than assuming a one-off._
-  _**2026-10-04 weekly-review evidence — fourth consecutive weekly review,
-  `enc_token` now 14 days stale, the longest gap on record.**
-  `grading_incident` (written 2026-10-03 18:30:47 UTC): `TOKEN_EXPIRED
-  2026-10-04: 100/121 due rows` — identical count to every reading since
-  09-22 (8th consecutive identical reading). Graded pool still 277 (69.25%
-  of n=400). `advisor_calibration_latest` still `built_at=2026-09-13`
-  /`graded_calls=194` — stale against the 277 pool for a third consecutive
-  weekly review (09-20, 09-27, 10-04). `portfolio_advice` stays at **16
-  straight silent weekdays** (not 17): the only weekday since 10-01 is
-  2026-10-02, Gandhi Jayanti, a fixed NSE/BSE trading holiday, not a missed
-  day. Review cadence itself held this pass — no gap, since 10-02's missing
-  commit is explained by the holiday rather than a repeat of the 09-25/
-  09-26 and 09-29/09-30 pattern. Action is unchanged: [you] paste a fresh
-  `enc_token`. This is now the fourth consecutive weekly review (09-20,
-  09-27, 10-01 post-session, 10-04) this exact fix has sat Ready, untaken._
-  _**2026-10-06 evidence — repasted, outcome not yet confirmed.**
-  `enc_token.updated_at` moved to **2026-10-05 21:39:20 UTC** — the first
-  repaste since 09-20, ending the streak above. But `grading_incident` was
-  written **2026-10-05 18:31:01 UTC**, ~3 hours *before* the paste, so
-  today's reading (`TOKEN_EXPIRED 2026-10-06: 100/121 due rows`) is stale
-  evidence predating the fix, not proof it failed. Graded pool still 277.
-  **Does not close this pass** — the next read of `grading_incident` (after
-  tonight's ~18:30 UTC run) is what actually tells us whether the new token
-  authenticates and the pool moves toward ≈398._
-  _**2026-10-07 evidence — the repaste's first real test failed.**
-  `grading_incident` was rewritten **2026-10-06 18:30:28 UTC**, ~21h *after*
-  the 10-05 21:39:20 UTC paste — this is the run the 10-06 pass was waiting
-  on. It reads `TOKEN_EXPIRED 2026-10-07: 100/121 due rows could not
-  authenticate; 0 graded` — identical signature to every reading since
-  09-22. **The fresh token did not authenticate.** Graded pool still 277.
-  `enc_token.updated_at` confirms no further repaste since. Two consecutive
-  repaste attempts now (09-20, 10-05) have failed to produce a token that
-  survives even to its first grading run — worth considering whether the
-  paste mechanism itself, not just token lifespan, is the fault once a new
-  paste is tried. Action unchanged: [you] paste a fresh `enc_token` and
-  confirm the next nightly run actually clears._
-  _**2026-10-09 evidence — still no further repaste.** `enc_token.updated_at`
-  unchanged at **2026-10-05 21:39:20 UTC**. `grading_incident` (written
-  2026-10-09): `TOKEN_EXPIRED 2026-10-09: 100/121 due rows` — identical
-  signature. Graded pool still 277. `advisor_calibration_latest` unchanged
-  (`built_at=2026-09-13`/`graded_calls=194`) — a sixth consecutive stale
-  reading. `portfolio_advice` extends to **21 straight silent weekdays**
-  (through 10-09). No new mechanism — same one-token-paste fix, still
-  untaken._
-  _**2026-10-11 weekly-review evidence — fifth consecutive weekly review,
-  `enc_token` now 6 days stale on a confirmed-dead token.**
-  `grading_incident` (written 2026-10-10 18:30:50 UTC): `TOKEN_EXPIRED
-  2026-10-11: 100/121 due rows` — identical signature to every reading since
-  09-22 (now 10+ consecutive identical readings). `enc_token.updated_at`
-  confirms no repaste attempt since the 10-05 one that failed its first test
-  on 10-06. Graded pool still 277 (69.25% of n=400).
-  `advisor_calibration_latest` still `built_at=2026-09-13`/`graded_calls=194`
-  — stale against the 277 pool for a **seventh** consecutive weekly review.
-  `portfolio_advice` stays at **21 straight silent weekdays** (not 22): no
-  new NSE/BSE trading weekday has elapsed since 10-09 (10-10/10-11 are
-  weekend). Action unchanged: [you] paste a fresh `enc_token` — this is now
-  the fifth consecutive weekly review (09-20, 09-27, 10-01 post-session,
-  10-04, 10-11) this exact fix has sat Ready, untaken, and the second
-  consecutive weekly review where a repaste attempt itself (not just the
-  wait) has gone untried for a full week._
-  _**2026-10-13 evidence — still no further repaste, `enc_token` now 8 days
-  stale.** `grading_incident` (written 2026-10-12 18:30:57 UTC): `TOKEN_EXPIRED
-  2026-10-13: 100/121 due rows could not authenticate; 0 graded` — identical
-  signature to every reading since 09-22. `enc_token.updated_at` unchanged at
-  2026-10-05 21:39:20 UTC. Graded pool still 277. `advisor_calibration_latest`
-  unchanged (`built_at=2026-09-13`/`graded_calls=194`) — an **eighth**
-  consecutive stale reading. `portfolio_advice` extends to **23 straight
-  silent weekdays** (through 10-13, adding 10-12 and 10-13). No new
-  mechanism — same one-token-paste fix, still untaken; this is now the sixth
-  consecutive review pass (09-20, 09-27, 10-01, 10-04, 10-11, 10-13) this
-  exact fix has sat Ready, untaken._
-  _**2026-10-14 evidence — third repaste landed, outcome not yet tested.**
-  `enc_token.updated_at` is now **2026-10-13 19:05:28 UTC**, ending the
-  8-day-dead 10-05 token. The only `grading_incident` reading available this
-  pass (written **2026-10-13 18:31:00 UTC**) predates the paste by ~34 min,
-  so it still reflects the old token: `TOKEN_EXPIRED 2026-10-14: 100/121 due
-  rows could not authenticate; 0 graded` — same signature as every reading
-  since 09-22. Graded pool unchanged at 277. `advisor_calibration_latest`
-  unchanged (`built_at=2026-09-13`/`graded_calls=194`) — a **ninth**
-  consecutive stale reading. `portfolio_advice` extends to **24 straight
-  silent weekdays** (through 10-14). This is the third repaste attempt
-  (09-20, 10-05, now 10-13); whether it survives its first real test is the
-  single highest-priority thing for the next pass to check — do not assume
-  success from the paste alone._
-  _**2026-10-15 evidence — confirmed: the third repaste also failed its
-  first real test.** `app_config.grading_incident` was rewritten
-  **2026-10-14 18:30:54 UTC** — ~23h *after* the 10-13 19:05:27 UTC paste,
-  the first nightly grading run to actually test it (the 10-14 pass's
-  reading, written 18:31:00 UTC the prior day, predated the paste by ~34 min
-  and couldn't test it). It reads `TOKEN_EXPIRED 2026-10-15: 100/121 due
-  rows could not authenticate; 0 graded` — the identical **100/121**
-  signature carried since 09-22. **This resolves the open question the
-  10-14 pass left hanging: the fresh token did not authenticate.** All
-  three repaste attempts to date (09-20, 10-05, 10-13) have now failed
-  their first real test — the paste mechanism itself, not just token
-  lifespan, looks like the more likely fault at this point, though still
-  unconfirmed without visibility into how the paste is performed.
-  `enc_token.updated_at` confirms no further repaste since 10-13. Graded
-  pool unchanged at 277. `advisor_calibration_latest` unchanged
-  (`built_at=2026-09-13`/`graded_calls=194`) — a **tenth** consecutive
-  stale reading. `portfolio_advice` extends to **25 straight silent
-  weekdays** (through 10-15). Action unchanged: [you] paste a fresh
-  `enc_token` and confirm the next nightly run actually clears — and given
-  three straight failures, worth checking whether the paste step itself
-  is being done correctly, not just repeating it._
-  _**2026-10-16 evidence — the 10-13 token's second consecutive real test
-  also failed.** `grading_incident` (written 2026-10-15 18:31:00 UTC):
-  `TOKEN_EXPIRED 2026-10-16: 100/121 due rows could not authenticate; 0
-  graded` — identical signature to every reading since 09-22, and now the
-  second straight nightly run to test the 10-13 paste and fail (the first
-  was 10-14's run). `enc_token.updated_at` unchanged at 2026-10-13 19:05:27
-  UTC — no further repaste attempted. Graded pool still 277.
-  `advisor_calibration_latest` unchanged — an **eleventh** consecutive
-  stale reading. `portfolio_advice` extends to **26 straight silent
-  weekdays** (through 10-16). No new mechanism — action unchanged: [you]
-  paste a fresh `enc_token`, and the paste mechanism itself still warrants
-  checking given four straight failed tests across three attempts._
-  _**2026-10-18 weekly-review evidence — the 10-13 token has now failed
-  every nightly test through 10-17; `enc_token` 5 days stale, zero further
-  repaste attempts.** `grading_incident` (written 2026-10-17 18:30:43 UTC,
-  for 2026-10-18): `TOKEN_EXPIRED 2026-10-18: 100/121 due rows could not
-  authenticate; 0 graded` — identical signature carried since 09-22. Graded
-  pool unchanged at 277, confirming the 10-13 paste has failed its nightly
-  test on every one of the five nights since (10-13/14 through 10-17/18) —
-  a sustained failure, not a one-off. `enc_token.updated_at` unchanged at
-  2026-10-13 19:05:27 UTC. `advisor_calibration_latest` unchanged
-  (`built_at=2026-09-13`/`graded_calls=194`) — a **twelfth** consecutive
-  stale reading. `portfolio_advice` stays at **26 straight silent
-  weekdays** (no new NSE/BSE trading weekday has elapsed since 10-16;
-  10-17/10-18 are weekend). Action unchanged: [you] paste a fresh
-  `enc_token` — this is now the sixth consecutive weekly review (09-20,
-  09-27, 10-01 post-session, 10-04, 10-11, 10-18) this exact fix has sat
-  Ready, untaken, and with three straight repaste attempts (09-20, 10-05,
-  10-13) each failing to authenticate across multiple nightly tests, the
-  paste mechanism itself — not just token lifespan — looks like the more
-  likely fault at this point._
-  _**2026-10-19 evidence — sixth consecutive nightly test failed, `enc_token`
-  now 6 days stale.** `grading_incident` (written 2026-10-18 18:30:32 UTC,
-  for 2026-10-19): `TOKEN_EXPIRED 2026-10-19: 100/121 due rows could not
-  authenticate; 0 graded` — identical signature carried since 09-22. Graded
-  pool unchanged at 277, confirming the 10-13 paste has now failed its
-  nightly test on every one of six nights since (10-13/14 through 10-18/19).
-  `enc_token.updated_at` unchanged at 2026-10-13 19:05:27 UTC — zero further
-  repaste attempts. `advisor_calibration_latest` unchanged
-  (`built_at=2026-09-13`/`graded_calls=194`) — a **thirteenth** consecutive
-  stale reading. Action unchanged: [you] paste a fresh `enc_token`._
-  _**2026-10-21 evidence — eighth consecutive nightly test failed,
-  `enc_token` now 8 days stale.** `grading_incident` (written 2026-10-20
-  18:30:41 UTC, for 2026-10-21): `TOKEN_EXPIRED 2026-10-21: 100/121 due rows
-  could not authenticate; 0 graded` — identical signature carried since
-  09-22. Graded pool unchanged at 277, confirming the 10-13 paste has now
-  failed its nightly test on every one of eight nights since (10-13/14
-  through 10-20/21). `enc_token.updated_at` unchanged at 2026-10-13 19:05:27
-  UTC — zero further repaste attempts. `advisor_calibration_latest` unchanged
-  (`built_at=2026-09-13`/`graded_calls=194`) — a **fourteenth** consecutive
-  stale reading. Action unchanged: [you] paste a fresh `enc_token`._
-
 - **[P-44] Review's data-access channel (Supabase MCP) failed two
   consecutive passes with different root causes.** [you] · *done =* this
   review reads live Supabase data for two consecutive scheduled passes with
@@ -934,6 +719,17 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   second notification given the full week elapsed since the last one with
   no change. Action unchanged: [you] check claude.ai connector settings
   for the Supabase connector and re-authorize it.
+  **2026-11-02 (post-session) — access restored; first clean pass after
+  nine consecutive failures (10-22 through 11-01).** `mcp__Supabase__execute_sql`
+  loaded and queried prod cleanly this pass — no timeout, no auth-required
+  block. Does not close the item yet: its own measure-of-done calls for
+  **two consecutive clean passes**; this is the first. Dashboard API
+  (`zerodha-trading-liard.vercel.app`) still hit the same `connect_rejected`
+  org-policy block as every pass on record — unrelated, unchanged, never
+  the real data source. If tomorrow's pass also reads Supabase cleanly,
+  close this item on the "two consecutive clean passes" branch. (This pass
+  used the Supabase access to discover [P-42] actually resolved during the
+  blackout — see DONE below.)
 
 ⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
@@ -1185,6 +981,30 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- ~~**[P-42] Grading stalled on an expired token — paste a fresh
+  `enc_token`.**~~ ✅ **DONE 2026-11-02** — `app_config.grading_incident`
+  reads clean/empty (last written 2026-11-02 04:20:59 UTC, no
+  `TOKEN_EXPIRED`), `enc_token.updated_at` is fresh (2026-11-02 01:30:03
+  UTC), and the ungraded backlog cleared: graded pool **277 → 398**, the
+  121-row backlog graded with `evaluated_at = 2026-10-27`. Measure-of-done
+  met. · *source:* 2026-09-13; closed on evidence recovered 2026-11-02
+  after a 9-pass Supabase blackout (10-22→11-01) hid the actual resolution.
+  _History: four repaste attempts failed their first real nightly test in
+  a row (09-20, 10-05, 10-13, each the subject of its own evidence entry
+  in this item's prior Ready-section history — trimmed here, superseded by
+  the close); whichever attempt landed during the 10-22→10-26 blackout is
+  the one that finally held — exactly which repaste, and when, is not
+  observable from inside this session, only that the backlog graded clean
+  on 10-27. `portfolio_advice`'s separate daily-advice silence (flagged
+  09-21 as needing its own diagnosis, distinct from the grading mechanism)
+  did NOT clear with grading on 10-27 — it stayed silent through 11-01 and
+  only resumed 2026-11-02, confirming the two were in fact separate faults
+  as suspected, not one. `advisor_calibration_latest` recomputed same pass:
+  `graded_calls=398`, ECE 16.3% (was 12.4%), `monotonic=false` — **398/400
+  puts the POST_MORTEM §6 pre-registered advisor read two graded calls
+  away**; per that section's "no interim peeking" rule, the deciding
+  hit-rate-CI statistic is deliberately not computed here._
 
 - ~~**[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.**~~ ✅ **DONE 2026-10-27** — 10
