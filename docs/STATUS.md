@@ -4,16 +4,15 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-02** (Mon, post-session — **Supabase access
-restored** after nine consecutive failed passes (10-22→11-01); it surfaced
-that [P-42] actually resolved mid-blackout — **grading stall cleared,
-graded pool 277→398**, 2 calls short of the POST_MORTEM §6 n=400
-pre-registered advisor read; `portfolio_advice` also resumed today after
-54 silent days; [P-42] moves to Done, [P-44] stays Ready pending one more
-clean pass, [P-43] holds Done). See the **▶️ START HERE** block below for
-the exact resume point — still dated 10-21, now stale against this pass's
-findings; update on a future pass once the next steps from this entry are
-acted on. This week's review entry and older entries follow._
+_Last updated: **2026-11-03** (Tue, post-session — **second consecutive
+clean Supabase pass** (11-02, 11-03) — **[P-44] CLOSES**; [P-42] holds
+Done (`enc_token` refreshed again today, `grading_incident` still clean,
+graded pool unchanged at 398/400 — still 2 short of the POST_MORTEM §6
+read); `portfolio_advice` continues (810 new rows today); [P-43] holds
+Done). See the **▶️ START HERE** block below for the exact resume point —
+still dated 10-21, now stale against several passes' findings; update on
+a future pass once the next steps from this entry are acted on. This
+week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -26,6 +25,61 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-11-03 post-session — [P-44] CLOSES (second consecutive clean Supabase pass); [P-42] holds Done, token refreshed again, grading clean; 398/400 unchanged (still 2 short); [P-43] holds Done
+
+**Confirmed 2026-11-03 is a plain NSE/BSE trading weekday** (Tuesday, no
+holiday on record for this date). No trading session ran or ever will
+(decommissioned 2026-09-09, `trades` unchanged at 1,018 closed / 936 with
+`r_multiple`) — not a finding on its own.
+
+**Supabase: second consecutive clean read.** `mcp__Supabase__execute_sql`
+queried prod without error this pass, same as 11-02 — no timeout, no
+auth-required block. Dashboard API (`zerodha-trading-liard.vercel.app`)
+still failed its routine `connect_rejected`/403 `CONNECT tunnel failed`
+block — unrelated, unchanged, never the real data source.
+
+**🟢 [P-44] CLOSES.** Measure-of-done was "two consecutive scheduled
+passes with no connection failure" — 11-02 and 11-03 both read Supabase
+cleanly. Moved to Done in PIPELINE.md.
+
+**[P-42] holds Done — token refreshed again, grading stays clean.**
+`enc_token.updated_at` is now **2026-11-03 05:25:40 UTC** (newer than the
+11-02 reading of 01:30:03 UTC — the brain repasted again overnight).
+`app_config.grading_incident` reads empty/clean (`updated_at` **2026-11-03
+05:31:27 UTC**) — no `TOKEN_EXPIRED`. Graded pool (`portfolio_advice
+.outcome_correct is not null`) is **unchanged at 398** — `max(evaluated_at)`
+is still **2026-10-27 18:39:18 UTC**, confirming no new calls matured
+today or yesterday; the 10-27 backlog catch-up was a one-time event, not
+an ongoing drip. `advisor_calibration_latest` was recomputed today
+(`built_at=2026-11-03`) but the numbers are byte-identical to 11-02:
+`graded_calls=398`, ECE **16.3%**, `monotonic=false` — a recompute with no
+new input, not a new reading.
+
+**398/400 unchanged — still two graded calls short of the POST_MORTEM §6
+pre-registered advisor read.** No interim peek at the deciding hit-rate
+statistic, per that section's own rule; only the accrual count is
+reported, and it did not move this pass.
+
+**🟢 `portfolio_advice` continues normally.** **810 new rows today**
+(2026-11-03), down from 1,063 on 11-02 but the same order of magnitude as
+pre-silence volumes — not a concern. `brain_status = START` (updated
+**05:27:56 UTC** today).
+
+**Supabase DB size: 217 → 220 MB (43.4% → 44.0%)**, +3 MB in 1 day —
+consistent with the resumed grading/advice trickle; [P-38] tier decision
+still undecided, not urgent on this trajectory.
+
+**[P-43] — no new gap.** This pass's commit lands the trading weekday
+immediately after the 11-02 post-session commit, no gap.
+
+**3-lens sanity.** Advisor lens: the n=400 countdown didn't move this
+pass (398, unchanged) — still worth the operator's attention once 2+ more
+calls grade. Trader lens: nothing new, gate #6 stays retired/blocked on
+the user decision, trading figures frozen forever. Engineer lens: the
+data-access risk that dominated this board for nine passes (10-22→11-01)
+is resolved per its own measure-of-done — two consecutive clean Supabase
+passes, [P-44] closes.
 
 ## 📈 2026-11-02 post-session — Supabase access restored; [P-42] resolved (grading pool 277→398, 2 short of n=400); advisor resumed after 54 silent days; [P-44] needs one more clean pass; [P-43] holds Done
 

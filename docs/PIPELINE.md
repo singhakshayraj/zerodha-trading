@@ -5,16 +5,39 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-02** (Mon, post-session — Supabase access restored
-after nine consecutive failed passes; **[P-42] CLOSES** (the token/grading
-stall resolved mid-blackout: `enc_token` fresh, `grading_incident` clean,
-graded pool jumped 277→398 as the stuck 121-row backlog graded on
-2026-10-27; `portfolio_advice` also resumed today after 54 silent days);
-**398/400** — the POST_MORTEM §6 pre-registered advisor read is now two
-graded calls away; [P-44] stays Ready (needs one more clean pass to close);
-[P-43] holds Done) · Burn-down: **26 shipped + verified live / 0
-in-progress / 6 ready (all but [P-44] paused by the engineering freeze) /
-4 blocked / 1 retired ([P-01], decommission)**._
+_Last updated: **2026-11-03** (Tue, post-session — **[P-44] CLOSES**:
+second consecutive clean Supabase pass (11-02, 11-03), meeting its own
+measure-of-done; [P-42] holds Done (`enc_token` refreshed again today,
+`grading_incident` still clean, graded pool unchanged at 398/400 — still
+two calls short of the POST_MORTEM §6 read); `portfolio_advice` continues
+(810 new rows today); [P-43] holds Done) · Burn-down: **27 shipped +
+verified live / 0 in-progress / 5 ready (all paused by the engineering
+freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-11-03 post-session pass:** Supabase read cleanly a second
+consecutive pass (11-02, 11-03) — no timeout, no auth-required block.
+Dashboard API failed its routine `connect_rejected`/403 block, as
+always, not new. **[P-44] CLOSES** — its measure-of-done ("two
+consecutive scheduled passes with no connection failure") is met; moved
+to Done below. **[P-42] — holds Done**, confirmed again: `enc_token
+.updated_at` is now 2026-11-03 05:25:40 UTC (a fresh repaste overnight,
+newer than 11-02's 01:30:03 UTC reading), `grading_incident` still
+empty/clean (updated_at 05:31:27 UTC). Graded pool unchanged at **398**
+(`max(evaluated_at)` still 2026-10-27 18:39:18 UTC — no new calls matured
+today or yesterday; the 10-27 backlog catch-up was a one-time event).
+`advisor_calibration_latest` recomputed today (`built_at=2026-11-03`) but
+numbers are byte-identical to 11-02 (`graded_calls=398`, ECE 16.3%,
+`monotonic=false`) — a recompute with no new input. **398/400 still two
+calls short** of the POST_MORTEM §6 pre-registered read; no interim peek
+taken. `portfolio_advice` added **810 new rows today** (2026-11-03,
+same order of magnitude as 11-02's 1,063), `brain_status=START` (updated
+05:27:56 UTC today) — advisor continues running normally. No new trading
+session (expected forever, decommissioned); `trades` unchanged at
+1,018/936. Supabase DB size **217 → 220 MB (43.4% → 44.0%)**, +3 MB in 1
+day, consistent trickle; [P-38] tier decision still undecided, not
+urgent. **[P-43] — no new gap**, this pass's commit lands the trading
+weekday immediately after the 11-02 post-session commit. Full detail in
+STATUS.md's 2026-11-03 entry.
 
 **2026-11-02 post-session pass:** Supabase access restored (see [P-44]
 evidence above) — the first successful query since 10-21. It surfaced that
@@ -604,139 +627,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- **[P-44] Review's data-access channel (Supabase MCP) failed two
-  consecutive passes with different root causes.** [you] · *done =* this
-  review reads live Supabase data for two consecutive scheduled passes with
-  no connection failure, OR, if the failures continue, a clear single root
-  cause identified (e.g. the connector consistently needs a fresh OAuth
-  grant). · *source:* 2026-10-23, promoted from narrative evidence logged in
-  STATUS.md/PIPELINE.md on 2026-10-22 per that entry's own stated
-  recurrence precedent.
-  **2026-10-22:** Supabase MCP server failed to connect — `CONNECT_TIMEOUT`
-  after 30s, confirmed across three retries (~8s/15s/20s apart); `ToolSearch`
-  never surfaced Supabase tools, then explicitly reported the server as
-  failed-to-connect. **2026-10-23:** a different signature — the session's
-  own system context reports the Supabase connector as **requiring
-  authentication** before its tools can be used at all (no timeout; no
-  tools ever appeared this pass to even attempt a call). Both passes also
-  saw the dashboard API fail its routine `connect_rejected` org-policy
-  block, as it has on essentially every pass on record — that part is not
-  new and is not part of this finding; the finding is specifically that the
-  *one channel this review actually depends on* (Supabase, used for every
-  number in every STATUS/PIPELINE entry since the dashboard API was first
-  found unreachable) has now failed twice running, for two unrelated
-  reasons. Action: [you] check whether the Supabase connector needs
-  re-authorizing (per the system's own guidance: claude.ai connector
-  settings) — if the next pass can query Supabase cleanly, log it as
-  resolved; if it fails a third time, that is a stronger signal of either a
-  flaky connector or an expiring grant that needs a standing fix (e.g.
-  re-auth cadence), not three independent one-offs.
-  **2026-10-25 (weekly review) — third consecutive failure, and it repeats
-  the 10-23 signature exactly** (`ToolSearch` surfaces zero Supabase tools;
-  no `CONNECT_TIMEOUT` this time either, same as 10-23 and unlike 10-22).
-  Two of three failures now share one signature (auth-required / no OAuth
-  grant) against one occurrence of the distinct timeout signature — this
-  is evidence toward the measure-of-done's second branch ("a clear single
-  root cause identified"): the standing-cause read is a Supabase OAuth
-  grant that lapsed once (sometime before 10-23) and has not been renewed
-  since, not a fresh flake each pass. It does not fully close the item
-  (that branch calls for the cause to be *identified and actionable*, and
-  from inside this session there is no way to confirm the grant is in fact
-  the mechanism, only that the symptom repeats). Dashboard API failed the
-  same `connect_rejected`/403 way as always — unrelated, not new. Action
-  unchanged, now sharper: [you] check claude.ai connector settings for the
-  Supabase connector and re-authorize it; if the next pass still can't load
-  Supabase tools even after a fresh grant, that would point at something
-  other than OAuth expiry.
-  **2026-10-26 (post-session) — fourth consecutive failure, third
-  occurrence of the auth-required signature (3-to-1 against the single
-  10-22 timeout).** `ToolSearch` again surfaced zero Supabase tools, same
-  as 10-23 and 10-25. Dashboard API failed the same `connect_rejected`/403
-  way as every pass on record — unrelated, not new. This is now four
-  passes running with zero prod visibility; the standing-OAuth-grant read
-  stays the best available explanation but is still unconfirmed from
-  inside this session. Action unchanged: [you] check claude.ai connector
-  settings for the Supabase connector and re-authorize it.
-  **2026-10-27 (post-session) — fifth consecutive failure, fourth
-  occurrence of the auth-required signature (4-to-1 against the single
-  10-22 timeout).** `ToolSearch` (`+supabase`) again surfaced zero Supabase
-  tools, same as 10-23, 10-25, and 10-26. Dashboard API failed the same
-  `connect_rejected`/403 way as every pass on record, confirmed via the
-  agent-proxy status log — unrelated, not new. Five passes running with
-  zero prod visibility; the standing-OAuth-grant read stays the best
-  available explanation but remains unconfirmed from inside this session
-  (no way to inspect or refresh the grant without user action). Action
-  unchanged: [you] check claude.ai connector settings for the Supabase
-  connector and re-authorize it.
-  **2026-10-28 (post-session) — sixth consecutive failure, fifth
-  occurrence of the auth-required signature (5-to-1 against the single
-  10-22 timeout).** `ToolSearch` (`+supabase`) again surfaced zero
-  Supabase tools, same as 10-23, 10-25, 10-26, and 10-27. Dashboard API
-  failed the same `connect_rejected`/403 way as every pass on record,
-  confirmed via the agent-proxy status log — unrelated, not new. Six
-  passes running with zero prod visibility; the standing-OAuth-grant read
-  stays the best available explanation but remains unconfirmed from
-  inside this session. Action unchanged: [you] check claude.ai connector
-  settings for the Supabase connector and re-authorize it.
-  **2026-10-29 (post-session) — seventh consecutive failure, sixth
-  occurrence of the auth-required signature (6-to-1 against the single
-  10-22 timeout).** `ToolSearch` (`supabase`) again surfaced zero
-  Supabase tools, same as 10-23, 10-25, 10-26, 10-27, and 10-28. Dashboard
-  API failed the same `connect_rejected`/403 way as every pass on record,
-  confirmed via the agent-proxy status log (`connect_rejected`, "gateway
-  answered 403 to CONNECT") — unrelated, not new. Seven passes running
-  with zero prod visibility; the standing-OAuth-grant read stays the best
-  available explanation but remains unconfirmed from inside this session
-  (no way to inspect or refresh the grant without user action). Action
-  unchanged: [you] check claude.ai connector settings for the Supabase
-  connector and re-authorize it.
-  **2026-10-30 (post-session) — eighth consecutive failure, seventh
-  occurrence of the auth-required signature (7-to-1 against the single
-  10-22 timeout).** `ToolSearch` (`supabase`) again surfaced zero
-  Supabase tools, same as 10-23, 10-25, 10-26, 10-27, 10-28, and 10-29.
-  Dashboard API failed the same `connect_rejected`/403 way as every pass
-  on record, confirmed via the agent-proxy status log (`connect_rejected`,
-  "gateway answered 403 to CONNECT"). Eight passes running with zero prod
-  visibility, spanning a full week (10-22 through 10-30); the
-  standing-OAuth-grant read stays the only available explanation and
-  remains unconfirmed from inside this session. Given the duration, this
-  pass sent the user a notification pointing at this item rather than
-  continuing to log it silently. Action unchanged: [you] check claude.ai
-  connector settings for the Supabase connector and re-authorize it.
-  **2026-11-01 (weekly review) — ninth consecutive failure, eighth
-  occurrence of the auth-required signature (8-to-1 against the single
-  10-22 timeout).** `ToolSearch` (`supabase`, `+supabase`) again surfaced
-  zero Supabase tools, same as every pass from 10-23 through 10-30.
-  Dashboard API failed the same `connect_rejected`/403 way as every pass
-  on record, confirmed via the agent-proxy status log. Nine passes running
-  with zero prod visibility, now 11 days since the grant first lapsed —
-  and this is the **second weekly review in a row** (10-25, now 11-01)
-  where this review's core job (re-measure the gate metrics, verify
-  recently-Done items against fresh numbers, check for a gate flip) could
-  not be performed at all, not just [P-42]'s evidence going stale. The
-  standing-OAuth-grant read stays the only available explanation and
-  remains unconfirmed from inside this session. This pass sent the user a
-  second notification given the full week elapsed since the last one with
-  no change. Action unchanged: [you] check claude.ai connector settings
-  for the Supabase connector and re-authorize it.
-  **2026-11-02 (post-session) — access restored; first clean pass after
-  nine consecutive failures (10-22 through 11-01).** `mcp__Supabase__execute_sql`
-  loaded and queried prod cleanly this pass — no timeout, no auth-required
-  block. Does not close the item yet: its own measure-of-done calls for
-  **two consecutive clean passes**; this is the first. Dashboard API
-  (`zerodha-trading-liard.vercel.app`) still hit the same `connect_rejected`
-  org-policy block as every pass on record — unrelated, unchanged, never
-  the real data source. If tomorrow's pass also reads Supabase cleanly,
-  close this item on the "two consecutive clean passes" branch. (This pass
-  used the Supabase access to discover [P-42] actually resolved during the
-  blackout — see DONE below.)
+_(none — [P-44] closed 2026-11-03, see DONE below. Everything else on the
+board is paused by the 2026-09-09 engineering freeze; see the next
+section.)_
 
-⚠️ **Everything else below this line is paused by the 2026-09-09 engineering
+⚠️ **Everything below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
-fixes — [P-42] above is the one exception). Kept on the board rather than
-moved to Backlog/Parked because none of it was rejected on the merits, only
-superseded by the decommission; do not pull any of it without first checking
-whether the freeze has been explicitly lifted.
+fixes). Kept on the board rather than moved to Backlog/Parked because none
+of it was rejected on the merits, only superseded by the decommission; do
+not pull any of it without first checking whether the freeze has been
+explicitly lifted.
 
 - **[P-40] Storage Option B — de-duplicate per-cycle data out of `brain_decisions.indicators`.** [me] · *done =* `market_context` and `event_policy` no longer stored per decision; measured bytes/row drop recorded in VERIFY.
   `market_context` (232 B) and `event_policy` (92 B) are **byte-identical for every decision in a cycle** — ~85 rows per cycle, ~2,900 times a session. Compression cannot touch this: pglz compresses each row independently, so cross-row duplication is invisible to it. Only a foreign key removes it, and a `market_context` table already exists (235 rows) to point at.
@@ -981,6 +881,21 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
 - _(none)_
 
 ## ✅ DONE (recent — for burn-down + verify)
+
+- ~~**[P-44] Review's data-access channel (Supabase MCP) failed two
+  consecutive passes with different root causes.**~~ ✅ **DONE 2026-11-03**
+  — measure-of-done met on the "two consecutive clean passes" branch:
+  Supabase read cleanly on both 2026-11-02 and 2026-11-03, with no
+  timeout and no auth-required block either time. · *source:* 2026-10-23.
+  _History: nine consecutive failures (10-22 through 11-01) across two
+  distinct signatures — a single `CONNECT_TIMEOUT` (10-22) and eight
+  occurrences of an auth-required block (10-23, 10-25 through 11-01),
+  pointing at a lapsed OAuth grant never confirmable from inside this
+  session. The dashboard API (`zerodha-trading-liard.vercel.app`) failed
+  its own unrelated `connect_rejected`/403 org-policy block throughout and
+  still does — that was never the real data source and is not part of
+  this item. The blackout hid [P-42]'s actual resolution until access
+  returned 11-02 (see below)._
 
 - ~~**[P-42] Grading stalled on an expired token — paste a fresh
   `enc_token`.**~~ ✅ **DONE 2026-11-02** — `app_config.grading_incident`
