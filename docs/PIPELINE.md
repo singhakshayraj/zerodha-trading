@@ -5,14 +5,39 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-03** (Tue, post-session — **[P-44] CLOSES**:
-second consecutive clean Supabase pass (11-02, 11-03), meeting its own
-measure-of-done; [P-42] holds Done (`enc_token` refreshed again today,
-`grading_incident` still clean, graded pool unchanged at 398/400 — still
-two calls short of the POST_MORTEM §6 read); `portfolio_advice` continues
-(810 new rows today); [P-43] holds Done) · Burn-down: **27 shipped +
-verified live / 0 in-progress / 5 ready (all paused by the engineering
-freeze) / 4 blocked / 1 retired ([P-01], decommission)**._
+_Last updated: **2026-11-04** (Wed, post-session — **advisor silent
+today**: zero `portfolio_advice`/`brain_decisions` rows on a confirmed
+plain trading weekday despite an ONLINE, freshly-heartbeating brain —
+breaks the 11-02/11-03 resumption streak; one occurrence, logged only
+per the [P-43]/[P-44] precedent; [P-42] and [P-44] hold Done on
+yesterday's readings since nothing wrote today; [P-43] holds Done) ·
+Burn-down: **27 shipped + verified live / 0 in-progress / 5 ready (all
+paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
+decommission)**._
+
+**2026-11-04 post-session pass:** Supabase read cleanly a third
+consecutive pass. Dashboard API failed its routine `connect_rejected`/403
+block, as always, not new. **New, logged only:** `portfolio_advice` and
+`brain_decisions` both show zero rows for today (checked 11:13 UTC/16:43
+IST, past NSE close); `max(created_at)` on `portfolio_advice` is still
+yesterday's 09:46:33 UTC. `app_config.brain_status`/`enc_token`/
+`grading_incident` are all still stamped 2026-11-03 — nothing wrote today.
+`brain_heartbeat` is healthy and fresh (`ONLINE`, `last_ping=2026-11-04
+11:14:01 UTC`, `current_cycle=0`, "Idle — advisor only") — the process is
+alive but did not fire today's advisor cycle, breaking the two-day
+resumption pattern (11-02: 1,063 rows; 11-03: 810 rows, both well under
+way by this time of day). Per this board's own precedent ([P-43]/[P-44]:
+two consecutive failures earns a tracked item), this first occurrence is
+logged only — a second consecutive silent trading weekday would earn a
+new Ready item. **[P-42] holds Done** — carried forward unchanged
+(graded pool still 398/400, `max(evaluated_at)` still 2026-10-27; tonight's
+grading test, due ≈18:30 UTC, hasn't fired yet). **[P-44] holds Done** —
+today's clean read extends the streak, not a reopen condition. DB size
+220 → 223 MB (44.0% → 44.6%), +3 MB, routine. **[P-43] — no new gap**,
+this pass's commit lands immediately after 11-03's. `git log` shows
+nothing shipped since the 11-03 `chore(review)` commit besides this
+pass's own docs edits — no code-based board move. Full detail in
+STATUS.md's 2026-11-04 entry.
 
 **2026-11-03 post-session pass:** Supabase read cleanly a second
 consecutive pass (11-02, 11-03) — no timeout, no auth-required block.

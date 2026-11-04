@@ -4,15 +4,15 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-03** (Tue, post-session — **second consecutive
-clean Supabase pass** (11-02, 11-03) — **[P-44] CLOSES**; [P-42] holds
-Done (`enc_token` refreshed again today, `grading_incident` still clean,
-graded pool unchanged at 398/400 — still 2 short of the POST_MORTEM §6
-read); `portfolio_advice` continues (810 new rows today); [P-43] holds
-Done). See the **▶️ START HERE** block below for the exact resume point —
-still dated 10-21, now stale against several passes' findings; update on
-a future pass once the next steps from this entry are acted on. This
-week's review entry and older entries follow._
+_Last updated: **2026-11-04** (Wed, post-session — **advisor went silent
+today**: zero `portfolio_advice`/`brain_decisions` rows on a confirmed
+plain trading weekday, breaking the 11-02/11-03 resumption streak, even
+though `brain_heartbeat` is ONLINE and fresh — one occurrence, logged
+only; [P-42] and [P-44] hold Done on yesterday's readings since nothing
+wrote today; [P-43] holds Done). See the **▶️ START HERE** block below for
+the exact resume point — still dated 10-21, now stale against several
+passes' findings; update on a future pass once the next steps from this
+entry are acted on. This week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -23,6 +23,63 @@ short / 12 long), 1,478 decisions. Start 12:25 IST is **~3h10min past** the
 08-25 +2.75h; 08-24 +2.5h, 08-26 +76min, 08-27 +37min). Manual `enc_token`
 paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
+
+---
+
+## 📈 2026-11-04 post-session — advisor silent today (0 new rows) despite ONLINE heartbeat, breaking the 2-day resumption streak; [P-42]/[P-44] hold Done on yesterday's readings; [P-43] holds Done
+
+**Confirmed 2026-11-04 is a plain NSE/BSE trading weekday** (Wednesday; no
+holiday on record — the next NSE/BSE closures are Muhurat trading Sun
+11-08 and the Diwali-Balipratipada holiday Tue 11-10). No trading session
+ran or ever will (decommissioned 2026-09-09, `trades` unchanged at 1,018
+closed / 936 with `r_multiple`) — not a finding on its own.
+
+**Supabase: third consecutive clean read.** `mcp__Supabase__execute_sql`
+queried prod without error this pass — no timeout, no auth-required
+block. Dashboard API (`zerodha-trading-liard.vercel.app`) still failed its
+routine `connect_rejected`/403 `CONNECT tunnel failed` block — unrelated,
+unchanged, never the real data source.
+
+**🟡 New, logged only: the advisor did not run today.** Checked at
+**2026-11-04 11:13 UTC (16:43 IST)** — well past NSE close (15:30 IST).
+`portfolio_advice` has **zero new rows today**; `max(created_at)` across
+the whole table is still **2026-11-03 09:46:33 UTC** (yesterday's last
+write). `brain_decisions` is likewise at zero today (`max(created_at)`
+frozen at 2026-08-28, pre-decommission, as expected — unrelated to this
+finding). `app_config.brain_status` (`START`), `enc_token.updated_at`
+(2026-11-03 05:25:40 UTC) and `grading_incident` (2026-11-03 18:30:40
+UTC) are all still stamped yesterday — nothing wrote to any of them
+today. Yet `brain_heartbeat` is healthy: `status=ONLINE`, `last_ping
+=2026-11-04 11:14:01 UTC` (essentially this instant), `current_cycle=0`,
+`message="Idle — advisor only (intraday decommissioned 2026-09-09)"` —
+the process is alive and heartbeating but has not fired its daily
+advisor cycle today. This breaks the two-day resumption pattern:
+11-02 had 1,063 new `portfolio_advice` rows and 11-03 had 810, both well
+inside market hours by this time of day; today has none. **One
+occurrence — logged only**, per this board's own precedent ([P-43]/
+[P-44]'s "two consecutive failures earns a tracked item" rule): if a
+second consecutive trading weekday comes up silent, it earns a Ready
+item next pass.
+
+**[P-42] holds Done — carried forward unchanged, nothing new to confirm.**
+Since no job ran today, `enc_token`/`grading_incident` are still
+yesterday's readings (see above). Graded pool unchanged at **398/400**
+(`max(evaluated_at)` still 2026-10-27 18:39:18 UTC) — still 2 short of the
+POST_MORTEM §6 read. Tonight's grading test (due ≈18:30 UTC) hasn't fired
+yet as of this pass.
+
+**[P-44] holds Done** (closed 2026-11-03) — today's clean Supabase read
+extends the streak further, not a re-open condition.
+
+**Supabase DB size: 220 → 223 MB (44.0% → 44.6%)**, +3 MB since
+yesterday — consistent with yesterday's writes settling plus the routine
+trickle; not urgent, [P-38] tier decision still undecided.
+
+**[P-43] — no new gap.** This pass's commit lands immediately after the
+11-03 post-session commit.
+
+**git log check:** nothing shipped since 11-03's `chore(review)` commit
+besides this pass's own docs edits — no code-based board move.
 
 ---
 
