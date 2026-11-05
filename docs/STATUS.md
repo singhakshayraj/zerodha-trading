@@ -4,15 +4,20 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-04** (Wed, post-session — **advisor went silent
-today**: zero `portfolio_advice`/`brain_decisions` rows on a confirmed
-plain trading weekday, breaking the 11-02/11-03 resumption streak, even
-though `brain_heartbeat` is ONLINE and fresh — one occurrence, logged
-only; [P-42] and [P-44] hold Done on yesterday's readings since nothing
-wrote today; [P-43] holds Done). See the **▶️ START HERE** block below for
-the exact resume point — still dated 10-21, now stale against several
-passes' findings; update on a future pass once the next steps from this
-entry are acted on. This week's review entry and older entries follow._
+_Last updated: **2026-11-05** (Thu, post-session — **root cause found:
+`enc_token` has expired.** `app_config.grading_incident` now reads
+`TOKEN_EXPIRED 2026-11-05: 29/38 due rows could not authenticate; 0
+graded` (written 11-04 18:30:30 UTC), and `enc_token.updated_at` is
+frozen at 11-03 05:25:40 UTC — explaining yesterday's one-occurrence
+advisor silence: `portfolio_advice` is now silent a **second**
+consecutive trading weekday (11-04 and 11-05, zero rows each, checked
+past NSE close), with `brain_heartbeat` still ONLINE/fresh but idle.
+Per the [P-43]/[P-44] two-consecutive-failures precedent, **[P-42]
+REOPENS** as a Ready item — paste a fresh `enc_token`. [P-43]/[P-44]
+hold Done.) See the **▶️ START HERE** block below for the exact resume
+point — still dated 10-21, now stale against several passes' findings;
+update on a future pass once the next steps from this entry are acted
+on. This week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -23,6 +28,66 @@ short / 12 long), 1,478 decisions. Start 12:25 IST is **~3h10min past** the
 08-25 +2.75h; 08-24 +2.5h, 08-26 +76min, 08-27 +37min). Manual `enc_token`
 paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
+
+---
+
+## 📈 2026-11-05 post-session — root cause found: `enc_token` expired; grading 0/38, `portfolio_advice` silent a second consecutive weekday; [P-42] REOPENS; [P-43]/[P-44] hold Done
+
+**Confirmed 2026-11-05 is a plain NSE/BSE trading weekday** (Thursday; no
+holiday on record — next closures still Muhurat trading Sun 11-08 and
+Diwali-Balipratipada Tue 11-10). No trading session ran or ever will
+(decommissioned 2026-09-09, `trades` unchanged at 1,018 closed / 936 with
+`r_multiple`) — not a finding on its own.
+
+**Supabase: fourth consecutive clean read** (`mcp__Supabase__execute_sql`
+queried prod without error). Dashboard API
+(`zerodha-trading-liard.vercel.app`) failed its routine
+`connect_rejected` org-policy block again this pass — unrelated,
+unchanged, never the real data source.
+
+**🔴 Root cause surfaced: the nightly grading job hit `TOKEN_EXPIRED`.**
+`app_config.grading_incident` now reads **`TOKEN_EXPIRED 2026-11-05:
+29/38 due rows could not authenticate; 0 graded. Paste a fresh enc_token
+and re-run grading.`**, written **2026-11-04 18:30:30 UTC** — this is the
+"tonight's grading test" the 11-04 entry flagged as not-yet-fired; it
+fired and failed. `app_config.enc_token` (`updated_at`) and the
+`token_updated_at` mirror key are both still **2026-11-03 05:25:40 UTC**
+— 2 days stale, confirming nothing has repasted the token since. This is
+the exact [P-42] failure signature (closed 2026-11-02 on a clean
+reading), recurring.
+
+**🔴 `portfolio_advice` is silent a second consecutive trading weekday.**
+Checked **2026-11-05 11:13 UTC (16:43 IST)**, past NSE close: zero new
+rows today, same as 11-04 (also zero, confirmed via
+`created_at`-grouped-by-day over 11-02→11-05: 1,063 / 810 / 0 / 0).
+`brain_heartbeat` is still healthy — `status=ONLINE`,
+`last_ping=2026-11-05 11:13:18 UTC` (fresh), `current_cycle=0`,
+`message="Idle — advisor only (intraday decommissioned 2026-09-09)"` —
+the process is alive but has not run its advisor cycle in 2 days, which
+the expired token fully explains: `app_config.brain_status` is also
+frozen at `START`/**2026-11-03 05:27:56 UTC**, unchanged for 2 days.
+
+**🟡 [P-42] REOPENS**, per this board's own [P-43]/[P-44] precedent
+("two consecutive failures earns a tracked item") — moved from Done back
+to Ready in PIPELINE.md. Measure-of-done: `grading_incident` reads
+clean/empty again (no `TOKEN_EXPIRED`) **and** the next nightly grading
+test clears without error. Fix is the same manual lever as before: paste
+a fresh `enc_token` ([P-03]'s underlying dependency).
+
+**Graded pool unchanged at 398/400** (`max(evaluated_at)` still
+2026-10-27 18:39:18 UTC) — consistent with 0 graded today; still 2 short
+of the POST_MORTEM §6 read, no interim peek taken.
+`advisor_calibration_latest` (`app_config`) last built 2026-11-03 — not
+recomputed today, consistent with no new graded input.
+
+**Supabase DB size: 223 → 225 MB (44.6% → 45.0%)**, +2 MB — routine,
+[P-38] tier decision still undecided.
+
+**[P-43] — no new gap.** This pass's commit lands immediately after the
+11-04 post-session commit.
+
+**git log check:** nothing shipped since 11-04's `chore(review)` commit
+besides this pass's own docs edits — no code-based board move.
 
 ---
 

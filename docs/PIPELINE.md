@@ -5,15 +5,37 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-04** (Wed, post-session — **advisor silent
-today**: zero `portfolio_advice`/`brain_decisions` rows on a confirmed
-plain trading weekday despite an ONLINE, freshly-heartbeating brain —
-breaks the 11-02/11-03 resumption streak; one occurrence, logged only
-per the [P-43]/[P-44] precedent; [P-42] and [P-44] hold Done on
-yesterday's readings since nothing wrote today; [P-43] holds Done) ·
-Burn-down: **27 shipped + verified live / 0 in-progress / 5 ready (all
-paused by the engineering freeze) / 4 blocked / 1 retired ([P-01],
-decommission)**._
+_Last updated: **2026-11-05** (Thu, post-session — **root cause found:
+`enc_token` expired** (`grading_incident = TOKEN_EXPIRED 2026-11-05,
+29/38 due rows could not authenticate, 0 graded`, written 11-04 18:30:30
+UTC) — explains the advisor silence: `portfolio_advice` is now silent a
+**second** consecutive trading weekday (11-04, 11-05, zero rows each).
+Per the [P-43]/[P-44] precedent, **[P-42] REOPENS** as the one active
+Ready item — paste a fresh `enc_token`. [P-43]/[P-44] hold Done.) ·
+Burn-down: **27 shipped + verified live / 0 in-progress / 6 ready (1
+active — [P-42] reopened; 5 paused by the engineering freeze) / 4
+blocked / 1 retired ([P-01], decommission)**._
+
+**2026-11-05 post-session pass:** Supabase read cleanly a fourth
+consecutive pass. Dashboard API failed its routine `connect_rejected`
+block, as always, not new. **Root cause surfaced for the 11-04 advisor
+silence:** `app_config.grading_incident` = `TOKEN_EXPIRED 2026-11-05:
+29/38 due rows could not authenticate; 0 graded` (written 11-04 18:30:30
+UTC — the "tonight's grading test" the 11-04 pass flagged as pending; it
+fired and failed). `enc_token`/`token_updated_at` both frozen at 11-03
+05:25:40 UTC (2 days stale); `brain_status` frozen at `START`/11-03
+05:27:56 UTC. `portfolio_advice` has zero rows for both 11-04 and 11-05
+(checked 11:13 UTC, past NSE close), confirming the resumption streak
+broke on this token expiry, not a one-off. `brain_heartbeat` stays
+healthy (`ONLINE`, fresh `last_ping`, `current_cycle=0`, "Idle — advisor
+only") — alive, just unauthenticated. **[P-42] REOPENED** (see Ready
+below), moved out of Done per the [P-43]/[P-44] two-consecutive-failures
+precedent. Graded pool unchanged at 398/400 (`max(evaluated_at)` still
+10-27), consistent with 0 graded today. DB size 223 → 225 MB (44.6% →
+45.0%), +2 MB, routine. **[P-43] — no new gap**, this pass's commit
+lands immediately after 11-04's. `git log` shows nothing shipped since
+the 11-04 `chore(review)` commit besides this pass's own docs edits — no
+code-based board move. Full detail in STATUS.md's 2026-11-05 entry.
 
 **2026-11-04 post-session pass:** Supabase read cleanly a third
 consecutive pass. Dashboard API failed its routine `connect_rejected`/403
@@ -652,9 +674,22 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-_(none — [P-44] closed 2026-11-03, see DONE below. Everything else on the
-board is paused by the 2026-09-09 engineering freeze; see the next
-section.)_
+- 🔴 **[P-42] Grading stalled again on an expired token — paste a fresh
+  `enc_token`.** [you] · *done =* `app_config.grading_incident` reads
+  clean/empty again (no `TOKEN_EXPIRED`) **and** the next nightly
+  grading test clears without error. · *source:* reopened 2026-11-05 on
+  `grading_incident = 'TOKEN_EXPIRED 2026-11-05: 29/38 due rows could not
+  authenticate; 0 graded.'` (written 2026-11-04 18:30:30 UTC);
+  `enc_token.updated_at`/`token_updated_at` frozen at 2026-11-03 05:25:40
+  UTC (2 days stale). Same failure mode as the entry closed 2026-11-02
+  below (DONE section) — this is a recurrence, not a new mechanism. The
+  same token outage also explains `portfolio_advice` going silent on
+  both 2026-11-04 and 2026-11-05 (zero rows each day, checked past NSE
+  close) and `app_config.brain_status` staying frozen at `START`/11-03
+  — all three symptoms share this one root cause.
+
+_Everything else on the board is paused by the 2026-09-09 engineering
+freeze; see the next section._
 
 ⚠️ **Everything below this line is paused by the 2026-09-09 engineering
 freeze** (POST_MORTEM §6: no market-layer commits except grading/accrual
@@ -923,7 +958,9 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
   returned 11-02 (see below)._
 
 - ~~**[P-42] Grading stalled on an expired token — paste a fresh
-  `enc_token`.**~~ ✅ **DONE 2026-11-02** — `app_config.grading_incident`
+  `enc_token`.**~~ ✅ **DONE 2026-11-02, 🔴 REOPENED 2026-11-05** (same
+  failure signature recurred — see Ready section above) —
+  `app_config.grading_incident`
   reads clean/empty (last written 2026-11-02 04:20:59 UTC, no
   `TOKEN_EXPIRED`), `enc_token.updated_at` is fresh (2026-11-02 01:30:03
   UTC), and the ungraded backlog cleared: graded pool **277 → 398**, the
