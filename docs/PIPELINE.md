@@ -5,7 +5,12 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-08** (Sun, weekly review — gate metrics
+_Last updated: **2026-11-09** (Mon, pre-open audit — [P-42] stays Ready:
+the 11-08 09:18 UTC repaste failed its first nightly test (29/38); paste-
+timing evidence logged as KNOWN_ISSUES [D2]. VERIFY V-16/V-17/V-7 PASSED;
+I-6 pin drift fixed (brain `2261e59`). Burn-down otherwise unchanged.)_
+
+_Previous: **2026-11-08** (Sun, weekly review — gate metrics
 re-measured fresh against prod, **frozen, no flip**: PF **0.3685**,
 expectancy **−0.4213R**, net **−₹59,195.25** (1,018 closed / 936 with
 `r_multiple`), deep in reject territory per VISION §6.1. **Token still
@@ -793,6 +798,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   one metric that can still move (toward the POST_MORTEM §6 n=400 read)
   hasn't. No new mechanism, no board move — logged as further worsening
   evidence on the same item._
+  _**2026-11-09 evidence — a repaste happened and failed its first test.**
+  `enc_token.updated_at` moved to **2026-11-08 09:18:32 UTC** (14:48 IST,
+  Sunday/Muhurat day — after the 11-08 weekly pass, which is why it saw no
+  paste). That night's run wrote `TOKEN_EXPIRED 2026-11-09: 29/38 due rows
+  could not authenticate; 0 graded` (18:30:27 UTC) — same signature. Paste
+  timing across every attempt (KNOWN_ISSUES [D2]): pre-dawn pastes (10-06
+  03:09 IST, 10-14 00:35 IST) die at the ~06:00 IST flush; daytime
+  trading-day pastes (11-02, 11-03) work. **Action, sharper:** paste from a
+  *fresh* kite.zerodha.com login after ~07:30 IST on a trading day. 38 rows
+  are due, so one clean night takes the pool 398 → ~436, past n=400._
 
 _Everything else on the board is paused by the 2026-09-09 engineering
 freeze; see the next section._

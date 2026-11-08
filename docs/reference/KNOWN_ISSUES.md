@@ -155,6 +155,35 @@ validated in production, not just in theory.
 
 ---
 
+## 2026-11-09 post-session findings
+
+### D1 — Nifty-500 pin drifted: 3 symbols renamed in the live master — ✅ FIXED 2026-11-09 (brain `2261e59`)
+I-6 audit: 496/499, ABSENT `HEG`, `HFCL`, `ICICIPRULI`. Cause: exchange-side
+renames, not delistings — `HEG`→`HEGAM` and `ICICIPRULI`→`ICICILIFE` keep their
+tokens; `HFCL` moved to the BE (trade-to-trade) series as `HFCL-BE`, new token
+5620225. Impact was silent: those three names 400 in the rotation scan. Fixed by
+repointing the rows in `data/nifty500.csv`; audit 499/499. Old symbols remain on
+historical `stock_universe`/`portfolio_advice` rows — harmless, not migrated.
+
+### D2 — token paste timing explains most failed repastes (evidence for [C6]) 🟡
+Paste time (IST) vs whether it authenticated for that night's grading:
+
+| paste (UTC) | IST | outcome |
+|---|---|---|
+| 10-05 21:39 | 10-06 03:09 | ❌ failed first nightly test |
+| 10-13 19:05 | 10-14 00:35 | ❌ failed eight nights running |
+| 11-02 ~04:20 | 11-02 ~09:50 | ✅ advisor ran, grading clean |
+| 11-03 05:25 | 11-03 10:55 | ✅ advisor ran; expired by 11-04 morning |
+| 11-08 09:18 | 11-08 14:48 (Sun, Muhurat day) | ❌ `TOKEN_EXPIRED 2026-11-09: 29/38` at 18:30 UTC |
+
+Both pre-dawn pastes sat **before** the presumed ~06:00 IST flush and died in it
+— consistent with [C6]'s scheduled-flush reading, not a broken paste mechanism.
+Daytime trading-day pastes work and last until the next flush. The 11-08
+Sunday paste is the outlier (died within ~9h, before any flush); likeliest
+cause is a cookie copied from a stale browser session rather than a fresh
+login, unconfirmed. **Operator rule until disproven:** paste from a *fresh*
+kite.zerodha.com login, after ~07:30 IST, on a trading day.
+
 ## 2026-08-06 mid-session audit — advisor/live-portfolio accountability
 
 _Found while validating the live session `16f23213`. All three are
@@ -571,6 +600,7 @@ was **session length, not pacing** ([C1]).
 
 ### C6 — the enctoken's "~06:00 IST expiry" is an unverified guess 🟡
 _Raised 2026-08-10. **Measurement in flight** — see the probe below._
+_2026-11-09: paste-time evidence in [D2] supports the scheduled-flush reading — pre-dawn pastes die, daytime ones live to the next morning._
 
 Four places state the enctoken expires "~06:00 IST", and
 `config.TOKEN_REFRESH_HOUR_IST = 6` / `MINUTE = 30` is built on that number:

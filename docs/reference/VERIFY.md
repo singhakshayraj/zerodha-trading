@@ -93,26 +93,6 @@ against a 164-date OOS null is the exact shape of this project's recorded
 failure (entry filter: t = +3.0 on nine correlated days → −0.003R on the
 tenth). Recorded 2026-09-10.
 
-### V-17 · advisor correctness label is market-neutral (alpha) [item 2]
-Shipped 2026-09-09 (brain: grader + `get_track_record_summary` +
-`factor_attribution` + `calibration_curve` + `db_records` selects; dashboard
-track-record API). `outcome_correct_alpha` is authoritative; absolute
-`outcome_correct` retained, marked superseded. Column + backfill in
-`scripts/advisor_alpha_label_2026-09-09.sql` (operator-applied).
-
-**Regression (already verified by recomputation, before shipping):** on the 98
-originally-graded calls the alpha label gives hit rate **0.5510**, AUC
-**0.5133** (vs absolute 0.480 / 0.4917). After the `.sql` runs, confirm the
-stored column reproduces it:
-```sql
-select round(avg((outcome_correct_alpha)::int)::numeric,4) alpha_hit_rate, count(*) n
-from portfolio_advice
-where outcome_correct is not null and outcome_correct_alpha is not null
-  and evaluated_at::date <= '2026-08-24';
-```
-**PASS** = `alpha_hit_rate` = 0.5510 on n = 98. **NOT-YET** = `.sql` not yet
-applied (`outcome_correct_alpha` all NULL).
-
 ### I-8 · whole-book coverage reconciles [item 5, rule-class]
 The sum of all valued holdings must reconcile to the brokerage-reported total
 portfolio value within **0.5%**. This is the check that proves whole-book
@@ -145,41 +125,6 @@ having max(n.nav_date) is null or (current_date - max(n.nav_date)) > 3;
 **PASS** = no rows (every mapped NAV ≤ 1 trading day old; >3 calendar days
 allows a weekend). **NOT-YET** = `amfi_nav` empty / mapping unconfirmed.
 
-
-### V-16 · the advisor survives the intraday decommission
-Shipped 2026-09-09 (brain: scheduler.py trading cycle + intraday jobs deleted,
-watchdog reduced to liveness, token inverted to pull; dashboard `/learn`
-updated). The decommission's one hard risk is that removing the trading cycle
-also kills the advisor, which shares the scheduler. The advisor runs from the
-idle loop (`_maybe_run_advisor`, independent of sessions) and is token-gated
-(pull-mode), so the check is conditional on a token being supplied.
-
-**Deciding number — the first trading day a token is pasted after the deploy,
-a new `portfolio_advice` row with `is_official = true` must appear with that
-day's `run_date`:**
-```sql
-select run_date::text, count(*) filter (where is_official) official_rows,
-       max(created_at) last_written
-from portfolio_advice
-where run_date >= '2026-09-09'
-group by 1 order by 1 desc limit 3;
-```
-**PASS** = an `is_official` row exists for the first post-deploy trading day on
-which a token was supplied. **FAIL** = a token was supplied on a trading day and
-no official row appeared → the change killed the advisor; **revert the brain
-commit immediately, do not forward-fix on the live service.**
-**NOT-YET** = no token has been supplied since the deploy (pull-mode — not a
-failure; the advisor legitimately does not run without a token).
-
-
-_2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
-_2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
-_2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
-_2026-08-10: V-12 added ([P-35] entry edge — re-run after each session's labeling)._
-_2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 advisor run._
-_2026-08-26: **I-4 PASSED — [C7] is verified live.** `inplay_list` locked on session `c40c5634`: 10 rows, `locked_at` 10:32:54 IST, top `or_rvol` 15.89. The series gap 08-07 → 08-26 is exactly the three failures the fix targeted (08-10, 08-24, 08-25). First session able to judge it._
-_2026-08-27: **I-4 PASSED again** — `inplay_list` locked 10/10 on session `a73fbf67`, first lock 09:53 IST. Still mid-week (Thu, after Wed's own session); the post-weekend stress test is still Monday 08-31. **V-13 PASSED** (moved to ✅ below) and **V-14 checked, still NOT-YET** (984 ≤ 1000)._
-_2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
 
 ### V-15 · [P-38] TOAST compression actually applies
 Ships 2026-08-27 as `scripts/storage_toast_compression_2026-08-27.sql` (brain),
@@ -300,27 +245,6 @@ pass that has it._
 _2026-09-06 (weekly review): unchanged — `total=1018, wins=239,
 win_rate=0.2348`, no new sessions to move the count. Still carries._
 
-### V-7 · [P-25] a real trade is captured and linked, with no manual step
-Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
-one historical execution (NBCC SELL 115, 08-06 04:36, `followed_advice=true`,
-advice stamped `accept`). This check is **event-driven, not daily**: it can only
-pass on a session where you actually trade.
-
-```sql
-select symbol, side, quantity, price, price_is_estimated, detected_at::text,
-       verdict_at_time, followed_advice, advice_id is not null linked
-from user_executions order by detected_at desc limit 10;
-```
-
-**PASS** = the next real sell/add appears within one advisor refresh (~8 min),
-`linked` is true, and the matching `portfolio_advice` row has `user_decision`
-set without anyone tapping anything.
-**NOT-YET** on any session where holdings did not change — that is the normal
-case and must not be read as a failure.
-⚠️ **A BUY will not appear same-day.** The holdings feed reports delivered stock
-only, so a purchase lands T+1 and an intraday round-trip never lands at all.
-Do not treat a missing same-day buy as a defect.
-
 ### V-8 · [P-30] the candle replay agrees with real exits
 Shipped 2026-08-08 (dashboard). The replay orders two touches the extremes
 already recorded; trades that really stopped out or hit target are cases where
@@ -406,6 +330,7 @@ _The second half of the measure — grouping graded outcomes by whether the
 counter-case is what actually happened — needs graded rows carrying one, so it
 cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
 in the meantime._
+_**2026-11-09 reading (run_date 11-03): PASS** — SELL 9/9, SELL_ON_BOUNCE 3/3, TRIM 3/3, HOLD 3/3 carry a counter-case._
 
 ### V-12 · [P-35] the entry edge — 🔴 **CONVERGED TO ZERO**
 _2026-08-26 (day 13, session 08-25 labeled — 348 decisions):_ pooled
@@ -493,6 +418,7 @@ Exit **2** means the fetched master looked truncated — that is *not* a failure
 the pin; re-run rather than rebuilding anything.
 _2026-08-08: **PASS**, 499/499 after dropping JBCHEPHARM._
 Worth running at quarterly index reconstitution, not every session.
+_**2026-11-09: FAIL → fixed same pass.** 496/499; ABSENT HEG, HFCL, ICICIPRULI. Live master: HEG→`HEGAM` and ICICIPRULI→`ICICILIFE` (same tokens, renames); HFCL moved to BE series → `HFCL-BE` (new token 5620225). Repointed in brain `2261e59`; re-run **PASS 499/499**, suite 980 passing._
 
 ### I-5 · no phantom executions on quiet days
 The failure mode that would destroy this feature's credibility is inventing
@@ -508,6 +434,7 @@ the guard, not a portfolio liquidation. Cross-check against `portfolio_advice`
 run symbol counts for that day before believing it.
 
 ---
+_**2026-11-09:** 11-02 = 2 rows / 2 syms (RVNL, MAHLIFE, both real advised SELLs) — no phantom pattern._
 
 ## 👁️ WATCH — trend lines, not pass/fail
 
@@ -571,6 +498,88 @@ starvation. Tracked as [P-18], whose action gate is ≥50 graded calls.
 ---
 
 ## ✅ PASSED — kept for the record
+
+### V-16 · the advisor survives the intraday decommission — PASSED 2026-11-09
+Shipped 2026-09-09 (brain: scheduler.py trading cycle + intraday jobs deleted,
+watchdog reduced to liveness, token inverted to pull; dashboard `/learn`
+updated). The decommission's one hard risk is that removing the trading cycle
+also kills the advisor, which shares the scheduler. The advisor runs from the
+idle loop (`_maybe_run_advisor`, independent of sessions) and is token-gated
+(pull-mode), so the check is conditional on a token being supplied.
+
+**Deciding number — the first trading day a token is pasted after the deploy,
+a new `portfolio_advice` row with `is_official = true` must appear with that
+day's `run_date`:**
+```sql
+select run_date::text, count(*) filter (where is_official) official_rows,
+       max(created_at) last_written
+from portfolio_advice
+where run_date >= '2026-09-09'
+group by 1 order by 1 desc limit 3;
+```
+**PASS** = an `is_official` row exists for the first post-deploy trading day on
+which a token was supplied. **FAIL** = a token was supplied on a trading day and
+no official row appeared → the change killed the advisor; **revert the brain
+commit immediately, do not forward-fix on the live service.**
+**NOT-YET** = no token has been supplied since the deploy (pull-mode — not a
+failure; the advisor legitimately does not run without a token).
+
+
+_2026-08-07: V-1, V-2, V-3, V-5 and V-6 all PASSED on session `2ddadca7` and moved to ✅ below. Only V-4 remains — it is blocked on a DB repair, not on data._
+_2026-08-08: V-8 added ([P-30] candle replay), validated at build time; it is a standing re-check, not a one-shot._
+_2026-08-10: V-9 ([C1] durable no-token trace) and V-10 ([C5] candle-day coverage) added — both event-driven, both first judgeable on the 08-10 session._
+_2026-08-10: V-12 added ([P-35] entry edge — re-run after each session's labeling)._
+_2026-08-10: V-11 added ([P-33] bear case) — first judgeable on today's 09:20 advisor run._
+_2026-08-26: **I-4 PASSED — [C7] is verified live.** `inplay_list` locked on session `c40c5634`: 10 rows, `locked_at` 10:32:54 IST, top `or_rvol` 15.89. The series gap 08-07 → 08-26 is exactly the three failures the fix targeted (08-10, 08-24, 08-25). First session able to judge it._
+_2026-08-27: **I-4 PASSED again** — `inplay_list` locked 10/10 on session `a73fbf67`, first lock 09:53 IST. Still mid-week (Thu, after Wed's own session); the post-weekend stress test is still Monday 08-31. **V-13 PASSED** (moved to ✅ below) and **V-14 checked, still NOT-YET** (984 ≤ 1000)._
+_2026-08-10: **V-4 PASSED** — the [P-24] repair ran pre-market. **No date-independent check remains open**; V-7/V-9/V-10 all need a live session to judge._
+
+_**2026-11-09: PASS.** `is_official` rows on every token day since the deploy: 09-10 (20), 11-02 (20), 11-03 (18 — two holdings sold 11-02, see V-7). The advisor survived the decommission on three separate token days._
+
+### V-17 · advisor correctness label is market-neutral (alpha) [item 2] — PASSED 2026-11-09
+Shipped 2026-09-09 (brain: grader + `get_track_record_summary` +
+`factor_attribution` + `calibration_curve` + `db_records` selects; dashboard
+track-record API). `outcome_correct_alpha` is authoritative; absolute
+`outcome_correct` retained, marked superseded. Column + backfill in
+`scripts/advisor_alpha_label_2026-09-09.sql` (operator-applied).
+
+**Regression (already verified by recomputation, before shipping):** on the 98
+originally-graded calls the alpha label gives hit rate **0.5510**, AUC
+**0.5133** (vs absolute 0.480 / 0.4917). After the `.sql` runs, confirm the
+stored column reproduces it:
+```sql
+select round(avg((outcome_correct_alpha)::int)::numeric,4) alpha_hit_rate, count(*) n
+from portfolio_advice
+where outcome_correct is not null and outcome_correct_alpha is not null
+  and evaluated_at::date <= '2026-08-24';
+```
+**PASS** = `alpha_hit_rate` = 0.5510 on n = 98. **NOT-YET** = `.sql` not yet
+applied (`outcome_correct_alpha` all NULL).
+
+_**2026-11-09: PASS.** Stored column reproduces exactly: `alpha_hit_rate=0.5510`, n=98._
+
+### V-7 · [P-25] a real trade is captured and linked, with no manual step — PASSED 2026-11-09
+Shipped 2026-08-07 (brain `3489ac6`, dashboard). Backfill already recovered the
+one historical execution (NBCC SELL 115, 08-06 04:36, `followed_advice=true`,
+advice stamped `accept`). This check is **event-driven, not daily**: it can only
+pass on a session where you actually trade.
+
+```sql
+select symbol, side, quantity, price, price_is_estimated, detected_at::text,
+       verdict_at_time, followed_advice, advice_id is not null linked
+from user_executions order by detected_at desc limit 10;
+```
+
+**PASS** = the next real sell/add appears within one advisor refresh (~8 min),
+`linked` is true, and the matching `portfolio_advice` row has `user_decision`
+set without anyone tapping anything.
+**NOT-YET** on any session where holdings did not change — that is the normal
+case and must not be read as a failure.
+⚠️ **A BUY will not appear same-day.** The holdings feed reports delivered stock
+only, so a purchase lands T+1 and an intraday round-trip never lands at all.
+Do not treat a missing same-day buy as a defect.
+
+_**2026-11-09: PASS.** 11-02 RVNL SELL 97 @190.89 and MAHLIFE SELL 34 @312.04 — both detected within the advisor refresh (06:06/06:12 UTC), `followed_advice=true`, linked, and the official 11-02 `portfolio_advice` row for each carries `user_decision=accept` with no tap. (`advice_id` points at the intraday refresh row, not the official one; the official row is the one stamped — acceptable, noted.)_
 
 ### V-13 · TARGET_HIT fills obey the cap band — PASSED 2026-08-27
 
@@ -751,6 +760,7 @@ _2026-08-07: 7 rows — failing but frozen (all `2026-08-06`, none new)._
 _**2026-08-10: PASS — 0 rows.** The V-4 repair ran; the duplicates are gone. From
 here this is a live regression check: any pair appearing with a **newer** date is
 a genuine reintroduction of the [P-24] bug, not legacy._
+_**2026-11-09: PASS** — 0 rows._
 
 ### I-2 · exit reasons are side-symmetric
 After [P-27], a reason that only ever appears on one side means a code path

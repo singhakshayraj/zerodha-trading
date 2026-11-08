@@ -4,7 +4,13 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-08** (Sun, weekly review — **token still not
+_Last updated: **2026-11-09** (Mon, ~01:15 IST pre-open audit — **a
+repaste happened (11-08 09:18 UTC) and failed its first nightly test**,
+29/38 again; paste-timing pattern logged as KNOWN_ISSUES [D2]. VERIFY
+V-16/V-17/V-7 PASSED; I-6 pin drift found and fixed (brain `2261e59`).
+START HERE resume point refreshed to today. See the 11-09 entry below.)_
+
+_Previous: **2026-11-08** (Sun, weekly review — **token still not
 repasted; enc_token now 5 days stale.** Gate metrics re-measured fresh
 against prod and remain byte-identical to every reading since the 08-28
 freeze: **PF 0.3685** (gross win ₹34,540.15 / gross loss ₹93,735.40),
@@ -49,6 +55,38 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-11-09 pre-open audit — repaste failed its first night (29/38); V-16/V-17/V-7 PASS; I-6 pin drift fixed; resume point refreshed
+
+Run ~01:15 IST Mon, before today's session — so this audits the state left
+by the 11-08 paste, not a trading day.
+
+**Token.** `enc_token.updated_at` = **2026-11-08 09:18:32 UTC** (14:48 IST
+Sun) — a repaste the 11-08 weekly (04:40 UTC) couldn't see. Its first test
+failed: `grading_incident = TOKEN_EXPIRED 2026-11-09: 29/38 due rows could
+not authenticate; 0 graded` (18:30:27 UTC). Lining up every paste on record
+(KNOWN_ISSUES [D2]): the two pre-dawn pastes (10-06 03:09 IST, 10-14 00:35
+IST) died at the ~06:00 IST flush, the two daytime trading-day pastes
+(11-02, 11-03) worked. The 11-08 one is the outlier — likely a stale cookie,
+unconfirmed. **[P-42] stays Ready**; action is a fresh login after ~07:30
+IST today. Graded pool **398**, 38 due → one clean night crosses n=400.
+No interim peek taken.
+
+**VERIFY.** **V-16 PASS** (official rows 09-10/11-02/11-03 — advisor
+survived the decommission). **V-17 PASS** (`alpha_hit_rate` 0.5510 on n=98,
+exact). **V-7 PASS** (11-02 RVNL SELL 97 + MAHLIFE SELL 34, both linked,
+official rows stamped `accept`, no tap). V-11 PASS on 11-03 (18/18 carry a
+counter-case). I-1 PASS (0 rows). I-5 clean (2 real sells). I-8/I-9
+NOT-YET (`holding_scheme_map` 0/3 confirmed). **I-6 FAIL → fixed:** 3 pins
+renamed in the live master (HEG→HEGAM, ICICIPRULI→ICICILIFE, HFCL→HFCL-BE),
+repointed in brain `2261e59`, audit 499/499, suite 980 passing ([D1]).
+
+**Scorecard (advisor-only).** AMFI NAV 347,447 rows to 11-08 ✅.
+`portfolio_advice` last write 11-03 (silent 11-04→11-06, token) ⚠️. Holdings
+snapshot still only 09-09 (CLI-only capture by design). DB 232 MB.
+**Railway logs not read** — CLI and MCP both `Unauthorized`; needs
+`railway login`. Same blocker on verifying `KITE_TOTP_SECRET`/
+`KITE_PASSWORD` removal.
 
 ## 📈 2026-11-08 weekly review — gate metrics re-measured, frozen (no flip); enc_token now 5 days stale, fourth consecutive confirmation of the `TOKEN_EXPIRED` signature; calibration unchanged (398/400, ECE 16.3%); [P-42] stays Ready; [P-43] holds Done
 
@@ -1937,53 +1975,34 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
-### 📍 Exact resume point — 2026-10-21
+### 📍 Exact resume point — 2026-11-09
 
-**Deployed:** brain `45428c7`, dashboard `cc547da`, suite **980 passing**.
-`brain_status` IDLE. Mode: **advisor-only, engineering freeze** (trading engine
-decommissioned 2026-09-09 — do not restart it without an explicit decision; it
-fails its own reopening criteria, see POST_MORTEM §5).
+**Deployed:** brain `2261e59` (Nifty-500 pin fix on top of `45428c7`),
+dashboard `cc547da`, suite **980 passing**. Mode: **advisor-only,
+engineering freeze** (trading engine decommissioned 2026-09-09 — do not
+restart it without an explicit decision; it fails its own reopening
+criteria, see POST_MORTEM §5).
 
-**Also open: [P-43] review cadence — no new gap.** `chore(review)` commit
-`35e5e80` covers 2026-10-19, immediately preceding this pass (nothing due
-10-20, a confirmed Dussehra NSE/BSE holiday). Clean streak since the 10-12
-gap is now **6 days** (10-13, 10-14, 10-15, 10-16, 10-19, 10-21) — still far
-short of the two-clean-week measure-of-done. See PIPELINE.md [P-43].
+**The one high-value action — paste a token that survives one night:**
+- Graded pool **398/400**; **38 rows are due** and blocked by
+  `TOKEN_EXPIRED` (29/38 auth failures). One clean grading night → ~436,
+  past n=400.
+- Last paste 2026-11-08 09:18 UTC (Sun) failed its first nightly test.
+  Paste-time evidence (KNOWN_ISSUES [D2]): pre-dawn pastes die at the
+  ~06:00 IST flush; daytime trading-day pastes work. **Paste from a fresh
+  kite.zerodha.com login, after ~07:30 IST, on a trading day.** The same
+  token also restarts the advisor's daily run (silent since 11-03).
+- **Once graded ≥ 400, execute the pre-registered read (V-20):** hit-rate CI
+  vs 0.50 on the **alpha** label (`outcome_correct_alpha`), judged against
+  the **deflated threshold z ≥ 3.72** (253 trials), NOT 1.96. A positive
+  that contradicts the 164-date out-of-sample null (V-18) is **an anomaly
+  requiring explanation, not a discovery.** No interim peek before 400.
 
-**The one high-value action — the n=400 decision read, now blocked on a
-repeated failed-repaste pattern:**
-- `enc_token` was repasted **2026-10-13 19:05:28 UTC** (the third attempt)
-  and has now failed its nightly grading test on **every one of the eight
-  nights since** (10-13/14 through 10-20/21) — identical `TOKEN_EXPIRED
-  100/121` signature every time, confirmed via the unchanged 277 graded
-  pool.
-- The two prior attempts (09-20, 10-05) also each failed their first real
-  test. **Three consecutive repaste attempts have now failed to authenticate
-  for grading** — this looks less like "tokens expire fast" and more like a
-  problem with the paste mechanism itself.
-- Grading is still at **277 graded calls**, with the same ~121 matured rows
-  blocked.
-- **277 + 121 ≈ 398 → n=400 is still reachable in one clean grading pass**,
-  but needs a token paste that actually survives to authenticate — something
-  three attempts running have failed to do.
-- **Next check (highest-priority item for the next pass):** read `app_config
-  .grading_incident` after any new repaste attempt. If a fourth attempt also
-  fails its first real test, that's strong enough evidence to stop repeating
-  the same action and instead look at how the paste is performed (format/
-  encoding, or timing relative to Zerodha's own session-expiry window).
-- **If it crosses 400, execute the pre-registered read (V-20):** hit-rate CI vs
-  0.50 on the **alpha** label (`outcome_correct_alpha`), judged against the
-  **deflated threshold z ≥ 3.72** (trial ledger = 253 trials), NOT 1.96. Per
-  V-20's pre-commitment: a positive that contradicts the 164-date out-of-sample
-  null (Part B / V-18) is **an anomaly requiring explanation, not a discovery.**
-  Do NOT interim-peek at the 277 before the token drains it to n=400.
-
-**Healthy, needs nothing:** AMFI NAV ingest — **179,662 rows**, current to
-today (the 8-column parser fix holds). Advisor last ran 09-10, so `/advisor`
-universe scores are stale ~1 month — use the new per-name **"Analyse this
-name live"** button (brain `score_one_symbol` / `_maybe_serve_lookup`), or
-force a full refresh via `app_config.advisor_run_now='true'` once a token is
-live.
+**Healthy, needs nothing:** AMFI NAV ingest — **347,447 rows**, current to
+11-08. Advisor ran 11-02/11-03 (V-16 PASSED: advisor survived the
+decommission). Real-trade capture works end to end (V-7 PASSED: RVNL +
+MAHLIFE sells on 11-02 auto-linked and stamped `accept`). Supabase access
+clean ([P-44] Done). DB 232 MB.
 
 **Gated on the operator (name them, don't guess):**
 - **Whole-book Part A** — needs the 3 FoF mappings CONFIRMED in
