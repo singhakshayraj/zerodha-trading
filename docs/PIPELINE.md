@@ -636,10 +636,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   multi-tenancy over a second isolated deployment). **Approved exception to
   the 2026-09-09 engineering freeze.**
   **Blocked on:** (1) the V-20 n=400 read completing first — this item
-  rewrites the grading/token path that read depends on; (2) [you] answer:
-  will Natwar log into the dashboard himself (needs auth + per-user access,
-  +1–2 days) or only you (account dropdown is enough); (3) Natwar's consent
+  rewrites the grading/token path that read depends on; (2) Natwar's consent
   and his own Kite login.
+  **Decided 2026-11-09:** no separate dashboard login for Natwar — the
+  existing single dashboard gets an **account toggle** (Kanaklata / Natwar).
+  Token paste is **per account and independent**: the operator may paste
+  either token or both on a given day; whichever account has a live token
+  runs, the other idles without error. Dashboard auth (+1–2 days) not needed.
   **Design constraints (agreed):** additive only — `account_id` column
   defaulting to Kanaklata on `portfolio_advice`, `holdings_snapshot`,
   `user_executions`, `advisor_paper_positions`, `holding_scheme_map`;
@@ -649,7 +652,7 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   calibration and the V-20 read stay filtered per account until pooling is
   explicitly decided; Natwar's account ships disabled until one dry run
   passes. Owes VERIFY a row (the before/after byte-identical check above).
-  Estimate **3–5 days** (+1–2 if dashboard auth).
+  Estimate **3–5 days**.
 
 - ~~**[P-01] Gate #6 backtest — the edge verdict.**~~ 🔴 **RETIRED 2026-09-09,
   will not run.** The decommission decision was made *without* running gate #6:
