@@ -5,17 +5,65 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-06** (Fri, post-session — **token still not
-repasted: third consecutive night of the identical `TOKEN_EXPIRED`
-29/38 signature** (`grading_incident = TOKEN_EXPIRED 2026-11-06, 29/38
-due rows could not authenticate, 0 graded`, written 11-05 18:30:37 UTC)
-— `portfolio_advice` is now silent a **third** consecutive trading
-weekday (11-04, 11-05, 11-06, zero rows each). **[P-42] stays Ready**
-(reopened 11-05) — worsening evidence under the same item, no board
-move. [P-43] holds Done.) ·
+_Last updated: **2026-11-08** (Sun, weekly review — gate metrics
+re-measured fresh against prod, **frozen, no flip**: PF **0.3685**,
+expectancy **−0.4213R**, net **−₹59,195.25** (1,018 closed / 936 with
+`r_multiple`), deep in reject territory per VISION §6.1. **Token still
+not repasted: fourth consecutive weekly-review confirmation of the
+identical `TOKEN_EXPIRED` 29/38 signature** (`grading_incident =
+TOKEN_EXPIRED 2026-11-08, 29/38 due rows could not authenticate, 0
+graded`, written 11-07 18:30:33 UTC); `enc_token`/`token_updated_at` now
+**5 days stale** (2026-11-03 05:25:40 UTC). `portfolio_advice` still
+silent since 11-03 (`max(created_at)` unchanged) — three confirmed
+trading weekdays (11-04, 11-05, 11-06); no new weekday has elapsed since
+(11-07 Sat, 11-08 Sun). Advisor calibration unchanged for a sixth
+consecutive reading: **398/400 graded, ECE 16.3%, non-monotonic**,
+`built_at=2026-11-03`. **[P-42] stays Ready** (reopened 11-05) —
+worsening evidence under the same item, no board move. [P-43] holds
+Done.) ·
 Burn-down: **27 shipped + verified live / 0 in-progress / 6 ready (1
 active — [P-42] reopened; 5 paused by the engineering freeze) / 4
 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-11-08 weekly review pass:** Supabase read cleanly, a seventh
+consecutive clean pass. Dashboard API failed its routine
+`connect_rejected` block again (`curl` exit 56), as always, not new.
+**Gate metrics re-measured fresh against prod** — frozen, byte-identical
+to every reading since the 08-28 freeze: PF **0.3685** (gross win
+₹34,540.15 / gross loss ₹93,735.40), expectancy **−0.4213R**, net
+**−₹59,195.25**, 1,018 closed trades (936 with `r_multiple`). No gate
+flip, none possible (VISION §6.1: PF deep in reject territory).
+**Token still not repasted:** `app_config.grading_incident` =
+`TOKEN_EXPIRED 2026-11-08: 29/38 due rows could not authenticate; 0
+graded` (written 11-07 18:30:33 UTC) — same 29/38 signature carried
+since the 11-05 reopen; this is the fourth consecutive weekly-review
+confirmation of the failure. `enc_token`/`token_updated_at` both still
+frozen at 11-03 05:25:40/41 UTC — now **5 days stale**; `brain_status`
+still frozen at `START`/11-03 05:27:56 UTC. `portfolio_advice` confirms
+zero rows since 11-03 (`max(created_at)` unchanged at 11-03 09:46:33
+UTC) — the three trading weekdays already flagged (11-04, 11-05,
+11-06) remain the latest confirmed silence; no new trading weekday has
+elapsed since (11-07 Sat, 11-08 Sun — the latter calendar-noted as NSE's
+Muhurat trading day, logged as an observation only, no new rows seen).
+`brain_heartbeat` stays healthy (`ONLINE`, fresh `last_ping` 11-08
+04:36:37 UTC, `current_cycle=0`, "Idle — advisor only") — alive, still
+unauthenticated. **Advisor calibration unchanged for a sixth
+consecutive reading:** `advisor_calibration_latest` =
+`graded_calls=398`, `ece_pct=16.3`, `monotonic=false`,
+`built_at=2026-11-03` — byte-identical to 11-02/11-03, consistent with
+zero new grading input; still 2 short of the POST_MORTEM §6 n=400 read,
+no interim peek taken. **[P-42] stays Ready** — worsening evidence under
+the already-reopened item, no board move. DB size 227 → 231 MB (45.4% →
+46.2%), +4 MB in 2 days, routine. **[P-43] — holds Done, no new gap**;
+`git log` shows a `chore(review)` commit for every trading weekday since
+the last gap (11-02 through 11-06), nothing due 11-07/11-08 until this
+pass's own weekly commit. 3-lens sanity: advisor lens — n=398/400 and
+ECE 16.3% frozen six readings running, fully gated on the token; trader
+lens — PF 0.3685 stays deep in reject territory, no flip possible, gate
+#6 stays retired/blocked on the user decision; engineer lens — Supabase
+access itself is now clean seven passes running ([P-44] holds Done), so
+the sole live engineering risk is the `enc_token`/grading pipeline
+([P-42]), now 5 days stale. Full detail in STATUS.md's 2026-11-08 entry.
 
 **2026-11-06 post-session pass:** Supabase read cleanly a fifth
 consecutive pass. Dashboard API failed its routine `connect_rejected`
@@ -526,6 +574,18 @@ reading above; nothing below has moved because nothing could be read.
 Next weekly review due Sunday 2026-11-08, unless access is restored
 first.
 
+**2026-11-08 weekly-review addendum:** access restored (clean since
+11-02, see [P-44] Done); PF/expectancy/net re-measured fresh and
+byte-identical to every reading since the 08-28 freeze — **PF 0.3685,
+expectancy −0.4213R, net −₹59,195.25**, 1,018 closed / 936 with
+`r_multiple`. No gate flip, none possible. Calibration snapshot
+(`graded_calls=398`, ECE 16.3%, `monotonic=false`, `built_at=2026-11-03`)
+is unchanged for a sixth consecutive reading — the grading stall
+([P-42], reopened 11-05, now 5 days stale) is blocking the one metric
+that could still move; still 2 short of the POST_MORTEM §6 n=400 read.
+Next weekly review due Sunday 2026-11-15, unless a token paste clears
+the backlog first.
+
 ## The feedback loop (how this board is fed + drained)
 
 ```
@@ -720,6 +780,19 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   consecutive trading weekday (11-04, 11-05, 11-06); `brain_status`
   still frozen at `START`/11-03. No new mechanism, no board move —
   logged as worsening evidence on the same item._
+  _**2026-11-08 evidence (weekly review):** fourth consecutive
+  weekly-review confirmation of the same signature —
+  `grading_incident = 'TOKEN_EXPIRED 2026-11-08: 29/38 due rows could
+  not authenticate; 0 graded.'`, written 2026-11-07 18:30:33 UTC.
+  `enc_token`/`token_updated_at` now **5 days stale** (still 2026-11-03
+  05:25:40/41 UTC) — zero repaste attempts across every observed night.
+  `portfolio_advice` still silent since 11-03 (no new trading weekday has
+  elapsed: 11-07 Sat, 11-08 Sun). Advisor calibration frozen for a sixth
+  consecutive reading (`graded_calls=398`, ECE 16.3%, `monotonic=false`,
+  `built_at=2026-11-03`) — the grading stall is now also the reason the
+  one metric that can still move (toward the POST_MORTEM §6 n=400 read)
+  hasn't. No new mechanism, no board move — logged as further worsening
+  evidence on the same item._
 
 _Everything else on the board is paused by the 2026-09-09 engineering
 freeze; see the next section._

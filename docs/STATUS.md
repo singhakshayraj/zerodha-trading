@@ -4,24 +4,39 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-06** (Fri, post-session — **token still not
-repasted; third consecutive night of the same `TOKEN_EXPIRED` signature.**
-`app_config.grading_incident` now reads `TOKEN_EXPIRED 2026-11-06: 29/38
-due rows could not authenticate; 0 graded` (written 11-05 18:30:37 UTC) —
-identical 29/38 count to the 11-05 reading. `enc_token.updated_at` /
-`token_updated_at` are both still frozen at 11-03 05:25:40 UTC (**3 days
-stale**), `app_config.brain_status` still frozen at `START`/11-03
-05:27:56 UTC. `portfolio_advice` is now silent a **third** consecutive
-trading weekday (11-04, 11-05, 11-06, zero rows each, `max(created_at)`
-still 11-03 09:46:33 UTC), with `brain_heartbeat` still ONLINE/fresh
-(`last_ping` 11-06 11:12:27 UTC) but idle. **[P-42] stays Ready**
-(reopened 11-05) — this is worsening evidence under the same tracked
-item, not a new finding. [P-43] holds Done. Graded pool unchanged at
-398/400. DB size 225 → 227 MB (45.0% → 45.4%), +2 MB, routine.) See the
-**▶️ START HERE** block below for the exact resume point — still dated
-10-21, now stale against several passes' findings; update on a future
-pass once the next steps from this entry are acted on. This week's
-review entry and older entries follow._
+_Last updated: **2026-11-08** (Sun, weekly review — **token still not
+repasted; enc_token now 5 days stale.** Gate metrics re-measured fresh
+against prod and remain byte-identical to every reading since the 08-28
+freeze: **PF 0.3685** (gross win ₹34,540.15 / gross loss ₹93,735.40),
+expectancy **−0.4213R**, net **−₹59,195.25**, 1,018 closed trades (936
+with `r_multiple`) — no gate flip, none possible (VISION §6.1: PF stays
+deep in reject territory). `app_config.grading_incident` now reads
+`TOKEN_EXPIRED 2026-11-08: 29/38 due rows could not authenticate; 0
+graded` (written 11-07 18:30:33 UTC) — same 29/38 signature carried since
+the 11-05 reopen. `enc_token.updated_at` / `token_updated_at` are both
+still frozen at 11-03 05:25:40/41 UTC (**5 days stale**),
+`app_config.brain_status` still frozen at `START`/11-03 05:27:56 UTC.
+`portfolio_advice` confirms **zero rows since 11-03** (`max(created_at)`
+still 11-03 09:46:33 UTC) — three confirmed silent trading weekdays
+(11-04, 11-05, 11-06); 11-07 was Saturday (no session due); today (11-08)
+is a Sunday but NSE's calendar-noted Muhurat trading day — no new rows
+observed as of this pass, logged as an observation only, not counted as a
+fourth silent weekday (no precedent on this board for a Sunday
+session-day). `brain_heartbeat` still ONLINE/fresh (`last_ping` 11-08
+04:36:37 UTC) but idle. Advisor calibration (`advisor_calibration_latest`)
+is unchanged for a sixth consecutive reading: `graded_calls=398`, ECE
+**16.3%**, `monotonic=false`, `built_at=2026-11-03` — still frozen on the
+same stalled grading pool, still 2 short of the POST_MORTEM §6 n=400
+read. **[P-42] stays Ready** (reopened 11-05) — this is the fourth
+consecutive weekly-review confirmation of the same failure signature, not
+a new finding. [P-43] holds Done. DB size 227 → 231 MB (45.4% → 46.2%),
++4 MB in 2 days, routine. Dashboard API
+(`zerodha-trading-liard.vercel.app`) failed its routine `connect_rejected`
+block again (`curl` exit 56) — unrelated, unchanged, never the real data
+source.) See the **▶️ START HERE** block below for the exact resume
+point — still dated 10-21, now stale against several passes' findings;
+update on a future pass once the next steps from this entry are acted
+on. This week's review entry and older entries follow._
 
 _Superseded entry, kept for the record: **2026-08-28** (Fri, ~17:10 IST).
 **Session 08-28 audited.**
@@ -34,6 +49,89 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-11-08 weekly review — gate metrics re-measured, frozen (no flip); enc_token now 5 days stale, fourth consecutive confirmation of the `TOKEN_EXPIRED` signature; calibration unchanged (398/400, ECE 16.3%); [P-42] stays Ready; [P-43] holds Done
+
+**Confirmed 2026-11-08 is a Sunday** — no regular NSE/BSE trading weekday
+session was due. Per STATUS's own prior entries, this date carries a
+calendar note as NSE's Muhurat trading day (a symbolic session); this
+review did not observe any new `portfolio_advice` or `trades` rows as of
+the time queried, and takes no further position on whether a Muhurat
+session ran or should have produced advisor output — logged as a plain
+observation, not a new finding.
+
+**Supabase: clean read, Dashboard API still blocked.**
+`mcp__Supabase__execute_sql` queried prod without error. Dashboard API
+(`zerodha-trading-liard.vercel.app`) failed its routine `connect_rejected`
+block again (`curl` exit 56, `CONNECT tunnel failed, response 403`) —
+unrelated, unchanged, never the real data source; every number below is
+read directly from Supabase.
+
+**Gate metrics re-measured fresh — frozen, byte-identical since the
+08-28 freeze, no flip.** `trades`: **1,018 closed** (936 with
+`r_multiple`), gross win **₹34,540.15**, gross loss **₹93,735.40**, net
+**−₹59,195.25**. **PF = 0.3685**, **expectancy = −0.4213R**. Per VISION
+§6.1 (PF > 1.3 = go, < 1.1 = reject), PF stays deep in reject territory —
+no gate flip, none possible; `trading_sessions.max(started_at)` unchanged
+at 2026-08-28 06:54:59 UTC, confirming the trading engine has not and
+cannot run again (decommissioned 2026-09-09).
+
+**🔴 Token still not repasted — fourth consecutive weekly-review
+confirmation of the same `TOKEN_EXPIRED` signature.**
+`app_config.grading_incident` reads **`TOKEN_EXPIRED 2026-11-08: 29/38
+due rows could not authenticate; 0 graded.`**, written **2026-11-07
+18:30:33 UTC** — the identical **29/38** count carried since the 11-05
+reopen (11-05, 11-06, now 11-08; this review did not run on 11-07 so that
+night's reading was not separately captured, but the signature is
+unchanged across every reading taken). `app_config.enc_token`
+(`updated_at`) and the `token_updated_at` mirror key are both still
+**2026-11-03 05:25:40/41 UTC** — now **5 days stale**, confirming zero
+repaste attempts continue. `app_config.brain_status` is also still frozen
+at `START`/**2026-11-03 05:27:56 UTC**.
+
+**`portfolio_advice` confirms zero rows since 11-03.** `max(created_at)`
+across the whole table is still **2026-11-03 09:46:33 UTC** — the three
+trading weekdays since (11-04, 11-05, 11-06) remain silent, as already
+established in the 11-06 post-session entry; no new trading weekday has
+elapsed since (11-07 Saturday, 11-08 Sunday). `brain_heartbeat` remains
+healthy — `status=ONLINE`, `last_ping=2026-11-08 04:36:37 UTC` (fresh),
+`current_cycle=0`, `message="Idle — advisor only (intraday decommissioned
+2026-09-09)"` — alive, still unauthenticated.
+
+**Advisor calibration unchanged for a sixth consecutive reading.**
+`app_config.advisor_calibration_latest`: `graded_calls=398`, `ece_pct=
+16.3`, `monotonic=false`, `built_at=2026-11-03` — byte-identical to the
+11-02/11-03 readings; consistent with zero new grading input since the
+token expired. **398/400 still two graded calls short** of the
+POST_MORTEM §6 pre-registered advisor read; no interim peek taken, per
+that section's own rule. ECE has not fallen since the token outage began
+— it is frozen at 16.3% (up from 12.4% at n=194, logged previously as a
+trend point, not a re-open of [P-18]'s closed AUC-based verdict) — the
+grading stall is blocking the one metric that could still move.
+
+**[P-42] stays Ready — no board move this pass.** Already reopened
+2026-11-05 under this exact failure signature; this pass is the fourth
+consecutive weekly-review confirmation, not a new finding. Measure-of-
+done unchanged: `grading_incident` reads clean/empty again **and** the
+next nightly grading test clears without error.
+
+**Supabase DB size: 227 → 231 MB (45.4% → 46.2%)**, +4 MB in 2 days —
+routine, [P-38] tier decision still undecided.
+
+**[P-43] — holds Done, no new gap.** `git log` shows a `chore(review)`
+commit for every trading weekday since the last gap (11-02 through
+11-06), nothing due 11-07/11-08 (weekend) until this pass's own weekly
+commit — cadence intact.
+
+**3-lens sanity.** Advisor lens: n=398/400 and ECE 16.3% (non-monotonic)
+have now sat frozen for six consecutive readings, entirely gated on the
+token; nothing to re-measure until it's repasted. Trader lens: PF 0.3685
+stays deep in reject territory (VISION §6.1), no flip possible, gate #6
+remains retired/blocked on the user decision. Engineer lens: Supabase
+access itself has now been clean for seven consecutive passes ([P-44]
+closed 11-03, holds) — the sole live engineering risk on this board is
+the `enc_token` / grading pipeline ([P-42]), now 5 days stale and on its
+fourth consecutive confirmed-failed weekly reading since reopening.
 
 ## 📈 2026-11-06 post-session — third consecutive `TOKEN_EXPIRED` night (29/38, identical signature); `portfolio_advice` silent a third consecutive weekday; [P-42] stays Ready (no board move); [P-43] holds Done
 
