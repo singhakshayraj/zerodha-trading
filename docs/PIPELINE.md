@@ -627,6 +627,16 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🔴 BLOCKED — waiting on a decision/action (mostly [you])
 
+- **[P-46] Grader can't price a sold, non-Nifty-500 holding — its pending
+  calls never grade (KNOWN_ISSUES [D3]).** [me] · *done =* a symbol in
+  neither the pin nor live holdings still gets daily candles in
+  `advisor_backtest`, and MAHLIFE's 11-02 row grades. · *source:* 2026-11-09
+  log audit (`no instrument token for NSE:MAHLIFE`). **Blocked on:** the V-20
+  n=400 read — grading-path change, do after. Impact today 1 row; owes VERIFY
+  a row. Natural to fold into [P-45]'s grader work, or the token-free
+  bhavcopy grading idea (grade from NSE's public daily closes, no Kite
+  token needed) — both touch the same function.
+
 - **[P-45] Multi-account (multi-tenant) advisor — add a second Kite account
   (Natwar Raj Singh) alongside the current one (Kanaklata).** [me] · *done =*
   both accounts get their own official `portfolio_advice` run on the same

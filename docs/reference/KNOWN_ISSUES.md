@@ -184,6 +184,23 @@ cause is a cookie copied from a stale browser session rather than a fresh
 login, unconfirmed. **Operator rule until disproven:** paste from a *fresh*
 kite.zerodha.com login, after ~07:30 IST, on a trading day.
 
+### D3 — a sold non-Nifty-500 holding's pending calls can never be graded 🟡
+`advisor_backtest.py` (~L156) resolves a symbol's instrument token from the
+Nifty-500 pin **or** the live holdings feed. A name that is in neither — sold,
+and not a Nifty-500 constituent — gets no candles, so its row is tallied
+`not_due` on every pass, forever, with no error. Currently hits **1 row**:
+MAHLIFE's 11-02 call (sold 11-02, not in the pin). NBCC/NTPC escaped only
+because they finished grading before being sold. Held-but-unpinned names
+(HDFCSENSEX, SILVERBEES, SUPRAJIT) are fine *while held*.
+**Why it matters:** the rows it drops are disproportionately *followed SELL
+calls* (you sold → it left holdings) — a quiet selection bias against exactly
+the calls that matter for "did following the advice work". Negligible at 1/400
+today; grows with every sale. **Fix sketch:** fall back to the public,
+no-auth instrument master (`api.kite.trade/instruments/NSE`, as
+`audit_nifty500_tokens.py` already does) for unknown symbols, or persist each
+holding's token on first sight. Tracked as [P-46]; deliberately **after** the
+V-20 read (grading-path change).
+
 ## 2026-08-06 mid-session audit — advisor/live-portfolio accountability
 
 _Found while validating the live session `16f23213`. All three are

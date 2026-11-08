@@ -84,9 +84,16 @@ repointed in brain `2261e59`, audit 499/499, suite 980 passing ([D1]).
 **Scorecard (advisor-only).** AMFI NAV 347,447 rows to 11-08 ✅.
 `portfolio_advice` last write 11-03 (silent 11-04→11-06, token) ⚠️. Holdings
 snapshot still only 09-09 (CLI-only capture by design). DB 232 MB.
-**Railway logs not read** — CLI and MCP both `Unauthorized`; needs
-`railway login`. Same blocker on verifying `KITE_TOTP_SECRET`/
-`KITE_PASSWORD` removal.
+**Railway (after user `railway login`, same day):** deploy `02ecb0e2`
+(brain `2261e59`) SUCCESS 01:17 IST. Startup grading catch-up: `queued=38
+graded=0 not_due=7 token_expired=31` — consistent with the dead token.
+Errors otherwise benign: one Telegram `getUpdates 409 Conflict` (old/new
+container overlap during deploy, one-off). `advisor_watch` no longer starts
+— removed on purpose by the decommission (`505571d`); the audit skill's
+startup check for it is stale. **New finding [D3]/[P-46]:** `no instrument
+token for NSE:MAHLIFE` — a sold non-Nifty-500 holding's pending calls can
+never grade (1 row today). **Housekeeping verified:** `KITE_TOTP_SECRET`
+and `KITE_PASSWORD` absent from both `zerodha-brain` and `watchdog`.
 
 ## 📈 2026-11-08 weekly review — gate metrics re-measured, frozen (no flip); enc_token now 5 days stale, fourth consecutive confirmation of the `TOKEN_EXPIRED` signature; calibration unchanged (398/400, ECE 16.3%); [P-42] stays Ready; [P-43] holds Done
 
@@ -2013,8 +2020,9 @@ clean ([P-44] Done). DB 232 MB.
   whole-book numbers.
 - **Sleeve drift/band layer** — needs target sleeve weights + band widths.
 - **Housekeeping:** offsite copy of `~/Desktop/zerodha-decommission-2026-09-09/`;
-  verify/delete `KITE_TOTP_SECRET` + `KITE_PASSWORD` from Railway; rotate the
-  Telegram bot token via BotFather.
+  rotate the Telegram bot token via BotFather (set it as
+  `ADVISOR_TELEGRAM_BOT_TOKEN` on `zerodha-brain` and `TELEGRAM_BOT_TOKEN` on
+  `watchdog`). Railway KITE secrets verified absent 2026-11-09.
 
 **Do NOT:** restart trading (needs explicit reversal of the decommission); run
 new return-prediction analysis (trial ledger z ≥ 3.72 — nothing in that class
