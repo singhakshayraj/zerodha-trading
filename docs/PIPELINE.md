@@ -627,6 +627,30 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🔴 BLOCKED — waiting on a decision/action (mostly [you])
 
+- **[P-45] Multi-account (multi-tenant) advisor — add a second Kite account
+  (Natwar Raj Singh) alongside the current one (Kanaklata).** [me] · *done =*
+  both accounts get their own official `portfolio_advice` run on the same
+  trading day from one brain deploy, each graded with its own token, and
+  Kanaklata's calibration/V-20 numbers are byte-identical before vs after the
+  migration. · *source:* user decision 2026-11-09 (chose single-stack
+  multi-tenancy over a second isolated deployment). **Approved exception to
+  the 2026-09-09 engineering freeze.**
+  **Blocked on:** (1) the V-20 n=400 read completing first — this item
+  rewrites the grading/token path that read depends on; (2) [you] answer:
+  will Natwar log into the dashboard himself (needs auth + per-user access,
+  +1–2 days) or only you (account dropdown is enough); (3) Natwar's consent
+  and his own Kite login.
+  **Design constraints (agreed):** additive only — `account_id` column
+  defaulting to Kanaklata on `portfolio_advice`, `holdings_snapshot`,
+  `user_executions`, `advisor_paper_positions`, `holding_scheme_map`;
+  per-account token keys in `app_config`; the Nifty-500 universe scan stays
+  shared (account-agnostic), only holdings advice is per account; each
+  account's loop is isolated (a dead token on one never stops the other);
+  calibration and the V-20 read stay filtered per account until pooling is
+  explicitly decided; Natwar's account ships disabled until one dry run
+  passes. Owes VERIFY a row (the before/after byte-identical check above).
+  Estimate **3–5 days** (+1–2 if dashboard auth).
+
 - ~~**[P-01] Gate #6 backtest — the edge verdict.**~~ 🔴 **RETIRED 2026-09-09,
   will not run.** The decommission decision was made *without* running gate #6:
   even a positive backtest would have needed a rebuild, not a deployment,
