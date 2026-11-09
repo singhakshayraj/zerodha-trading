@@ -18,7 +18,7 @@ will bite later · ⚪ hygiene.
 
 | # | Problem | Sev | Impact | What to do | Ref |
 |---|---|---|---|---|---|
-| 1.1 | **Kite token dead since 11-04** | 🔴 | Grading stalled at **398/400**; daily advice silent since 11-03; [P-45] blocked | Fresh kite.zerodha.com login → paste `enctoken` **after ~07:30 IST on a trading day** (pre-dawn pastes die at the ~06:00 flush) | [P-42], [D2] |
+| 1.1 | **Token must be live ~11-16/17** (pasted fresh 11-09 10:19 ✅) | 🔴 | n=400 crosses when three 11-02 MICRO calls mature; no token that day = no read | Paste daily on trading days, fresh login, **after ~07:30 IST** (pre-dawn pastes die at the ~06:00 flush) | [P-42], [D2], [D4] |
 | 1.2 | **3 mutual funds unmapped** (`holding_scheme_map` 0/3 confirmed) | 🟡 | No whole-book value / risk numbers; I-8, I-9 stuck NOT-YET | Send scheme name, Direct/Regular, Growth/IDCW, units per fund. Candidates: DSP 153487, ICICI 149775, Motilal 150642 | I-8, I-9 |
 | 1.3 | **Telegram bot token never rotated** (leaked in pre-scrub logs) | 🟡 | Security exposure on the alert bot | BotFather `/revoke` → set `ADVISOR_TELEGRAM_BOT_TOKEN` (zerodha-brain) + `TELEGRAM_BOT_TOKEN` (watchdog) on Railway yourself; don't paste it in chat | [P-04] |
 | 1.4 | **Supabase on free tier** — 232 MB / 500 MB | 🟡 | Fine for now (~46%); also caps you at 2 active projects | Decide Pro vs stay free before ~400 MB | [P-38] |
@@ -34,6 +34,7 @@ is done — changing the grader mid-read would cast doubt on it.
 | # | Problem | Sev | Impact | Fix | Ref |
 |---|---|---|---|---|---|
 | 2.1 | **Grader drops a sold non-Nifty-500 holding** — no instrument token → `not_due` forever, silently | 🟡 | 1 row today (MAHLIFE 11-02). Biased: the dropped rows are mostly *followed SELL calls* | Fall back to the public no-auth instrument master for unknown symbols | [D3], [P-46] |
+| 2.1b | **Incident message calls not-due rows "due"** — misled the board into expecting n=400 on 11-09 | 🟡 | Wrong expectations, not wrong grades | Check maturity before fetching; reword | [D4] |
 | 2.2 | **Grading depends on your Kite token at all** | 🟡 | Every lapsed token stalls grading (the cause of every stall since September) | Grade from NSE's public daily closes (bhavcopy) — no token needed | [P-46] note |
 | 2.3 | **Single-account design** | ⚪ | Can't run Natwar alongside Kanaklata | Multi-tenant: `account_id` (additive, defaults to Kanaklata), per-account tokens, isolated loops, dashboard toggle. 3–5 days | [P-45] |
 

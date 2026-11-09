@@ -845,6 +845,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   trading-day pastes (11-02, 11-03) work. **Action, sharper:** paste from a
   *fresh* kite.zerodha.com login after ~07:30 IST on a trading day. 38 rows
   are due, so one clean night takes the pool 398 → ~436, past n=400._
+  _**2026-11-09 10:19 IST — fresh token pasted and live.** Official run done
+  10:25 (20 holdings), paper books snapshotted, `grading_incident` cleared.
+  Grading pass: `queued=58 graded=0 not_due=58 token_expired=0` — **correction:
+  the "38 due" above was never true** (KNOWN_ISSUES [D4]); they are 11-02/11-03
+  calls. n=400 is crossed when the three 11-02 MICRO calls mature (~11-16/17)
+  — needs a live token that day. Closes once tonight's run also stays clean._
 
 _Everything else on the board is paused by the 2026-09-09 engineering
 freeze; see the next section._

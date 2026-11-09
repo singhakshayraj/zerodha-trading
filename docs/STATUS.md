@@ -61,6 +61,12 @@ deprioritised, logging only._
 Run ~01:15 IST Mon, before today's session — so this audits the state left
 by the 11-08 paste, not a trading day.
 
+**Update 10:25 IST:** fresh token pasted 10:19, live. Official advisor run
+done (20 holdings), paper books MANAGEMENT ₹6,13,832 (19 open) / PICKING
+₹1,04,060 (13 open), `grading_incident` cleared. Grading: 0 graded,
+`not_due=58` — the "38 due" reading was a mislabel ([D4]); n=400 lands
+~11-16/17, not today.
+
 **Token.** `enc_token.updated_at` = **2026-11-08 09:18:32 UTC** (14:48 IST
 Sun) — a repaste the 11-08 weekly (04:40 UTC) couldn't see. Its first test
 failed: `grading_incident = TOKEN_EXPIRED 2026-11-09: 29/38 due rows could
@@ -1991,9 +1997,10 @@ restart it without an explicit decision; it fails its own reopening
 criteria, see POST_MORTEM §5).
 
 **The one high-value action — paste a token that survives one night:**
-- Graded pool **398/400**; **38 rows are due** and blocked by
-  `TOKEN_EXPIRED` (29/38 auth failures). One clean grading night → ~436,
-  past n=400.
+- Graded pool **398/400**. ~~38 rows due~~ — **wrong, corrected 11-09**
+  ([D4]): with a live token the pass graded 0, `not_due=58`. Next to mature:
+  three 11-02 MICRO calls (~11-16/17) → 401. **A live token is needed on
+  that day.** MACRO calls from 11-02/11-03 mature ~mid-Dec.
 - Last paste 2026-11-08 09:18 UTC (Sun) failed its first nightly test.
   Paste-time evidence (KNOWN_ISSUES [D2]): pre-dawn pastes die at the
   ~06:00 IST flush; daytime trading-day pastes work. **Paste from a fresh

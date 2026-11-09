@@ -201,6 +201,17 @@ no-auth instrument master (`api.kite.trade/instruments/NSE`, as
 holding's token on first sight. Tracked as [P-46]; deliberately **after** the
 V-20 read (grading-path change).
 
+### D4 — `grading_incident` calls queued-but-not-due rows "due" 🟡
+With a dead token, every queued row's candle fetch fails before maturity is
+checked, so the incident read `TOKEN_EXPIRED: 29/38 due rows` — but on the
+11-09 10:25 IST pass with a live token, the same queue graded **0, `not_due=58`,
+`token_expired=0`**. None of the 38 were due: they are the 11-02/11-03 calls
+(MICRO due ~11-16/17, MACRO ~mid-Dec). The 398 graded pool already covers
+every matured call. **Cost:** this board read "38 due → one clean night
+crosses n=400" for days; wrong. **Fix sketch:** check maturity from the
+run_date + trading calendar before fetching candles, and word the incident as
+"N queued rows could not be checked". Fold into [P-46].
+
 ## 2026-08-06 mid-session audit — advisor/live-portfolio accountability
 
 _Found while validating the live session `16f23213`. All three are
