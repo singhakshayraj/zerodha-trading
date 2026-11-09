@@ -636,6 +636,12 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   a row. Natural to fold into [P-45]'s grader work, or the token-free
   bhavcopy grading idea (grade from NSE's public daily closes, no Kite
   token needed) — both touch the same function.
+  **2026-11-09: BUILT on branch `fix/grader-d3-d4` (brain `088958c`), not
+  merged.** D3 public-master fallback + D4 maturity-before-fetch, 3 new tests,
+  suite 983 passing. **Merge after the V-20 read** — neither change alters any
+  grade value, but D3 adds rows (MAHLIFE 11-02) to the pool, which would change
+  the composition of the pre-registered n=400 sample. VERIFY row to add on
+  merge: next dead-token pass reports only truly-due rows; MAHLIFE 11-02 grades.
 
 - **[P-45] Multi-account (multi-tenant) advisor — add a second Kite account
   (Natwar Raj Singh) alongside the current one (Kanaklata).** [me] · *done =*
