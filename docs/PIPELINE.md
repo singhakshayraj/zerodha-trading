@@ -662,7 +662,10 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   calibration and the V-20 read stay filtered per account until pooling is
   explicitly decided; Natwar's account ships disabled until one dry run
   passes. Owes VERIFY a row (the before/after byte-identical check above).
-  Estimate **3–5 days**.
+  Estimate **3.5–5 days**. **Design:**
+  [specs/2026-11-09-multi-account-advisor-design.md](superpowers/specs/2026-11-09-multi-account-advisor-design.md)
+  (advisor-only revision of the 08-26 multi-tenant plan; one worker service
+  per account, single Telegram poller, V-20 stays `primary`-only).
 
 - ~~**[P-01] Gate #6 backtest — the edge verdict.**~~ 🔴 **RETIRED 2026-09-09,
   will not run.** The decommission decision was made *without* running gate #6:

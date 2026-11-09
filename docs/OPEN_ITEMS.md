@@ -36,7 +36,7 @@ is done — changing the grader mid-read would cast doubt on it.
 | 2.1 | **Grader drops a sold non-Nifty-500 holding** — no instrument token → `not_due` forever, silently | 🟡 | 1 row today (MAHLIFE 11-02). Biased: the dropped rows are mostly *followed SELL calls* | Fall back to the public no-auth instrument master for unknown symbols | [D3], [P-46] |
 | 2.1b | **Incident message calls not-due rows "due"** — misled the board into expecting n=400 on 11-09 | 🟡 | Wrong expectations, not wrong grades | Check maturity before fetching; reword | [D4] |
 | 2.2 | **Grading depends on your Kite token at all** | 🟡 | Every lapsed token stalls grading (the cause of every stall since September) | Grade from NSE's public daily closes (bhavcopy) — no token needed | [P-46] note |
-| 2.3 | **Single-account design** | ⚪ | Can't run Natwar alongside Kanaklata | Multi-tenant: `account_id` (additive, defaults to Kanaklata), per-account tokens, isolated loops, dashboard toggle. 3–5 days | [P-45] |
+| 2.3 | **Single-account design** | ⚪ | Can't run Natwar alongside Kanaklata | Designed: [specs/2026-11-09-multi-account-advisor-design.md](superpowers/specs/2026-11-09-multi-account-advisor-design.md) — 5 phases, 3.5–5 days | [P-45] |
 
 ## 3 — Known limits (not bugs — read before acting on advice)
 
