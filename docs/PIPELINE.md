@@ -5,10 +5,13 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-09** (Mon, pre-open audit — [P-42] stays Ready:
-the 11-08 09:18 UTC repaste failed its first nightly test (29/38); paste-
-timing evidence logged as KNOWN_ISSUES [D2]. VERIFY V-16/V-17/V-7 PASSED;
-I-6 pin drift fixed (brain `2261e59`). Burn-down otherwise unchanged.)_
+_Last updated: **2026-11-09** (Mon, post-session pass ~16:48 IST —
+the pre-open fix (fresh token pasted 10:19 IST) held through the whole
+trading day: `portfolio_advice` closed at 1,020 rows, first full day
+since the 11-03 silence. Calibration recomputed but unchanged (398/400,
+ECE 16.3%). **[P-42] stays Ready** — tonight's nightly grading test is
+still the one that confirms the token, not observable this pass.
+Burn-down otherwise unchanged.)_
 
 _Previous: **2026-11-08** (Sun, weekly review — gate metrics
 re-measured fresh against prod, **frozen, no flip**: PF **0.3685**,
@@ -29,6 +32,21 @@ Done.) ·
 Burn-down: **27 shipped + verified live / 0 in-progress / 6 ready (1
 active — [P-42] reopened; 5 paused by the engineering freeze) / 4
 blocked / 1 retired ([P-01], decommission)**._
+
+**2026-11-09 post-session pass:** the pre-open fix held all day.
+`portfolio_advice` closed the full trading day at **1,020 new rows**
+(04:49–09:48 UTC) — the first complete day since the 11-03 silence
+(11-04/05/06 silent, 11-07 Sat, 11-08 Sun had no session due).
+`advisor_calibration_latest` recomputed (`built_at` → 2026-11-09) but
+`graded_calls` unchanged at **398** (ECE 16.3%, `monotonic=false`) — the
+recompute was triggered by the incident-clear, not new grading input.
+`trades`/`trading_sessions` unchanged at 1,018/936 (frozen,
+decommissioned). `brain_heartbeat` ONLINE, fresh. Supabase DB size
+232 → 235 MB, +3 MB, routine. **[P-42] stays Ready** — the fresh 04:49
+UTC token's first real test is tonight's nightly grading run (~18:30
+UTC/00:00 IST), which has not fired yet as of this pass; confirmation
+carries to tomorrow's post-session pass. No board move. Full detail in
+STATUS.md's 2026-11-09 entry.
 
 **2026-11-08 weekly review pass:** Supabase read cleanly, a seventh
 consecutive clean pass. Dashboard API failed its routine
@@ -860,6 +878,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   the "38 due" above was never true** (KNOWN_ISSUES [D4]); they are 11-02/11-03
   calls. n=400 is crossed when the three 11-02 MICRO calls mature (~11-16/17)
   — needs a live token that day. Closes once tonight's run also stays clean._
+  _**2026-11-09 post-session evidence (~16:48 IST).** The token held
+  through the whole trading day: `portfolio_advice` closed at 1,020 new
+  rows (04:49–09:48 UTC), the first full day since the 11-03 silence.
+  `graded_calls` still 398 (calibration recompute, no new input). The
+  actual measure-of-done — tonight's nightly grading test — fires
+  ~18:30 UTC/00:00 IST, after this pass; still unconfirmed. No board
+  move._
 
 _Everything else on the board is paused by the 2026-09-09 engineering
 freeze; see the next section._

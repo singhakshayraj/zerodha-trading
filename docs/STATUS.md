@@ -4,11 +4,17 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-09** (Mon, ~01:15 IST pre-open audit — **a
-repaste happened (11-08 09:18 UTC) and failed its first nightly test**,
-29/38 again; paste-timing pattern logged as KNOWN_ISSUES [D2]. VERIFY
-V-16/V-17/V-7 PASSED; I-6 pin drift found and fixed (brain `2261e59`).
-START HERE resume point refreshed to today. See the 11-09 entry below.)_
+_Last updated: **2026-11-09** (Mon — ~01:15 IST pre-open audit found a
+repaste (11-08 09:18 UTC) had failed its first nightly test (29/38); a
+fresh token pasted ~10:19 IST fixed it same morning. **~16:48 IST
+post-session pass confirms the fix held through the full trading day**:
+`portfolio_advice` closed the day at 1,020 new rows, the first complete
+day since the 11-03 silence. Calibration recomputed but unchanged
+(398/400, ECE 16.3%); **[P-42] stays Ready** — tonight's nightly grading
+test (~18:30 UTC) is still the one that decides whether the token
+survives, not yet observable this pass. VERIFY V-16/V-17/V-7 PASSED;
+I-6 pin drift found and fixed (brain `2261e59`). See the 11-09 entry
+below.)_
 
 _Previous: **2026-11-08** (Sun, weekly review — **token still not
 repasted; enc_token now 5 days stale.** Gate metrics re-measured fresh
@@ -77,6 +83,23 @@ IST) died at the ~06:00 IST flush, the two daytime trading-day pastes
 unconfirmed. **[P-42] stays Ready**; action is a fresh login after ~07:30
 IST today. Graded pool **398**, 38 due → one clean night crosses n=400.
 No interim peek taken.
+
+**Update ~16:48 IST (post-session, after NSE close):** `portfolio_advice`
+closed the full day at **1,020 new rows** (04:49–09:48 UTC / 10:19 IST–
+15:18 IST) — the first complete trading day since the 11-03 silence
+(11-04, 11-05, 11-06 were silent; 11-07 Sat, 11-08 Sun had no session due)
+— confirms this morning's 10:19 IST token fix held through the whole
+session, not just the initial run. `advisor_calibration_latest` was
+recomputed (`built_at` 2026-11-03 → **2026-11-09**) but `graded_calls` is
+**unchanged at 398** (ECE 16.3%, `monotonic=false`) — the recompute was
+triggered by the incident-clear, not new grading input; tonight's nightly
+grading test (fires ~18:30 UTC/00:00 IST) is still the one that decides
+whether the fresh 04:49 UTC token survives its first real test, and is not
+observable this pass. `trades`/`trading_sessions` unchanged at 1,018/936
+(frozen, decommissioned). `brain_heartbeat` ONLINE, fresh (`last_ping`
+11:19:45 UTC). Supabase DB size **232 → 235 MB**, +3 MB, routine.
+**[P-42] stays Ready** — measure-of-done ("next nightly grading test
+clears without error") stays unconfirmed until tomorrow's pass.
 
 **VERIFY.** **V-16 PASS** (official rows 09-10/11-02/11-03 — advisor
 survived the decommission). **V-17 PASS** (`alpha_hit_rate` 0.5510 on n=98,
