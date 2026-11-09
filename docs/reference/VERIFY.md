@@ -163,6 +163,111 @@ Expected once applied: database 114 → ~95.3 MB (−16.4%), growth 7.88 → 6.5
 MB/session (−17.4%), runway 49 → 62 sessions (+27%). This moves the [P-38]
 tier decision from ~February to ~April; it does not remove it.
 
+### V-11 · [P-33] every verdict carries a bear case
+Shipped 2026-08-10 (brain `bcdb667`, dashboard). `reasons` is confirmatory by
+construction; this is the disconfirming half, so a verdict can be scored against
+something later.
+
+```sql
+select verdict,
+       count(*) n,
+       count(*) filter (where coalesce(counter_case,'') <> '') with_case
+from portfolio_advice
+where run_date = 'YYYY-MM-DD' and is_official
+group by 1 order by 1;
+```
+**PASS** = `with_case = n` for every verdict except `INSUFFICIENT`, which must be
+0 (it has no call to argue against). Substitute the session's IST date —
+`current_date` is UTC and names the wrong day after 18:30 UTC.
+**Historical rows are null** and always will be; the column was added
+2026-08-10, so only judge `run_date >= 2026-08-10`.
+First real read: today's 09:20 IST advisor run.
+
+_The second half of the measure — grouping graded outcomes by whether the
+counter-case is what actually happened — needs graded rows carrying one, so it
+cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
+in the meantime._
+_**2026-11-09 reading (run_date 11-03): PASS** — SELL 9/9, SELL_ON_BOUNCE 3/3, TRIM 3/3, HOLD 3/3 carry a counter-case._
+
+### I-6 · the Nifty-500 pin still matches the live instrument master
+[C2]'s failure mode is silent: a delisted or renamed name keeps its dead token
+and the advisor's rotation scan 400s on it, one line among thousands. Tokens are
+pinned in-repo because the authenticated OMS has no instruments endpoint, so
+they can only go stale.
+
+Not SQL — a script in the brain repo:
+```bash
+python3 scripts/audit_nifty500_tokens.py    # read-only, no auth, exit 1 on drift
+```
+**PASS** = exit 0, "every pinned token matches the live master".
+**FAIL** = any WRONG or ABSENT line → fix via `build_nifty500_tokens.py`, or
+drop the row if the name is genuinely gone.
+Exit **2** means the fetched master looked truncated — that is *not* a failure of
+the pin; re-run rather than rebuilding anything.
+_2026-08-08: **PASS**, 499/499 after dropping JBCHEPHARM._
+Worth running at quarterly index reconstitution, not every session.
+_**2026-11-09: FAIL → fixed same pass.** 496/499; ABSENT HEG, HFCL, ICICIPRULI. Live master: HEG→`HEGAM` and ICICIPRULI→`ICICILIFE` (same tokens, renames); HFCL moved to BE series → `HFCL-BE` (new token 5620225). Repointed in brain `2261e59`; re-run **PASS 499/499**, suite 980 passing._
+
+### I-5 · no phantom executions on quiet days
+The failure mode that would destroy this feature's credibility is inventing
+trades. A torn holdings fetch is guarded in code; this catches it in the data.
+
+```sql
+select detected_at::date d, count(*) n, count(distinct symbol) syms
+from user_executions group by 1 order by 1 desc limit 7;
+```
+**WARN** on any day where `syms` is a large fraction of the ~20 holdings —
+real activity is a name or two; twelve at once is a torn snapshot that slipped
+the guard, not a portfolio liquidation. Cross-check against `portfolio_advice`
+run symbol counts for that day before believing it.
+
+---
+_**2026-11-09:** 11-02 = 2 rows / 2 syms (RVNL, MAHLIFE, both real advised SELLs) — no phantom pattern._
+
+## 👁️ WATCH — trend lines, not pass/fail
+
+These need N consistent readings before they mean anything. Record the number
+every session; **do not act on a single reading.**
+
+### W-B · advisor calibration (ECE) — ✅ **CLOSED 2026-08-25, and the metric was wrong**
+The ≥50-graded gate opened (37→79 on 08-24). Measured on n=98: **corr 0.0205
+(t=0.20), AUC 0.4556** — confidence carries no information about whether a call
+is right. avg 70.3 when right vs 69.8 when wrong.
+
+⚠️ **ECE was the wrong thing to watch.** It measures calibration, not
+discrimination, and a signal that always predicts the base rate is perfectly
+calibrated and useless — so ECE improving 30.3%→22.6% was compression toward the
+base rate, not progress. **Re-open only on AUC materially above 0.5**, never on
+a better ECE. See [P18_CALIBRATION.md](P18_CALIBRATION.md).
+
+_Original watch note:_
+**30.3%** (was 35.6%), still non-monotonic, **n=37** graded calls (was 31) —
+continuing to improve, still too small to act on. Read from
+`app_config.advisor_calibration_latest`, `built_at=2026-08-10`, re-confirmed
+in the 2026-08-16 weekly review (this row had again gone stale — the 08-10
+number was live in `app_config` and in STATUS's own 08-10 post-session entry
+the same day, but this ledger and GATE_MEASURES.md's "Latest" table kept
+carrying the 08-07 read through two more review cycles). **Do not re-check
+monotonicity before ~late Aug 2026**: ~85% of `portfolio_advice` is
+`trigger_type=MACRO` on a **30-trading-day** horizon, so the graded pool grows
+slowly (~3 MICRO rows/session) and a large ungraded backlog is normal, not
+starvation. Tracked as [P-18], whose action gate is ≥50 graded calls.
+
+| date | ECE | n graded | monotonic |
+|---|---|---|---|
+| 2026-08-02 (baseline) | 48.5% | 22 | false |
+| 2026-08-07 (built_at) / 2026-08-09 (re-confirmed) | 35.6% | 31 | false |
+| 2026-08-10 (built_at) / 2026-08-16 (re-confirmed) | 30.3% | 37 | false |
+
+---
+
+## ⚰️ MOOT — trading-era checks, retired 2026-11-09
+
+The intraday trading engine was decommissioned 2026-09-09 (no sessions since
+08-28), so nothing can ever satisfy or break these again. Kept verbatim for the
+record; **do not run them**. Revive only if the engine is explicitly restarted
+under POST_MORTEM §6.
+
 ### I-7 · every session's decisions are actually labelled
 **Standing invariant, added 2026-08-27 after this check found a live gap.**
 `decision_outcomes` is what the edge study reads. On 2026-08-26 only **77 of
@@ -306,32 +411,6 @@ whose exit lands past the last archived bar should fall from the measured
 **10 of 118** toward 0 for sessions after this ships. Earlier sessions are not
 backfilled — this only runs forward.
 
-### V-11 · [P-33] every verdict carries a bear case
-Shipped 2026-08-10 (brain `bcdb667`, dashboard). `reasons` is confirmatory by
-construction; this is the disconfirming half, so a verdict can be scored against
-something later.
-
-```sql
-select verdict,
-       count(*) n,
-       count(*) filter (where coalesce(counter_case,'') <> '') with_case
-from portfolio_advice
-where run_date = 'YYYY-MM-DD' and is_official
-group by 1 order by 1;
-```
-**PASS** = `with_case = n` for every verdict except `INSUFFICIENT`, which must be
-0 (it has no call to argue against). Substitute the session's IST date —
-`current_date` is UTC and names the wrong day after 18:30 UTC.
-**Historical rows are null** and always will be; the column was added
-2026-08-10, so only judge `run_date >= 2026-08-10`.
-First real read: today's 09:20 IST advisor run.
-
-_The second half of the measure — grouping graded outcomes by whether the
-counter-case is what actually happened — needs graded rows carrying one, so it
-cannot be checked until ~30 trading days of MACRO advice matures. Not a failure
-in the meantime._
-_**2026-11-09 reading (run_date 11-03): PASS** — SELL 9/9, SELL_ON_BOUNCE 3/3, TRIM 3/3, HOLD 3/3 carry a counter-case._
-
 ### V-12 · [P-35] the entry edge — 🔴 **CONVERGED TO ZERO**
 _2026-08-26 (day 13, session 08-25 labeled — 348 decisions):_ pooled
 out-of-sample **+0.001R, t=+0.0** on n=1,834.
@@ -401,46 +480,6 @@ real answer, not a regression — record it and close the candidate.
 filters on `r_multiple is not null`; a future day with an empty candle archive
 would otherwise silently dilute the result.
 
-### I-6 · the Nifty-500 pin still matches the live instrument master
-[C2]'s failure mode is silent: a delisted or renamed name keeps its dead token
-and the advisor's rotation scan 400s on it, one line among thousands. Tokens are
-pinned in-repo because the authenticated OMS has no instruments endpoint, so
-they can only go stale.
-
-Not SQL — a script in the brain repo:
-```bash
-python3 scripts/audit_nifty500_tokens.py    # read-only, no auth, exit 1 on drift
-```
-**PASS** = exit 0, "every pinned token matches the live master".
-**FAIL** = any WRONG or ABSENT line → fix via `build_nifty500_tokens.py`, or
-drop the row if the name is genuinely gone.
-Exit **2** means the fetched master looked truncated — that is *not* a failure of
-the pin; re-run rather than rebuilding anything.
-_2026-08-08: **PASS**, 499/499 after dropping JBCHEPHARM._
-Worth running at quarterly index reconstitution, not every session.
-_**2026-11-09: FAIL → fixed same pass.** 496/499; ABSENT HEG, HFCL, ICICIPRULI. Live master: HEG→`HEGAM` and ICICIPRULI→`ICICILIFE` (same tokens, renames); HFCL moved to BE series → `HFCL-BE` (new token 5620225). Repointed in brain `2261e59`; re-run **PASS 499/499**, suite 980 passing._
-
-### I-5 · no phantom executions on quiet days
-The failure mode that would destroy this feature's credibility is inventing
-trades. A torn holdings fetch is guarded in code; this catches it in the data.
-
-```sql
-select detected_at::date d, count(*) n, count(distinct symbol) syms
-from user_executions group by 1 order by 1 desc limit 7;
-```
-**WARN** on any day where `syms` is a large fraction of the ~20 holdings —
-real activity is a name or two; twelve at once is a torn snapshot that slipped
-the guard, not a portfolio liquidation. Cross-check against `portfolio_advice`
-run symbol counts for that day before believing it.
-
----
-_**2026-11-09:** 11-02 = 2 rows / 2 syms (RVNL, MAHLIFE, both real advised SELLs) — no phantom pattern._
-
-## 👁️ WATCH — trend lines, not pass/fail
-
-These need N consistent readings before they mean anything. Record the number
-every session; **do not act on a single reading.**
-
 ### W-A · trend-tells kept-bucket sign
 Two positive sessions running for the first time: **08-05 +0.134R**,
 **08-06 +0.182R**. A **third** consecutive positive is a real signal worth
@@ -465,37 +504,70 @@ smaller loss, not a profit — and a rule that flips sign session to session is
 the definition of something fitted to noise. Needs a genuinely consistent run,
 not one good day.
 
-### W-B · advisor calibration (ECE) — ✅ **CLOSED 2026-08-25, and the metric was wrong**
-The ≥50-graded gate opened (37→79 on 08-24). Measured on n=98: **corr 0.0205
-(t=0.20), AUC 0.4556** — confidence carries no information about whether a call
-is right. avg 70.3 when right vs 69.8 when wrong.
+### I-2 · exit reasons are side-symmetric
+After [P-27], a reason that only ever appears on one side means a code path
+is collapsing exits again.
 
-⚠️ **ECE was the wrong thing to watch.** It measures calibration, not
-discrimination, and a signal that always predicts the base rate is perfectly
-calibrated and useless — so ECE improving 30.3%→22.6% was compression toward the
-base rate, not progress. **Re-open only on AUC materially above 0.5**, never on
-a better ECE. See [P18_CALIBRATION.md](P18_CALIBRATION.md).
+```sql
+select exit_reason, count(*) filter (where position_type = 'LONG') longs,
+       count(*) filter (where position_type = 'SHORT') shorts
+from trades
+where status = 'CLOSED' and created_at::date >= '2026-08-07'
+group by 1 order by 1;
+```
+**WARN** if `STOP_LOSS_HIT` or `TARGET_HIT` is 100% one-sided across a week
+with trades on both sides.
+_2026-08-07: **PASS.** `STOP_LOSS_HIT` 4L/11S, `TARGET_HIT` 2L/5S,
+`BRAIN_SIGNAL` 3L/3S — the two buckets the check names are both two-sided.
+`EOD_CLOSE` 0L/6S and `SESSION_END` 2L/0S **are** one-sided, and that is by
+design, not a collapsed path: shorts auto-cover at 15:15 and longs auto-close
+at 15:20, so each EOD reason belongs to one side by construction. Do not
+"fix" that asymmetry._
 
-_Original watch note:_
-**30.3%** (was 35.6%), still non-monotonic, **n=37** graded calls (was 31) —
-continuing to improve, still too small to act on. Read from
-`app_config.advisor_calibration_latest`, `built_at=2026-08-10`, re-confirmed
-in the 2026-08-16 weekly review (this row had again gone stale — the 08-10
-number was live in `app_config` and in STATUS's own 08-10 post-session entry
-the same day, but this ledger and GATE_MEASURES.md's "Latest" table kept
-carrying the 08-07 read through two more review cycles). **Do not re-check
-monotonicity before ~late Aug 2026**: ~85% of `portfolio_advice` is
-`trigger_type=MACRO` on a **30-trading-day** horizon, so the graded pool grows
-slowly (~3 MICRO rows/session) and a large ungraded backlog is normal, not
-starvation. Tracked as [P-18], whose action gate is ≥50 graded calls.
+### I-3 · every closed trade carries its risk unit
+```sql
+select count(*) filter (where r_multiple is null and pnl is not null
+                          and coalesce(exit_reason,'') <> 'ORDER_FAILED') missing_r
+from trades where created_at::date = current_date and status = 'CLOSED';
+```
+**PASS** = 0. Without `r_multiple` a trade is invisible to every R-based
+verdict on this board — including the ones that decide whether a flag ships.
+(On 08-06 this was 1 — the [P-28] phantom row. It should read 0 once V-3 passes.)
 
-| date | ECE | n graded | monotonic |
-|---|---|---|---|
-| 2026-08-02 (baseline) | 48.5% | 22 | false |
-| 2026-08-07 (built_at) / 2026-08-09 (re-confirmed) | 35.6% | 31 | false |
-| 2026-08-10 (built_at) / 2026-08-16 (re-confirmed) | 30.3% | 37 | false |
+### I-4 · the in-play list locks on session days
+`or_rvol` is a **column on `inplay_list`**, not a `stock_observations` payload
+key — an earlier draft of this ledger guessed wrong and would have silently
+failed. Zero rows on a quiet tape is legitimate (`maybe_lock_inplay` has a real
+no-qualifier path), so this is a WARN-on-streak, not a per-day FAIL.
 
----
+```sql
+select date::text, count(*) n, round(max(or_rvol), 2) top_rvol,
+       max(locked_at)::text locked
+from inplay_list group by 1 order by 1 desc limit 6;
+```
+**PASS** = a row for today. **WARN** if two or more consecutive session days
+have no lock — that is no longer a quiet tape, it is a broken lock path.
+
+**Result 2026-08-26 — PASS.** 10 rows, `locked_at` `2026-08-26 05:02:54 UTC`
+(10:32:54 IST, one minute after a late 10:31 session start), top `or_rvol`
+15.89. This is the check [C7] was fixed for; it had returned zero on 08-10,
+08-24 and 08-25. Standing invariant, so it stays open and keeps running.
+
+⚠️ **This was a mid-week session**, not the post-weekend case [C7] broke on. The real stress test is the first session after a weekend gap — **Monday 2026-08-31**.
+
+**2026-09-06 (weekly review): still no post-weekend data.** `inplay_list` has
+zero rows for the entire 08-29→09-06 window — no session ran on 08-31 or any
+day since (see PIPELINE.md [P-04] evidence log), so the decisive test this
+row has been waiting for still has not happened. Third weekly review in a
+row noting this; carries to the next session that runs after any weekend
+gap, whichever comes first.
+
+**2026-09-13 (weekly review): RETIRED, will never be reached.** The trading
+engine was decommissioned 2026-09-09 (see
+[POST_MORTEM.md](POST_MORTEM.md)) — there is no future session, weekend or
+otherwise, for this invariant to check. Left at PASS (its last real reading,
+2026-08-28) rather than reopened; the post-weekend stress test this row
+tracked simply never got its second data point.
 
 ## ✅ PASSED — kept for the record
 
@@ -761,68 +833,3 @@ _**2026-08-10: PASS — 0 rows.** The V-4 repair ran; the duplicates are gone. F
 here this is a live regression check: any pair appearing with a **newer** date is
 a genuine reintroduction of the [P-24] bug, not legacy._
 _**2026-11-09: PASS** — 0 rows._
-
-### I-2 · exit reasons are side-symmetric
-After [P-27], a reason that only ever appears on one side means a code path
-is collapsing exits again.
-
-```sql
-select exit_reason, count(*) filter (where position_type = 'LONG') longs,
-       count(*) filter (where position_type = 'SHORT') shorts
-from trades
-where status = 'CLOSED' and created_at::date >= '2026-08-07'
-group by 1 order by 1;
-```
-**WARN** if `STOP_LOSS_HIT` or `TARGET_HIT` is 100% one-sided across a week
-with trades on both sides.
-_2026-08-07: **PASS.** `STOP_LOSS_HIT` 4L/11S, `TARGET_HIT` 2L/5S,
-`BRAIN_SIGNAL` 3L/3S — the two buckets the check names are both two-sided.
-`EOD_CLOSE` 0L/6S and `SESSION_END` 2L/0S **are** one-sided, and that is by
-design, not a collapsed path: shorts auto-cover at 15:15 and longs auto-close
-at 15:20, so each EOD reason belongs to one side by construction. Do not
-"fix" that asymmetry._
-
-### I-3 · every closed trade carries its risk unit
-```sql
-select count(*) filter (where r_multiple is null and pnl is not null
-                          and coalesce(exit_reason,'') <> 'ORDER_FAILED') missing_r
-from trades where created_at::date = current_date and status = 'CLOSED';
-```
-**PASS** = 0. Without `r_multiple` a trade is invisible to every R-based
-verdict on this board — including the ones that decide whether a flag ships.
-(On 08-06 this was 1 — the [P-28] phantom row. It should read 0 once V-3 passes.)
-
-### I-4 · the in-play list locks on session days
-`or_rvol` is a **column on `inplay_list`**, not a `stock_observations` payload
-key — an earlier draft of this ledger guessed wrong and would have silently
-failed. Zero rows on a quiet tape is legitimate (`maybe_lock_inplay` has a real
-no-qualifier path), so this is a WARN-on-streak, not a per-day FAIL.
-
-```sql
-select date::text, count(*) n, round(max(or_rvol), 2) top_rvol,
-       max(locked_at)::text locked
-from inplay_list group by 1 order by 1 desc limit 6;
-```
-**PASS** = a row for today. **WARN** if two or more consecutive session days
-have no lock — that is no longer a quiet tape, it is a broken lock path.
-
-**Result 2026-08-26 — PASS.** 10 rows, `locked_at` `2026-08-26 05:02:54 UTC`
-(10:32:54 IST, one minute after a late 10:31 session start), top `or_rvol`
-15.89. This is the check [C7] was fixed for; it had returned zero on 08-10,
-08-24 and 08-25. Standing invariant, so it stays open and keeps running.
-
-⚠️ **This was a mid-week session**, not the post-weekend case [C7] broke on. The real stress test is the first session after a weekend gap — **Monday 2026-08-31**.
-
-**2026-09-06 (weekly review): still no post-weekend data.** `inplay_list` has
-zero rows for the entire 08-29→09-06 window — no session ran on 08-31 or any
-day since (see PIPELINE.md [P-04] evidence log), so the decisive test this
-row has been waiting for still has not happened. Third weekly review in a
-row noting this; carries to the next session that runs after any weekend
-gap, whichever comes first.
-
-**2026-09-13 (weekly review): RETIRED, will never be reached.** The trading
-engine was decommissioned 2026-09-09 (see
-[POST_MORTEM.md](POST_MORTEM.md)) — there is no future session, weekend or
-otherwise, for this invariant to check. Left at PASS (its last real reading,
-2026-08-28) rather than reopened; the post-weekend stress test this row
-tracked simply never got its second data point.

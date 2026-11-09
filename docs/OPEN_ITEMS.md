@@ -52,8 +52,6 @@ is done — changing the grader mid-read would cast doubt on it.
 
 | # | Problem | Sev | Fix |
 |---|---|---|---|
-| 4.1 | **`/post-session-check` skill is trading-era** — still audits trades/decisions/candles and expects `advisor_watch` to start (removed by the decommission, `505571d`) | ⚪ | Rewrite for advisor-only mode |
-| 4.2 | **VERIFY OPEN still lists dead trading checks** (V-14, V-8, V-10, V-12, I-2–I-4…) — clutter that buries the live ones | ⚪ | Move to a "Moot — decommissioned" section |
 | 4.3 | **Local checkout lags origin** — the scheduled review commits remotely; reading STATUS without `git pull` gives a stale picture (happened 11-09) | ⚪ | Always `git pull` first |
 | 4.4 | **Dashboard API unreachable from the review environment** (proxy 403) | ⚪ | None needed — Supabase is the real data source |
 
@@ -65,3 +63,6 @@ is done — changing the grader mid-read would cast doubt on it.
 - **Railway Kite secrets** — `KITE_TOTP_SECRET`/`KITE_PASSWORD` verified absent from both services (11-09).
 - **V-16 / V-17 / V-7 PASSED** (11-09) — advisor survived the decommission; alpha label reproduces 0.5510; real trades auto-link.
 - **[P-44] Supabase access** — closed 11-03.
+- **`/post-session-check` rewritten for advisor-only mode** (11-09) — git-pull step, D4-aware grading read, V-20 no-peek rule, no `advisor_watch`.
+- **VERIFY de-cluttered** (11-09) — 10 trading-era checks moved to a ⚰️ MOOT section; OPEN holds only live advisor checks.
+- **Fresh holdings snapshot** `c41578f2` (11-09, 20 listed, 0 funds — MFs aren't in the Kite holdings feed, so 1.2 still needs units from you).
