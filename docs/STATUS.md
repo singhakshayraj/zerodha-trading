@@ -4,17 +4,27 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-09** (Mon — ~01:15 IST pre-open audit found a
+_Last updated: **2026-11-10** (Tue — today is the confirmed
+Diwali-Balipratipada NSE/BSE holiday; `portfolio_advice` shows 0 new
+rows, as expected, not a new silence. **The 11-09 token's first real
+nightly grading test cleared clean overnight** (`grading_incident`
+written 2026-11-09 18:30:25 UTC, no `TOKEN_EXPIRED`) — **[P-42]
+RE-CLOSES** (reopened 11-05). `graded_calls` unchanged at 398 (still 2
+short of n=400; nothing was newly due). DB 235 → 236 MB, +1 MB, routine.
+See the 11-10 entry below.)_
+
+_Previous: **2026-11-09** (Mon — ~01:15 IST pre-open audit found a
 repaste (11-08 09:18 UTC) had failed its first nightly test (29/38); a
 fresh token pasted ~10:19 IST fixed it same morning. **~16:48 IST
 post-session pass confirms the fix held through the full trading day**:
 `portfolio_advice` closed the day at 1,020 new rows, the first complete
 day since the 11-03 silence. Calibration recomputed but unchanged
-(398/400, ECE 16.3%); **[P-42] stays Ready** — tonight's nightly grading
-test (~18:30 UTC) is still the one that decides whether the token
-survives, not yet observable this pass. VERIFY V-16/V-17/V-7 PASSED;
-I-6 pin drift found and fixed (brain `2261e59`). See the 11-09 entry
-below.)_
+(398/400, ECE 16.3%); **[P-42] stayed Ready** at that pass — tonight's
+nightly grading test (~18:30 UTC) was still the one that would decide
+whether the token survives; it fired later that night and cleared
+clean, which is what the 11-10 pass's [P-42] re-close is based on.
+VERIFY V-16/V-17/V-7 PASSED; I-6 pin drift found and fixed (brain
+`2261e59`). See the 11-09 entry below.)_
 
 _Previous: **2026-11-08** (Sun, weekly review — **token still not
 repasted; enc_token now 5 days stale.** Gate metrics re-measured fresh
@@ -61,6 +71,67 @@ paste dependency ([P-03]) remains the only lever on this; still user-
 deprioritised, logging only._
 
 ---
+
+## 📈 2026-11-10 post-session — confirmed Diwali-Balipratipada holiday (no session due); [P-42] RE-CLOSES on a clean overnight grading test; graded pool unchanged at 398/400
+
+Run ~11:14 UTC (16:44 IST) Tue, after NSE close (which did not open today).
+
+**Confirmed 2026-11-10 is the Diwali-Balipratipada NSE/BSE trading
+holiday** — flagged on this board since the 11-04 entry as the next
+scheduled closure after the 11-08 Muhurat session. `portfolio_advice`
+shows **0 new rows today** (`max(created_at)` still **2026-11-09
+09:48:20 UTC**) — expected on a holiday, not a new silence; the same
+pattern held on 11-08 (Muhurat Sunday).
+
+**🟢 [P-42] RE-CLOSES — the 11-09 token passed its first real nightly
+test clean.** `app_config.grading_incident` reads **empty/clean**,
+written **2026-11-09 18:30:25 UTC** — no `TOKEN_EXPIRED`. This is the
+exact test the 11-09 post-session entry flagged as pending ("tonight's
+nightly grading test... is not observable this pass"); it fired and
+cleared. The item's measure-of-done ("`grading_incident` reads
+clean/empty again **and** the next nightly grading test clears without
+error") is met by this one reading — both halves are the same event.
+`enc_token.updated_at` is still **2026-11-09 04:49:35 UTC** (the token
+that just passed its test, not re-pasted since — expected, no reason to
+touch a working token). Moved Ready → Done in PIPELINE.md.
+
+**Caveat — this closes the incident, not the accrual question.**
+`graded_calls` is **unchanged at 398** (`max(evaluated_at)` still
+**2026-10-27 18:39:18 UTC**) — the clean test had nothing newly due to
+grade (per the 11-09 correction [D4], the "38 due" figure was a
+mislabel; the real next maturation is the three 2026-11-02 MICRO calls,
+expected **~11-16/17**). `advisor_calibration_latest` is also unchanged
+(`graded_calls=398`, ECE 16.3%, `monotonic=false`, `built_at=2026-11-09`)
+— still **2 short** of the POST_MORTEM §6 n=400 pre-registered read; no
+interim peek taken.
+
+**Other readings, all routine.** `brain_heartbeat` **ONLINE**, fresh
+(`last_ping` **2026-11-10 11:14:19 UTC**), `current_cycle=0`, "Idle —
+advisor only (intraday decommissioned 2026-09-09)". `app_config
+.brain_status` still frozen at `START`/2026-11-03 05:27:56 UTC —
+unsurprising, nothing writes it on a holiday. `trades`/`trading_sessions`
+unchanged at 1,018/936 (frozen, decommissioned). Supabase DB size
+**235 → 236 MB**, +1 MB, routine; [P-38] tier decision still undecided.
+Dashboard API (`zerodha-trading-liard.vercel.app`) failed its routine
+`connect_rejected` block again (`curl` exit 56) — unrelated, unchanged,
+never the real data source; every number above read directly from
+Supabase.
+
+**git log check:** `git log --oneline -25` shows nothing shipped since
+the 11-09 `chore(review)` commit besides docs/spec edits (P-45 design,
+P-46 branch note, OPEN_ITEMS rewrite) — no code-based board move beyond
+the [P-42] evidence-based close above.
+
+**3-lens sanity.** Advisor lens: n=398/400 and ECE 16.3% are still
+frozen (now a seventh-plus consecutive reading), but the blocking cause
+just cleared — the next trading weekday's run is the one to watch for
+whether grading starts drawing down the remaining accrual gap. Trader
+lens: nothing new, gate #6 stays retired/blocked on the user decision,
+trading figures frozen forever. Engineer lens: the token/grading
+pipeline ([P-42]) that dominated this board since 11-05 is closed again
+on direct evidence (not just "not yet tested") — the first time since
+the 11-03 silence this pass can say the mechanism is confirmed working,
+not merely unconfirmed-broken.
 
 ## 📈 2026-11-09 pre-open audit — repaste failed its first night (29/38); V-16/V-17/V-7 PASS; I-6 pin drift fixed; resume point refreshed
 

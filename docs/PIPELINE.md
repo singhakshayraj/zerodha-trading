@@ -5,33 +5,48 @@ review, an audit, or you) lands here as an item with a **measure-of-done**;
 daily work pulls the top **Ready** item. Strategy/why-order lives in
 [ROADMAP.md](ROADMAP.md); current reality in [STATUS.md](STATUS.md).
 
-_Last updated: **2026-11-09** (Mon, post-session pass ~16:48 IST —
-the pre-open fix (fresh token pasted 10:19 IST) held through the whole
+_Last updated: **2026-11-10** (Tue, post-session pass ~11:14 UTC/16:44
+IST — today is the confirmed Diwali-Balipratipada NSE/BSE holiday, so
+zero new `portfolio_advice` rows is expected, not a new silence. The
+thing that *did* move: `grading_incident` cleared clean (written
+2026-11-09 18:30:25 UTC, no `TOKEN_EXPIRED`) — the 11-09 04:49 UTC token
+passed its first real nightly test. **[P-42] RE-CLOSES** (reopened
+11-05). `graded_calls` still 398, unchanged. DB 235 → 236 MB, +1 MB,
+routine.)_
+
+_Previous: **2026-11-09** (Mon, post-session pass ~16:48 IST — the
+pre-open fix (fresh token pasted 10:19 IST) held through the whole
 trading day: `portfolio_advice` closed at 1,020 rows, first full day
 since the 11-03 silence. Calibration recomputed but unchanged (398/400,
-ECE 16.3%). **[P-42] stays Ready** — tonight's nightly grading test is
-still the one that confirms the token, not observable this pass.
-Burn-down otherwise unchanged.)_
+ECE 16.3%). **[P-42] stayed Ready** — tonight's nightly grading test was
+still the one that would confirm the token, not observable that pass;
+it fired later that night (18:30:25 UTC) and cleared clean, which is
+what this pass's [P-42] re-close is based on.) ·
+Burn-down: **28 shipped + verified live / 0 in-progress / 5 ready (0
+active — all 5 paused by the engineering freeze) / 4 blocked / 1
+retired ([P-01], decommission)**._
 
-_Previous: **2026-11-08** (Sun, weekly review — gate metrics
-re-measured fresh against prod, **frozen, no flip**: PF **0.3685**,
-expectancy **−0.4213R**, net **−₹59,195.25** (1,018 closed / 936 with
-`r_multiple`), deep in reject territory per VISION §6.1. **Token still
-not repasted: fourth consecutive weekly-review confirmation of the
-identical `TOKEN_EXPIRED` 29/38 signature** (`grading_incident =
-TOKEN_EXPIRED 2026-11-08, 29/38 due rows could not authenticate, 0
-graded`, written 11-07 18:30:33 UTC); `enc_token`/`token_updated_at` now
-**5 days stale** (2026-11-03 05:25:40 UTC). `portfolio_advice` still
-silent since 11-03 (`max(created_at)` unchanged) — three confirmed
-trading weekdays (11-04, 11-05, 11-06); no new weekday has elapsed since
-(11-07 Sat, 11-08 Sun). Advisor calibration unchanged for a sixth
-consecutive reading: **398/400 graded, ECE 16.3%, non-monotonic**,
-`built_at=2026-11-03`. **[P-42] stays Ready** (reopened 11-05) —
-worsening evidence under the same item, no board move. [P-43] holds
-Done.) ·
-Burn-down: **27 shipped + verified live / 0 in-progress / 6 ready (1
-active — [P-42] reopened; 5 paused by the engineering freeze) / 4
-blocked / 1 retired ([P-01], decommission)**._
+**2026-11-10 post-session pass:** today is the confirmed
+Diwali-Balipratipada NSE/BSE holiday — `portfolio_advice` shows **0 new
+rows today** (`max(created_at)` still 2026-11-09 09:48:20 UTC), expected
+on a non-trading day, not a new silence. **[P-42] RE-CLOSES.**
+`app_config.grading_incident` reads clean/empty, written **2026-11-09
+18:30:25 UTC** (no `TOKEN_EXPIRED`) — the 2026-11-09 04:49 UTC token's
+first real nightly grading test cleared without error, meeting the
+item's own measure-of-done (`grading_incident` clean **and** the next
+nightly test clearing — both are this one event). `graded_calls` is
+still **398** (`max(evaluated_at)` still 2026-10-27) — the clean test
+had nothing newly due, so this closes the incident, not the separate
+n=400 accrual question (still 2 short, next move expected ~11-16/17 when
+the 11-02 MICRO calls mature). `brain_heartbeat` ONLINE, fresh
+(`last_ping` 11:14:19 UTC), `brain_status` still `START`/11-03 (no
+market-layer write expected on a holiday). Supabase DB size 235 → 236
+MB, +1 MB, routine. `git log -25` shows nothing shipped since the 11-09
+`chore(review)` commit besides docs — no code-based board move. Dashboard
+API (`zerodha-trading-liard.vercel.app`) failed its routine
+`connect_rejected` block again (`curl` exit 56) — unrelated, unchanged,
+never the real data source; every number above read directly from
+Supabase. Full detail in STATUS.md's 2026-11-10 entry.
 
 **2026-11-09 post-session pass:** the pre-open fix held all day.
 `portfolio_advice` closed the full trading day at **1,020 new rows**
@@ -827,64 +842,8 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
 
 ## 🟢 READY — pull these now (no blocker, [me])
 
-- 🔴 **[P-42] Grading stalled again on an expired token — paste a fresh
-  `enc_token`.** [you] · *done =* `app_config.grading_incident` reads
-  clean/empty again (no `TOKEN_EXPIRED`) **and** the next nightly
-  grading test clears without error. · *source:* reopened 2026-11-05 on
-  `grading_incident = 'TOKEN_EXPIRED 2026-11-05: 29/38 due rows could not
-  authenticate; 0 graded.'` (written 2026-11-04 18:30:30 UTC);
-  `enc_token.updated_at`/`token_updated_at` frozen at 2026-11-03 05:25:40
-  UTC (2 days stale). Same failure mode as the entry closed 2026-11-02
-  below (DONE section) — this is a recurrence, not a new mechanism. The
-  same token outage also explains `portfolio_advice` going silent on
-  both 2026-11-04 and 2026-11-05 (zero rows each day, checked past NSE
-  close) and `app_config.brain_status` staying frozen at `START`/11-03
-  — all three symptoms share this one root cause.
-  _**2026-11-06 evidence:** third consecutive failed nightly test, same
-  29/38 signature (`grading_incident = 'TOKEN_EXPIRED 2026-11-06: 29/38
-  due rows could not authenticate; 0 graded.'`, written 2026-11-05
-  18:30:37 UTC). `enc_token`/`token_updated_at` now **3 days stale**
-  (still 2026-11-03 05:25:40 UTC) — zero repaste attempts across all
-  three failed nights. `portfolio_advice` now silent a **third**
-  consecutive trading weekday (11-04, 11-05, 11-06); `brain_status`
-  still frozen at `START`/11-03. No new mechanism, no board move —
-  logged as worsening evidence on the same item._
-  _**2026-11-08 evidence (weekly review):** fourth consecutive
-  weekly-review confirmation of the same signature —
-  `grading_incident = 'TOKEN_EXPIRED 2026-11-08: 29/38 due rows could
-  not authenticate; 0 graded.'`, written 2026-11-07 18:30:33 UTC.
-  `enc_token`/`token_updated_at` now **5 days stale** (still 2026-11-03
-  05:25:40/41 UTC) — zero repaste attempts across every observed night.
-  `portfolio_advice` still silent since 11-03 (no new trading weekday has
-  elapsed: 11-07 Sat, 11-08 Sun). Advisor calibration frozen for a sixth
-  consecutive reading (`graded_calls=398`, ECE 16.3%, `monotonic=false`,
-  `built_at=2026-11-03`) — the grading stall is now also the reason the
-  one metric that can still move (toward the POST_MORTEM §6 n=400 read)
-  hasn't. No new mechanism, no board move — logged as further worsening
-  evidence on the same item._
-  _**2026-11-09 evidence — a repaste happened and failed its first test.**
-  `enc_token.updated_at` moved to **2026-11-08 09:18:32 UTC** (14:48 IST,
-  Sunday/Muhurat day — after the 11-08 weekly pass, which is why it saw no
-  paste). That night's run wrote `TOKEN_EXPIRED 2026-11-09: 29/38 due rows
-  could not authenticate; 0 graded` (18:30:27 UTC) — same signature. Paste
-  timing across every attempt (KNOWN_ISSUES [D2]): pre-dawn pastes (10-06
-  03:09 IST, 10-14 00:35 IST) die at the ~06:00 IST flush; daytime
-  trading-day pastes (11-02, 11-03) work. **Action, sharper:** paste from a
-  *fresh* kite.zerodha.com login after ~07:30 IST on a trading day. 38 rows
-  are due, so one clean night takes the pool 398 → ~436, past n=400._
-  _**2026-11-09 10:19 IST — fresh token pasted and live.** Official run done
-  10:25 (20 holdings), paper books snapshotted, `grading_incident` cleared.
-  Grading pass: `queued=58 graded=0 not_due=58 token_expired=0` — **correction:
-  the "38 due" above was never true** (KNOWN_ISSUES [D4]); they are 11-02/11-03
-  calls. n=400 is crossed when the three 11-02 MICRO calls mature (~11-16/17)
-  — needs a live token that day. Closes once tonight's run also stays clean._
-  _**2026-11-09 post-session evidence (~16:48 IST).** The token held
-  through the whole trading day: `portfolio_advice` closed at 1,020 new
-  rows (04:49–09:48 UTC), the first full day since the 11-03 silence.
-  `graded_calls` still 398 (calibration recompute, no new input). The
-  actual measure-of-done — tonight's nightly grading test — fires
-  ~18:30 UTC/00:00 IST, after this pass; still unconfirmed. No board
-  move._
+- _(none active)_ — [P-42] closed 2026-11-10 (see DONE); everything else
+  below is paused by the 2026-09-09 engineering freeze.
 
 _Everything else on the board is paused by the 2026-09-09 engineering
 freeze; see the next section._
@@ -1156,30 +1115,36 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
   returned 11-02 (see below)._
 
 - ~~**[P-42] Grading stalled on an expired token — paste a fresh
-  `enc_token`.**~~ ✅ **DONE 2026-11-02, 🔴 REOPENED 2026-11-05** (same
-  failure signature recurred — see Ready section above) —
-  `app_config.grading_incident`
-  reads clean/empty (last written 2026-11-02 04:20:59 UTC, no
-  `TOKEN_EXPIRED`), `enc_token.updated_at` is fresh (2026-11-02 01:30:03
-  UTC), and the ungraded backlog cleared: graded pool **277 → 398**, the
-  121-row backlog graded with `evaluated_at = 2026-10-27`. Measure-of-done
-  met. · *source:* 2026-09-13; closed on evidence recovered 2026-11-02
-  after a 9-pass Supabase blackout (10-22→11-01) hid the actual resolution.
-  _History: four repaste attempts failed their first real nightly test in
-  a row (09-20, 10-05, 10-13, each the subject of its own evidence entry
-  in this item's prior Ready-section history — trimmed here, superseded by
-  the close); whichever attempt landed during the 10-22→10-26 blackout is
-  the one that finally held — exactly which repaste, and when, is not
-  observable from inside this session, only that the backlog graded clean
-  on 10-27. `portfolio_advice`'s separate daily-advice silence (flagged
-  09-21 as needing its own diagnosis, distinct from the grading mechanism)
-  did NOT clear with grading on 10-27 — it stayed silent through 11-01 and
-  only resumed 2026-11-02, confirming the two were in fact separate faults
-  as suspected, not one. `advisor_calibration_latest` recomputed same pass:
-  `graded_calls=398`, ECE 16.3% (was 12.4%), `monotonic=false` — **398/400
-  puts the POST_MORTEM §6 pre-registered advisor read two graded calls
-  away**; per that section's "no interim peeking" rule, the deciding
-  hit-rate-CI statistic is deliberately not computed here._
+  `enc_token`.**~~ ✅ **DONE 2026-11-02, 🔴 REOPENED 2026-11-05, ✅ RE-CLOSED
+  2026-11-10** — `app_config.grading_incident` read clean/empty, written
+  **2026-11-09 18:30:25 UTC** (no `TOKEN_EXPIRED`): the token pasted
+  2026-11-09 04:49 UTC passed its first real nightly grading test. Both
+  halves of the measure-of-done (`grading_incident` clean **and** the next
+  nightly test clearing without error) are the same event here. ·
+  *source:* reopened 2026-11-05 on a recurrence of the identical
+  `TOKEN_EXPIRED` signature; closed again on this pass's fresh read.
+  _Caveat: `graded_calls` is still **398** (`max(evaluated_at)` still
+  2026-10-27) — the clean test had nothing newly due to grade, so this
+  closes the *incident* (token authenticates, pipeline runs clean), not
+  the separate n=400 accrual question, which still needs the three 11-02
+  MICRO calls to mature (~11-16/17) under a live token that day. If
+  `grading_incident` throws `TOKEN_EXPIRED` again on a future pass, that
+  is a new recurrence of this same item, not evidence against this
+  close._
+  _History (2026-11-02 original close → 2026-11-05 reopen): four repaste
+  attempts failed their first real nightly test in a row (09-20, 10-05,
+  10-13); the attempt that held during the 10-22→10-26 Supabase blackout
+  cleared the 277→398 backlog on 10-27 (`evaluated_at`), confirming
+  `portfolio_advice`'s separate daily-advice silence (09-21) was a distinct
+  fault, not the same mechanism. Reopened 2026-11-05 on a fresh
+  `TOKEN_EXPIRED` (29/38) that recurred identically through 11-06 and
+  11-08 (three further confirmed failed nights), then a 11-08 09:18 UTC
+  repaste also failed its first test (11-09 reading); the 2026-11-09 04:49
+  UTC repaste is the one that finally held clean overnight 11-09→11-10,
+  closing the item again. `advisor_calibration_latest` recomputed
+  2026-11-02/11-03/11-09 but `graded_calls` has sat at **398** since
+  10-27 — **two calls short** of the POST_MORTEM §6 n=400 pre-registered
+  read; no interim peek taken, per that section's own rule.
 
 - ~~**[P-43] Automated post-session review intermittently fails to fire or
   commit on a plain NSE/BSE trading weekday.**~~ ✅ **DONE 2026-10-27** — 10
