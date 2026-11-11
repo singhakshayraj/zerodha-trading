@@ -1096,9 +1096,9 @@ explicitly lifted.
   insurance / capital markets / PSU lenders / NBFC; ETFs and non-Nifty-500
   apart): your weight vs Nifty-500 mcap weight, median trend, SELL/TRIM/HOLD
   mix across every scanned name, median quality + GNPA/NNPA, held names.
-  Both accounts. Shipped 2026-11-11 (brain sector_view.py). · *next
-  (shadow, not built):* sector-strength tilt inside the verdict — test on
-  universe_calls at ≥ 60 graded dates, needs its own ledger trial. ·
+  Both accounts. Shipped 2026-11-11 (brain sector_view.py). · *next:* sector layer on top of v1
+  is **live on Natwar's account** and shadow on universe_calls (trial 261,
+  V-28, `scripts/compare_sector_tilt.py`); read at ≥ 60 dates. ·
   *source:* operator 2026-11-11 ("analyze PSU banks as a sector, consider
   that weight").
 
