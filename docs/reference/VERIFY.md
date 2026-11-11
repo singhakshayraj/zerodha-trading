@@ -252,6 +252,14 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-30 · macro_daily has a row for every trading day — registered 2026-11-12
+After each morning bar sync: `select max(date) from macro_daily` = last
+completed trading day, and that row carries nifty, vix, usdinr, crude and
+(after the scan) breadth. FAIL if a trading day is missing two runs in a
+row, or usdinr/crude are null while the token was live (expiry rollover
+bug). 2026-11-12: 271 rows through 11-11; USDINR26NOVFUT 93.88, crude
+8183, VIX 17.56, breadth pending today's scan.
+
 ### V-29 · real fills + P&L land daily — registered 2026-11-12
 On any trading day the operator trades: `tradebook` gains that day's fills
 (source kite_daily) by 15:40 — compare against Kite's order book / Console

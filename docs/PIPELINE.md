@@ -1091,6 +1091,18 @@ explicitly lifted.
   MAPMYINDIA).
   VERIFY: V-24.
 
+- **[P-52] Macro / tape context on every call (capture only).** [me] ·
+  *done 2026-11-12:* brain `macro_snapshot.py` → `macro_daily` (date →
+  Nifty/Bank/Mid/Small levels + 1d/5d/20d, India VIX, USDINR + crude front
+  month, scan breadth); 271 days seeded. Joins to universe/holdings/
+  second-account calls by date. · *next (not before ~60 graded dates, own
+  trial):* test whether call outcomes differ by tape (FII buying + falling
+  crude etc.); if so, a sector-layer-style rule on Natwar first. · *gap:*
+  FII/DII net flows — no clean free source; NSE's JSON needs a browser
+  session. · *source:* operator 2026-11-12 ("integrate sentiment and all
+  possible factors") — capture first, v1 unchanged (every measured layer is
+  null so far). VERIFY: V-30.
+
 - **[P-51] Real-money P&L reconciliation (/pnl).** [me/you] · *done (phases
   1–3, 2026-11-12):* tradebook complete Feb→11-11 (Console import
   `scripts/import_tradebook.py`; live sync fixed to every refresh + 15:35 —
