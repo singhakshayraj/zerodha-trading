@@ -1091,6 +1091,22 @@ explicitly lifted.
   MAPMYINDIA).
   VERIFY: V-24.
 
+- **[P-51] Real-money P&L reconciliation (/pnl).** [me/you] · *done (phases
+  1–3, 2026-11-12):* tradebook complete Feb→11-11 (Console import
+  `scripts/import_tradebook.py`; live sync fixed to every refresh + 15:35 —
+  it had silently stopped at 2026-05-25); brain `reconcile.py` writes
+  `pnl_daily` (MTM: value_close − value_open − buys + sells, Nifty on the
+  same money) + `decision_ledger` (followed / own / ignored, ₹ impact at 10
+  trading days) at 15:35 and after the morning bar sync; `/pnl` page:
+  month chips, tiles, calendar heat-map with day detail, decision ledger,
+  month table; both accounts. · *open:* phase 4 — Console P&L statement
+  upload → monthly ✓/✗ reconciliation badge; Natwar's Console tradebook
+  (his history before 11-11 assumes unchanged holdings). First read
+  2026-11-12: Kanaklata −₹51.7k Aug 27→Nov 11 (Nov +₹39.9k vs Nifty
+  +₹50.9k on the same money). Spec:
+  `superpowers/specs/2026-11-12-real-money-reconciliation-design.md`.
+  VERIFY: V-29.
+
 - **[P-50] Sector view on /advisor (display only).** [me] · *done =* per
   sector group (Financial Services split: PSU banks / private banks /
   insurance / capital markets / PSU lenders / NBFC; ETFs and non-Nifty-500

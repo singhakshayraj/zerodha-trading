@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy, Crosshair, GraduationCap } from "lucide-react";
+import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy, Crosshair, GraduationCap, Wallet } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const navItems = [
   { href: "/advisor",   label: "Advisor",    icon: Compass },
   { href: "/advisor/timeline", label: "Timeline", icon: Activity, short: "Time" },
   { href: "/advisor/accountability", label: "Scorecard", icon: Trophy, short: "Score" },
+  { href: "/pnl",       label: "P&L",        icon: Wallet },
   { href: "/autopsy",   label: "Exit Frontier", icon: Crosshair, short: "Exits" },
   { href: "/learn",     label: "Learn",      icon: GraduationCap, short: "Learn" },
 ];

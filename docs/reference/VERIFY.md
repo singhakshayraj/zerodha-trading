@@ -252,6 +252,15 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-29 · real fills + P&L land daily — registered 2026-11-12
+On any trading day the operator trades: `tradebook` gains that day's fills
+(source kite_daily) by 15:40 — compare against Kite's order book / Console
+next day. `pnl_daily` has a row for every trading day through yesterday per
+account, `missing_prices` null (held ETFs/small caps now in the bar sync).
+FAIL if a day with known trades has fills = 0, or Console's tradebook for a
+month has a trade_id not in `tradebook`. 2026-11-12: Feb→11-11 complete
+(240 fills); 52 days Aug 27→Nov 11, 0 missing prices; ledger 63 rows.
+
 ### V-28 · sector layer stored + graded beside v1 — registered 2026-11-11
 Every universe_calls / account_calls row from 11-11 carries sector_verdict
 (+ sector_trend, sector_rule); graded rows carry sector_outcome_correct_alpha
