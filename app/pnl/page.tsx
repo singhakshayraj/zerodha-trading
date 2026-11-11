@@ -14,7 +14,11 @@ import { RefreshCw, Wallet } from "lucide-react";
 
 type Day = { date: string; pnl: number; value_open: number | null; value_close: number | null; nifty_pnl: number | null; buys_inr: number | null; sells_inr: number | null; fills: number; missing_prices: string[] | null };
 type Decision = { kind: "followed_sell" | "followed_buy" | "own_sell" | "own_buy" | "ignored_call"; symbol: string; date: string; side: "buy" | "sell" | null; qty: number | null; price: number | null; call_run_date: string | null; call_verdict: string | null; rotation_from: string | null; impact_inr: number | null; impact_days: number | null; impact_asof: string | null };
-type Payload = { account: string; daily: Day[]; ledger: Decision[]; firstFillDate: string | null };
+type Mismatch = { symbol: string; zerodha: number; ours: number };
+type Statement = { period_from: string; period_to: string; uploaded_at: string;
+  summary: Record<string, number>;
+  check_result: { sell_symbols: number; sell_matched: number; sell_mismatches: Mismatch[]; open_checked: boolean; open_mismatches: Mismatch[]; pending?: string[]; lag_from?: string | null; fills_on_record_from: string | null; covers_period: boolean } | null };
+type Payload = { account: string; daily: Day[]; ledger: Decision[]; firstFillDate: string | null; statements: Statement[] };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a", PURPLE = "#a78bfa";
 const INR = (n: number, d = 0) => (n < 0 ? "−" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: d });
@@ -263,6 +267,48 @@ export default function PnlPage() {
                 </div>
               </div>
 
+              {/* Zerodha statements — authoritative totals + fills reconciliation */}
+              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                <h3 className="text-sm font-semibold mb-1">Zerodha statements</h3>
+                <p className="text-[11px] text-[#6a6a6a] mb-3">Console P&amp;L exports, checked against our recorded fills: every sell value and every open quantity must match.</p>
+                {data.statements.length === 0 && <p className="text-[12px] text-[#8a8a8a]">None uploaded — Console → Reports → P&amp;L → Equity, then scripts/import_pnl_statement.py.</p>}
+                <div className="space-y-2.5">
+                  {data.statements.map((st) => {
+                    const c = st.check_result;
+                    const bad = c ? c.sell_mismatches.length + c.open_mismatches.length : 0;
+                    const ok = c && bad === 0;
+                    const sm = st.summary;
+                    return (
+                      <div key={st.period_from + st.period_to} className="rounded-lg bg-[#0d0d0d] border border-[#1a1a1a] p-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[12px] font-semibold text-[#f5f5f5]">{st.period_from} → {st.period_to}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                            style={{ color: ok ? GREEN : RED, background: ok ? "#22c55e1a" : "#ef44441a" }}>
+                            {ok ? "✓ reconciled" : `✗ ${bad} differ`}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-[11px] tabular-nums">
+                          {[["Realized", sm["Realized P&L"]], ["Unrealized", sm["Unrealized P&L"]], ["Charges", -(sm["Charges"] ?? 0)], ["Other debits", sm["Other Credit & Debit"]]].map(([k, v]) => (
+                            <div key={k as string}><p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide">{k}</p>
+                              <p style={{ color: (v as number) >= 0 ? GREEN : RED }}>{v == null ? "—" : SIGNED(Math.round(v as number))}</p></div>
+                          ))}
+                        </div>
+                        {c && (
+                          <p className="text-[11px] text-[#8a8a8a] mt-2">
+                            Sells: {c.sell_matched}/{c.sell_symbols} stocks match{c.open_checked ? ` · open quantities: ${c.open_mismatches.length === 0 ? "all match" : `${c.open_mismatches.length} differ`}` : ""}
+                            {!c.covers_period && c.fills_on_record_from && <> · our fills start {c.fills_on_record_from}, so earlier trades are Zerodha&apos;s figures only</>}
+                            {c.pending && c.pending.length > 0 && <> · <span style={{ color: AMBER }}>pending (Console not updated yet): {c.pending.join(", ")}</span></>}
+                          </p>
+                        )}
+                        {c && [...c.sell_mismatches.map((m) => ({ ...m, k: "sell ₹" })), ...c.open_mismatches.map((m) => ({ ...m, k: "open qty" }))].map((m, i) => (
+                          <p key={i} className="text-[11px] text-[#ef4444] tabular-nums">✗ {m.symbol} {m.k}: Zerodha {m.zerodha.toLocaleString("en-IN")} vs ours {m.ours.toLocaleString("en-IN")}</p>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* month table */}
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
                 <h3 className="text-sm font-semibold mb-2">By month</h3>
@@ -278,7 +324,7 @@ export default function PnlPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-[#5a5a5a] mt-3">Daily history starts 2026-08-26 (first stored closes). Before charges and taxes. Zerodha statement reconciliation: upload the Console P&amp;L export (coming next).</p>
+                <p className="text-[10px] text-[#5a5a5a] mt-3">Daily history starts 2026-08-26 (first stored closes). Before charges and taxes — Zerodha&apos;s charges are in the statements above.</p>
               </div>
             </>
           )}

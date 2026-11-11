@@ -1099,9 +1099,12 @@ explicitly lifted.
   same money) + `decision_ledger` (followed / own / ignored, ₹ impact at 10
   trading days) at 15:35 and after the morning bar sync; `/pnl` page:
   month chips, tiles, calendar heat-map with day detail, decision ledger,
-  month table; both accounts. · *open:* phase 4 — Console P&L statement
-  upload → monthly ✓/✗ reconciliation badge; Natwar's Console tradebook
-  (his history before 11-11 assumes unchanged holdings). First read
+  month table; both accounts. Phase 4 done 11-12: Console P&L statements
+  (`scripts/import_pnl_statement.py`) reconciled — FY26-27 YTD 36/36 sells
+  + all open quantities match, FY25-26 6/6; ✓ badges on /pnl. T+1 shares
+  now counted in holdings (kite_client, operator-approved). · *open:*
+  Natwar's Console tradebook + P&L (his history before 11-11 assumes
+  unchanged holdings); monthly re-upload of the Console P&L export. First read
   2026-11-12: Kanaklata −₹51.7k Aug 27→Nov 11 (Nov +₹39.9k vs Nifty
   +₹50.9k on the same money). Spec:
   `superpowers/specs/2026-11-12-real-money-reconciliation-design.md`.

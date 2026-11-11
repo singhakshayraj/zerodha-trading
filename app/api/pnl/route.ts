@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const account = req.nextUrl.searchParams.get("account") === "natwar" ? "natwar" : "primary";
   try {
-    const [daily, ledger, firstFill] = await Promise.all([
+    const [daily, ledger, firstFill, statements] = await Promise.all([
       supabaseServer.from("pnl_daily")
         .select("date, pnl, value_open, value_close, nifty_pnl, buys_inr, sells_inr, fills, missing_prices, computed_at")
         .eq("account", account).order("date", { ascending: true }),
@@ -17,6 +17,9 @@ export async function GET(req: NextRequest) {
         .eq("account", account).order("date", { ascending: false }),
       supabaseServer.from("tradebook").select("trade_date")
         .eq("account", account).order("trade_date", { ascending: true }).limit(1),
+      supabaseServer.from("pnl_statements")
+        .select("period_from, period_to, summary, check_result, uploaded_at")
+        .eq("account", account).order("period_to", { ascending: false }),
     ]);
     if (daily.error) throw daily.error;
     return NextResponse.json({
@@ -24,6 +27,7 @@ export async function GET(req: NextRequest) {
       daily: daily.data ?? [],
       ledger: ledger.data ?? [],
       firstFillDate: firstFill.data?.[0]?.trade_date ?? null,
+      statements: statements.data ?? [],
     });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
