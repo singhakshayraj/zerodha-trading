@@ -21,7 +21,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | mom_12_1 dark-flag candidate | 1 |
 | Part B verdict replay (MICRO + MACRO) | 2 |
 | interim 0.631 alpha read | 1 |
-| **total** | **253** |
+| buy-call (rotation target) alpha vs Nifty 50 — 10d + 30d, registered 2026-11-11 before grading | 2 |
+| **total** | **255** |
 
 ## The threshold
 
@@ -31,7 +32,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **253 (this project)** | **3.72** |
+| **255 (this project)** | **3.72** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -59,3 +60,15 @@ open — the interim 0.631 — is confirmed a null by Part B's out-of-sample rep
 
 The most useful line: **nothing survives, and that costs the project nothing,
 because it never traded on any of it.**
+
+## Registered 2026-11-11 — buy-call grading (trials 254–255)
+
+Written **before any result was computed**. Every official advisor row with a
+`rotation_target_symbol` (189 rows, 2026-07-12 → 2026-11-09) is a BUY call
+on the target. Label: target's close-to-close return over **10** and **30**
+trading days from `run_date` minus Nifty 50's over the same bars; hit =
+alpha > 0. Deciding statistic: Fama–MacBeth across-date t on the hit
+indicator vs **0.50**, against **3.72**. The subset the operator actually
+bought (`user_executions.followed_advice`) is reported descriptively only
+(n is tiny). Separate from V-20 — the n=400 pool is untouched.
+Tool: brain `scripts/grade_buy_calls.py`.
