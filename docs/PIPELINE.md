@@ -1082,6 +1082,13 @@ explicitly lifted.
   `superpowers/specs/2026-11-11-thesis-engine-design.md`. Fundamentals input:
   Screener.in paste → `scripts/ingest_fundamentals.py` (operator, monthly;
   base + extended exports, 38 extra fields feed quality_score since 11-11).
+  **Cadence:** refresh ~2026-11-25 (after Q2 results), then monthly; the
+  /advisor summary turns amber past 30 days. Each ingest also writes
+  `fundamentals_snapshots` (point-in-time history, from 11-11). Banks: add
+  Gross NPA / Net NPA / capital adequacy columns to the export — financials'
+  quality uses them when present. Ingest prints held + Nifty-500 names
+  still missing (11-11: HINDWAREAP, PNCINFRA, PURVA; ABFRL, LATENTVIEW,
+  MAPMYINDIA).
   VERIFY: V-24.
 
 - **[P-49] Universe calls — keep + grade the daily Nifty-500 scan.** [me] ·

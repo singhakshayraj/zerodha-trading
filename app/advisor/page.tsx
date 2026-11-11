@@ -438,6 +438,8 @@ export default function AdvisorPage() {
     .sort((a, b) => THESIS_META[a.t.action].order - THESIS_META[b.t.action].order || (a.t.quality ?? 0) - (b.t.quality ?? 0));
   const thesisCounts = theses.reduce<Record<string, number>>((acc, x) => { acc[x.t.action] = (acc[x.t.action] ?? 0) + 1; return acc; }, {});
   const thesisAsof = theses.map((x) => x.t.fundamentals_asof).filter(Boolean).sort().pop() ?? null;
+  // Fundamentals older than 30 days (or results season passed) → nudge a refresh.
+  const fundAgeDays = thesisAsof ? Math.floor((Date.now() - new Date(thesisAsof).getTime()) / 86_400_000) : null;
 
   return (
     <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
@@ -510,6 +512,11 @@ export default function AdvisorPage() {
                   <StatTile label="Free → deploy" value={INR(Math.round(freeTotal / 1000)) + "k"} sub={`→ ${INR(Math.round(deployTotal / 1000))}k into buys`} />
                   <StatTile label="Changed" value={String(flipCount)} sub={diff?.priorRunDate ? `vs ${diff.priorRunDate}` : "no prior run"} color={flipCount ? "#60a5fa" : "#5a5a5a"} />
                 </div>
+                {fundAgeDays != null && fundAgeDays > 30 && (
+                  <p className="text-[11px] mt-3" style={{ color: AMBER }}>
+                    Fundamentals are {fundAgeDays} days old (as of {thesisAsof}) — paste fresh Screener exports and run scripts/ingest_fundamentals.py. Quality scores go stale at 45 days.
+                  </p>
+                )}
                 {regime && (
                   <p className="text-[11px] text-[#8a8a8a] mt-3 flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide" style={{ background: `${regime.color}1a`, color: regime.color }}>{regime.label}</span>
