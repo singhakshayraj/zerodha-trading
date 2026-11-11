@@ -252,6 +252,15 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-28 · sector layer stored + graded beside v1 — registered 2026-11-11
+Every universe_calls / account_calls row from 11-11 carries sector_verdict
+(+ sector_trend, sector_rule); graded rows carry sector_outcome_correct_alpha
+when sector_verdict is set. On Natwar's tab, changed calls show "v1: …".
+Check: `select count(*), count(sector_verdict), count(*) filter (where
+sector_verdict<>verdict) from universe_calls where run_date=current_date`.
+11-11: 480 / 480 / 44 universe; Natwar 2 of 24 (IOB SELL→TRIM, SBILIFE
+TRIM→SELL). Trial 261.
+
 ### V-27 · second-account calls accrue + grade — registered 2026-11-11
 Each trading day with a live Natwar token: `account_calls` gains one row per
 his holding for run_date (first preview wins), and matured rows grade in the

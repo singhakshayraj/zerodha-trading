@@ -35,6 +35,11 @@ type Advice = {
   rotation_buy_qty?: number | null;
   rotation_buy_price?: number | null;
   user_decision?: "accept" | "decline" | null;
+  /** [trial 261] sector layer on top of v1 (second account): v1's original
+   *  call when the layer changed it, plus the sector trend and rule used. */
+  v1_verdict?: Advice["verdict"] | null;
+  sector_trend?: number | null;
+  sector_rule?: string | null;
   indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null } | null;
 };
 
@@ -181,6 +186,20 @@ function V2Mark({ r }: { r: Advice }) {
   );
 }
 
+const SECTOR_RULE_TEXT: Record<string, string> = {
+  strong_sector_softens_sell: "strong sector softens a sell to a trim",
+  strong_sector_keeps_trim: "strong sector + rising stock: keep, don't trim",
+  weak_sector_hardens_trim: "weak sector + falling stock: trim becomes sell",
+  weak_sector_trims_hold: "weak sector + falling stock: trim the hold",
+};
+function V1Mark({ r }: { r: Advice }) {
+  if (!r.v1_verdict || r.v1_verdict === r.verdict) return null;
+  return (
+    <span title={`Sector layer changed v1's call (sector trend ${r.sector_trend ?? "—"})`}
+      className="text-[10px] font-medium whitespace-nowrap text-[#a78bfa]">v1: {VERDICT_META[r.v1_verdict]?.label ?? r.v1_verdict}</span>
+  );
+}
+
 function ChangeTag({ note }: { note: string | null }) {
   if (!note) return null;
   return <span className="text-[10px] font-medium text-[#60a5fa] whitespace-nowrap">{note}</span>;
@@ -195,7 +214,7 @@ function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen:
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: m.color }}>{m.label}</span>
-          <V2Mark r={r} /><ChangeTag note={note} />
+          <V1Mark r={r} /><V2Mark r={r} /><ChangeTag note={note} />
         </div>
         <p className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</p>
         <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
@@ -230,6 +249,7 @@ function HoldingTile({ r, note, onOpen }: { r: Advice; note: string | null; onOp
         <span className="text-[12px] font-semibold tabular-nums shrink-0" style={{ color: (r.pnl_percent ?? 0) >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
       </div>
       <span className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{ color: m.color }}>{m.label}</span>
+      <V1Mark r={r} />
       <ChangeTag note={note} />
       <div className="mt-auto pt-2 flex items-center justify-between gap-1">
         <V2Mark r={r} />
@@ -276,6 +296,15 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
             {r.quantity} × avg {INR(r.avg_price)} → <span className="text-[#d5d5d5]">now {INR(r.last_price)}</span>
             {(r.breakeven_gain_pct ?? 0) > 0 && <span className="text-[#6a6a6a]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span>}
           </p>
+
+          {r.v1_verdict && r.v1_verdict !== r.verdict && (
+            <div className="rounded-lg border p-3" style={{ borderColor: "#a78bfa55", background: "#a78bfa0a" }}>
+              <p className="text-[9px] text-[#a78bfa] uppercase tracking-wide mb-1">Sector layer · on top of v1 · under test</p>
+              <p className="text-[12px] text-[#d5d5d5] leading-relaxed">
+                v1 said <span style={{ color: VERDICT_META[r.v1_verdict]?.color }}>{VERDICT_META[r.v1_verdict]?.label}</span>; sector trend <span className="tabular-nums">{r.sector_trend != null ? (r.sector_trend > 0 ? "+" : "") + r.sector_trend : "—"}</span> → <span style={{ color: m.color }}>{m.label}</span> ({SECTOR_RULE_TEXT[r.sector_rule ?? ""] ?? r.sector_rule}). Both calls are graded; scripts/compare_sector_tilt.py shows which does better.
+              </p>
+            </div>
+          )}
 
           {hasPlan && (
             <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3">
@@ -536,7 +565,7 @@ export default function AdvisorPage() {
           </div>
           {account === "natwar" && (
             <div className="mb-3 p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-[11px] text-[#f59e0b] leading-relaxed">
-              Natwar&apos;s account — preview only: same advisor on his holdings, under his own token, kept apart from the main record. Not graded, no Telegram digest.
+              Natwar&apos;s account — preview: the same advisor plus a <span className="text-[#a78bfa]">sector layer</span> under test (calls it changed show a purple &quot;v1:&quot; mark). Both versions are graded separately from the main record; no Telegram digest.
               {previewNote ? <> {previewNote}</> : null}
             </div>
           )}

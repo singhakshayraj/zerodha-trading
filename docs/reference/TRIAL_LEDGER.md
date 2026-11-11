@@ -26,7 +26,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | hero picks (contrarian sleeve) — 252d alpha of the entry log, registered 2026-11-11 at first publish | 1 |
 | universe calls (daily Nifty-500 scan verdicts, shadow) — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
 | second-account (Natwar) calls — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
-| **total** | **260** |
+| sector layer on top of v1 — exposure-weighted edge vs v1, registered 2026-11-11 before any grade | 1 |
+| **total** | **261** |
 
 ## The threshold
 
@@ -36,7 +37,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **260 (this project)** | **3.73** |
+| **261 (this project)** | **3.73** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -123,3 +124,15 @@ holdings read (market-neutral `outcome_correct_alpha`, 10d MICRO / 30d MACRO;
 Fama–MacBeth across dates vs the then-current threshold). Same algorithm on a
 different book: a read here tests generalisation, not a new signal. First
 read at ≥ 60 graded dates; never pooled into the primary n = 400.
+
+## Registered 2026-11-11 — sector layer vs v1 (trial 261)
+
+Rules fixed in brain `sector_tilt.py` (STRONG +30, WEAK −30, MIN_NAMES 5);
+not to be tuned on outcomes. Live as the shown call on the second account
+only; shadow on universe_calls. Unit: a graded call where the layer's
+verdict differs from v1. Statistic: per-call edge = (keep(layer) − keep(v1))
+× alpha vs Nifty, keep = HOLD 1 / TRIM 0.5 / SELL 0; Fama–MacBeth t across
+run_dates of the per-date mean, vs the then-current threshold. Universe and
+second-account read separately, never pooled. Hit-rate is descriptive (the
+binary label cannot see SELL→TRIM). First read at ≥ 60 dates with a
+differing graded call. Tool: `scripts/compare_sector_tilt.py`.
