@@ -25,7 +25,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | thesis engine (advisor v2, shadow) — 126d + 252d alpha, registered 2026-11-11 before any row exists | 2 |
 | hero picks (contrarian sleeve) — 252d alpha of the entry log, registered 2026-11-11 at first publish | 1 |
 | universe calls (daily Nifty-500 scan verdicts, shadow) — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
-| **total** | **259** |
+| second-account (Natwar) calls — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
+| **total** | **260** |
 
 ## The threshold
 
@@ -35,7 +36,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **259 (this project)** | **3.73** |
+| **260 (this project)** | **3.73** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -113,3 +114,12 @@ one observation. First read at ≥ 60 graded dates. Purpose is breadth (sectors,
 regimes, fundamentals quality alongside price), not a second shot at the
 n = 400 read: the 164-date V-18 replay of the same scorer is null, and a
 positive here is an anomaly to explain under V-20's rule, not a discovery.
+
+## Registered 2026-11-11 — second-account calls (trial 260)
+
+Brain `account_preview.log_calls` → table `account_calls` (account, run_date,
+symbol); first preview of the day is the call. Label and statistic as the
+holdings read (market-neutral `outcome_correct_alpha`, 10d MICRO / 30d MACRO;
+Fama–MacBeth across dates vs the then-current threshold). Same algorithm on a
+different book: a read here tests generalisation, not a new signal. First
+read at ≥ 60 graded dates; never pooled into the primary n = 400.

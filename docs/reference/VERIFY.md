@@ -252,6 +252,13 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-27 · second-account calls accrue + grade — registered 2026-11-11
+Each trading day with a live Natwar token: `account_calls` gains one row per
+his holding for run_date (first preview wins), and matured rows grade in the
+same preview run. Check: `select run_date, count(*), count(evaluated_at) from
+account_calls where account='natwar' group by 1 order by 1 desc limit 5`.
+2026-11-11: 24 rows seeded (from the 18:07 preview). Trial 260.
+
 ### V-26 · universe calls accrue + grade — registered 2026-11-11
 Every official run must add ~480 `universe_calls` rows for its run_date, and
 matured rows must get graded the same run (token-free, from daily bars).
