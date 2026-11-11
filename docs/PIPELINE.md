@@ -692,6 +692,13 @@ Owners: **[me]** buildable now · **[you]** decision/action · **[both]**.
   Token paste is **per account and independent**: the operator may paste
   either token or both on a given day; whichever account has a live token
   runs, the other idles without error. Dashboard auth (+1–2 days) not needed.
+  **2026-11-11 PROVISIONAL SHIPPED (brain `5d34056`, dashboard): Natwar's
+  consent given. `/connect` has a second token card → `enc_token_natwar`;
+  the brain's `account_preview` advises his holdings (advise + thesis +
+  risk) once a day after 09:45 on his token into `advisor_natwar_latest`;
+  `/advisor` has a Kanaklata/Natwar toggle. Never writes `portfolio_advice`
+  — not graded, no digest. The full design (per-account grading, accounts
+  table) still waits for V-20.**
   **Design constraints (agreed):** additive only — `account_id` column
   defaulting to Kanaklata on `portfolio_advice`, `holdings_snapshot`,
   `user_executions`, `advisor_paper_positions`, `holding_scheme_map`;
