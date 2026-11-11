@@ -79,6 +79,15 @@ export async function GET() {
       /* shadow diagnostic — never blocks the advice payload */
     }
 
+    // Hero picks (contrarian value, 10–20% sleeve): written by
+    // scripts/hero_picks.py from the ingested Screener store. Advisory only.
+    let heroPicks = null;
+    try {
+      const { data: hp } = await supabaseServer
+        .from("app_config").select("value").eq("key", "hero_picks_latest").single();
+      if (hp?.value) heroPicks = JSON.parse(hp.value as string);
+    } catch { /* additive — never blocks the advice payload */ }
+
     // Day-over-day verdict diff: what changed vs the last run on an earlier
     // date. A daily user cares about the flips (ATGL HOLD->TRIM) and new
     // names, not re-reading 20 unchanged cards. Additive — never blocks.
@@ -119,6 +128,7 @@ export async function GET() {
       portfolioRisk,
       calibration,
       thesisTrackRecord,
+      heroPicks,
       priorRunDate,
       changes,
       newNames,

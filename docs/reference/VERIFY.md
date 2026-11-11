@@ -246,6 +246,15 @@ official rows carry quality. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-25 · hero picks entry log accrues — registered 2026-11-11
+Each `scripts/hero_picks.py` run (monthly, after the Screener ingest) must
+leave `app_config hero_picks_latest.asof` = run date and add any first-seen
+pick to `hero_picks_log` with a non-null `entry_price`. Check monthly:
+`select value::json->>'asof' from app_config where key='hero_picks_latest'`
+and `json_array_length(value::json)` of `hero_picks_log` is non-decreasing.
+First 252d read ~2027-11 (trial 258). 2026-11-11: 2 picks logged
+(ZENSARTECH 553, EIHOTEL 312).
+
 ### V-23 · buy-call (rotation target) grading — first read 2026-11-11
 Trials 254–255 (ledger). 189 BUY calls, 153 matured, 20 dates. **10d:** beat
 Nifty 41.2%, avg alpha −1.40%, FM t −0.46. **30d:** 45.1%, +0.89%, FM t −0.37.

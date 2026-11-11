@@ -23,7 +23,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | interim 0.631 alpha read | 1 |
 | buy-call (rotation target) alpha vs Nifty 50 — 10d + 30d, registered 2026-11-11 before grading | 2 |
 | thesis engine (advisor v2, shadow) — 126d + 252d alpha, registered 2026-11-11 before any row exists | 2 |
-| **total** | **257** |
+| hero picks (contrarian sleeve) — 252d alpha of the entry log, registered 2026-11-11 at first publish | 1 |
+| **total** | **258** |
 
 ## The threshold
 
@@ -33,7 +34,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **257 (this project)** | **3.73** |
+| **258 (this project)** | **3.73** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -86,3 +87,14 @@ then-current threshold. **Promotion** (v2 replaces v1 on the dashboard and
 digest) requires the 252d t to clear it. Descriptive only: the equal-weight
 HOLD/ADD basket minus Nifty at 252d. Tool: brain `scripts/grade_thesis.py`.
 Not graded at 10/30 days, ever — that is the horizon already shown null.
+
+## Registered 2026-11-11 — hero picks, contrarian sleeve (trial 258)
+
+Written at the first publish (2 picks logged, none matured). Tool: brain
+`scripts/hero_picks.py` → `app_config hero_picks_log` (symbol, entry_date,
+entry_price). Unit: one first-seen pick. Label: close-to-close alpha vs
+Nifty 50 over **252** trading days from `entry_date`; hit = alpha > 0.
+Deciding statistic: Fama–MacBeth across-entry-date t on (hit − 0.5) against
+the then-current threshold; with ≤ 8 picks a month this will take > 1 year to
+mean anything, and the read is recorded either way. Descriptive only: the
+equal-weight pick basket minus Nifty at 252d. No 10/30-day read, ever.

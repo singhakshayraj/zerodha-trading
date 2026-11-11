@@ -1083,6 +1083,19 @@ explicitly lifted.
   Screener.in paste → `scripts/ingest_fundamentals.py` (operator, monthly).
   VERIFY: V-24.
 
+- **[P-48] Hero picks — contrarian value sleeve (10–20% of money).** [me/you]
+  · *done =* `scripts/hero_picks.py` runs from the ingested fundamentals
+  store (no paste needed), publishes `hero_picks_latest` for the
+  `/advisor` "Contrarian picks" section and logs first-seen entries to
+  `hero_picks_log` for a 252d read (trial 258); 4 gates: market against
+  (≥35% off 3y high or ≥25pt behind Nifty), cash cushion, good business
+  (ROCE ≥ 15 / Piotroski ≥ 6 / pledge < 5), not a falling knife (52w low
+  ≥ 63 bars old, 3m rel ≥ −5%). Shipped 2026-11-11 (brain 339d8ef, dashboard
+  this commit). · *open:* gates are strict (2 picks on 471 names); loosen
+  only with operator OK and a ledger entry. · *source:* operator 2026-11-09
+  (Nikhil Kamath / Infosys-cash idea). Monthly cadence: Screener base +
+  extended exports → `ingest_fundamentals.py` → `hero_picks.py`. VERIFY: V-25.
+
 ## 🗓️ BACKLOG — frozen pending POST_MORTEM §6 reopening criteria
 
 ⚠️ Heading was "after gate #6 / decisions" — gate #6 is retired ([P-01]), it

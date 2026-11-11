@@ -8,7 +8,7 @@ import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { StockLookup } from "@/components/StockLookup";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -53,6 +53,12 @@ type Thesis = {
   reason: string;
   falsifier: string;
 };
+/** Hero picks — contrarian value sleeve (10–20% of money). Four gates: the
+ *  market is against it, cash cushion, good business, not a falling knife.
+ *  Produced by scripts/hero_picks.py; entry logged for 12-month grading. */
+type HeroPick = { symbol: string; name?: string; sector: string; score?: number; dd_3y: number; rel_3y: number; rel_3m: number; low_age_days: number; pe: number | null; roce: number; piotroski: number; ev_ebitda?: number | null; net_cash_pct_mcap?: number; last_close?: number; failed?: string[] };
+type HeroPicks = { asof: string; n_screened: number; picks: HeroPick[]; near_misses: HeroPick[] };
+const GATE_LABEL: Record<string, string> = { market_against: "not hated enough", cash_cushion: "no cash cushion", good_business: "business too weak", not_falling_knife: "still falling" };
 type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
@@ -159,6 +165,7 @@ export default function AdvisorPage() {
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [thesisTrack, setThesisTrack] = useState<ThesisTrack | null>(null);
+  const [heroPicks, setHeroPicks] = useState<HeroPicks | null>(null);
   // [P-45 provisional] which account's advice to show. Natwar's is a preview
   // blob from the brain (own token); Kanaklata's is the official record.
   const [account, setAccount] = useState<"primary" | "natwar">("primary");
@@ -181,6 +188,7 @@ export default function AdvisorPage() {
       setRisk(r.portfolioRisk ?? null);
       setCalibration(r.calibration ?? null);
       setThesisTrack(r.thesisTrackRecord ?? null);
+      setHeroPicks(r.heroPicks ?? null);
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
@@ -497,6 +505,40 @@ export default function AdvisorPage() {
                     ) : (
                       <>No thesis has matured yet — the first 6-month read lands ~May 2027. Fundamentals come from a Screener.in paste (<span className="text-[#e5e5e5]">scripts/ingest_fundamentals.py</span>); names without one are judged on price and the loss budget alone.</>
                     )}
+                  </p>
+                </Section>
+              )}
+
+              {/* ── HERO PICKS (contrarian sleeve) ──────────────────── */}
+              {account === "primary" && heroPicks && (
+                <Section icon={Anchor} title="Contrarian picks · 10–20% sleeve"
+                  note={`${heroPicks.picks.length} pass all four gates · ${heroPicks.near_misses.length} miss one · screened ${heroPicks.n_screened} · as of ${heroPicks.asof}`}>
+                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-3">
+                    Separate from the holdings above: names the market is <span className="text-[#e5e5e5]">against</span> (≥35% off the 3-yr high or ≥25pt behind Nifty) whose balance sheet says it is overdone — net cash, ROCE ≥ 15 / Piotroski ≥ 6, no pledge — and that have stopped making new lows. Ranked by earnings yield, net cash and EV/EBITDA; max 2 per sector. Not graded yet; entries are logged for a 12-month read.
+                  </p>
+                  <div className="space-y-2">
+                    {[...heroPicks.picks, ...heroPicks.near_misses].map((p, i) => {
+                      const pass = !p.failed || p.failed.length === 0;
+                      const netCash = p.net_cash_pct_mcap ?? null;
+                      return (
+                        <div key={p.symbol} className="rounded-lg bg-[#0d0d0d] border border-[#1f1f1f] p-3" style={{ opacity: pass ? 1 : 0.75 }}>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
+                            <span className="font-semibold text-[#f5f5f5] w-28">{p.symbol}</span>
+                            <span className="font-semibold uppercase tracking-wide text-[11px]" style={{ color: pass ? GREEN : AMBER }}>{pass ? "pick" : GATE_LABEL[p.failed![0]] ?? p.failed![0]}</span>
+                            <span className="text-[#8a8a8a]">{p.sector}</span>
+                            {i === heroPicks.picks.length && heroPicks.picks.length > 0 && <span className="ml-auto text-[10px] uppercase tracking-wide text-[#666]">near misses ↓</span>}
+                          </div>
+                          <p className="text-[12px] text-[#c5c5c5] leading-relaxed mt-1.5 tabular-nums">
+                            <span className="text-[#8a8a8a]">off 3-yr high </span>{Math.round(p.dd_3y * 100)}%<span className="text-[#8a8a8a]"> · vs Nifty 3y </span>{p.rel_3y > 0 ? "+" : ""}{Math.round(p.rel_3y * 100)}pt<span className="text-[#8a8a8a]"> · 3m </span>{p.rel_3m > 0 ? "+" : ""}{Math.round(p.rel_3m * 100)}pt<span className="text-[#8a8a8a]"> · low </span>{p.low_age_days}d ago
+                            <span className="text-[#8a8a8a]"> · P/E </span>{p.pe ?? "—"}<span className="text-[#8a8a8a]"> · net cash </span>{netCash != null ? `${netCash}%` : "—"}<span className="text-[#8a8a8a]"> of mcap · ROCE </span>{p.roce}<span className="text-[#8a8a8a]"> · Piotroski </span>{p.piotroski}{p.ev_ebitda != null && <><span className="text-[#8a8a8a]"> · EV/EBITDA </span>{p.ev_ebitda}</>}
+                            {p.last_close != null && <><span className="text-[#8a8a8a]"> · last </span>{INR(p.last_close)}</>}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
+                    Refresh: monthly Screener paste → <span className="text-[#e5e5e5]">scripts/ingest_fundamentals.py</span> → <span className="text-[#e5e5e5]">scripts/hero_picks.py</span>. A pick is an idea for the contrarian sleeve, sized under the 10% single-name cap — not a verdict on anything you hold.
                   </p>
                 </Section>
               )}
