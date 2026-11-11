@@ -1091,6 +1091,17 @@ explicitly lifted.
   MAPMYINDIA).
   VERIFY: V-24.
 
+- **[P-50] Sector view on /advisor (display only).** [me] · *done =* per
+  sector group (Financial Services split: PSU banks / private banks /
+  insurance / capital markets / PSU lenders / NBFC; ETFs and non-Nifty-500
+  apart): your weight vs Nifty-500 mcap weight, median trend, SELL/TRIM/HOLD
+  mix across every scanned name, median quality + GNPA/NNPA, held names.
+  Both accounts. Shipped 2026-11-11 (brain sector_view.py). · *next
+  (shadow, not built):* sector-strength tilt inside the verdict — test on
+  universe_calls at ≥ 60 graded dates, needs its own ledger trial. ·
+  *source:* operator 2026-11-11 ("analyze PSU banks as a sector, consider
+  that weight").
+
 - **[P-49] Universe calls — keep + grade the daily Nifty-500 scan.** [me] ·
   *done =* every official run logs ~480 scan verdicts to `universe_calls` and
   grades matured ones token-free with the holdings rules. Shipped 2026-11-11

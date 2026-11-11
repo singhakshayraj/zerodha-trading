@@ -21,7 +21,7 @@ export async function GET() {
     return NextResponse.json({ runDate: p.run_date ?? null, runAt: p.run_at ?? null, isOfficial: false,
       rows: p.rows ?? [], portfolioRisk: p.portfolio_risk ?? null, calibration: null,
       thesisTrackRecord: null, priorRunDate: null, changes: [], newNames: [],
-      preview: true, label: p.label ?? "Natwar" });
+      preview: true, label: p.label ?? "Natwar", sectorView: p.sector_view ?? null });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
   }

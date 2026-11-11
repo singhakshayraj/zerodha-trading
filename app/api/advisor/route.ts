@@ -88,6 +88,14 @@ export async function GET() {
       if (hp?.value) heroPicks = JSON.parse(hp.value as string);
     } catch { /* additive — never blocks the advice payload */ }
 
+    // Sector view (display only): written by the brain after the scan.
+    let sectorView = null;
+    try {
+      const { data: sv } = await supabaseServer
+        .from("app_config").select("value").eq("key", "sector_view_latest").single();
+      if (sv?.value) sectorView = JSON.parse(sv.value as string);
+    } catch { /* additive — never blocks the advice payload */ }
+
     // Day-over-day verdict diff: what changed vs the last run on an earlier
     // date. A daily user cares about the flips (ATGL HOLD->TRIM) and new
     // names, not re-reading 20 unchanged cards. Additive — never blocks.
@@ -129,6 +137,7 @@ export async function GET() {
       calibration,
       thesisTrackRecord,
       heroPicks,
+      sectorView,
       priorRunDate,
       changes,
       newNames,

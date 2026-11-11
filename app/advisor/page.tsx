@@ -8,7 +8,7 @@ import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { StockLookup } from "@/components/StockLookup";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor, PieChart, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -59,6 +59,8 @@ type Thesis = {
 type HeroPick = { symbol: string; name?: string; sector: string; score?: number; dd_3y: number; rel_3y: number; rel_3m: number; low_age_days: number; pe: number | null; roce: number; piotroski: number; ev_ebitda?: number | null; net_cash_pct_mcap?: number; last_close?: number; failed?: string[] };
 type HeroPicks = { asof: string; n_screened: number; picks: HeroPick[]; near_misses: HeroPick[] };
 const GATE_LABEL: Record<string, string> = { market_against: "not hated enough", cash_cushion: "no cash cushion", good_business: "business too weak", not_falling_knife: "still falling" };
+type SectorGroup = { group: string; names: number; my_weight_pct: number; index_weight_pct: number | null; trend_median: number | null; sell_pct: number | null; mix: { sell: number; trim: number; hold: number }; quality_median: number | null; gnpa_median: number | null; nnpa_median: number | null; held: { symbol: string; verdict: Advice["verdict"] | null; weight_pct: number | null }[] };
+type SectorView = { run_date: string; scan_date: string | null; groups: SectorGroup[] };
 type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a";
@@ -354,6 +356,60 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
   );
 }
 
+function SectorCard({ g, onOpen }: { g: SectorGroup; onOpen: (sym: string) => void }) {
+  const diff = g.index_weight_pct != null ? g.my_weight_pct - g.index_weight_pct : null;
+  const tilt = diff == null || g.my_weight_pct === 0 ? null : diff >= 3 ? "overweight" : diff <= -3 ? "underweight" : "in line";
+  const n = g.mix.sell + g.mix.trim + g.mix.hold;
+  const scale = Math.max(g.my_weight_pct, g.index_weight_pct ?? 0, 1);
+  const trendColor = g.trend_median == null ? MUTE : g.trend_median > 15 ? GREEN : g.trend_median < -15 ? RED : AMBER;
+  return (
+    <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[13px] font-semibold text-[#f5f5f5]">{g.group}</span>
+        {tilt && <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: tilt === "overweight" ? AMBER : tilt === "underweight" ? "#60a5fa" : MUTE }}>{tilt}</span>}
+        <span className="ml-auto text-[11px] tabular-nums" style={{ color: trendColor }}>trend {g.trend_median != null ? (g.trend_median > 0 ? "+" : "") + g.trend_median : "—"}</span>
+      </div>
+      <div className="mt-2 space-y-1 text-[10px] text-[#8a8a8a] tabular-nums">
+        {[["you", g.my_weight_pct, "#e5e5e5"], ["index", g.index_weight_pct ?? 0, "#4a4a4a"]].map(([label, v, c]) => (
+          <div key={label as string} className="flex items-center gap-2">
+            <span className="w-9">{label}</span>
+            <div className="flex-1 h-1.5 rounded bg-[#1a1a1a] overflow-hidden"><div className="h-full rounded" style={{ width: `${((v as number) / scale) * 100}%`, background: c as string }} /></div>
+            <span className="w-10 text-right text-[#c5c5c5]">{(v as number).toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+      {n > 0 && (
+        <div className="mt-2.5">
+          <div className="flex h-1.5 rounded overflow-hidden">
+            <div style={{ width: `${(g.mix.sell / n) * 100}%`, background: RED }} />
+            <div style={{ width: `${(g.mix.trim / n) * 100}%`, background: AMBER }} />
+            <div style={{ width: `${(g.mix.hold / n) * 100}%`, background: GREEN }} />
+          </div>
+          <p className="text-[10px] text-[#7a7a7a] mt-1 tabular-nums">
+            {n} names: <span style={{ color: RED }}>{g.mix.sell} sell</span> · <span style={{ color: AMBER }}>{g.mix.trim} trim</span> · <span style={{ color: GREEN }}>{g.mix.hold} hold</span>
+            {g.quality_median != null && <> · quality {g.quality_median}</>}
+            {g.gnpa_median != null && <> · GNPA {g.gnpa_median}%</>}
+            {g.nnpa_median != null && <> · NNPA {g.nnpa_median}%</>}
+          </p>
+        </div>
+      )}
+      {g.held.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {g.held.map((h) => (
+            <button key={h.symbol} type="button" onClick={() => onOpen(h.symbol)}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-[#0d0d0d] border hover:border-[#444]"
+              style={{ borderColor: `${h.verdict ? VERDICT_META[h.verdict]?.color ?? MUTE : MUTE}55` }}>
+              <span className="text-[#e5e5e5] font-medium">{h.symbol}</span>
+              {h.verdict && <span style={{ color: VERDICT_META[h.verdict]?.color ?? MUTE }}> {VERDICT_META[h.verdict]?.label ?? h.verdict}</span>}
+              {h.weight_pct != null && <span className="text-[#6a6a6a]"> {h.weight_pct}%</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdvisorPage() {
   const router = useRouter();
   const { isConnected, hydrated, hydrateFromStorage } = useAppStore();
@@ -366,6 +422,8 @@ export default function AdvisorPage() {
   const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [thesisTrack, setThesisTrack] = useState<ThesisTrack | null>(null);
   const [heroPicks, setHeroPicks] = useState<HeroPicks | null>(null);
+  const [sectorView, setSectorView] = useState<SectorView | null>(null);
+  const [showAllSectors, setShowAllSectors] = useState(false);
   // [P-45 provisional] which account's advice to show. Natwar's is a preview
   // blob from the brain (own token); Kanaklata's is the official record.
   const [account, setAccount] = useState<"primary" | "natwar">("primary");
@@ -390,6 +448,7 @@ export default function AdvisorPage() {
       setCalibration(r.calibration ?? null);
       setThesisTrack(r.thesisTrackRecord ?? null);
       setHeroPicks(r.heroPicks ?? null);
+      setSectorView(r.sectorView ?? null);
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
@@ -561,6 +620,32 @@ export default function AdvisorPage() {
                   )}
                 </div>
               )}
+
+              {/* ── SECTORS: your weight vs index, trend, mix ─────────── */}
+              {sectorView && sectorView.groups.length > 0 && (() => {
+                const held = sectorView.groups.filter((g) => g.my_weight_pct > 0);
+                const shownGroups = showAllSectors ? sectorView.groups : held;
+                return (
+                  <div>
+                    <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                      <PieChart className="w-3 h-3" /> Sectors · you vs Nifty-500 · {sectorView.scan_date ? `scan ${sectorView.scan_date}` : "holdings only"}
+                    </p>
+                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                      {shownGroups.map((g) => (
+                        <SectorCard key={g.group} g={g} onOpen={(sym) => { if (order.some((r) => r.symbol === sym)) setSelected(sym); }} />
+                      ))}
+                    </div>
+                    {sectorView.groups.length > held.length && (
+                      <button type="button" onClick={() => setShowAllSectors((v) => !v)}
+                        className="mt-2.5 w-full text-[12px] text-[#8a8a8a] hover:text-[#e5e5e5] bg-[#111111] border border-[#1f1f1f] rounded-xl py-2.5 flex items-center justify-center gap-1.5">
+                        {showAllSectors ? "Only sectors you hold" : `All ${sectorView.groups.length} sectors`}
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllSectors ? "rotate-180" : ""}`} />
+                      </button>
+                    )}
+                    <p className="text-[10px] text-[#5a5a5a] mt-2">Display only — sector strength does not change any verdict yet. Index weight = share of Nifty-500 market cap. Trend = median advisor trend score of the sector&apos;s names.</p>
+                  </div>
+                );
+              })()}
 
               <StockLookup />
 
