@@ -8,7 +8,7 @@ import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { StockLookup } from "@/components/StockLookup";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -35,11 +35,31 @@ type Advice = {
   rotation_buy_qty?: number | null;
   rotation_buy_price?: number | null;
   user_decision?: "accept" | "decline" | null;
-  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean } | null;
+  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null } | null;
 };
+
+/** [P-47] Thesis engine — advisor v2 in SHADOW mode. 12-month action from
+ * fundamentals + sizing + loss rules. Graded separately; never changes the
+ * v1 verdict above it. */
+type Thesis = {
+  action: "HOLD" | "ADD" | "TRIM" | "EXIT";
+  target_weight_pct: number;
+  qty_delta: number;
+  quality: number | null;
+  fundamentals_asof: string | null;
+  fundamentals_fresh: boolean;
+  confidence: "low" | "normal";
+  rule: string | null;
+  reason: string;
+  falsifier: string;
+};
+type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
 const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const THESIS_META: Record<Thesis["action"], { color: string; order: number }> = {
+  EXIT: { color: RED, order: 0 }, TRIM: { color: BLUE, order: 1 }, ADD: { color: GREEN, order: 2 }, HOLD: { color: MUTE, order: 3 },
+};
 
 const VERDICT_META: Record<Advice["verdict"], { color: string; icon: React.ElementType; label: string; blurb: string }> = {
   SELL:           { color: RED,   icon: TrendingDown, label: "Sell",           blurb: "confirmed downtrend — cutting is right" },
@@ -138,6 +158,7 @@ export default function AdvisorPage() {
   const [track, setTrack] = useState<TrackRecord | null>(null);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
+  const [thesisTrack, setThesisTrack] = useState<ThesisTrack | null>(null);
   const [filterVerdict, setFilterVerdict] = useState<Advice["verdict"] | null>(null);
   const [diff, setDiff] = useState<{ priorRunDate: string | null; changes: { symbol: string; from: Advice["verdict"]; to: Advice["verdict"] }[]; newNames: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -154,6 +175,7 @@ export default function AdvisorPage() {
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
       setRisk(r.portfolioRisk ?? null);
       setCalibration(r.calibration ?? null);
+      setThesisTrack(r.thesisTrackRecord ?? null);
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
@@ -169,6 +191,12 @@ export default function AdvisorPage() {
   const regimeKey = rows && rows.length > 0 ? rows[0].market_regime ?? null : null;
   const regime = regimeKey ? REGIME_META[regimeKey] : null;
   const shown = rows ? (filterVerdict ? rows.filter((r) => r.verdict === filterVerdict) : rows) : [];
+  const theses = (rows ?? [])
+    .filter((r) => r.indicators?.thesis?.action)
+    .map((r) => ({ symbol: r.symbol, qty: r.quantity, t: r.indicators!.thesis as Thesis }))
+    .sort((a, b) => THESIS_META[a.t.action].order - THESIS_META[b.t.action].order || (a.t.quality ?? 0) - (b.t.quality ?? 0));
+  const thesisCounts = theses.reduce<Record<string, number>>((acc, x) => { acc[x.t.action] = (acc[x.t.action] ?? 0) + 1; return acc; }, {});
+  const thesisAsof = theses.map((x) => x.t.fundamentals_asof).filter(Boolean).sort().pop() ?? null;
 
   return (
     <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
@@ -414,6 +442,42 @@ export default function AdvisorPage() {
                   );
                 })}
               </div>
+
+              {/* ── THESIS ENGINE (shadow, P-47) ─────────────────────── */}
+              {theses.length > 0 && (
+                <Section icon={FlaskConical} title="Thesis engine · shadow · 12-month"
+                  note={`${["EXIT", "TRIM", "ADD", "HOLD"].filter((a) => thesisCounts[a]).map((a) => `${thesisCounts[a]} ${a.toLowerCase()}`).join(" · ")} · fundamentals ${thesisAsof ? `as of ${thesisAsof}` : "not pasted yet"}`}>
+                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-3">
+                    Advisor v2, running <span className="text-[#e5e5e5]">beside</span> the verdicts above, not instead of them. One 12-month action per holding from business quality (Screener fundamentals), position size and a loss budget:
+                    max <span className="text-[#e5e5e5]">−20%</span> from cost unless the business is intact · max <span className="text-[#e5e5e5]">10%</span> in one name · max <span className="text-[#e5e5e5]">25%</span> in one sector. Graded on its own at 6 and 12 months; it earns promotion only by clearing the pre-registered bar.
+                  </p>
+                  <div className="space-y-2">
+                    {theses.map(({ symbol, qty, t }) => (
+                      <div key={symbol} className="rounded-lg bg-[#0d0d0d] border border-[#1f1f1f] p-3">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
+                          <span className="font-semibold text-[#f5f5f5] w-24">{symbol}</span>
+                          <span className="font-semibold uppercase tracking-wide text-[11px]" style={{ color: THESIS_META[t.action].color }}>{t.action}</span>
+                          {t.qty_delta !== 0 && (
+                            <span className="text-[#d5d5d5]">{t.qty_delta > 0 ? "buy" : "sell"} <span className="tabular-nums">{Math.abs(t.qty_delta)}</span> of {qty} → {t.target_weight_pct}% of book</span>
+                          )}
+                          <span className="text-[#8a8a8a]">quality <span className="text-[#e5e5e5] tabular-nums">{t.quality ?? "—"}</span></span>
+                          {t.confidence === "low" && <span className="text-[10px] uppercase tracking-wide" style={{ color: AMBER }}>no fundamentals</span>}
+                          {t.fundamentals_asof && !t.fundamentals_fresh && <span className="text-[10px] uppercase tracking-wide" style={{ color: AMBER }}>stale data</span>}
+                        </div>
+                        <p className="text-[12px] text-[#c5c5c5] leading-relaxed mt-1.5">{t.reason}.</p>
+                        <p className="text-[11px] text-[#c5b898] leading-relaxed mt-1"><span className="text-[#8a8a8a]">Flips if: </span>{t.falsifier}.</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
+                    {thesisTrack?.h126?.n || thesisTrack?.h252?.n ? (
+                      <>Track record (graded {thesisTrack.graded_at}): 6-month {thesisTrack.h126?.n ?? 0} calls, hit {thesisTrack.h126?.hit_rate != null ? Math.round(thesisTrack.h126.hit_rate * 100) : "—"}%, t {thesisTrack.h126?.fm_t ?? "—"} · 12-month {thesisTrack.h252?.n ?? 0} calls, hit {thesisTrack.h252?.hit_rate != null ? Math.round(thesisTrack.h252.hit_rate * 100) : "—"}%, t {thesisTrack.h252?.fm_t ?? "—"} · bar |t| ≥ {thesisTrack.threshold}.</>
+                    ) : (
+                      <>No thesis has matured yet — the first 6-month read lands ~May 2027. Fundamentals come from a Screener.in paste (<span className="text-[#e5e5e5]">scripts/ingest_fundamentals.py</span>); names without one are judged on price and the loss budget alone.</>
+                    )}
+                  </p>
+                </Section>
+              )}
 
               {/* ── DEEPER ANALYTICS (collapsible) ──────────────────── */}
               {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (

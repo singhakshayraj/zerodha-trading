@@ -1061,7 +1061,20 @@ explicitly lifted.
 
 ## 🔨 IN PROGRESS
 
-- _(none)_ — [P-14] closed 2026-08-10, see DONE.
+- **[P-47] Thesis engine — advisor v2 in SHADOW mode.** [me] · *done =* every
+  official run attaches `indicators.thesis` (HOLD/ADD/TRIM/EXIT, target
+  weight, sized qty, fundamentals quality, reason, falsifier) to each holding
+  row with v1 columns byte-identical; `/advisor` shows it in its own section;
+  `scripts/grade_thesis.py` grades at 126/252d (trials 256–257). · *source:*
+  operator review request 2026-11-11 — every prediction layer measured null
+  (V-18, ADVISOR_LAB, FACTOR_LAB, P-18, V-23); the untested layers are
+  fundamentals, a 12-month horizon, sizing and loss discipline. Operator
+  decisions: judge on 6–12-month book performance; shadow first; no paid
+  backtest data; loss/size defaults −20% / 10% / 25%. **Approved exception to
+  the freeze** (additive, non-fatal, grading path untouched). Spec:
+  `superpowers/specs/2026-11-11-thesis-engine-design.md`. Fundamentals input:
+  Screener.in paste → `scripts/ingest_fundamentals.py` (operator, monthly).
+  VERIFY: V-24.
 
 ## 🗓️ BACKLOG — frozen pending POST_MORTEM §6 reopening criteria
 

@@ -224,6 +224,16 @@ run symbol counts for that day before believing it.
 ---
 _**2026-11-09:** 11-02 = 2 rows / 2 syms (RVNL, MAHLIFE, both real advised SELLs) — no phantom pattern._
 
+### V-24 · thesis engine (advisor v2) accrues in shadow — registered 2026-11-11
+Every official run from brain `feat/thesis-engine` on attaches
+`indicators.thesis` to each holding row (action/target weight/qty/quality/
+reason/falsifier) **without changing any v1 column**. Check each session:
+`select count(*) filter (where indicators ? 'thesis') thesis_rows, count(*) n
+from portfolio_advice where run_date = current_date and is_official` → equal.
+Invariant: v1 `verdict`/`trend_score`/`confidence`/`trigger_type`/
+`counter_case` distributions unchanged vs the prior week. First maturity
+read (126d) ~2027-05 via `scripts/grade_thesis.py`; trials 256–257.
+
 ### V-23 · buy-call (rotation target) grading — first read 2026-11-11
 Trials 254–255 (ledger). 189 BUY calls, 153 matured, 20 dates. **10d:** beat
 Nifty 41.2%, avg alpha −1.40%, FM t −0.46. **30d:** 45.1%, +0.89%, FM t −0.37.

@@ -65,6 +65,20 @@ export async function GET() {
       /* diagnostic — never blocks the advice payload */
     }
 
+    // Thesis engine (shadow, P-47): aggregate track record written by the
+    // monthly grade_thesis.py run. Null until the first theses mature.
+    let thesisTrackRecord = null;
+    try {
+      const { data: ttr } = await supabaseServer
+        .from("app_config")
+        .select("value")
+        .eq("key", "thesis_track_record")
+        .single();
+      if (ttr?.value) thesisTrackRecord = JSON.parse(ttr.value as string);
+    } catch {
+      /* shadow diagnostic — never blocks the advice payload */
+    }
+
     // Day-over-day verdict diff: what changed vs the last run on an earlier
     // date. A daily user cares about the flips (ATGL HOLD->TRIM) and new
     // names, not re-reading 20 unchanged cards. Additive — never blocks.
@@ -104,6 +118,7 @@ export async function GET() {
       rows: rows ?? [],
       portfolioRisk,
       calibration,
+      thesisTrackRecord,
       priorRunDate,
       changes,
       newNames,
