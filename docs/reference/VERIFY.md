@@ -234,6 +234,18 @@ Invariant: v1 `verdict`/`trend_score`/`confidence`/`trigger_type`/
 `counter_case` distributions unchanged vs the prior week. First maturity
 read (126d) ~2027-05 via `scripts/grade_thesis.py`; trials 256–257.
 
+---
+_**2026-11-11 (first run):** 20/20 holding rows carry `indicators.thesis`
+(9:45 official run, brain 5d34056). That run graded with an EMPTY fundamentals
+store (quality=None → loss rule only). Store filled 14:30 IST from the first
+Screener paste: 18/18 holdings matched (brain 66ab28d). Dry run with
+fundamentals: EXIT AARTIIND/ANANTRAJ/ATGL/ICICILIFE (max_loss, quality<60),
+TRIM PARADEEP (weak business) + SILVERBEES (13.3%→10% cap), rest HOLD —
+ITC/MAZDOCK/ITCHOTELS flipped EXIT→HOLD on quality 84/66/76. From 11-12 the
+official rows carry quality. Natwar preview (P-45 provisional) landed 36s after
+his token paste: 29 names in `advisor_natwar_latest`, nothing in
+`portfolio_advice`._
+
 ### V-23 · buy-call (rotation target) grading — first read 2026-11-11
 Trials 254–255 (ledger). 189 BUY calls, 153 matured, 20 dates. **10d:** beat
 Nifty 41.2%, avg alpha −1.40%, FM t −0.46. **30d:** 45.1%, +0.89%, FM t −0.37.
