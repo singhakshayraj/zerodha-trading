@@ -1097,9 +1097,10 @@ explicitly lifted.
   month, scan breadth); 271 days seeded. Joins to universe/holdings/
   second-account calls by date. · *next (not before ~60 graded dates, own
   trial):* test whether call outcomes differ by tape (FII buying + falling
-  crude etc.); if so, a sector-layer-style rule on Natwar first. · *gap:*
-  FII/DII net flows — no clean free source; NSE's JSON needs a browser
-  session. · *source:* operator 2026-11-12 ("integrate sentiment and all
+  crude etc.); if so, a sector-layer-style rule on Natwar first. · *FII/DII:*
+  operator's launchd job (`~/Desktop/GITHUB/FIIDII`, 21:30 daily: fetch from
+  tapetide.com → `run_daily.sh` → brain `scripts/import_fii_dii.py`) merges
+  NSE cash-market FII/DII flows into `macro_daily`; history from 2026-09-29. · *source:* operator 2026-11-12 ("integrate sentiment and all
   possible factors") — capture first, v1 unchanged (every measured layer is
   null so far). VERIFY: V-30.
 

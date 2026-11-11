@@ -258,7 +258,10 @@ completed trading day, and that row carries nifty, vix, usdinr, crude and
 (after the scan) breadth. FAIL if a trading day is missing two runs in a
 row, or usdinr/crude are null while the token was live (expiry rollover
 bug). 2026-11-12: 271 rows through 11-11; USDINR26NOVFUT 93.88, crude
-8183, VIX 17.56, breadth pending today's scan.
+8183, VIX 17.56, breadth pending today's scan. FII/DII: `data.fii_net_cr`
+non-null for every trading day from 2026-09-29 (operator's 21:30 job); FAIL
+if the latest trading day is missing it two runs running (fetch 403 or job
+not loaded — check `FIIDII/fii_dii.log`).
 
 ### V-29 · real fills + P&L land daily — registered 2026-11-12
 On any trading day the operator trades: `tradebook` gains that day's fills
