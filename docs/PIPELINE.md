@@ -1080,7 +1080,8 @@ explicitly lifted.
   backtest data; loss/size defaults −20% / 10% / 25%. **Approved exception to
   the freeze** (additive, non-fatal, grading path untouched). Spec:
   `superpowers/specs/2026-11-11-thesis-engine-design.md`. Fundamentals input:
-  Screener.in paste → `scripts/ingest_fundamentals.py` (operator, monthly).
+  Screener.in paste → `scripts/ingest_fundamentals.py` (operator, monthly;
+  base + extended exports, 38 extra fields feed quality_score since 11-11).
   VERIFY: V-24.
 
 - **[P-48] Hero picks — contrarian value sleeve (10–20% of money).** [me/you]

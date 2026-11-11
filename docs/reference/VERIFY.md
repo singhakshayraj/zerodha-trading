@@ -242,7 +242,13 @@ Screener paste: 18/18 holdings matched (brain 66ab28d). Dry run with
 fundamentals: EXIT AARTIIND/ANANTRAJ/ATGL/ICICILIFE (max_loss, quality<60),
 TRIM PARADEEP (weak business) + SILVERBEES (13.3%→10% cap), rest HOLD —
 ITC/MAZDOCK/ITCHOTELS flipped EXIT→HOLD on quality 84/66/76. From 11-12 the
-official rows carry quality. Natwar preview (P-45 provisional) landed 36s after
+official rows carry quality. **Scorer amended the same evening, before any
+thesis row is gradable:** quality_score adds growth / margin trend / interest
+cover / FII+DII flow from the extended export (brain, "feat(thesis): quality
+score uses the extended Screener fields"); on the live book only PARADEEP
+flips TRIM→HOLD (32→42). Rows from 11-12 carry the amended score; the 11-11
+rows carry the old one — grade_thesis.py grades actions, not scores, so no
+split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
