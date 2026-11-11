@@ -1084,6 +1084,15 @@ explicitly lifted.
   base + extended exports, 38 extra fields feed quality_score since 11-11).
   VERIFY: V-24.
 
+- **[P-49] Universe calls — keep + grade the daily Nifty-500 scan.** [me] ·
+  *done =* every official run logs ~480 scan verdicts to `universe_calls` and
+  grades matured ones token-free with the holdings rules. Shipped 2026-11-11
+  (brain universe_calls.py). · *source:* operator 2026-11-11 — calls only on
+  ~20 holdings is a thin dataset; wrong calls teach only if kept. **Approved
+  exception to the freeze** (capture + grading only, no verdict change).
+  Outside the n=400 read; trial 259; VERIFY: V-26. Unit of independence is
+  the date — daily token paste is still the binding constraint.
+
 - **[P-48] Hero picks — contrarian value sleeve (10–20% of money).** [me/you]
   · *done =* `scripts/hero_picks.py` runs from the ingested fundamentals
   store (no paste needed), publishes `hero_picks_latest` for the

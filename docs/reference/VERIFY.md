@@ -252,6 +252,17 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-26 · universe calls accrue + grade — registered 2026-11-11
+Every official run must add ~480 `universe_calls` rows for its run_date, and
+matured rows must get graded the same run (token-free, from daily bars).
+Check each session: `select run_date, count(*), count(evaluated_at) from
+universe_calls group by 1 order by 1 desc limit 5` → today ≈ 480; rows ≥ 10
+trading days old (MICRO) and ≥ 30 (MACRO) graded. FAIL if a run_date with an
+official holdings run has no universe rows, or matured rows stay ungraded two
+runs in a row. 2026-11-11: 480 rows seeded (20 sectors, 474 with quality;
+162 HOLD / 228 SELL / 90 TRIM; 438 MACRO). First grades ~11-25 (MICRO).
+Trial 259.
+
 ### V-25 · hero picks entry log accrues — registered 2026-11-11
 Each `scripts/hero_picks.py` run (monthly, after the Screener ingest) must
 leave `app_config hero_picks_latest.asof` = run date and add any first-seen
