@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { NatwarTokenCard } from "@/components/NatwarTokenCard";
 import {
   Zap,
   Eye,
@@ -233,6 +234,8 @@ export default function ConnectPage() {
             </div>
           </div>
 
+          <NatwarTokenCard />
+
           <div className="mt-4 flex items-start gap-2 text-xs text-[#333] px-1">
             <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3b82f6]" />
             <span>Session expires at 6:00 AM. Token stored locally only.</span>
@@ -387,6 +390,8 @@ export default function ConnectPage() {
             </div>
           )}
         </div>
+
+        <NatwarTokenCard />
 
         {/* Security note */}
         <div className="mt-4 flex items-start gap-2 text-xs text-[#444] px-1">

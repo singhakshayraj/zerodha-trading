@@ -159,6 +159,10 @@ export default function AdvisorPage() {
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [thesisTrack, setThesisTrack] = useState<ThesisTrack | null>(null);
+  // [P-45 provisional] which account's advice to show. Natwar's is a preview
+  // blob from the brain (own token); Kanaklata's is the official record.
+  const [account, setAccount] = useState<"primary" | "natwar">("primary");
+  const [previewNote, setPreviewNote] = useState<string | null>(null);
   const [filterVerdict, setFilterVerdict] = useState<Advice["verdict"] | null>(null);
   const [diff, setDiff] = useState<{ priorRunDate: string | null; changes: { symbol: string; from: Advice["verdict"]; to: Advice["verdict"] }[]; newNames: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,7 +174,8 @@ export default function AdvisorPage() {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const r = (await api.get("/advisor")).data;
+      const r = (await api.get(account === "natwar" ? "/advisor/natwar" : "/advisor")).data;
+      setPreviewNote(r.preview ? (r.note ?? null) : null);
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
       setRisk(r.portfolioRisk ?? null);
@@ -179,11 +184,12 @@ export default function AdvisorPage() {
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { setLoading(false); }
+    if (account !== "primary") { setTrack(null); return; }
     try {
       const t = (await api.get("/advisor/track-record")).data;
       if (typeof t?.evaluatedCalls === "number") setTrack(t);
     } catch { /* track record is additive — never blocks the page */ }
-  }, []);
+  }, [account]);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
   useRefreshOnVisible(load);
 
@@ -218,10 +224,26 @@ export default function AdvisorPage() {
                 ) : runDate ? <> · run <span className="text-[#c5c5c5]">{runDate}</span></> : null}
               </p>
             </div>
-            <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#aaa] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] hover:border-[#333] transition-colors shrink-0 min-h-[40px]">
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> <span className="hidden sm:inline">Refresh</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex rounded-lg border border-[#1f1f1f] bg-[#111111] overflow-hidden text-xs min-h-[40px]">
+                {([["primary", "Kanaklata"], ["natwar", "Natwar"]] as const).map(([k, label]) => (
+                  <button key={k} onClick={() => setAccount(k)}
+                    className={`px-3 ${account === k ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a] hover:text-[#f5f5f5]"} transition-colors`}>
+                    {label}{k === "natwar" && <span className="ml-1 text-[9px] text-[#f59e0b]">preview</span>}
+                  </button>
+                ))}
+              </div>
+              <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#aaa] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] hover:border-[#333] transition-colors min-h-[40px]">
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> <span className="hidden sm:inline">Refresh</span>
+              </button>
+            </div>
           </div>
+          {account === "natwar" && (
+            <div className="mb-3 p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-[11px] text-[#f59e0b] leading-relaxed">
+              Natwar&apos;s account — preview only: same advisor on his holdings, under his own token, kept apart from the main record. Not graded, no Telegram digest.
+              {previewNote ? <> {previewNote}</> : null}
+            </div>
+          )}
           <StockLookup />
 
           <p className="text-[11px] text-[#5a5a5a] mb-5">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
