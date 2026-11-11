@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
@@ -8,7 +8,7 @@ import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { StockLookup } from "@/components/StockLookup";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor } from "lucide-react";
+import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Advice = {
   symbol: string;
@@ -61,16 +61,16 @@ type HeroPicks = { asof: string; n_screened: number; picks: HeroPick[]; near_mis
 const GATE_LABEL: Record<string, string> = { market_against: "not hated enough", cash_cushion: "no cash cushion", good_business: "business too weak", not_falling_knife: "still falling" };
 type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
-const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
+const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a";
 const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 const THESIS_META: Record<Thesis["action"], { color: string; order: number }> = {
-  EXIT: { color: RED, order: 0 }, TRIM: { color: BLUE, order: 1 }, ADD: { color: GREEN, order: 2 }, HOLD: { color: MUTE, order: 3 },
+  EXIT: { color: RED, order: 0 }, TRIM: { color: AMBER, order: 1 }, ADD: { color: GREEN, order: 2 }, HOLD: { color: MUTE, order: 3 },
 };
 
 const VERDICT_META: Record<Advice["verdict"], { color: string; icon: React.ElementType; label: string; blurb: string }> = {
   SELL:           { color: RED,   icon: TrendingDown, label: "Sell",           blurb: "confirmed downtrend — cutting is right" },
-  SELL_ON_BOUNCE: { color: AMBER, icon: Hourglass,    label: "Sell on bounce", blurb: "oversold at support — sell into strength, not the low" },
-  TRIM:           { color: BLUE,  icon: Scissors,     label: "Trim",           blurb: "mixed structure — de-risk, book part" },
+  SELL_ON_BOUNCE: { color: RED,   icon: Hourglass,    label: "Sell on bounce", blurb: "oversold at support — sell into strength, not the low" },
+  TRIM:           { color: AMBER, icon: Scissors,     label: "Trim",           blurb: "mixed structure — de-risk, book part" },
   HOLD:           { color: GREEN, icon: TrendingUp,   label: "Hold",           blurb: "uptrend intact — hold above the stop line" },
   INSUFFICIENT:   { color: MUTE,  icon: ShieldAlert,  label: "No read",        blurb: "not enough daily history for an honest verdict" },
 };
@@ -154,6 +154,206 @@ function Section({ icon: Icon, title, note, children, defaultOpen = false }: { i
   );
 }
 
+// ── decision-first layout atoms ─────────────────────────────────────────────
+// v1 verdict and v2 thesis compared on one scale: sell / trim / hold.
+type Bucket = "sell" | "trim" | "hold" | "none";
+const v1Bucket = (v: Advice["verdict"]): Bucket => (v === "SELL" || v === "SELL_ON_BOUNCE" ? "sell" : v === "TRIM" ? "trim" : v === "HOLD" ? "hold" : "none");
+const v2Bucket = (a?: Thesis["action"]): Bucket => (!a ? "none" : a === "EXIT" ? "sell" : a === "TRIM" ? "trim" : "hold");
+const pct = (n: number | null | undefined) => (n == null ? "—" : `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`);
+const isMove = (r: Advice) => v1Bucket(r.verdict) === "sell" || r.verdict === "TRIM";
+// TRIM is a half-exit (same rule as the brain's size_rotation).
+const sellQty = (r: Advice) => r.rotation_sell_qty ?? (r.verdict === "TRIM" ? Math.floor(r.quantity / 2) : r.quantity);
+const freedInr = (r: Advice) => r.rotation_freed_inr ?? sellQty(r) * (r.last_price ?? 0);
+const deployInr = (r: Advice) => (r.rotation_buy_qty != null && r.rotation_buy_price != null ? r.rotation_buy_qty * r.rotation_buy_price : 0);
+
+function V2Mark({ r }: { r: Advice }) {
+  const t = r.indicators?.thesis;
+  if (!t) return null;
+  const agree = v2Bucket(t.action) === v1Bucket(r.verdict);
+  return (
+    <span title={`Thesis engine (v2, shadow): ${t.action}${t.quality != null ? ` · quality ${t.quality}` : ""}`}
+      className="inline-flex items-center gap-1 text-[10px] font-medium whitespace-nowrap" style={{ color: agree ? "#6a6a6a" : AMBER }}>
+      <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: agree ? "#4a4a4a" : AMBER }} />
+      {agree ? "v2 agrees" : `v2: ${t.action}`}
+    </span>
+  );
+}
+
+function ChangeTag({ note }: { note: string | null }) {
+  if (!note) return null;
+  return <span className="text-[10px] font-medium text-[#60a5fa] whitespace-nowrap">{note}</span>;
+}
+
+function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen: () => void }) {
+  const m = VERDICT_META[r.verdict];
+  return (
+    <button type="button" onClick={onOpen}
+      className="w-full text-left bg-[#111111] border rounded-xl p-3 hover:border-[#3a3a3a] transition-colors grid grid-cols-[1fr_auto_1fr] items-center gap-2"
+      style={{ borderColor: `${m.color}40` }}>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: m.color }}>{m.label}</span>
+          <V2Mark r={r} /><ChangeTag note={note} />
+        </div>
+        <p className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</p>
+        <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
+          {sellQty(r)} sh · {INR(Math.round(freedInr(r)))} · <span style={{ color: (r.pnl_percent ?? 0) >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
+        </p>
+      </div>
+      <ArrowRight className="w-4 h-4 text-[#555] shrink-0" />
+      {r.rotation_target_symbol ? (
+        <div className="min-w-0 text-right">
+          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: GREEN }}>Buy</span>
+          <p className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.rotation_target_symbol}</p>
+          <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
+            {r.rotation_buy_qty != null ? `~${r.rotation_buy_qty} @ ${INR(r.rotation_buy_price ?? 0)}` : `score ${r.rotation_target_score}`}
+          </p>
+        </div>
+      ) : (
+        <p className="text-right text-[11px] text-[#6a6a6a]">{r.verdict === "TRIM" ? "keep the rest" : "no stronger home — hold cash"}</p>
+      )}
+    </button>
+  );
+}
+
+function HoldingTile({ r, note, onOpen }: { r: Advice; note: string | null; onOpen: () => void }) {
+  const m = VERDICT_META[r.verdict];
+  const q = r.indicators?.thesis?.quality;
+  return (
+    <button type="button" onClick={onOpen}
+      className="text-left rounded-xl border p-3 hover:border-[#4a4a4a] transition-colors min-h-[96px] flex flex-col"
+      style={{ borderColor: `${m.color}40`, background: `${m.color}0d` }}>
+      <div className="flex items-start justify-between gap-1">
+        <span className="text-[13px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</span>
+        <span className="text-[12px] font-semibold tabular-nums shrink-0" style={{ color: (r.pnl_percent ?? 0) >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
+      </div>
+      <span className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{ color: m.color }}>{m.label}</span>
+      <ChangeTag note={note} />
+      <div className="mt-auto pt-2 flex items-center justify-between gap-1">
+        <V2Mark r={r} />
+        {q != null && <span className="text-[10px] text-[#7a7a7a] tabular-nums">q {q}</span>}
+      </div>
+    </button>
+  );
+}
+
+// Side panel on laptop, bottom sheet on phone. ←/→ step through, Esc closes.
+function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; pos: number; total: number; onClose: () => void; onPrev: () => void; onNext: () => void }) {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); else if (e.key === "ArrowRight") onNext(); else if (e.key === "ArrowLeft") onPrev(); };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [onClose, onPrev, onNext]);
+  const m = VERDICT_META[r.verdict]; const Icon = m.icon;
+  const t = r.indicators?.thesis ?? null;
+  const agree = t ? v2Bucket(t.action) === v1Bucket(r.verdict) : true;
+  const pnl = r.pnl_percent ?? 0;
+  const hasPlan = !!(r.exit_target || r.stop_level || r.rotation_target_symbol || (r.rotation_buy_qty != null && r.rotation_freed_inr != null) || r.user_decision);
+  const navBtn = "p-2 rounded-lg text-[#aaa] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] disabled:opacity-30";
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={`${r.symbol} details`}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] rounded-t-2xl border-t md:inset-y-0 md:left-auto md:right-0 md:w-[460px] md:max-h-none md:rounded-none md:border-t-0 md:border-l bg-[#0f0f0f] border-[#262626] overflow-y-auto">
+        <div className="sticky top-0 z-10 bg-[#0f0f0f] border-b border-[#1f1f1f] px-4 py-3 flex items-center gap-2">
+          <span className="text-[16px] font-semibold text-[#f5f5f5] truncate min-w-0">{r.symbol}</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide shrink-0" style={{ background: `${m.color}1a`, color: m.color }}>
+            <Icon className="w-3 h-3 inline mr-1 -mt-0.5" />{m.label}
+          </span>
+          <span className="text-[13px] font-semibold tabular-nums" style={{ color: pnl >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
+          <div className="ml-auto flex items-center shrink-0 -mr-2">
+            <button type="button" className={navBtn} onClick={onPrev} disabled={pos <= 0} aria-label="Previous"><ChevronLeft className="w-4 h-4" /></button>
+            <span className="hidden sm:inline text-[10px] text-[#6a6a6a] tabular-nums w-10 text-center">{pos + 1}/{total}</span>
+            <button type="button" className={navBtn} onClick={onNext} disabled={pos >= total - 1} aria-label="Next"><ChevronRight className="w-4 h-4" /></button>
+            <button type="button" className={navBtn} onClick={onClose} aria-label="Close"><X className="w-4 h-4" /></button>
+          </div>
+        </div>
+
+        <div className="p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4">
+          <p className="text-[13px] text-[#e5e5e5] leading-relaxed">{(r.reasons ?? [])[0] ?? m.blurb}</p>
+          <p className="text-[11px] text-[#9a9a9a] tabular-nums">
+            {r.quantity} × avg {INR(r.avg_price)} → <span className="text-[#d5d5d5]">now {INR(r.last_price)}</span>
+            {(r.breakeven_gain_pct ?? 0) > 0 && <span className="text-[#6a6a6a]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span>}
+          </p>
+
+          {hasPlan && (
+            <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3">
+              <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-2">Plan</p>
+              <div className="flex flex-wrap gap-2 text-[11px]">
+                {r.exit_target && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">sell near <span style={{ color: AMBER }}>{INR(r.exit_target)}</span></span>}
+                {r.stop_level && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">exit below <span style={{ color: RED }}>{INR(r.stop_level)}</span></span>}
+                {r.rotation_target_symbol && (
+                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#d5d5d5]" style={{ borderColor: `${GREEN}44` }}>
+                    rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
+                    <span className="text-[#6a6a6a]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
+                  </span>
+                )}
+                {r.rotation_buy_qty != null && r.rotation_freed_inr != null && (
+                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">
+                    sell {r.rotation_sell_qty} → <span style={{ color: GREEN }}>{INR(r.rotation_freed_inr)}</span> → buy ~{r.rotation_buy_qty} @ {INR(r.rotation_buy_price ?? 0)}
+                  </span>
+                )}
+                {r.user_decision && (
+                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-[10px]" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
+                    you {r.user_decision === "accept" ? "accepted ✓" : "declined ✗"}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {t && (
+            <div className="rounded-lg border p-3" style={{ borderColor: agree ? "#1f1f1f" : `${AMBER}55`, background: agree ? "#111" : `${AMBER}0a` }}>
+              <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                <span className="text-[9px] text-[#6a6a6a] uppercase tracking-wide">v2 thesis · 12-month · shadow</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: THESIS_META[t.action].color }}>{t.action}</span>
+                <span className="text-[11px] text-[#8a8a8a]">quality <span className="text-[#e5e5e5] tabular-nums">{t.quality ?? "—"}</span></span>
+                {!agree && <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: AMBER }}>disagrees with v1</span>}
+              </div>
+              {t.qty_delta !== 0 && <p className="text-[12px] text-[#d5d5d5] mb-1">{t.qty_delta > 0 ? "Buy" : "Sell"} {Math.abs(t.qty_delta)} of {r.quantity} → {t.target_weight_pct}% of book</p>}
+              <p className="text-[12px] text-[#c5c5c5] leading-relaxed">{t.reason}.</p>
+              <p className="text-[11px] text-[#c5b898] leading-relaxed mt-1"><span className="text-[#8a8a8a]">Flips if: </span>{t.falsifier}.</p>
+            </div>
+          )}
+
+          {r.counter_case && (
+            <div className="rounded border border-[#3a3320] bg-[#17140c] px-3 py-2">
+              <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: AMBER }}>
+                {v1Bucket(r.verdict) === "sell" ? "Bull case — what would make this sell wrong" : "Bear case — what would make this call wrong"}
+              </p>
+              <p className="text-[12px] text-[#c5b898] leading-relaxed">{r.counter_case}</p>
+            </div>
+          )}
+
+          <details className="group">
+            <summary className="text-[11px] text-[#8a8a8a] cursor-pointer list-none select-none flex items-center gap-1 hover:text-[#d5d5d5]">
+              <ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" /> Full reasoning &amp; indicators
+            </summary>
+            <ul className="space-y-1.5 mt-2">
+              {(r.reasons ?? []).map((reason, i) => (
+                <li key={i} className="text-[12px] text-[#c5c5c5] leading-relaxed flex gap-2">
+                  <span className="mt-1.5 h-1 w-1 rounded-full bg-[#555] shrink-0" />{reason}
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              <Metric label="trend" value={`${r.trend_score > 0 ? "+" : ""}${r.trend_score}`} color={r.trend_score > 0 ? GREEN : r.trend_score < 0 ? RED : MUTE} />
+              <Metric label="conf" value={`${r.confidence}%`} />
+              {r.indicators?.calibrated_confidence != null && (
+                <Metric label="calib" value={`~${Math.round(r.indicators.calibrated_confidence)}%${r.indicators.calibration_low_n ? " ·low-n" : ""}`}
+                  title="Measured hit-rate for this confidence bucket — DARK, not used for the verdict" />
+              )}
+              {r.trigger_type && <Metric label="type" value={r.trigger_type} color={r.trigger_type === "MACRO" ? "#a78bfa" : "#60a5fa"} />}
+              {r.indicators?.rsi_14 != null && <Metric label="rsi" value={r.indicators.rsi_14.toFixed(0)} />}
+              {r.indicators?.adx != null && <Metric label="adx" value={r.indicators.adx.toFixed(0)} />}
+            </div>
+            <p className="text-[11px] text-[#6a6a6a] mt-2">{m.blurb}</p>
+          </details>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdvisorPage() {
   const router = useRouter();
   const { isConnected, hydrated, hydrateFromStorage } = useAppStore();
@@ -170,7 +370,8 @@ export default function AdvisorPage() {
   // blob from the brain (own token); Kanaklata's is the official record.
   const [account, setAccount] = useState<"primary" | "natwar">("primary");
   const [previewNote, setPreviewNote] = useState<string | null>(null);
-  const [filterVerdict, setFilterVerdict] = useState<Advice["verdict"] | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [showAllHolds, setShowAllHolds] = useState(false);
   const [diff, setDiff] = useState<{ priorRunDate: string | null; changes: { symbol: string; from: Advice["verdict"]; to: Advice["verdict"] }[]; newNames: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,10 +402,36 @@ export default function AdvisorPage() {
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
   useRefreshOnVisible(load);
 
-  const counts = (rows ?? []).reduce<Record<string, number>>((acc, r) => { acc[r.verdict] = (acc[r.verdict] ?? 0) + 1; return acc; }, {});
   const regimeKey = rows && rows.length > 0 ? rows[0].market_regime ?? null : null;
   const regime = regimeKey ? REGIME_META[regimeKey] : null;
-  const shown = rows ? (filterVerdict ? rows.filter((r) => r.verdict === filterVerdict) : rows) : [];
+  // Decision-first ordering: moves (sell/trim, biggest ₹ first), then the
+  // rest of the book. Every holding appears exactly once.
+  const changeNote = useCallback((sym: string): string | null => {
+    if (!diff?.priorRunDate) return null;
+    if (diff.newNames.includes(sym)) return "new";
+    const c = diff.changes.find((x) => x.symbol === sym);
+    return c ? `was ${VERDICT_META[c.from]?.label ?? c.from}` : null;
+  }, [diff]);
+  const { moves, holdsChanged, holdsSame } = useMemo(() => {
+    const all = rows ?? [];
+    const rank = (r: Advice) => (r.verdict === "SELL" ? 0 : r.verdict === "SELL_ON_BOUNCE" ? 1 : 2);
+    const moves = all.filter(isMove).sort((a, b) => rank(a) - rank(b) || freedInr(b) - freedInr(a));
+    const rest = all.filter((r) => !isMove(r)).sort((a, b) => (a.pnl_percent ?? 0) - (b.pnl_percent ?? 0));
+    const changed = (r: Advice) => !diff?.priorRunDate || changeNote(r.symbol) != null || r.verdict === "INSUFFICIENT";
+    return { moves, holdsChanged: rest.filter(changed), holdsSame: rest.filter((r) => !changed(r)) };
+  }, [rows, diff, changeNote]);
+  const order = useMemo(() => [...moves, ...holdsChanged, ...holdsSame], [moves, holdsChanged, holdsSame]);
+  const selPos = selected ? order.findIndex((r) => r.symbol === selected) : -1;
+  const selRow = selPos >= 0 ? order[selPos] : null;
+  const closePanel = useCallback(() => setSelected(null), []);
+  const prevPanel = useCallback(() => { if (selPos > 0) setSelected(order[selPos - 1].symbol); }, [order, selPos]);
+  const nextPanel = useCallback(() => { if (selPos >= 0 && selPos < order.length - 1) setSelected(order[selPos + 1].symbol); }, [order, selPos]);
+  const sellCount = moves.filter((r) => v1Bucket(r.verdict) === "sell").length;
+  const trimCount = moves.length - sellCount;
+  const freeTotal = moves.reduce((a, r) => a + freedInr(r), 0);
+  const deployTotal = moves.reduce((a, r) => a + deployInr(r), 0);
+  const buyCount = moves.filter((r) => r.rotation_target_symbol).length;
+  const flipCount = diff?.priorRunDate ? diff.changes.length + diff.newNames.length : 0;
   const theses = (rows ?? [])
     .filter((r) => r.indicators?.thesis?.action)
     .map((r) => ({ symbol: r.symbol, qty: r.quantity, t: r.indicators!.thesis as Thesis }))
@@ -223,13 +450,13 @@ export default function AdvisorPage() {
             <div className="min-w-0">
               <h1 className="text-xl font-semibold text-[#f5f5f5]">Portfolio Advisor</h1>
               <p className="text-xs text-[#8a8a8a] mt-1">
-                Daily hold/sell read on your long-term holdings — direction first, entry price is sunk cost
+                <span className="hidden sm:inline">Daily hold/sell read on your long-term holdings — direction first, entry price is sunk cost</span>
                 {runAt ? (
-                  <> · updated <span className="text-[#c5c5c5]">
+                  <><span className="hidden sm:inline"> · </span>updated <span className="text-[#c5c5c5]">
                     {new Date(runAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })} IST
                   </span>
                   {isOfficial === false ? <span className="text-[#6a6a6a]"> (intraday refresh)</span> : null}</>
-                ) : runDate ? <> · run <span className="text-[#c5c5c5]">{runDate}</span></> : null}
+                ) : runDate ? <><span className="hidden sm:inline"> · </span>run <span className="text-[#c5c5c5]">{runDate}</span></> : null}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -252,9 +479,7 @@ export default function AdvisorPage() {
               {previewNote ? <> {previewNote}</> : null}
             </div>
           )}
-          <StockLookup />
-
-          <p className="text-[11px] text-[#5a5a5a] mb-5">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
+          <div className="mb-4" />
 
           {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4 mb-6">{error}</div>}
           {!rows && loading && (
@@ -264,6 +489,7 @@ export default function AdvisorPage() {
             </div>
           )}
 
+          {rows && rows.length === 0 && <StockLookup />}
           {rows && rows.length === 0 && (
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
               <div className="flex items-center gap-2 mb-2"><Compass className="w-4 h-4 text-[#888]" /><h3 className="text-sm font-semibold text-[#f5f5f5]">No advice yet</h3></div>
@@ -276,202 +502,60 @@ export default function AdvisorPage() {
           {rows && rows.length > 0 && (
             <div className="space-y-5">
 
-              {/* ── AT A GLANCE: regime + track record ──────────────── */}
-              {(regime || (track && track.evaluatedCalls > 0)) && (
-                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  {regime && (
-                    <div className="flex items-center gap-2.5 flex-wrap mb-3">
-                      <span className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">Market regime</span>
-                      <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
-                            style={{ background: `${regime.color}1a`, color: regime.color }}>
-                        {regime.label}
-                      </span>
-                      <span className="text-[11px] text-[#8a8a8a] min-w-0">{regime.blurb}</span>
-                    </div>
-                  )}
-                  {track && track.evaluatedCalls > 0 && (
-                    <>
-                      <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2">
-                        Track record <span className="text-[#5a5a5a] normal-case">· {track.evaluatedCalls} calls judged vs what actually happened next</span>
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                        <StatTile label="Hit rate" value={track.hitRatePct != null ? `${track.hitRatePct.toFixed(1)}%` : "—"} color={(track.hitRatePct ?? 0) >= 50 ? GREEN : RED} />
-                        <StatTile label="Avg alpha vs Nifty" value={track.avgAlphaPct != null ? `${track.avgAlphaPct >= 0 ? "+" : ""}${track.avgAlphaPct.toFixed(2)}pp` : "—"} color={(track.avgAlphaPct ?? 0) >= 0 ? GREEN : RED} />
-                        <StatTile label="Exit calls saved you" value={INR(track.adviceValueInr)} color={track.adviceValueInr >= 0 ? GREEN : RED} />
-                      </div>
-                    </>
-                  )}
+              {/* ── DECISION SUMMARY ─────────────────────────────────── */}
+              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <StatTile label="Sell" value={String(sellCount)} sub={trimCount ? `+ ${trimCount} trim` : "no trims"} color={sellCount ? RED : "#5a5a5a"} />
+                  <StatTile label="Buy" value={String(buyCount)} sub="rotation targets" color={buyCount ? GREEN : "#5a5a5a"} />
+                  <StatTile label="Free → deploy" value={INR(Math.round(freeTotal / 1000)) + "k"} sub={`→ ${INR(Math.round(deployTotal / 1000))}k into buys`} />
+                  <StatTile label="Changed" value={String(flipCount)} sub={diff?.priorRunDate ? `vs ${diff.priorRunDate}` : "no prior run"} color={flipCount ? "#60a5fa" : "#5a5a5a"} />
                 </div>
-              )}
-
-              {/* ── VERDICT DISTRIBUTION (primary filter) ───────────── */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">Today&apos;s calls · tap to filter</p>
-                  {filterVerdict && (
-                    <button type="button" onClick={() => setFilterVerdict(null)} className="text-[11px] text-[#60a5fa] hover:underline">clear filter</button>
-                  )}
-                </div>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
-                  {(Object.keys(VERDICT_META) as Advice["verdict"][]).map((v) => {
-                    const m = VERDICT_META[v]; const Icon = m.icon;
-                    const n = counts[v] ?? 0;
-                    const active = filterVerdict === v;
-                    return (
-                      <button
-                        key={v}
-                        type="button"
-                        disabled={n === 0}
-                        onClick={() => setFilterVerdict(active ? null : v)}
-                        aria-pressed={active}
-                        title={n === 0 ? `No ${m.label} calls` : active ? "Show all" : `Show only ${m.label}`}
-                        className={`text-left bg-[#111111] border rounded-xl p-3 transition-all ${n === 0 ? "opacity-40 cursor-default" : "cursor-pointer hover:border-[#333]"}`}
-                        style={{ borderColor: active ? m.color : "#1f1f1f", background: active ? `${m.color}12` : undefined }}
-                      >
-                        <div className="flex items-center gap-1.5 mb-1"><Icon className="w-3.5 h-3.5 shrink-0" style={{ color: m.color }} /><span className="text-[10px] text-[#8a8a8a] uppercase tracking-wide truncate">{m.label}</span></div>
-                        <p className="text-2xl font-semibold tabular-nums leading-none" style={{ color: n ? m.color : "#333" }}>{n}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── WHAT CHANGED ────────────────────────────────────── */}
-              {diff?.priorRunDate && (
-                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <History className="w-4 h-4 text-[#888]" />
-                    <h3 className="text-sm font-semibold text-[#f5f5f5]">What changed</h3>
-                    <span className="text-[11px] text-[#6a6a6a]">vs the {diff.priorRunDate} run</span>
-                  </div>
-                  {diff.changes.length === 0 && diff.newNames.length === 0 ? (
-                    <p className="text-[12px] text-[#8a8a8a]">No verdict changes — every holding&apos;s call is the same as the last run.</p>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {diff.changes.map((c) => (
-                        <span key={c.symbol} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
-                          <span className="text-[#e5e5e5] font-medium">{c.symbol}</span>{" "}
-                          <span style={{ color: VERDICT_META[c.from]?.color ?? MUTE }}>{VERDICT_META[c.from]?.label ?? c.from}</span>
-                          <span className="text-[#666]"> → </span>
-                          <span style={{ color: VERDICT_META[c.to]?.color ?? MUTE }} className="font-semibold">{VERDICT_META[c.to]?.label ?? c.to}</span>
-                        </span>
-                      ))}
-                      {diff.newNames.map((s) => (
-                        <span key={s} className="text-[11px] px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1f1f1f]">
-                          <span className="text-[#e5e5e5] font-medium">{s}</span> <span className="text-[#60a5fa]">new</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── HOLDINGS (the core) ─────────────────────────────── */}
-              <div className="space-y-3">
-                {filterVerdict && (
-                  <p className="text-[11px] text-[#8a8a8a]">Showing {counts[filterVerdict] ?? 0} {VERDICT_META[filterVerdict].label} call{(counts[filterVerdict] ?? 0) === 1 ? "" : "s"}</p>
+                {regime && (
+                  <p className="text-[11px] text-[#8a8a8a] mt-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide" style={{ background: `${regime.color}1a`, color: regime.color }}>{regime.label}</span>
+                    {regime.blurb}
+                  </p>
                 )}
-                {shown.map((r) => {
-                  const m = VERDICT_META[r.verdict]; const Icon = m.icon;
-                  const pnl = r.pnl_percent ?? 0;
-                  const hasPlan = !!(r.exit_target || r.stop_level || r.rotation_target_symbol || (r.rotation_buy_qty != null && r.rotation_freed_inr != null) || r.user_decision);
-                  return (
-                    <article key={r.symbol} className="bg-[#111111] border rounded-xl overflow-hidden" style={{ borderColor: `${m.color}33` }}>
-                      {/* card header: symbol + verdict + P&L */}
-                      <div className="flex items-center justify-between gap-3 p-4 border-b border-[#1a1a1a]" style={{ background: `${m.color}0a` }}>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide shrink-0" style={{ background: `${m.color}1a`, color: m.color }}>
-                            <Icon className="w-3 h-3 inline mr-1 -mt-0.5" />{m.label}
-                          </span>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-base font-semibold tabular-nums leading-none" style={{ color: pnl >= 0 ? GREEN : RED }}>{pnl >= 0 ? "+" : ""}{pnl.toFixed(1)}%</p>
-                          <p className="text-[10px] text-[#6a6a6a] mt-1">P&amp;L</p>
-                        </div>
-                      </div>
-
-                      <div className="p-4 grid gap-4 md:grid-cols-[210px_1fr]">
-                        {/* left: rationale one-liner + economics + metric chips */}
-                        <aside className="space-y-3 min-w-0">
-                          <p className="text-[11px] text-[#7a7a7a] leading-relaxed">{m.blurb}</p>
-                          <div className="text-[11px] text-[#9a9a9a] space-y-0.5">
-                            <p>{r.quantity} × avg {INR(r.avg_price)} → <span className="text-[#d5d5d5]">now {INR(r.last_price)}</span></p>
-                            {(r.breakeven_gain_pct ?? 0) > 0 && <p className="text-[#6a6a6a]">needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</p>}
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            <Metric label="trend" value={`${r.trend_score > 0 ? "+" : ""}${r.trend_score}`} color={r.trend_score > 0 ? GREEN : r.trend_score < 0 ? RED : MUTE} />
-                            <Metric label="conf" value={`${r.confidence}%`} />
-                            {r.indicators?.calibrated_confidence != null && (
-                              <Metric label="calib" value={`~${Math.round(r.indicators.calibrated_confidence)}%${r.indicators.calibration_low_n ? " ·low-n" : ""}`}
-                                title="Measured hit-rate for this confidence bucket from the graded track record — DARK, not used for the verdict yet" />
-                            )}
-                            {r.trigger_type && (
-                              <Metric label="type" value={r.trigger_type} color={r.trigger_type === "MACRO" ? "#a78bfa" : "#60a5fa"}
-                                title={r.trigger_type === "MACRO" ? "Long-term structure call — judged at 30 trading days" : "Short-term signal call — judged at 10 trading days"} />
-                            )}
-                          </div>
-                        </aside>
-
-                        {/* right: reasons + plan */}
-                        <div className="min-w-0">
-                          <ul className="space-y-1.5">
-                            {(r.reasons ?? []).map((reason, i) => (
-                              <li key={i} className="text-[12px] text-[#c5c5c5] leading-relaxed flex gap-2">
-                                <span className="mt-1.5 h-1 w-1 rounded-full bg-[#555] shrink-0" />{reason}
-                              </li>
-                            ))}
-                          </ul>
-
-                          {/* [P-33] The case AGAINST. Deliberately NOT another
-                              bullet in the list above — that list is
-                              confirmatory by construction, and a counter-case
-                              styled like a reason just reads as one more point
-                              in favour. Given its own block, labelled by which
-                              side it argues: bear case against a hold, bull
-                              case against a sell. */}
-                          {r.counter_case && (
-                            <div className="mt-3 rounded border border-[#3a3320] bg-[#17140c] px-2.5 py-2">
-                              <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: AMBER }}>
-                                {r.verdict === "SELL" || r.verdict === "SELL_ON_BOUNCE"
-                                  ? "Bull case — what would make this sell wrong"
-                                  : "Bear case — what would make this call wrong"}
-                              </p>
-                              <p className="text-[12px] text-[#c5b898] leading-relaxed">{r.counter_case}</p>
-                            </div>
-                          )}
-
-                          {hasPlan && (
-                            <div className="mt-3">
-                              <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1.5">Plan</p>
-                              <div className="flex flex-wrap gap-2 text-[11px]">
-                                {r.exit_target && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">sell near <span style={{ color: AMBER }}>{INR(r.exit_target)}</span></span>}
-                                {r.stop_level && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">exit below <span style={{ color: RED }}>{INR(r.stop_level)}</span></span>}
-                                {r.rotation_target_symbol && (
-                                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#d5d5d5]" style={{ borderColor: `${GREEN}44` }}>
-                                    rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
-                                    <span className="text-[#6a6a6a]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
-                                  </span>
-                                )}
-                                {r.rotation_buy_qty != null && r.rotation_freed_inr != null && (
-                                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">
-                                    sell {r.rotation_sell_qty} → <span style={{ color: GREEN }}>{INR(r.rotation_freed_inr)}</span> frees ~{r.rotation_buy_qty} @ {INR(r.rotation_buy_price ?? 0)}
-                                  </span>
-                                )}
-                                {r.user_decision && (
-                                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-[10px]" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
-                                    you {r.user_decision === "accept" ? "accepted ✓" : "declined ✗"}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
               </div>
+
+              {/* ── MOVES TODAY: sell → buy pairs ─────────────────────── */}
+              {moves.length > 0 && (
+                <div>
+                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2">Moves today · tap for why</p>
+                  <div className="grid gap-2.5 md:grid-cols-2">
+                    {moves.map((r) => <MoveCard key={r.symbol} r={r} note={changeNote(r.symbol)} onOpen={() => setSelected(r.symbol)} />)}
+                  </div>
+                  {account === "primary" && heroPicks && heroPicks.picks.length > 0 && (
+                    <p className="text-[11px] text-[#8a8a8a] mt-2.5">
+                      Spare cash? Contrarian ideas:{" "}
+                      {heroPicks.picks.map((p, i) => (
+                        <span key={p.symbol}>{i > 0 && " · "}<a href="#contrarian" className="text-[#22c55e] font-semibold hover:underline">{p.symbol}</a></span>
+                      ))}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* ── REST OF BOOK: tile grid ──────────────────────────── */}
+              {(holdsChanged.length > 0 || holdsSame.length > 0) && (
+                <div>
+                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2">{moves.length ? "Rest of book" : "Holdings"} · tap a tile</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                    {[...holdsChanged, ...(showAllHolds ? holdsSame : [])].map((r) => (
+                      <HoldingTile key={r.symbol} r={r} note={changeNote(r.symbol)} onOpen={() => setSelected(r.symbol)} />
+                    ))}
+                  </div>
+                  {holdsSame.length > 0 && (
+                    <button type="button" onClick={() => setShowAllHolds((v) => !v)}
+                      className="mt-2.5 w-full text-[12px] text-[#8a8a8a] hover:text-[#e5e5e5] bg-[#111111] border border-[#1f1f1f] rounded-xl py-2.5 flex items-center justify-center gap-1.5">
+                      {showAllHolds ? "Hide unchanged holds" : `${holdsSame.length} holds, no change`}
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllHolds ? "rotate-180" : ""}`} />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <StockLookup />
 
               {/* ── THESIS ENGINE (shadow, P-47) ─────────────────────── */}
               {theses.length > 0 && (
@@ -511,6 +595,7 @@ export default function AdvisorPage() {
 
               {/* ── HERO PICKS (contrarian sleeve) ──────────────────── */}
               {account === "primary" && heroPicks && (
+                <div id="contrarian" className="scroll-mt-4">
                 <Section icon={Anchor} title="Contrarian picks · 10–20% sleeve"
                   note={`${heroPicks.picks.length} pass all four gates · ${heroPicks.near_misses.length} miss one · screened ${heroPicks.n_screened} · as of ${heroPicks.asof}`}>
                   <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-3">
@@ -540,6 +625,17 @@ export default function AdvisorPage() {
                   <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
                     Refresh: monthly Screener paste → <span className="text-[#e5e5e5]">scripts/ingest_fundamentals.py</span> → <span className="text-[#e5e5e5]">scripts/hero_picks.py</span>. A pick is an idea for the contrarian sleeve, sized under the 10% single-name cap — not a verdict on anything you hold.
                   </p>
+                </Section>
+                </div>
+              )}
+
+              {track && track.evaluatedCalls > 0 && (
+                <Section icon={History} title="Track record" note={`${track.evaluatedCalls} calls judged vs what happened next`}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <StatTile label="Hit rate" value={track.hitRatePct != null ? `${track.hitRatePct.toFixed(1)}%` : "—"} color={(track.hitRatePct ?? 0) >= 50 ? GREEN : RED} />
+                    <StatTile label="Avg alpha vs Nifty" value={track.avgAlphaPct != null ? `${track.avgAlphaPct >= 0 ? "+" : ""}${track.avgAlphaPct.toFixed(2)}pp` : "—"} color={(track.avgAlphaPct ?? 0) >= 0 ? GREEN : RED} />
+                    <StatTile label="Exit calls saved you" value={INR(track.adviceValueInr)} color={track.adviceValueInr >= 0 ? GREEN : RED} />
+                  </div>
                 </Section>
               )}
 
@@ -637,8 +733,10 @@ export default function AdvisorPage() {
               )}
             </div>
           )}
+          <p className="text-[11px] text-[#5a5a5a] mt-6">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
         </div>
       </main>
+      {selRow && <DetailPanel r={selRow} pos={selPos} total={order.length} onClose={closePanel} onPrev={prevPanel} onNext={nextPanel} />}
     </div>
   );
 }
