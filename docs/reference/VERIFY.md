@@ -224,6 +224,12 @@ run symbol counts for that day before believing it.
 ---
 _**2026-11-09:** 11-02 = 2 rows / 2 syms (RVNL, MAHLIFE, both real advised SELLs) — no phantom pattern._
 
+### V-23 · buy-call (rotation target) grading — first read 2026-11-11
+Trials 254–255 (ledger). 189 BUY calls, 153 matured, 20 dates. **10d:** beat
+Nifty 41.2%, avg alpha −1.40%, FM t −0.46. **30d:** 45.1%, +0.89%, FM t −0.37.
+Neither clears 3.72 — **null**, like the verdict read. Re-run monthly:
+`python3 scripts/grade_buy_calls.py` (no token needed).
+
 ## 👁️ WATCH — trend lines, not pass/fail
 
 These need N consistent readings before they mean anything. Record the number
