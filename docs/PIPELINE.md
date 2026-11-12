@@ -1100,7 +1100,11 @@ explicitly lifted.
   crude etc.); if so, a sector-layer-style rule on Natwar first. · *FII/DII:*
   operator's launchd job (`~/Desktop/GITHUB/FIIDII`, 21:30 daily: fetch from
   tapetide.com → `run_daily.sh` → brain `scripts/import_fii_dii.py`) merges
-  NSE cash-market FII/DII flows into `macro_daily`; history from 2026-09-29. · *source:* operator 2026-11-12 ("integrate sentiment and all
+  NSE cash-market FII/DII flows into `macro_daily`; history from 2026-09-29.
+  Same job captures index-futures positioning by participant (`data.fut`,
+  from 2026-10-14) and Nifty PE/PB/yield percentiles (`data.valuation`).
+  Operator still has to `cp` the updated plist to `~/Library/LaunchAgents`
+  and reload it. · *source:* operator 2026-11-12 ("integrate sentiment and all
   possible factors") — capture first, v1 unchanged (every measured layer is
   null so far). VERIFY: V-30.
 
