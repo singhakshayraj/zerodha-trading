@@ -252,6 +252,15 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-31 · household rule shapes buy targets — registered 2026-11-12
+From the 11-13 official run: no rotation target in either account breaks
+the caps on the combined book. Check after both runs: sum each target's
+held value (both accounts) + today's suggested buys — no name > 3% if held
+before, none > 8%; no sector group > 20% after the buys. Rows whose
+target changed carry `indicators.household`. FAIL on any breach. 11-12
+(Natwar only): GOLDBEES→INDHOTEL, PURVA/PNCINFRA/HINDWAREAP→DIVISLAB,
+LTTS kept at 6.6% by Kanaklata's SILVERBEES→LTTS alone.
+
 ### V-30 · macro_daily has a row for every trading day — registered 2026-11-12
 After each morning bar sync: `select max(date) from macro_daily` = last
 completed trading day, and that row carries nifty, vix, usdinr, crude and

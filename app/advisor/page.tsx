@@ -40,7 +40,7 @@ type Advice = {
   v1_verdict?: Advice["verdict"] | null;
   sector_trend?: number | null;
   sector_rule?: string | null;
-  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null } | null;
+  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null } | null;
 };
 
 /** [P-47] Thesis engine — advisor v2 in SHADOW mode. 12-month action from
@@ -329,6 +329,11 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
                   </span>
                 )}
               </div>
+              {r.indicators?.household && (
+                <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-2">
+                  <span className="text-[#60a5fa]">Both accounts as one book: </span>{r.indicators.household}.
+                </p>
+              )}
             </div>
           )}
 

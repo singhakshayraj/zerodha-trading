@@ -1091,6 +1091,18 @@ explicitly lifted.
   MAPMYINDIA).
   VERIFY: V-24.
 
+- **[P-53] Household book — both accounts as one portfolio for buy
+  targets.** [me] · *done 2026-11-12 (brain household.py):* rotation
+  targets for either account must keep, on the combined book (+ the other
+  account's same-day suggested buys + earlier picks in the run), sector
+  group ≤ 20%, an already-held name ≤ 3%, any name ≤ 8%; cross-sector picks
+  prefer sectors under their Nifty-500 weight. Verdicts unchanged — no
+  extra sells to rebalance (operator: "only through moves"). Gold/silver a
+  separate hedge sleeve (≤ 15%, reported only). Live for Natwar 11-12,
+  Kanaklata from the 11-13 official run. Buy-call grading (trials 254–255)
+  continues; targets from 11-13 follow this rule. Combined 11-12: ₹13.3L,
+  49 names, PSU banks 16.4% vs 4.4% index, IT < 2% vs ~10%.
+
 - **[P-52] Macro / tape context on every call (capture only).** [me] ·
   *done 2026-11-12:* brain `macro_snapshot.py` → `macro_daily` (date →
   Nifty/Bank/Mid/Small levels + 1d/5d/20d, India VIX, USDINR + crude front
