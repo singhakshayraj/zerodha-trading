@@ -18,6 +18,9 @@ export default defineConfig({
     baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    // PW_CHANNEL=chrome uses the installed Chrome instead of the bundled
+    // browser (no `npx playwright install` needed on a dev laptop).
+    ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
   },
   webServer: isLocal
     ? {
