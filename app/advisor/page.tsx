@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
@@ -69,6 +69,7 @@ type SectorView = { run_date: string; scan_date: string | null; groups: SectorGr
 type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a";
+const KAMT = (n: number) => (Math.abs(n) >= 10000 ? INR(Math.round(n / 1000)) + "k" : INR(Math.round(n)));
 const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 const THESIS_META: Record<Thesis["action"], { color: string; order: number }> = {
   EXIT: { color: RED, order: 0 }, TRIM: { color: AMBER, order: 1 }, ADD: { color: GREEN, order: 2 }, HOLD: { color: MUTE, order: 3 },
@@ -169,7 +170,7 @@ const v2Bucket = (a?: Thesis["action"]): Bucket => (!a ? "none" : a === "EXIT" ?
 const pct = (n: number | null | undefined) => (n == null ? "—" : `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`);
 const isMove = (r: Advice) => v1Bucket(r.verdict) === "sell" || r.verdict === "TRIM";
 // TRIM is a half-exit (same rule as the brain's size_rotation).
-const sellQty = (r: Advice) => r.rotation_sell_qty ?? (r.verdict === "TRIM" ? Math.floor(r.quantity / 2) : r.quantity);
+const sellQty = (r: Advice) => r.rotation_sell_qty ?? (r.verdict === "TRIM" ? Math.max(1, Math.floor(r.quantity / 2)) : r.quantity);
 const freedInr = (r: Advice) => r.rotation_freed_inr ?? sellQty(r) * (r.last_price ?? 0);
 const deployInr = (r: Advice) => (r.rotation_buy_qty != null && r.rotation_buy_price != null ? r.rotation_buy_qty * r.rotation_buy_price : 0);
 
@@ -329,12 +330,13 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
                   </span>
                 )}
               </div>
-              {r.indicators?.household && (
-                <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-2">
-                  <span className="text-[#60a5fa]">Both accounts as one book: </span>{r.indicators.household}.
-                </p>
-              )}
             </div>
+          )}
+
+          {r.indicators?.household && (
+            <p className="text-[11px] text-[#8a8a8a] leading-relaxed -mt-1">
+              <span className="text-[#60a5fa]">Both accounts as one book: </span>{r.indicators.household}.
+            </p>
           )}
 
           {t && (
@@ -471,10 +473,17 @@ export default function AdvisorPage() {
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
+  // Drop out-of-order responses (fast account toggling) and never show one
+  // account's rows under the other's tab.
+  const reqId = useRef(0);
+  const shownAccount = useRef(account);
   const load = useCallback(async () => {
+    const id = ++reqId.current;
+    if (shownAccount.current !== account) { shownAccount.current = account; setRows(null); setSelected(null); }
     setLoading(true); setError(null);
     try {
       const r = (await api.get(account === "natwar" ? "/advisor/natwar" : "/advisor")).data;
+      if (id !== reqId.current) return;
       setPreviewNote(r.preview ? (r.note ?? null) : null);
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
@@ -484,12 +493,12 @@ export default function AdvisorPage() {
       setHeroPicks(r.heroPicks ?? null);
       setSectorView(r.sectorView ?? null);
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
-    } catch (e) { setError(e instanceof Error ? e.message : "Failed to load advice"); }
-    finally { setLoading(false); }
+    } catch (e) { if (id === reqId.current) setError(e instanceof Error ? e.message : "Failed to load advice"); }
+    finally { if (id === reqId.current) setLoading(false); }
     if (account !== "primary") { setTrack(null); return; }
     try {
       const t = (await api.get("/advisor/track-record")).data;
-      if (typeof t?.evaluatedCalls === "number") setTrack(t);
+      if (id === reqId.current && typeof t?.evaluatedCalls === "number") setTrack(t);
     } catch { /* track record is additive — never blocks the page */ }
   }, [account]);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
@@ -602,7 +611,7 @@ export default function AdvisorPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <StatTile label="Sell" value={String(sellCount)} sub={trimCount ? `+ ${trimCount} trim` : "no trims"} color={sellCount ? RED : "#5a5a5a"} />
                   <StatTile label="Buy" value={String(buyCount)} sub="rotation targets" color={buyCount ? GREEN : "#5a5a5a"} />
-                  <StatTile label="Free → deploy" value={INR(Math.round(freeTotal / 1000)) + "k"} sub={`→ ${INR(Math.round(deployTotal / 1000))}k into buys`} />
+                  <StatTile label="Free → deploy" value={KAMT(freeTotal)} sub={`→ ${KAMT(deployTotal)} into buys`} />
                   <StatTile label="Changed" value={String(flipCount)} sub={diff?.priorRunDate ? `vs ${diff.priorRunDate}` : "no prior run"} color={flipCount ? "#60a5fa" : "#5a5a5a"} />
                 </div>
                 {fundAgeDays != null && fundAgeDays > 30 && (
@@ -676,7 +685,7 @@ export default function AdvisorPage() {
                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllSectors ? "rotate-180" : ""}`} />
                       </button>
                     )}
-                    <p className="text-[10px] text-[#5a5a5a] mt-2">Display only — sector strength does not change any verdict yet. Index weight = share of Nifty-500 market cap. Trend = median advisor trend score of the sector&apos;s names.</p>
+                    <p className="text-[10px] text-[#5a5a5a] mt-2">{account === "natwar" ? "On this account a sector layer (under test) adjusts calls — those show a purple \u201cv1:\u201d mark." : "Display only — sector strength does not change any verdict on this account."} Index weight = share of Nifty-500 market cap. Trend = median advisor trend score of the sector&apos;s names.</p>
                   </div>
                 );
               })()}

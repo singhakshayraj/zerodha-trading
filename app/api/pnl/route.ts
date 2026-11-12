@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
         .select("period_from, period_to, summary, check_result, uploaded_at")
         .eq("account", account).order("period_to", { ascending: false }),
     ]);
-    if (daily.error) throw daily.error;
+    for (const q of [daily, ledger, firstFill, statements]) if (q.error) throw q.error;
     return NextResponse.json({
       account,
       daily: daily.data ?? [],

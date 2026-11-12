@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import api from "@/lib/api";
@@ -57,15 +57,20 @@ export default function PnlPage() {
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
+  const reqId = useRef(0);
+  const shownAccount = useRef(account);
   const load = useCallback(async () => {
+    const id = ++reqId.current;
+    if (shownAccount.current !== account) { shownAccount.current = account; setData(null); }
     setLoading(true); setError(null);
     try {
       const r = (await api.get(`/pnl?account=${account}`)).data as Payload;
+      if (id !== reqId.current) return;
       setData(r);
       const last = r.daily.length ? r.daily[r.daily.length - 1].date.slice(0, 7) : null;
       setMonth((m) => (m && r.daily.some((d) => d.date.startsWith(m)) ? m : last));
-    } catch (e) { setError(e instanceof Error ? e.message : "Failed to load P&L"); }
-    finally { setLoading(false); }
+    } catch (e) { if (id === reqId.current) setError(e instanceof Error ? e.message : "Failed to load P&L"); }
+    finally { if (id === reqId.current) setLoading(false); }
   }, [account]);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
   useRefreshOnVisible(load);
@@ -81,7 +86,7 @@ export default function PnlPage() {
     return Array.from(m.entries()).sort((a, b) => b[0].localeCompare(a[0]));
   }, [data]);
 
-  const mDays = (data?.daily ?? []).filter((d) => month && d.date.startsWith(month));
+  const mDays = useMemo(() => (data?.daily ?? []).filter((d) => month && d.date.startsWith(month)), [data, month]);
   const mPnl = mDays.reduce((a, d) => a + d.pnl, 0);
   const mNifty = mDays.reduce((a, d) => a + (d.nifty_pnl ?? 0), 0);
   const best = mDays.reduce<Day | null>((a, d) => (!a || d.pnl > a.pnl ? d : a), null);
@@ -276,15 +281,15 @@ export default function PnlPage() {
                   {data.statements.map((st) => {
                     const c = st.check_result;
                     const bad = c ? c.sell_mismatches.length + c.open_mismatches.length : 0;
-                    const ok = c && bad === 0;
+                    const ok = !!c && bad === 0;
                     const sm = st.summary;
                     return (
                       <div key={st.period_from + st.period_to} className="rounded-lg bg-[#0d0d0d] border border-[#1a1a1a] p-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-[12px] font-semibold text-[#f5f5f5]">{st.period_from} → {st.period_to}</span>
                           <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
-                            style={{ color: ok ? GREEN : RED, background: ok ? "#22c55e1a" : "#ef44441a" }}>
-                            {ok ? "✓ reconciled" : `✗ ${bad} differ`}
+                            style={{ color: !c ? MUTE : ok ? GREEN : RED, background: !c ? "#71717a1a" : ok ? "#22c55e1a" : "#ef44441a" }}>
+                            {!c ? "not checked" : ok ? "✓ reconciled" : `✗ ${bad} differ`}
                           </span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-[11px] tabular-nums">

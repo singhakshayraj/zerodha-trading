@@ -79,21 +79,17 @@ export async function GET() {
       /* shadow diagnostic — never blocks the advice payload */
     }
 
-    // Hero picks (contrarian value, 10–20% sleeve): written by
-    // scripts/hero_picks.py from the ingested Screener store. Advisory only.
-    let heroPicks = null;
+    // Hero picks (contrarian sleeve, scripts/hero_picks.py) and the sector
+    // view (brain, after the scan): one app_config round-trip. Additive.
+    let heroPicks = null, sectorView = null;
     try {
-      const { data: hp } = await supabaseServer
-        .from("app_config").select("value").eq("key", "hero_picks_latest").single();
-      if (hp?.value) heroPicks = JSON.parse(hp.value as string);
-    } catch { /* additive — never blocks the advice payload */ }
-
-    // Sector view (display only): written by the brain after the scan.
-    let sectorView = null;
-    try {
-      const { data: sv } = await supabaseServer
-        .from("app_config").select("value").eq("key", "sector_view_latest").single();
-      if (sv?.value) sectorView = JSON.parse(sv.value as string);
+      const { data: cfg } = await supabaseServer
+        .from("app_config").select("key, value").in("key", ["hero_picks_latest", "sector_view_latest"]);
+      for (const c of cfg ?? []) {
+        if (!c.value) continue;
+        if (c.key === "hero_picks_latest") heroPicks = JSON.parse(c.value as string);
+        if (c.key === "sector_view_latest") sectorView = JSON.parse(c.value as string);
+      }
     } catch { /* additive — never blocks the advice payload */ }
 
     // Day-over-day verdict diff: what changed vs the last run on an earlier

@@ -18,7 +18,7 @@ export async function GET() {
         note: "No preview yet — paste Natwar's token on /connect; the brain runs his holdings after 09:45 IST on a trading day." });
     }
     const p = JSON.parse(data.value as string);
-    return NextResponse.json({ runDate: p.run_date ?? null, runAt: p.run_at ?? null, isOfficial: false,
+    return NextResponse.json({ runDate: p.run_date ?? null, runAt: p.run_at ?? null, isOfficial: null,
       rows: p.rows ?? [], portfolioRisk: p.portfolio_risk ?? null, calibration: null,
       thesisTrackRecord: null, priorRunDate: null, changes: [], newNames: [],
       preview: true, label: p.label ?? "Natwar", sectorView: p.sector_view ?? null });
