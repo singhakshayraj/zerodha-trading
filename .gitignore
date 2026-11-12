@@ -45,3 +45,6 @@ next-env.d.ts
 
 # QA env (real keys) — only the .example is committed
 .env.qa
+
+# real account snapshots for local evals — never commit
+e2e/fixtures/private/

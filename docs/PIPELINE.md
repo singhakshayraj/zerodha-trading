@@ -1205,7 +1205,16 @@ and does chores; it never picks stocks or places orders. Anything an LLM
 says that could influence a call goes to shadow + a ledger trial first.
 Read-only data access; every claim cites the rows it used.
 
-- **[P-54] "Ask your book" chat on /advisor.** [me] · *IN DESIGN 11-13.*
+- **[P-54] "Ask your book" chat on /advisor.** [me] · *BETA SHIPPED 11-13
+  (operator: in-browser model only, fixed tools, drawer on every page).*
+  WebLLM 0.2.87 on WebGPU; 8 read-only tools over our APIs, each returning
+  a code-computed `summary` the model only rephrases; account/month/symbol
+  read from the question deterministically; tool names schema-constrained.
+  Eval (`e2e/ask-eval.spec.ts`, 20 questions on a git-ignored snapshot):
+  Qwen2.5 3B 19/20 tool · 16/19 facts · 0 unsafe · ~13s/answer on the
+  laptop; Llama 3.2 3B 19/20 · 13/19; Qwen2.5 1.5B 15/20 · 10/19; Qwen3.5
+  2B download failed twice. Known gaps: company names → symbols (needs a
+  name map), phones (WebGPU/RAM), 2.5 GB first download.
   Plain-English questions over calls, theses, household, P&L ledger and
   macro ("why is ATGL a SELL?", "what did following calls earn in Oct?").
   Builds on zerodha-ask (Track B: local Ollama text-to-SQL CLI, read-only

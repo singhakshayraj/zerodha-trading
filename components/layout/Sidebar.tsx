@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Zap, Briefcase, Bot, LineChart, Compass, LogOut, LayoutDashboard, Activity, Trophy, Crosshair, GraduationCap, Wallet } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { AskDrawer } from "@/components/AskDrawer";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -162,6 +163,8 @@ export function Sidebar() {
         </div>
       </nav>
 
+      {/* [P-54 spike] on-device "Ask your book" chat, on every page */}
+      <AskDrawer />
     </>
   );
 }
