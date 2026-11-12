@@ -1200,7 +1200,31 @@ that is expected soon; kept here rather than deleted so the ideas aren't lost.
 
 ## 💡 PROPOSED — high-value, awaiting user greenlight
 
-- _(none)_
+Agentic layer (operator discussion 2026-11-13). Principle: the LLM explains
+and does chores; it never picks stocks or places orders. Anything an LLM
+says that could influence a call goes to shadow + a ledger trial first.
+Read-only data access; every claim cites the rows it used.
+
+- **[P-54] "Ask your book" chat on /advisor.** [me] · *IN DESIGN 11-13.*
+  Plain-English questions over calls, theses, household, P&L ledger and
+  macro ("why is ATGL a SELL?", "what did following calls earn in Oct?").
+  Builds on zerodha-ask (Track B: local Ollama text-to-SQL CLI, read-only
+  role still not created).
+- **[P-55] Morning brief agent.** After the 09:45 run: ≤ 6 lines — moves,
+  changes vs yesterday, household skew, tape (FII/VIX/breadth), stale data.
+  Page first; Telegram once P-04 creds exist.
+- **[P-56] Data-watchdog agent.** Runs the VERIFY checks every session and
+  flags breaks with a likely cause (would have caught 11-12's Natwar price
+  gap and macro overwrite the same day).
+- **[P-57] Buy-target due diligence.** Before a SELL→BUY shows: latest
+  news/results/pledge/promoter selling on the target → red flags in the
+  panel. Display only.
+- **[P-58] Chores via browser automation.** Monthly Screener + Console
+  exports and the FII fetch driven by Claude in Chrome.
+- **[P-59] "What if" planner.** Conversational household impact of a set
+  of moves (pure computation behind it).
+- *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
+  safe DB access; only for offline summaries of on-page data.
 
 ## ⏸️ PARKED — explicitly deferred, revisit when raised
 
