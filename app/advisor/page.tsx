@@ -7,6 +7,7 @@ import api from "@/lib/api";
 import { useRefreshOnVisible } from "@/lib/useRefreshOnVisible";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { StockLookup } from "@/components/StockLookup";
+import { WhatIf } from "@/components/WhatIf";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor, PieChart, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -707,6 +708,9 @@ export default function AdvisorPage() {
                   )}
                 </div>
               )}
+
+              {/* ── WHAT IF (P-59): plan moves against the household ── */}
+              <WhatIf account={account} />
 
               {/* ── REST OF BOOK: tile grid ──────────────────────────── */}
               {(holdsChanged.length > 0 || holdsSame.length > 0) && (

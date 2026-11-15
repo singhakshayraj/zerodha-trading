@@ -1253,8 +1253,15 @@ Read-only data access; every claim cites the rows it used.
   names only (Marketaux scope) — targets get news flags only when tagged.
 - **[P-58] Chores via browser automation.** Monthly Screener + Console
   exports and the FII fetch driven by Claude in Chrome.
-- **[P-59] "What if" planner.** Conversational household impact of a set
-  of moves (pure computation behind it).
+- **[P-59] "What if" planner.** [me] · *done 2026-11-16 (dashboard
+  `lib/ask/whatif.ts`, `components/WhatIf.tsx`):* type moves in words —
+  "sell 10 ATGL, buy ₹50k Petronet LNG in natwar, switch IOB to UNIONBANK"
+  — and see net cash, sector weights before→after vs index, each touched
+  name's household share, and the caps broken (sector 20 / name 8 /
+  both-accounts 3 / ETF sleeve 15, same as household.py). Panel on /advisor
+  under the moves; the Ask drawer routes any "what if / if I sell…" to the
+  same code in code (no model guess). Prices come from held rows; a buy of
+  an unheld name needs a ₹ amount.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 

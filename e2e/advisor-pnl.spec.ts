@@ -85,6 +85,17 @@ test.describe("advisor (mocked)", () => {
     await expect(dd).toContainText("150% above its 52-week low");
   });
 
+  test("what-if panel simulates typed moves against both books", async ({ page }) => {
+    await mockAdvisor(page);
+    await page.goto("/advisor");
+    const box = page.getByTestId("what-if");
+    await box.getByRole("textbox").fill("sell all KSELL, buy ₹500 NONLY in natwar");
+    await box.getByRole("button", { name: "Simulate" }).click();
+    await expect(box).toContainText("Net cash ₹400");           // 10 × 90 sold, 500 bought
+    await expect(box).toContainText("NONLY");
+    await expect(box).toContainText("Breaks: NONLY would be 43.8% of the household (cap 8%)");   // tiny mock book
+  });
+
   test("household note shows even when the row has no plan", async ({ page }) => {
     await mockAdvisor(page);
     await page.goto("/advisor");

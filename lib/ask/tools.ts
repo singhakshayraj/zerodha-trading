@@ -183,6 +183,22 @@ export const TOOLS: ToolSpec[] = [
       return { asof: h.asof, picks: (h.picks ?? []).map(slim), near_misses: (h.near_misses ?? []).slice(0, 5).map(slim) };
     },
   },
+  {
+    name: "what_if",
+    description: "Plan moves: 'sell 10 ATGL, buy ₹50k PETRONET in natwar' or 'switch IOB to UNIONBANK' -> cash freed, sector weights before/after, caps broken. Pure computation.",
+    args: { moves: "the moves in the user's words (required)", account: "kanaklata or natwar (default: the one on screen)" },
+    async run(args, ctx) {
+      const { parseMoves, simulate, booksFrom } = await import("./whatif");
+      const [p, n] = await Promise.all([ctx.fetch("/advisor").catch(() => null), ctx.fetch("/advisor/natwar").catch(() => null)]);
+      const { books, indexWeights, known } = booksFrom(p, n);
+      const { moves, errors } = parseMoves(args.moves ?? "", acct(args, ctx), known);
+      const r = simulate(moves, books, indexWeights);
+      return { moves: moves.map((m) => `${m.account === "natwar" ? "Natwar" : "Kanaklata"}: ${m.action} ${m.all ? "all" : m.qty != null ? m.qty + " sh" : "₹" + m.inr} ${m.symbol}`),
+        summary: r.summary + (errors.length ? ` Not understood: ${errors.join("; ")}.` : ""),
+        net_cash_inr: Math.round(r.net_cash), breaches: r.breaches,
+        sectors: r.sectors.slice(0, 5).map((l) => ({ sector: l.group, before_pct: l.before, after_pct: l.after, index_pct: l.index })) };
+    },
+  },
 ];
 
 export const toolByName = (n: string) => TOOLS.find((t) => t.name === n);

@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { parseRoute, questionHints, ask } from "../lib/ask/agent";
 import { TOOLS } from "../lib/ask/tools";
+import { parseMoves, simulate } from "../lib/ask/whatif";
 
 // [P-54] Deterministic parts of the in-browser chat — no browser, no model.
 
@@ -67,4 +68,32 @@ test("a symbol in the question overrides the model's route; no invented month", 
   const b = await ask("should I buy more ATGL?", { account: "primary", fetch: fetcher, knownSymbols: ["ATGL"] }, chat);
   expect(b.tool).toBe("explain_call");
   expect(b.args.symbol).toBe("ATGL");
+});
+
+test("what-if: parses plain moves and reports cash, sectors and caps", () => {
+  const known = ["ATGL", "IOB", "UNIONBANK", "SBIN"];
+  const { moves, errors } = parseMoves("sell 10 ATGL, buy ₹50k Petronet LNG in natwar; switch IOB to UNIONBANK", "primary", known);
+  expect(errors).toEqual([]);
+  expect(moves).toEqual([
+    { account: "primary", action: "sell", symbol: "ATGL", qty: 10 },
+    { account: "natwar", action: "buy", symbol: "PETRONET", inr: 50000 },
+    { account: "primary", action: "sell", symbol: "IOB", all: true },
+    { account: "primary", action: "buy", symbol: "UNIONBANK", all: true },
+  ]);
+  const books = {
+    primary: [{ symbol: "ATGL", quantity: 100, last_price: 500 }, { symbol: "SBIN", quantity: 100, last_price: 800 }],
+    natwar: [{ symbol: "IOB", quantity: 1000, last_price: 50 }, { symbol: "SBIN", quantity: 50, last_price: 800 }],
+  };
+  // Sell half of ATGL in primary, put it all into SBIN in natwar: PSU banks 70%->~85%, SBIN both accounts.
+  const r = simulate([{ account: "primary", action: "sell", symbol: "ATGL", qty: 50 }, { account: "natwar", action: "buy", symbol: "SBIN", all: true }],
+    books, { "PSU banks": 4.4 });
+  expect(r.total_before).toBe(220000);
+  expect(r.net_cash).toBe(0);
+  const psu = r.sectors.find((l) => l.group === "PSU banks")!;
+  expect(psu.before).toBe(77.3); expect(psu.after).toBe(88.6); expect(psu.breach).toBe(true);
+  expect(r.breaches.some((b) => b.startsWith("PSU banks would be 88.6%"))).toBe(true);
+  expect(r.breaches.some((b) => b.startsWith("SBIN would be"))).toBe(true);
+  expect(r.summary).toContain("frees ₹0 net (sold ₹25,000, bought ₹25,000)");
+  // Unknown symbol in a sell is reported, not silently dropped.
+  expect(simulate([{ account: "primary", action: "sell", symbol: "XYZ", all: true }], books).errors[0]).toContain("XYZ is not held");
 });

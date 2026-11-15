@@ -25,6 +25,7 @@ Examples:
 "what should I sell today?" / "where should the money go?" -> moves_today
 "how did I do in March 2026?" -> pnl {"month": "2026-03"}
 "did following the calls help?" -> decisions
+"what if I sell X and buy Y?" -> what_if {"moves": "<the question>"}
 If nothing fits, reply {"tool": "none", "args": {}}.` },
     { role: "user" as const, content:
 `Screen: ${ACCOUNT_LABEL[ctx.account]}'s account${ctx.symbol ? `, looking at ${ctx.symbol}` : ""}. Today is ${new Date().toISOString().slice(0, 10)}.
@@ -33,6 +34,7 @@ Question: ${question}` },
 }
 
 const CALL_TOOLS = new Set(["explain_call", "moves_today", "holdings_summary"]);
+export const WHAT_IF = /\bwhat if\b|\bif i (sell|buy|switch|move|exit)\b|^(sell|buy|switch|move)\b/i;
 
 export function answerPrompt(question: string, tool: string, result: unknown) {
   // Small models copy quoted examples into every answer, so the attribution
@@ -63,26 +65,7 @@ export function parseRoute(raw: string): { tool: string | null; args: Record<str
   }
 }
 
-import NAMES from "./names.json";
-
-/** Company name -> NSE symbol. Full normalised names, plus a two-word
- *  prefix ("adani ports") when it names exactly one company. Longest
- *  match wins, so "tata motors passenger vehicles" beats "tata motors". */
-const NAME_INDEX: [string, string][] = (() => {
-  const full = Object.entries(NAMES as Record<string, string>);
-  const prefixes = new Map<string, string | null>();
-  for (const [n, sym] of full) {
-    const p = n.split(" ").slice(0, 2).join(" ");
-    if (p !== n && p.length >= 6) prefixes.set(p, prefixes.has(p) ? null : sym);
-  }
-  const out = [...full, ...Array.from(prefixes).filter(([, v]) => v).map(([k, v]) => [k, v!] as [string, string])];
-  return out.sort((a, b) => b[0].length - a[0].length);
-})();
-
-export function symbolFromName(q: string): string | undefined {
-  const t = " " + q.toLowerCase().replace(/\b(ltd\.?|limited|india|the)\b/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim() + " ";
-  return NAME_INDEX.find(([n]) => t.includes(" " + n + " "))?.[1];
-}
+import { symbolFromName } from "./names";
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
@@ -110,7 +93,9 @@ export function questionHints(q: string, knownSymbols: string[] = [], today = ne
 
 export async function ask(question: string, ctx: { account: Account; symbol?: string | null; fetch: Fetcher; knownSymbols?: string[] }, chat: ChatFn): Promise<Trace> {
   const t0 = performance.now();
-  const route = parseRoute(await chat(routePrompt(question, ctx), true));
+  // A what-if is recognised in code: the moves text must reach the planner verbatim.
+  const route = WHAT_IF.test(question) ? { tool: "what_if", args: { moves: question } }
+    : parseRoute(await chat(routePrompt(question, ctx), true));
   const t1 = performance.now();
   // Deterministic facts from the question override the model's guesses.
   const hints = questionHints(question, ctx.knownSymbols ?? []);
