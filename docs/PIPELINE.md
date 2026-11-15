@@ -1098,7 +1098,8 @@ explicitly lifted.
   group ≤ 20%, an already-held name ≤ 3%, any name ≤ 8%; cross-sector picks
   prefer sectors under their Nifty-500 weight. Verdicts unchanged — no
   extra sells to rebalance (operator: "only through moves"). Gold/silver a
-  separate hedge sleeve (≤ 15%, reported only). Live for Natwar 11-12,
+  separate hedge sleeve (≤ 15%, reported only; 11-16: ETFs also never
+  rotated out, brain 97d927d). Live for Natwar 11-12,
   Kanaklata from the 11-13 official run. Buy-call grading (trials 254–255)
   continues; targets from 11-13 follow this rule. Combined 11-12: ₹13.3L,
   49 names, PSU banks 16.4% vs 4.4% index, IT < 2% vs ~10%.

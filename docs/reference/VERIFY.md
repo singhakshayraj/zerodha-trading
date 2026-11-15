@@ -260,6 +260,10 @@ before, none > 8%; no sector group > 20% after the buys. Rows whose
 target changed carry `indicators.household`. FAIL on any breach. 11-12
 (Natwar only): GOLDBEES→INDHOTEL, PURVA/PNCINFRA/HINDWAREAP→DIVISLAB,
 LTTS kept at 6.6% by Kanaklata's SILVERBEES→LTTS alone.
+11-13 fix (brain 97d927d): ETF holdings (GOLDBEES/SILVERBEES/…) are
+never the sell side of a rotation — hedge sleeve stays. Also check: no
+`*BEES`/ETF row carries `rotation_target_symbol` in either account from
+the 11-17 run. 11-13 Natwar had GOLDBEES→PVRINOX before the fix.
 
 ### V-30 · macro_daily has a row for every trading day — registered 2026-11-12
 After each morning bar sync: `select max(date) from macro_daily` = last
