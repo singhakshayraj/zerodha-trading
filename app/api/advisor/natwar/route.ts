@@ -9,19 +9,22 @@ export const dynamic = "force-dynamic";
 // page renders it with the same cards. Not graded; advisory only.
 export async function GET() {
   try {
-    const { data } = await supabaseServer
-      .from("app_config").select("value").eq("key", "advisor_natwar_latest").single();
+    const { data: cfg } = await supabaseServer
+      .from("app_config").select("key, value").in("key", ["advisor_natwar_latest", "morning_brief_latest"]);
+    const data = cfg?.find((c) => c.key === "advisor_natwar_latest") ?? null;
+    const briefRaw = cfg?.find((c) => c.key === "morning_brief_latest")?.value ?? null;
+    const brief = briefRaw ? JSON.parse(briefRaw as string) : null;   // P-55, household-level
     if (!data?.value) {
       return NextResponse.json({ runDate: null, runAt: null, isOfficial: null, rows: [],
         portfolioRisk: null, calibration: null, thesisTrackRecord: null,
-        priorRunDate: null, changes: [], newNames: [], preview: true,
+        priorRunDate: null, changes: [], newNames: [], preview: true, brief,
         note: "No preview yet — paste Natwar's token on /connect; the brain runs his holdings after 09:45 IST on a trading day." });
     }
     const p = JSON.parse(data.value as string);
     return NextResponse.json({ runDate: p.run_date ?? null, runAt: p.run_at ?? null, isOfficial: null,
       rows: p.rows ?? [], portfolioRisk: p.portfolio_risk ?? null, calibration: null,
       thesisTrackRecord: null, priorRunDate: null, changes: [], newNames: [],
-      preview: true, label: p.label ?? "Natwar", sectorView: p.sector_view ?? null });
+      preview: true, label: p.label ?? "Natwar", sectorView: p.sector_view ?? null, brief });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
   }

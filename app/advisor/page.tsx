@@ -66,6 +66,7 @@ type HeroPicks = { asof: string; n_screened: number; picks: HeroPick[]; near_mis
 const GATE_LABEL: Record<string, string> = { market_against: "not hated enough", cash_cushion: "no cash cushion", good_business: "business too weak", not_falling_knife: "still falling" };
 type SectorGroup = { group: string; names: number; my_weight_pct: number; index_weight_pct: number | null; trend_median: number | null; sell_pct: number | null; mix: { sell: number; trim: number; hold: number }; quality_median: number | null; gnpa_median: number | null; nnpa_median: number | null; held: { symbol: string; verdict: Advice["verdict"] | null; weight_pct: number | null }[] };
 type SectorView = { run_date: string; scan_date: string | null; groups: SectorGroup[] };
+type Brief = { run_date: string; lines: { kind: string; text: string; warn: boolean }[] };
 type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a";
@@ -459,6 +460,7 @@ export default function AdvisorPage() {
   const [thesisTrack, setThesisTrack] = useState<ThesisTrack | null>(null);
   const [heroPicks, setHeroPicks] = useState<HeroPicks | null>(null);
   const [sectorView, setSectorView] = useState<SectorView | null>(null);
+  const [brief, setBrief] = useState<Brief | null>(null);
   const [showAllSectors, setShowAllSectors] = useState(false);
   // [P-45 provisional] which account's advice to show. Natwar's is a preview
   // blob from the brain (own token); Kanaklata's is the official record.
@@ -492,6 +494,7 @@ export default function AdvisorPage() {
       setThesisTrack(r.thesisTrackRecord ?? null);
       setHeroPicks(r.heroPicks ?? null);
       setSectorView(r.sectorView ?? null);
+      setBrief(r.brief?.lines?.length ? r.brief : null);
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { if (id === reqId.current) setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { if (id === reqId.current) setLoading(false); }
@@ -605,6 +608,18 @@ export default function AdvisorPage() {
 
           {rows && rows.length > 0 && (
             <div className="space-y-5">
+
+              {/* ── MORNING BRIEF (P-55): both books, display only ──── */}
+              {brief && (
+                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl px-4 py-3" data-testid="morning-brief">
+                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-1.5">Morning brief · {brief.run_date}</p>
+                  <ul className="space-y-1">
+                    {brief.lines.map((l) => (
+                      <li key={l.kind} className="text-[12px] leading-relaxed" style={{ color: l.warn ? AMBER : "#c5c5c5" }}>{l.text}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* ── DECISION SUMMARY ─────────────────────────────────── */}
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">

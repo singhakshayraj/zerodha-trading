@@ -26,6 +26,9 @@ const PRIMARY = {
       mix: { sell: 1, trim: 3, hold: 7 }, quality_median: 73, gnpa_median: null, nnpa_median: null,
       held: [{ symbol: "KHOLD", verdict: "HOLD", weight_pct: 9 }] }] },
   priorRunDate: null, changes: [], newNames: [],
+  brief: { run_date: "2026-11-12", lines: [
+    { kind: "moves", text: "Kanaklata: 2 sell, 0 trim → KSELL→KBUY · Natwar: 1 sell, 0 trim (no targets)", warn: false },
+    { kind: "stale", text: "Stale: no FII/DII row", warn: true }] },
 };
 const NATWAR = {
   ...PRIMARY, isOfficial: null, preview: true, label: "Natwar",
@@ -49,6 +52,16 @@ test.describe("advisor (mocked)", () => {
     const card = page.getByRole("button", { name: /KSELL.*KBUY/ });
     await expect(card).toBeVisible();
     await expect(page.getByRole("button", { name: /KHOLD/ }).first()).toBeVisible();
+  });
+
+  test("morning brief shows on both tabs, stale line in amber", async ({ page }) => {
+    await mockAdvisor(page);
+    await page.goto("/advisor");
+    const brief = page.getByTestId("morning-brief");
+    await expect(brief).toContainText("Kanaklata: 2 sell, 0 trim → KSELL→KBUY");
+    await expect(brief.getByText(/^Stale:/)).toHaveCSS("color", "rgb(245, 158, 11)");
+    await page.getByRole("button", { name: /Natwar/ }).click();
+    await expect(page.getByTestId("morning-brief")).toContainText("Natwar: 1 sell");
   });
 
   test("household note shows even when the row has no plan", async ({ page }) => {

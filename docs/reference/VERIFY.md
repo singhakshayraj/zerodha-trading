@@ -252,6 +252,16 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-32 · morning brief lands after both runs — registered 2026-11-16
+From the 11-17 run: `app_config.morning_brief_latest` has `run_date` =
+today and a `moves` line naming both accounts (Natwar's part is "no run"
+until his preview finishes, then updates — check it is not still "no run"
+after his token is live). The `tape` line's date = previous trading day;
+the `stale` line should name only real gaps (FII row until the FIIDII
+plist is loaded). FAIL if the key is missing or dated earlier than the
+official run. 11-13 (manual publish): 5 lines, 9+4 / 6+8 moves, 3
+overweights, tape 11-12, stale = FII only.
+
 ### V-31 · household rule shapes buy targets — registered 2026-11-12
 From the 11-13 official run: no rotation target in either account breaks
 the caps on the combined book. Check after both runs: sum each target's

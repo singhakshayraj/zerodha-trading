@@ -1222,9 +1222,13 @@ Read-only data access; every claim cites the rows it used.
   macro ("why is ATGL a SELL?", "what did following calls earn in Oct?").
   Builds on zerodha-ask (Track B: local Ollama text-to-SQL CLI, read-only
   role still not created).
-- **[P-55] Morning brief agent.** After the 09:45 run: ≤ 6 lines — moves,
-  changes vs yesterday, household skew, tape (FII/VIX/breadth), stale data.
-  Page first; Telegram once P-04 creds exist.
+- **[P-55] Morning brief.** [me] · *done 2026-11-16 (brain 15bce9e
+  `morning_brief.py`, dashboard):* ≤ 6 lines at the top of /advisor on both
+  tabs — moves per account (≤ 4 pairs each), verdict changes since the
+  prior official run, sector overweights ≥ 5pp vs index, tape (Nifty, VIX,
+  breadth, FII), stale flags (tape date, FII row, Natwar run date,
+  fundamentals > 30d). Written after the official run and again after the
+  Natwar preview. Display only. Telegram once P-04 creds exist. → V-32.
 - **[P-56] Data-watchdog agent.** Runs the VERIFY checks every session and
   flags breaks with a likely cause (would have caught 11-12's Natwar price
   gap and macro overwrite the same day).
