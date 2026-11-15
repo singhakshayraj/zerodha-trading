@@ -15,6 +15,14 @@ test("question hints: account, month, symbol without false positives", () => {
   expect(questionHints("Dec numbers", [], T)).toEqual({ month: "2025-12" });          // future month -> last year
 });
 
+test("company names resolve to symbols", () => {
+  expect(questionHints("If I sell Adani Total Gas, where should the money go?", [], T)).toEqual({ symbol: "ATGL" });
+  expect(questionHints("what about adani ports?", [], T)).toEqual({ symbol: "ADANIPORTS" });   // unique two-word prefix
+  expect(questionHints("Tata Motors Passenger Vehicles view", [], T).symbol).toBe("TMPV");     // longest match wins
+  expect(questionHints("how is my book doing", [], T)).toEqual({});                         // no false positive
+  expect(questionHints("why is ATGL a sell", ["ATGL"], T)).toEqual({ symbol: "ATGL" });      // symbol still wins
+});
+
 test("route parsing accepts only real tools and survives junk", () => {
   expect(parseRoute('{"tool":"pnl","args":{"month":"2026-10"}}')).toEqual({ tool: "pnl", args: { month: "2026-10" } });
   expect(parseRoute('<think>hmm</think> sure: {"tool":"explain_call","args":{"symbol":"ATGL","x":""}}'))

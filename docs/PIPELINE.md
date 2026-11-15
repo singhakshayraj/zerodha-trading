@@ -1214,8 +1214,10 @@ Read-only data access; every claim cites the rows it used.
   Eval (`e2e/ask-eval.spec.ts`, 20 questions on a git-ignored snapshot):
   Qwen2.5 3B 19/20 tool · 16/19 facts · 0 unsafe · ~13s/answer on the
   laptop; Llama 3.2 3B 19/20 · 13/19; Qwen2.5 1.5B 15/20 · 10/19; Qwen3.5
-  2B download failed twice. Known gaps: company names → symbols (needs a
-  name map), phones (WebGPU/RAM), 2.5 GB first download.
+  2B download failed twice. 11-16: company names → symbols via
+  `lib/ask/names.json` (499 Nifty-500 names from brain config; longest
+  match, unique two-word prefixes). Remaining gaps: names outside the
+  Nifty 500, phones (WebGPU/RAM), 2.5 GB first download.
   Plain-English questions over calls, theses, household, P&L ledger and
   macro ("why is ATGL a SELL?", "what did following calls earn in Oct?").
   Builds on zerodha-ask (Track B: local Ollama text-to-SQL CLI, read-only

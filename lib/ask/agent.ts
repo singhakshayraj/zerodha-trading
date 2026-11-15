@@ -63,6 +63,27 @@ export function parseRoute(raw: string): { tool: string | null; args: Record<str
   }
 }
 
+import NAMES from "./names.json";
+
+/** Company name -> NSE symbol. Full normalised names, plus a two-word
+ *  prefix ("adani ports") when it names exactly one company. Longest
+ *  match wins, so "tata motors passenger vehicles" beats "tata motors". */
+const NAME_INDEX: [string, string][] = (() => {
+  const full = Object.entries(NAMES as Record<string, string>);
+  const prefixes = new Map<string, string | null>();
+  for (const [n, sym] of full) {
+    const p = n.split(" ").slice(0, 2).join(" ");
+    if (p !== n && p.length >= 6) prefixes.set(p, prefixes.has(p) ? null : sym);
+  }
+  const out = [...full, ...Array.from(prefixes).filter(([, v]) => v).map(([k, v]) => [k, v!] as [string, string])];
+  return out.sort((a, b) => b[0].length - a[0].length);
+})();
+
+export function symbolFromName(q: string): string | undefined {
+  const t = " " + q.toLowerCase().replace(/\b(ltd\.?|limited|india|the)\b/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim() + " ";
+  return NAME_INDEX.find(([n]) => t.includes(" " + n + " "))?.[1];
+}
+
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 /** Facts we can read straight off the question instead of trusting a small
@@ -83,6 +104,7 @@ export function questionHints(q: string, knownSymbols: string[] = [], today = ne
   if (iso) h.month = `${iso[1]}-${iso[2]}`;
   const sym = q.toUpperCase().match(/\b[A-Z][A-Z0-9&-]{1,14}\b/g)?.find((t) => knownSymbols.includes(t));
   if (sym) h.symbol = sym;
+  else { const byName = symbolFromName(q); if (byName) h.symbol = byName; }
   return h;
 }
 
