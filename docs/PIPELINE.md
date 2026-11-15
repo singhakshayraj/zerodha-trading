@@ -1251,8 +1251,13 @@ Read-only data access; every claim cites the rows it used.
   JINDALSTEL/PVRINOX pledged, ZENTEC/ACUTAAS promoter selling, DIVISLAB/
   INDHOTEL/ACUTAAS expensive, 4 of 13 targets clean. News covers held
   names only (Marketaux scope) — targets get news flags only when tagged.
-- **[P-58] Chores via browser automation.** Monthly Screener + Console
-  exports and the FII fetch driven by Claude in Chrome.
+- **[P-58] Chores via browser automation.** [me+you] · *runbook 2026-11-16:*
+  project skill `.claude/skills/monthly-chores` — Screener base + extended
+  exports → `ingest_fundamentals.py`; Console tradebook + P&L per account →
+  `import_tradebook.py` / `import_pnl_statement.py`; FII job health. Needs
+  Claude in Chrome connected (none was, 11-16 01:00) and the user signed in;
+  Claude never handles credentials or orders. First live run: next session
+  with Chrome open, say "monthly chores".
 - **[P-59] "What if" planner.** [me] · *done 2026-11-16 (dashboard
   `lib/ask/whatif.ts`, `components/WhatIf.tsx`):* type moves in words —
   "sell 10 ATGL, buy ₹50k Petronet LNG in natwar, switch IOB to UNIONBANK"
