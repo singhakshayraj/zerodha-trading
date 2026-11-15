@@ -15,7 +15,9 @@ const PRIMARY = {
   runDate: "2026-11-12", runAt: "2026-11-12T04:20:00Z", isOfficial: true,
   rows: [
     advice({ symbol: "KSELL", verdict: "SELL", trend_score: -70, rotation_target_symbol: "KBUY",
-      rotation_target_score: 90, rotation_sell_qty: 10, rotation_freed_inr: 900, rotation_buy_qty: 8, rotation_buy_price: 100 }),
+      rotation_target_score: 90, rotation_sell_qty: 10, rotation_freed_inr: 900, rotation_buy_qty: 8, rotation_buy_price: 100,
+      indicators: { target_dd: { symbol: "KBUY", asof: "2026-11-11", checked: "pledge, news",
+        flags: [{ flag: "pledge", severity: "red", detail: "promoters pledged 12%" }, { flag: "chasing", severity: "amber", detail: "150% above its 52-week low" }] } } }),
     advice({ symbol: "KNOPLAN", verdict: "SELL", trend_score: -60,
       indicators: { household: "skipped LTTS: LTTS already 6.6% across accounts" } }),
     advice({ symbol: "KHOLD" }),
@@ -69,6 +71,18 @@ test.describe("advisor (mocked)", () => {
     await expect(wd).toContainText("bars_fresh · 2/30 held names missing the 2026-11-11 bar: NOTHELD — bar sync skipped these");
     await page.getByRole("button", { name: /Natwar/ }).click();
     await expect(page.getByTestId("morning-brief")).toContainText("Natwar: 1 sell");
+  });
+
+  test("buy-target red flags show on the move card and in the panel", async ({ page }) => {
+    await mockAdvisor(page);
+    await page.goto("/advisor");
+    const card = page.getByRole("button", { name: /KSELL/ }).first();
+    await expect(card).toContainText("⚠ 2 flags · 1 red");
+    await card.click();
+    const dd = page.getByTestId("target-dd");
+    await expect(dd).toContainText("Before you buy KBUY · data 2026-11-11");
+    await expect(dd).toContainText("promoters pledged 12%");
+    await expect(dd).toContainText("150% above its 52-week low");
   });
 
   test("household note shows even when the row has no plan", async ({ page }) => {

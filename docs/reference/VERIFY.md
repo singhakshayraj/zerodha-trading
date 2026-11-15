@@ -252,6 +252,15 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-34 · every buy target carries its due diligence — registered 2026-11-16
+From the 11-17 run, both accounts: every row with `rotation_target_symbol`
+has `indicators.target_dd.symbol` = that target. Spot-check two flags
+against Screener (pledge %, promoter change) — the number in the flag must
+match the export. FAIL on a target without the block, or a flag whose
+number is not in the fundamentals store. Over time (≥ 30 graded buy
+calls): do flagged targets grade worse than clean ones? If not, the rules
+are noise — report, don't act.
+
 ### V-33 · the watchdog runs itself and is right — registered 2026-11-16
 From 11-17 evening: `app_config.watchdog_latest.run_date` = today, `ran_at`
 after 16:40 IST. Compare its FAIL/WARN list with this ledger's own reading

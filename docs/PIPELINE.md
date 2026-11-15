@@ -1239,9 +1239,18 @@ Read-only data access; every claim cites the rows it used.
   likely cause → `watchdog_latest`; shown under the morning brief on
   /advisor and as the brief's "Last session" line. 11-13 by hand: FAIL
   etf_not_rotated (pre-fix rows), WARN fii_row. → V-33.
-- **[P-57] Buy-target due diligence.** Before a SELL→BUY shows: latest
-  news/results/pledge/promoter selling on the target → red flags in the
-  panel. Display only.
+- **[P-57] Buy-target due diligence.** [me] · *done 2026-11-16 (brain
+  5a91cd7 `target_dd.py`, dashboard):* every rotation target carries
+  `indicators.target_dd` — pledge (red ≥ 10%), promoter selling ≥ 5pp/3y
+  (red), promoter < 25% (0% = no promoter group, not flagged), FII cut ≥
+  2pp, interest cover < 2× (red, non-financials), negative operating cash
+  flow, last-quarter profit ≤ −25% / sales ≤ −20%, P/E > 60, ≥ 100% above
+  the 52-week low, negative tagged news in 14 days (red). Move card shows
+  "⚠ n flags · m red" or "✓ no red flags"; the panel lists them with the
+  data date. Display only — target, sizing, verdict untouched. 11-13 run:
+  JINDALSTEL/PVRINOX pledged, ZENTEC/ACUTAAS promoter selling, DIVISLAB/
+  INDHOTEL/ACUTAAS expensive, 4 of 13 targets clean. News covers held
+  names only (Marketaux scope) — targets get news flags only when tagged.
 - **[P-58] Chores via browser automation.** Monthly Screener + Console
   exports and the FII fetch driven by Claude in Chrome.
 - **[P-59] "What if" planner.** Conversational household impact of a set

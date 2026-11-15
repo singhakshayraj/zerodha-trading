@@ -40,8 +40,12 @@ type Advice = {
   v1_verdict?: Advice["verdict"] | null;
   sector_trend?: number | null;
   sector_rule?: string | null;
-  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null } | null;
+  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null; target_dd?: TargetDD | null } | null;
 };
+
+/** [P-57] Due diligence on the buy target — red flags from fundamentals and
+ *  recent news. Display only; never changes the target or the sizing. */
+type TargetDD = { symbol: string; flags: { flag: string; severity: "red" | "amber"; detail: string }[]; checked: string; asof: string | null };
 
 /** [P-47] Thesis engine — advisor v2 in SHADOW mode. 12-month action from
  * fundamentals + sizing + loss rules. Graded separately; never changes the
@@ -232,12 +236,20 @@ function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen:
           <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
             {r.rotation_buy_qty != null ? `~${r.rotation_buy_qty} @ ${INR(r.rotation_buy_price ?? 0)}` : `score ${r.rotation_target_score}`}
           </p>
+          <DDBadge dd={r.indicators?.target_dd} />
         </div>
       ) : (
         <p className="text-right text-[11px] text-[#6a6a6a]">{r.verdict === "TRIM" ? "keep the rest" : "no stronger home — hold cash"}</p>
       )}
     </button>
   );
+}
+
+function DDBadge({ dd }: { dd?: TargetDD | null }) {
+  if (!dd) return null;
+  const red = dd.flags.filter((f) => f.severity === "red").length, n = dd.flags.length;
+  if (!n) return <p className="text-[10px]" style={{ color: GREEN }}>✓ no red flags</p>;
+  return <p className="text-[10px] font-semibold" style={{ color: red ? RED : AMBER }}>⚠ {n} flag{n > 1 ? "s" : ""}{red ? ` · ${red} red` : ""}</p>;
 }
 
 function HoldingTile({ r, note, onOpen }: { r: Advice; note: string | null; onOpen: () => void }) {
@@ -332,6 +344,24 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
                   </span>
                 )}
               </div>
+            </div>
+          )}
+
+          {r.indicators?.target_dd && r.rotation_target_symbol && (
+            <div className="rounded-lg border p-3" data-testid="target-dd"
+              style={{ borderColor: r.indicators.target_dd.flags.some((f) => f.severity === "red") ? `${RED}55` : r.indicators.target_dd.flags.length ? `${AMBER}55` : "#1f1f1f", background: "#111" }}>
+              <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1">Before you buy {r.indicators.target_dd.symbol}{r.indicators.target_dd.asof ? ` · data ${r.indicators.target_dd.asof}` : ""}</p>
+              {r.indicators.target_dd.flags.length === 0 ? (
+                <p className="text-[12px]" style={{ color: GREEN }}>No red flags. Checked: {r.indicators.target_dd.checked}.</p>
+              ) : (
+                <ul className="space-y-0.5">
+                  {r.indicators.target_dd.flags.map((f) => (
+                    <li key={f.flag + f.detail} className="text-[12px] text-[#d5d5d5] flex gap-2">
+                      <span className="shrink-0" style={{ color: f.severity === "red" ? RED : AMBER }}>{f.severity === "red" ? "●" : "○"}</span>{f.detail}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
 
