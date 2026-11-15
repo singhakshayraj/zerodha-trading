@@ -67,6 +67,7 @@ const GATE_LABEL: Record<string, string> = { market_against: "not hated enough",
 type SectorGroup = { group: string; names: number; my_weight_pct: number; index_weight_pct: number | null; trend_median: number | null; sell_pct: number | null; mix: { sell: number; trim: number; hold: number }; quality_median: number | null; gnpa_median: number | null; nnpa_median: number | null; held: { symbol: string; verdict: Advice["verdict"] | null; weight_pct: number | null }[] };
 type SectorView = { run_date: string; scan_date: string | null; groups: SectorGroup[] };
 type Brief = { run_date: string; lines: { kind: string; text: string; warn: boolean }[] };
+type Watchdog = { run_date: string; fails: number; warns: number; checks: { name: string; status: "PASS" | "WARN" | "FAIL"; evidence: string; cause: string }[] };
 type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; threshold: number; h126?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean }; h252?: { n: number; hit_rate: number | null; fm_t: number | null; clears: boolean } };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a";
@@ -461,6 +462,7 @@ export default function AdvisorPage() {
   const [heroPicks, setHeroPicks] = useState<HeroPicks | null>(null);
   const [sectorView, setSectorView] = useState<SectorView | null>(null);
   const [brief, setBrief] = useState<Brief | null>(null);
+  const [watchdog, setWatchdog] = useState<Watchdog | null>(null);
   const [showAllSectors, setShowAllSectors] = useState(false);
   // [P-45 provisional] which account's advice to show. Natwar's is a preview
   // blob from the brain (own token); Kanaklata's is the official record.
@@ -495,6 +497,7 @@ export default function AdvisorPage() {
       setHeroPicks(r.heroPicks ?? null);
       setSectorView(r.sectorView ?? null);
       setBrief(r.brief?.lines?.length ? r.brief : null);
+      setWatchdog(r.watchdog?.checks?.length ? r.watchdog : null);
       setDiff({ priorRunDate: r.priorRunDate ?? null, changes: r.changes ?? [], newNames: r.newNames ?? [] });
     } catch (e) { if (id === reqId.current) setError(e instanceof Error ? e.message : "Failed to load advice"); }
     finally { if (id === reqId.current) setLoading(false); }
@@ -618,6 +621,21 @@ export default function AdvisorPage() {
                       <li key={l.kind} className="text-[12px] leading-relaxed" style={{ color: l.warn ? AMBER : "#c5c5c5" }}>{l.text}</li>
                     ))}
                   </ul>
+                  {watchdog && (
+                    <details className="mt-2" data-testid="watchdog">
+                      <summary className="text-[11px] cursor-pointer" style={{ color: watchdog.fails ? RED : watchdog.warns ? AMBER : "#7a7a7a" }}>
+                        Data checks {watchdog.run_date}: {watchdog.fails} fail · {watchdog.warns} warn · {watchdog.checks.length - watchdog.fails - watchdog.warns} pass
+                      </summary>
+                      <ul className="mt-1.5 space-y-1">
+                        {watchdog.checks.map((c) => (
+                          <li key={c.name} className="text-[11px] leading-relaxed flex gap-2">
+                            <span className="font-mono w-10 shrink-0" style={{ color: c.status === "FAIL" ? RED : c.status === "WARN" ? AMBER : GREEN }}>{c.status}</span>
+                            <span className="text-[#c5c5c5]">{c.name} · {c.evidence}{c.cause ? <span className="text-[#7a7a7a]"> — {c.cause}</span> : null}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                 </div>
               )}
 

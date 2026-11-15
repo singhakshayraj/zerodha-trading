@@ -81,15 +81,16 @@ export async function GET() {
 
     // Hero picks (contrarian sleeve, scripts/hero_picks.py) and the sector
     // view (brain, after the scan): one app_config round-trip. Additive.
-    let heroPicks = null, sectorView = null, brief = null;
+    let heroPicks = null, sectorView = null, brief = null, watchdog = null;
     try {
       const { data: cfg } = await supabaseServer
-        .from("app_config").select("key, value").in("key", ["hero_picks_latest", "sector_view_latest", "morning_brief_latest"]);
+        .from("app_config").select("key, value").in("key", ["hero_picks_latest", "sector_view_latest", "morning_brief_latest", "watchdog_latest"]);
       for (const c of cfg ?? []) {
         if (!c.value) continue;
         if (c.key === "hero_picks_latest") heroPicks = JSON.parse(c.value as string);
         if (c.key === "sector_view_latest") sectorView = JSON.parse(c.value as string);
         if (c.key === "morning_brief_latest") brief = JSON.parse(c.value as string);   // P-55
+        if (c.key === "watchdog_latest") watchdog = JSON.parse(c.value as string);     // P-56
       }
     } catch { /* additive — never blocks the advice payload */ }
 
@@ -136,6 +137,7 @@ export async function GET() {
       heroPicks,
       sectorView,
       brief,
+      watchdog,
       priorRunDate,
       changes,
       newNames,

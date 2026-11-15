@@ -1229,9 +1229,16 @@ Read-only data access; every claim cites the rows it used.
   breadth, FII), stale flags (tape date, FII row, Natwar run date,
   fundamentals > 30d). Written after the official run and again after the
   Natwar preview. Display only. Telegram once P-04 creds exist. → V-32.
-- **[P-56] Data-watchdog agent.** Runs the VERIFY checks every session and
-  flags breaks with a likely cause (would have caught 11-12's Natwar price
-  gap and macro overwrite the same day).
+- **[P-56] Data watchdog.** [me] · *done 2026-11-16 (brain 55dc348
+  `data_watchdog.py`, dashboard):* once per trading day after 16:40 IST,
+  DB-only: official run landed once, universe scan ≥ 400, Natwar calls +
+  targets when his token was pasted, no ETF rotated out, daily bars for
+  every held name through the previous trading day (the 11-12 price gap),
+  macro row complete, FII row, pnl_daily per account, grading not stuck,
+  fundamentals age, brief landed. Each failure carries the number and the
+  likely cause → `watchdog_latest`; shown under the morning brief on
+  /advisor and as the brief's "Last session" line. 11-13 by hand: FAIL
+  etf_not_rotated (pre-fix rows), WARN fii_row. → V-33.
 - **[P-57] Buy-target due diligence.** Before a SELL→BUY shows: latest
   news/results/pledge/promoter selling on the target → red flags in the
   panel. Display only.

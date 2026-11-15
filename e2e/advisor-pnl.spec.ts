@@ -29,6 +29,9 @@ const PRIMARY = {
   brief: { run_date: "2026-11-12", lines: [
     { kind: "moves", text: "Kanaklata: 2 sell, 0 trim → KSELL→KBUY · Natwar: 1 sell, 0 trim (no targets)", warn: false },
     { kind: "stale", text: "Stale: no FII/DII row", warn: true }] },
+  watchdog: { run_date: "2026-11-11", fails: 1, warns: 0, checks: [
+    { name: "bars_fresh", status: "FAIL", evidence: "2/30 held names missing the 2026-11-11 bar: NOTHELD", cause: "bar sync skipped these" },
+    { name: "official_run", status: "PASS", evidence: "24 official rows", cause: "" }] },
 };
 const NATWAR = {
   ...PRIMARY, isOfficial: null, preview: true, label: "Natwar",
@@ -60,6 +63,10 @@ test.describe("advisor (mocked)", () => {
     const brief = page.getByTestId("morning-brief");
     await expect(brief).toContainText("Kanaklata: 2 sell, 0 trim → KSELL→KBUY");
     await expect(brief.getByText(/^Stale:/)).toHaveCSS("color", "rgb(245, 158, 11)");
+    const wd = page.getByTestId("watchdog");
+    await expect(wd).toContainText("1 fail · 0 warn · 1 pass");
+    await wd.locator("summary").click();
+    await expect(wd).toContainText("bars_fresh · 2/30 held names missing the 2026-11-11 bar: NOTHELD — bar sync skipped these");
     await page.getByRole("button", { name: /Natwar/ }).click();
     await expect(page.getByTestId("morning-brief")).toContainText("Natwar: 1 sell");
   });

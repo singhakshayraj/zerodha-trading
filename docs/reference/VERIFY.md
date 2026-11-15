@@ -252,6 +252,14 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-33 · the watchdog runs itself and is right — registered 2026-11-16
+From 11-17 evening: `app_config.watchdog_latest.run_date` = today, `ran_at`
+after 16:40 IST. Compare its FAIL/WARN list with this ledger's own reading
+for the day: every break the post-session audit finds must be in the
+watchdog's list (a miss = add the check), and every watchdog FAIL must be
+real (a false alarm = fix the check). PASS after three sessions with no
+miss and no false alarm. FAIL if the key is missing on a trading day.
+
 ### V-32 · morning brief lands after both runs — registered 2026-11-16
 From the 11-17 run: `app_config.morning_brief_latest` has `run_date` =
 today and a `moves` line naming both accounts (Natwar's part is "no run"
