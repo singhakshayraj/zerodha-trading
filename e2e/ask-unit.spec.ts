@@ -97,3 +97,23 @@ test("what-if: parses plain moves and reports cash, sectors and caps", () => {
   // Unknown symbol in a sell is reported, not silently dropped.
   expect(simulate([{ account: "primary", action: "sell", symbol: "XYZ", all: true }], books).errors[0]).toContain("XYZ is not held");
 });
+
+test("call_scores: one call's running score, or the lessons + day-20 scorecard", async () => {
+  const call = { source: "advice", account: "primary", symbol: "ATGL", call: "SELL", entry: 612.5, days: 11,
+    signed_alpha_pct: 8, mae_pct: -1, mfe_pct: 12, worst_day: 1, pair_pct: 9.7, target: "PETRONET", correct: true,
+    early_wrong_days: 3, should_have_sold: false, path: [], context: { regime: null, trigger_type: null, confidence: null, reasons: [] } };
+  const f = async (p: string) => {
+    if (p === "/advisor/calls/days") return { days: [{ run_date: "2026-11-13", n: 9, scored_days: 1 }, { run_date: "2026-11-03", n: 9, scored_days: 11 }] };
+    if (p.startsWith("/advisor/calls?date=2026-11-13")) return { run_date: "2026-11-13", calls: [] };
+    if (p.startsWith("/advisor/calls?date=2026-11-03")) return { run_date: "2026-11-03", calls: [call] };
+    if (p === "/advisor") return {
+      lessons: { populations: { holdings: { lessons: [{ text: "SELL calls in CHOP: 10 of 40 right (25%) vs 53% overall, p=0.000" }] } } },
+      scorecard: { by_source: { advice: { "20": { n: 50, hit_pct: 50, mean_alpha_pct: 0.2 } }, natwar: { "20": { n: 25, hit_pct: 48, mean_alpha_pct: -0.4 } } } } };
+    throw new Error("unexpected " + p);
+  };
+  const tool = TOOLS.find((t) => t.name === "call_scores")!;
+  const one = await tool.run({ symbol: "atgl" }, { account: "primary", fetch: f }) as Record<string, unknown>;
+  expect(one.summary).toBe("SELL ATGL 2026-11-03: right, +8.0% vs Nifty after 11 days; worst point -1.0% on day 1 · switch +9.7% after costs");
+  const all = await tool.run({}, { account: "primary", fetch: f }) as Record<string, unknown>;
+  expect(all.summary).toBe("SELL calls in CHOP: 10 of 40 right (25%) vs 53% overall, p=0.000. Holdings calls: 49.3% right at day 20 over 75 calls, mean +0.0% vs Nifty.");
+});

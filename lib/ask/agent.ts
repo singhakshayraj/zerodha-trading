@@ -26,6 +26,8 @@ Examples:
 "how did I do in March 2026?" -> pnl {"month": "2026-03"}
 "did following the calls help?" -> decisions
 "what if I sell X and buy Y?" -> what_if {"moves": "<the question>"}
+"how is the X sell doing?" / "was the X call right?" -> call_scores {"symbol": "X"}
+"what are the lessons?" / "how good are the calls?" -> call_scores
 If nothing fits, reply {"tool": "none", "args": {}}.` },
     { role: "user" as const, content:
 `Screen: ${ACCOUNT_LABEL[ctx.account]}'s account${ctx.symbol ? `, looking at ${ctx.symbol}` : ""}. Today is ${new Date().toISOString().slice(0, 10)}.

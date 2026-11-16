@@ -199,6 +199,33 @@ export const TOOLS: ToolSpec[] = [
         sectors: r.sectors.slice(0, 5).map((l) => ({ sector: l.group, before_pct: l.before, after_pct: l.after, index_pct: l.index })) };
     },
   },
+  {
+    name: "call_scores",
+    description: "How past advisor calls turned out: with a symbol, its newest call's running score vs the Nifty; without, the lessons (call types that go wrong more often) and the day-20 hit rate.",
+    args: { symbol: "NSE symbol (optional)", account: "kanaklata or natwar (optional)" },
+    async run(args, ctx) {
+      const { verdictSentence, pct } = await import("../calls");
+      const sym = (args.symbol ?? "").toUpperCase().trim();
+      if (sym) {
+        const days = ((await ctx.fetch("/advisor/calls/days")).days ?? []) as { run_date: string; scored_days: number }[];
+        for (const d of days.filter((x) => x.scored_days > 0).slice(0, 30)) {
+          const r = await ctx.fetch(`/advisor/calls?date=${d.run_date}&population=holdings`);
+          const c = (r.calls ?? []).find((x: { symbol: string; source: string; account: string }) => x.symbol === sym && x.source !== "target"
+            && (!args.account || x.account === acct(args, ctx)));
+          if (c) return { summary: verdictSentence(c, d.run_date), run_date: d.run_date, days: c.days, signed_alpha_pct: c.signed_alpha_pct };
+        }
+        return { error: `no scored call for ${sym} yet — scores start the morning after a call` };
+      }
+      const a = await ctx.fetch("/advisor");
+      const texts = ((a.lessons?.populations?.holdings?.lessons ?? []) as { text: string }[]).map((l) => l.text);
+      const cells = ["advice", "natwar"].map((s) => a.scorecard?.by_source?.[s]?.["20"]).filter(Boolean) as { n: number; hit_pct: number; mean_alpha_pct: number }[];
+      const n = cells.reduce((t, c) => t + c.n, 0);
+      const hit = n ? cells.reduce((t, c) => t + (c.hit_pct * c.n) / 100, 0) / n * 100 : null;
+      const mean = n ? cells.reduce((t, c) => t + c.mean_alpha_pct * c.n, 0) / n : null;
+      const score = n ? ` Holdings calls: ${hit!.toFixed(1)}% right at day 20 over ${n} calls, mean ${pct(mean!)} vs Nifty.` : " No call has reached day 20 yet.";
+      return { summary: (texts.length ? texts.join("; ") + "." : "Nothing fires yet — a lesson needs 30 scored calls in one bucket.") + score, lessons: texts };
+    },
+  },
 ];
 
 export const toolByName = (n: string) => TOOLS.find((t) => t.name === n);
