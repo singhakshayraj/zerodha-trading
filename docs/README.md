@@ -78,6 +78,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 - [reference/TECH_AUDIT_2026-11-16.md](reference/TECH_AUDIT_2026-11-16.md) — technical audit (security, reliability, latency, data hygiene): findings E1–E9 with evidence, fixes [P-61]–[P-67], and the method to re-run it.
 
 ## 📐 superpowers/plans/ — design docs for work not yet built
+- [superpowers/plans/2026-11-16-advisor-v3-roadmap.md](superpowers/plans/2026-11-16-advisor-v3-roadmap.md) — **advisor v3 roadmap**: the ten faults in the current picking logic (horizon, tax, benchmark, reversal term…) with the evidence, and the six-phase plan (fix the ruler → tax-aware actions → risk-based weights → slow factors → fundamentals/events → tournament). Nothing started.
 - [superpowers/plans/2026-08-26-multi-tenant.md](superpowers/plans/2026-08-26-multi-tenant.md) — running the system for N Zerodha accounts: coupling inventory, staged architecture, migration phases. Includes the review that reversed its own shared-market-worker decision.
 
 ## 🗄️ archive/ — history + superseded (kept for the record)

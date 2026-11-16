@@ -1315,6 +1315,16 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 - **[P-67] Retry on Supabase calls.** [me] · E8. One decorator in
   `database.py`: 2 retries (1 s, 3 s) on httpx transport errors and
   PostgREST 5xx; never 4xx. FakeSupabase test raises once. ~2 h.
+- **[P-68] Advisor v3 roadmap.** [you] · *proposed 2026-11-16, plan
+  `superpowers/plans/2026-11-16-advisor-v3-roadmap.md`.* Diagnosis: v1 is
+  one trend idea on a trader's clock over an investor's book — live calls
+  49% at day 20, 37% at day 40 (−2.4% α), targets 24% at day 40; tax and
+  cost invisible; absolute not cross-sectional; Nifty-50 benchmark on a
+  PSU-bank-heavy book; backtests not point-in-time. Six phases, each
+  gated: 0 fix the ruler · 1 tax-aware actions · 2 HRP weights · 3 slow
+  factors on a 20-y point-in-time panel · 4 fundamentals history + PEAD/
+  insider/flow capture · 5 human-vs-advisor · 6 tournament. v1 stays as
+  control. Needs greenlight per phase; Phase 0 + Phase 4 capture first.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 
