@@ -22,108 +22,53 @@ export async function GET() {
     const runId = latest?.[0]?.run_id ?? null;
     if (!runId) return NextResponse.json({ runDate: null, runAt: null, isOfficial: null, rows: [] });
 
-    const { data: rows, error } = await supabaseServer
-      .from("portfolio_advice")
-      .select("*")
-      .eq("run_id", runId)
-      .order("trend_score", { ascending: true }); // worst first — act on those
+    const runDate = latest?.[0]?.run_date ?? null;
 
+    // Everything below depends only on runId/runDate, so it runs in one
+    // parallel round instead of seven serial ones (the API runs far from the
+    // database; serial trips pushed this past the client's 15 s timeout).
+    const CFG_KEYS = ["portfolio_risk_latest", "advisor_calibration_latest", "thesis_track_record",
+      "hero_picks_latest", "sector_view_latest", "morning_brief_latest", "watchdog_latest"];
+    const [rowsRes, cfgRes, priorRes] = await Promise.all([
+      supabaseServer.from("portfolio_advice").select("*").eq("run_id", runId)
+        .order("trend_score", { ascending: true }),                // worst first — act on those
+      supabaseServer.from("app_config").select("key, value").in("key", CFG_KEYS),
+      supabaseServer.from("portfolio_advice").select("run_id, run_date").lt("run_date", runDate)
+        .order("run_date", { ascending: false }).order("created_at", { ascending: false }).limit(1),
+    ]);
+    const { data: rows, error } = rowsRes;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    // Portfolio-level risk view (concentration + tax-loss harvest), written
-    // by the brain's official run to app_config as JSON. Only surface it when
-    // it belongs to the run being shown — a stale read from an earlier day
-    // must not render against today's rows.
-    let portfolioRisk = null;
-    const runDate = latest?.[0]?.run_date ?? null;
-    try {
-      const { data: cfg } = await supabaseServer
-        .from("app_config")
-        .select("value")
-        .eq("key", "portfolio_risk_latest")
-        .single();
-      if (cfg?.value) {
-        const parsed = JSON.parse(cfg.value as string);
-        if (parsed?.run_date === runDate) portfolioRisk = parsed;
-      }
-    } catch {
-      /* risk view is additive — never blocks the advice payload */
+    // app_config reads are additive — a bad value never blocks the payload.
+    const cfg: Record<string, unknown> = {};
+    for (const c of cfgRes.data ?? []) {
+      if (!c.value) continue;
+      try { cfg[c.key as string] = JSON.parse(c.value as string); } catch { /* skip */ }
     }
+    // Risk view only when it belongs to the run being shown.
+    const risk = cfg.portfolio_risk_latest as { run_date?: string } | undefined;
+    const portfolioRisk = risk?.run_date === runDate ? risk : null;
+    const calibration = cfg.advisor_calibration_latest ?? null;      // DARK diagnostic
+    const thesisTrackRecord = cfg.thesis_track_record ?? null;      // P-47 shadow
+    const heroPicks = cfg.hero_picks_latest ?? null;
+    const sectorView = cfg.sector_view_latest ?? null;
+    const brief = cfg.morning_brief_latest ?? null;                 // P-55
+    const watchdog = cfg.watchdog_latest ?? null;                   // P-56
 
-    // Confidence calibration reliability curve (DARK diagnostic — the advisor
-    // does NOT use it for decisions yet). A rolling read over the graded track
-    // record, valid regardless of today's run, so it's surfaced whenever set.
-    let calibration = null;
-    try {
-      const { data: cal } = await supabaseServer
-        .from("app_config")
-        .select("value")
-        .eq("key", "advisor_calibration_latest")
-        .single();
-      if (cal?.value) calibration = JSON.parse(cal.value as string);
-    } catch {
-      /* diagnostic — never blocks the advice payload */
-    }
-
-    // Thesis engine (shadow, P-47): aggregate track record written by the
-    // monthly grade_thesis.py run. Null until the first theses mature.
-    let thesisTrackRecord = null;
-    try {
-      const { data: ttr } = await supabaseServer
-        .from("app_config")
-        .select("value")
-        .eq("key", "thesis_track_record")
-        .single();
-      if (ttr?.value) thesisTrackRecord = JSON.parse(ttr.value as string);
-    } catch {
-      /* shadow diagnostic — never blocks the advice payload */
-    }
-
-    // Hero picks (contrarian sleeve, scripts/hero_picks.py) and the sector
-    // view (brain, after the scan): one app_config round-trip. Additive.
-    let heroPicks = null, sectorView = null, brief = null, watchdog = null;
-    try {
-      const { data: cfg } = await supabaseServer
-        .from("app_config").select("key, value").in("key", ["hero_picks_latest", "sector_view_latest", "morning_brief_latest", "watchdog_latest"]);
-      for (const c of cfg ?? []) {
-        if (!c.value) continue;
-        if (c.key === "hero_picks_latest") heroPicks = JSON.parse(c.value as string);
-        if (c.key === "sector_view_latest") sectorView = JSON.parse(c.value as string);
-        if (c.key === "morning_brief_latest") brief = JSON.parse(c.value as string);   // P-55
-        if (c.key === "watchdog_latest") watchdog = JSON.parse(c.value as string);     // P-56
-      }
-    } catch { /* additive — never blocks the advice payload */ }
-
-    // Day-over-day verdict diff: what changed vs the last run on an earlier
-    // date. A daily user cares about the flips (ATGL HOLD->TRIM) and new
-    // names, not re-reading 20 unchanged cards. Additive — never blocks.
-    let priorRunDate: string | null = null;
+    // Day-over-day verdict diff vs the last run on an earlier date. Additive.
+    const priorRunId = priorRes.data?.[0]?.run_id ?? null;
+    const priorRunDate: string | null = priorRes.data?.[0]?.run_date ?? null;
     const changes: { symbol: string; from: string; to: string }[] = [];
     const newNames: string[] = [];
-    try {
-      const { data: prior } = await supabaseServer
-        .from("portfolio_advice")
-        .select("run_id, run_date")
-        .lt("run_date", runDate)
-        .order("run_date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(1);
-      const priorRunId = prior?.[0]?.run_id ?? null;
-      priorRunDate = prior?.[0]?.run_date ?? null;
-      if (priorRunId) {
-        const { data: priorRows } = await supabaseServer
-          .from("portfolio_advice")
-          .select("symbol, verdict")
-          .eq("run_id", priorRunId);
-        const prev = new Map((priorRows ?? []).map((r) => [r.symbol as string, r.verdict as string]));
-        for (const r of rows ?? []) {
-          const was = prev.get(r.symbol);
-          if (was === undefined) newNames.push(r.symbol);
-          else if (was !== r.verdict) changes.push({ symbol: r.symbol, from: was, to: r.verdict });
-        }
+    if (priorRunId) {
+      const { data: priorRows } = await supabaseServer
+        .from("portfolio_advice").select("symbol, verdict").eq("run_id", priorRunId);
+      const prev = new Map((priorRows ?? []).map((r) => [r.symbol as string, r.verdict as string]));
+      for (const r of rows ?? []) {
+        const was = prev.get(r.symbol);
+        if (was === undefined) newNames.push(r.symbol);
+        else if (was !== r.verdict) changes.push({ symbol: r.symbol, from: was, to: r.verdict });
       }
-    } catch {
-      /* diff is additive — never blocks the advice payload */
     }
 
     return NextResponse.json({
