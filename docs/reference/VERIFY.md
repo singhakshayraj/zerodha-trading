@@ -260,6 +260,7 @@ match the export. FAIL on a target without the block, or a flag whose
 number is not in the fundamentals store. Over time (≥ 30 graded buy
 calls): do flagged targets grade worse than clean ones? If not, the rules
 are noise — report, don't act.
+_11-16 reading: 8/8 Kanaklata targets and 6/6 Natwar targets carry the block. Flags: JINDALSTEL pledge 10.1% (red), FII exits on LT/BEML/JINDALSTEL, quarter drops on PETRONET/HBLENGINE/BEML, P/E on INDHOTEL/BEML. Screener spot-check still owed._
 
 ### V-33 · the watchdog runs itself and is right — registered 2026-11-16
 From 11-17 evening: `app_config.watchdog_latest.run_date` = today, `ran_at`
@@ -278,6 +279,7 @@ the `stale` line should name only real gaps (FII row until the FIIDII
 plist is loaded). FAIL if the key is missing or dated earlier than the
 official run. 11-13 (manual publish): 5 lines, 9+4 / 6+8 moves, 3
 overweights, tape 11-12, stale = FII only.
+_11-16 reading (first auto publish, 09:51 IST): 6 lines, both accounts named (9+2 / 6+7), tape 11-13, stale = FII only, watch = 11-13 watchdog FAILs (pre-fix ETF rows). PASS for today._
 
 ### V-31 · household rule shapes buy targets — registered 2026-11-12
 From the 11-13 official run: no rotation target in either account breaks
@@ -291,6 +293,7 @@ LTTS kept at 6.6% by Kanaklata's SILVERBEES→LTTS alone.
 never the sell side of a rotation — hedge sleeve stays. Also check: no
 `*BEES`/ETF row carries `rotation_target_symbol` in either account from
 the 11-17 run. 11-13 Natwar had GOLDBEES→PVRINOX before the fix.
+_11-16 reading: 0 ETF rows with a target in either account (8 Kanaklata, 6 Natwar rotations). ETF part PASS; cap sum check still owed._
 
 ### V-30 · macro_daily has a row for every trading day — registered 2026-11-12
 After each morning bar sync: `select max(date) from macro_daily` = last
