@@ -62,6 +62,8 @@ export async function GET() {
       { data: ttEffectRows },
       { data: newsEffectRows },
       { data: latestNews },
+      { data: advDaily },
+      { data: advMix },
     ] = await Promise.all([
       supabaseServer.rpc("insights_totals"),
       supabaseServer.rpc("daily_capture"),
@@ -72,6 +74,8 @@ export async function GET() {
         .select("published_at, headline, symbols, sentiment_label, sentiment_score, url")
         .order("published_at", { ascending: false })
         .limit(8),
+      supabaseServer.rpc("advisor_daily_capture"),
+      supabaseServer.rpc("advisor_verdict_mix"),
     ]);
 
     const totals = (totalsRaw ?? {}) as {
@@ -281,6 +285,13 @@ export async function GET() {
       daily: (daily ?? []).map((d: { day: string; decisions: number; trades: number; candles: number }) => ({
         day: d.day, decisions: Number(d.decisions), trades: Number(d.trades), candles: Number(d.candles),
       })),
+      advisorDaily: (advDaily ?? []).map((d: { day: string; kanaklata: number; natwar: number; universe: number }) => ({
+        day: d.day, kanaklata: Number(d.kanaklata), natwar: Number(d.natwar), universe: Number(d.universe),
+      })),
+      advisorMix: ["SELL", "TRIM", "HOLD"].map((v) => {
+        const r = (advMix ?? []).find((x: { verdict: string }) => x.verdict === v) as { holdings: number; universe: number } | undefined;
+        return { verdict: v, holdings: Number(r?.holdings ?? 0), universe: Number(r?.universe ?? 0) };
+      }),
       signals: [
         { signal: "BUY", count: buy.count ?? 0 },
         { signal: "SELL", count: sell.count ?? 0 },

@@ -169,12 +169,12 @@ test.describe("QA scenarios (QA stack)", () => {
     // so their visibility proves /api/analytics/insights returned (RPC +
     // queries work against the sim DB), not just that the shell mounted.
     await expect(page.getByRole("heading", { name: "Data Insights" })).toBeVisible();
-    await expect(page.getByText("Data captured per day")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("Advisor calls per day")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("R-multiple distribution")).toBeVisible();
 
     // Scroll regression guard (the page could not scroll on first ship): a
     // panel near the bottom must become visible after scrolling to it.
-    const bottomPanel = page.getByText("Decision signals");
+    const bottomPanel = page.getByText("Advisor verdicts");
     await bottomPanel.scrollIntoViewIfNeeded();
     await expect(bottomPanel).toBeInViewport();
 

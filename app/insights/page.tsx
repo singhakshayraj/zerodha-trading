@@ -25,6 +25,8 @@ type Insights = {
   equityCurve: { i: number; date: string | null; cumPnl: number; cumR: number }[];
   daily: { day: string; decisions: number; trades: number; candles: number }[];
   signals: { signal: string; count: number }[];
+  advisorDaily: { day: string; kanaklata: number; natwar: number; universe: number }[];
+  advisorMix: { verdict: string; holdings: number; universe: number }[];
   rDistribution: { bucket: string; count: number }[];
   byRegime: { regime: string; trades: number; winRate: number; avgR: number }[];
   byTimeBucket: { bucket: string; trades: number; winRate: number }[];
@@ -477,28 +479,28 @@ export default function InsightsPage() {
                   <Stat icon={Activity} label="Decisions" value={data.scale.decisions.toLocaleString()} tint={AMBER} />
                   <Stat icon={Database} label="Candles" value={data.scale.candles.toLocaleString()} tint={MUTE} sub={data.scale.candles === 0 ? "archive starts next session" : undefined} />
                 </div>
-                <Panel title="Data captured per day" subtitle="Decisions & trades recorded each trading day">
+                <Panel title="Advisor calls per day" subtitle="Calls on your holdings (right axis) and the Nifty 500 scan (left axis). The intraday engine stopped 28 Aug.">
                   <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={data.daily} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                    <BarChart data={data.advisorDaily} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
                       <XAxis dataKey="day" tickFormatter={fmtDay} tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
                       <YAxis yAxisId="l" tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
                       <YAxis yAxisId="r" orientation="right" tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip {...tooltipStyle} labelFormatter={(l) => fmtDay(String(l))} />
-                      <Bar yAxisId="l" dataKey="decisions" name="Decisions" fill={AMBER} radius={[3, 3, 0, 0]} />
-                      <Bar yAxisId="r" dataKey="trades" name="Trades" fill={GREEN} radius={[3, 3, 0, 0]} />
+                      <Bar yAxisId="l" dataKey="universe" name="Nifty 500 scan" fill={MUTE} radius={[3, 3, 0, 0]} />
+                      <Bar yAxisId="r" dataKey="kanaklata" name="Kanaklata" stackId="h" fill={BLUE} />
+                      <Bar yAxisId="r" dataKey="natwar" name="Natwar" stackId="h" fill={AMBER} radius={[3, 3, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </Panel>
                 <div className="mt-4">
-                  <Panel title="Decision signals" subtitle="Every recorded brain decision, by action">
+                  <Panel title="Advisor verdicts" subtitle="Every advisor call so far, by verdict">
                     <ResponsiveContainer width="100%" height={180}>
-                      <BarChart data={data.signals} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                        <XAxis dataKey="signal" tick={{ fill: "#888", fontSize: 12 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
+                      <BarChart data={data.advisorMix} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                        <XAxis dataKey="verdict" tick={{ fill: "#888", fontSize: 12 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
                         <YAxis tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip {...tooltipStyle} />
-                        <Bar dataKey="count" name="Decisions" radius={[3, 3, 0, 0]}>
-                          {data.signals.map((s, i) => <Cell key={i} fill={s.signal === "BUY" ? GREEN : s.signal === "SELL" ? RED : MUTE} />)}
-                        </Bar>
+                        <Bar dataKey="holdings" name="Your holdings" fill={BLUE} radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="universe" name="Nifty 500 scan" fill={MUTE} radius={[3, 3, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </Panel>
