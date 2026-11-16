@@ -23,7 +23,9 @@ async function mockCalls(page: Page) {
         lessons: [{ bucket: "verdict_regime", key: "SELL×CHOP", n: 40, hit_pct: 25, overall_hit_pct: 53.1, p: 0.0001,
           text: "SELL calls in CHOP: 10 of 40 right (25%) vs 53% overall, p=0.000" }], strengths: [], clearing: [] },
       universe: { overall: { n: 0, hit_pct: null, mean_alpha_pct: null }, buckets_scanned: 0, haircut: 0.05, lessons: [], strengths: [], clearing: [] } } },
-    scorecard: { asof: "2026-11-15", by_source: { advice: { "5": { n: 120, hit_pct: 51.7, mean_alpha_pct: 0.3 }, "20": { n: 75, hit_pct: 49.3, mean_alpha_pct: -0.2 } } } },
+    scorecard: { asof: "2026-11-15", by_source: { advice: { "5": { n: 120, hit_pct: 51.7, mean_alpha_pct: 0.3 },
+      "20": { n: 75, hit_pct: 49.3, mean_alpha_pct: -0.2, hit_ci: [38.2, 60.9], alpha_ci: [-2.1, 1.6],
+        sector: { n: 70, hit_pct: 55.7, mean_alpha_pct: 0.5, hit_ci: [44.0, 67.1], alpha_ci: [-1.0, 2.0] }, size: null } } } },
   } }));
   await page.route(/\/api\/advisor\/calls\/days/, (r) => r.fulfill({ json: { days: [
     { run_date: "2026-11-13", n: 530, scored_days: 0 }, { run_date: "2026-11-03", n: 50, scored_days: 11 }] } }));
@@ -43,7 +45,10 @@ test("calls page: day rows, path on tap, lessons, unscored day copy", async ({ p
   await page.getByText("SELL ATGL 2026-11-03").click();
   await expect(page.getByTestId("call-path")).toBeVisible();
   await expect(page.getByTestId("lessons")).toContainText("SELL calls in CHOP: 10 of 40 right (25%) vs 53% overall, p=0.000");
-  await expect(page.getByTestId("scorecard")).toContainText("49.3%");
+  await expect(page.getByTestId("scorecard")).toContainText("49.3% [38–61]");
+  await page.getByTestId("bench-toggle").getByRole("button", { name: "vs sector" }).click();
+  await expect(page.getByTestId("scorecard")).toContainText("55.7% [44–67]");
+  await page.getByTestId("bench-toggle").getByRole("button", { name: "vs Nifty" }).click();
   await page.getByRole("button", { name: "Natwar" }).click();
   await expect(page.getByText(/SELL NONLY 2026-11-03/)).toBeVisible();
   await page.getByRole("button", { name: "2026-11-13" }).click();

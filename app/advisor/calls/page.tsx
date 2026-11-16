@@ -20,7 +20,11 @@ type Day = { run_date: string; n: number; scored_days: number };
 type Lesson = { text: string };
 type Pop = { overall: { n: number; hit_pct: number | null }; lessons: Lesson[]; strengths: Lesson[] };
 type Lessons = { asof: string; populations: Record<string, Pop> } | null;
-type Score = { by_source: Record<string, Record<string, { n: number; hit_pct: number; mean_alpha_pct: number }>> } | null;
+type Cell = { n: number; hit_pct: number; mean_alpha_pct: number; hit_ci?: [number, number]; alpha_ci?: [number, number] };
+type ScoreCell = Cell & { sector?: Cell | null; size?: Cell | null };
+type Score = { by_source: Record<string, Record<string, ScoreCell>> } | null;
+type Bench = "nifty" | "sector" | "size";
+const BENCHES: [Bench, string][] = [["nifty", "vs Nifty"], ["sector", "vs sector"], ["size", "vs size peers"]];
 type Chip = "primary" | "natwar" | "universe";
 
 const SOURCES: [string, string][] = [["advice", "Kanaklata"], ["natwar", "Natwar"], ["target", "Buy targets"], ["universe", "Nifty 500 scan"]];
@@ -36,6 +40,7 @@ export default function CallsPage() {
   const [open, setOpen] = useState<string | null>(null);
   const [lessons, setLessons] = useState<Lessons>(null);
   const [score, setScore] = useState<Score>(null);
+  const [bench, setBench] = useState<Bench>("nifty");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
@@ -79,15 +84,22 @@ export default function CallsPage() {
           {error && <p className="text-sm text-[#ef4444]">{error}</p>}
 
           <section data-testid="scorecard" className="rounded-xl border border-[#1f1f1f] bg-[#111111] p-4 overflow-x-auto">
-            <p className="text-xs text-[#8a8a8a] mb-2">Share of calls that were right, after 5 to 60 trading days</p>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <p className="text-xs text-[#8a8a8a]">Share of calls that were right, after 5 to 60 trading days. Brackets: 95% range.</p>
+              <div className="flex gap-1 ml-auto" data-testid="bench-toggle">
+                {BENCHES.map(([b, label]) => (
+                  <button key={b} onClick={() => setBench(b)}
+                    className={`px-2 min-h-[28px] rounded-md border text-[11px] ${bench === b ? "border-[#3a3a3a] bg-[#1f1f1f]" : "border-[#1f1f1f] text-[#8a8a8a]"}`}>{label}</button>))}
+              </div>
+            </div>
             <table className="text-xs w-full min-w-[480px]">
               <thead><tr className="text-[#666]"><th className="text-left font-normal py-1">Calls</th>
                 {CPS.map((c) => <th key={c} className="text-right font-normal">day {c}</th>)}</tr></thead>
               <tbody>{SOURCES.map(([src, label]) => (
                 <tr key={src} className="border-t border-[#1a1a1a]"><td className="py-1.5 text-[#ccc]">{label}</td>
-                  {CPS.map((cp) => { const v = score?.by_source?.[src]?.[cp]; return (
-                    <td key={cp} className="text-right tabular-nums" title={v ? `${v.n} calls, average ${pct(v.mean_alpha_pct)} vs Nifty` : ""}>
-                      {v ? <span style={{ color: v.hit_pct >= 50 ? GREEN : RED }}>{v.hit_pct.toFixed(1)}%<span className="text-[#555]"> ({v.n})</span></span> : <span className="text-[#444]">—</span>}
+                  {CPS.map((cp) => { const base = score?.by_source?.[src]?.[cp]; const v = bench === "nifty" ? base : base?.[bench] ?? null; return (
+                    <td key={cp} className="text-right tabular-nums" title={v ? `${v.n} calls, average ${pct(v.mean_alpha_pct)} ${BENCHES.find(([b]) => b === bench)![1]}${v.alpha_ci ? ` [${pct(v.alpha_ci[0])} to ${pct(v.alpha_ci[1])}]` : ""}` : ""}>
+                      {v ? <span style={{ color: v.hit_pct >= 50 ? GREEN : RED }}>{v.hit_pct.toFixed(1)}%{v.hit_ci && <span className="text-[#666]"> [{Math.round(v.hit_ci[0])}–{Math.round(v.hit_ci[1])}]</span>}<span className="text-[#555]"> ({v.n})</span></span> : <span className="text-[#444]">—</span>}
                     </td>); })}
                 </tr>))}</tbody>
             </table>
