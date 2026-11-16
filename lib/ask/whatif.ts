@@ -107,7 +107,7 @@ export function simulate(moves: Move[], books: Books, indexWeights: Record<strin
     return { sec: Object.fromEntries(Object.entries(sec).map(([k, v]) => [k, pct(v)])),
       nm: Object.fromEntries(Object.entries(nm).map(([k, x]) => [k, { pct: pct(x.v), accts: Array.from(x.accts) }])) };
   };
-  const before = weights(Object.fromEntries((["primary", "natwar"] as const).map((a) => [a, Object.fromEntries((books[a] ?? []).map((p) => [p.symbol, p.quantity]))])) as Books extends infer _ ? Record<Account, Record<string, number>> : never, total_before);
+  const before = weights(Object.fromEntries((["primary", "natwar"] as const).map((a) => [a, Object.fromEntries((books[a] ?? []).map((p) => [p.symbol, p.quantity]))])) as Record<Account, Record<string, number>>, total_before);
   const after = weights(pos, total_after);
   const touched = new Set(moves.map((m) => m.symbol));
   const sectors: Line[] = Object.keys({ ...before.sec, ...after.sec })
