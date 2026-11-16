@@ -4,7 +4,7 @@ Living document. Full-application scans land findings here; fixes move items
 to the Resolved log at the bottom. Re-scan cadence: after every major feature
 ship, or when `/post-session-check` flags something new.
 
-Last full scan: **2026-07-23** (advisor bug-list audit — see Resolved log).
+Last full scan: **2026-11-16** (technical audit — `E1`–`E9` below; earlier: 2026-07-23 advisor bug-list audit, see Resolved log).
 **Backlog cleared 2026-07-14** — all P1–P6 resolved same day (brain `cf8a628`,
 dashboard `1944f45`); details in the Resolved log. New findings start fresh
 below.
@@ -154,6 +154,53 @@ sane price ranges (₹2358.60, ₹2307.72 avg) — the smoothed-run fix is
 validated in production, not just in theory.
 
 ---
+
+## 2026-11-16 technical audit
+
+Full write-up with evidence, fixes and method: [TECH_AUDIT_2026-11-16.md](TECH_AUDIT_2026-11-16.md).
+Nothing below touches scoring or advisor settings. Fixes are PROPOSED in
+PIPELINE as [P-61]–[P-67]; none started.
+
+### E1 — dashboard data routes answer without login 🔴 → [P-61]
+`curl` with no headers on the production alias returns both accounts' holdings,
+qty, avg price, P&L (`/api/advisor`, `?account=natwar`). Vercel protection
+covers deployment URLs only. No `middleware.ts`. Fix: cookie gate + `/login`.
+
+### E2 — brain keeps job state in memory; no health check; deploy overlap 🔴 → [P-62]
+Nine `_*_date`/`_*_days` guards in `scheduler.py` die on restart;
+`railway.toml` has no `healthcheckPath`; deploy `a867d334` (11-16 21:30)
+logged a Telegram 409 from two copies polling ([W5]). Fix: `app_config`
+done-marks per job + `/health` endpoint.
+
+### E3 — failed morning raises no alert until next day's brief 🟡 → [P-63]
+`data_watchdog.py` (16:40) writes to `app_config`; only the brief reads it.
+Fix: FAIL → `telegram.send_message`.
+
+### E4 — `NSE_HOLIDAYS` ends 2026-12-31 🟡 → [P-64]
+`config.py:426` unions 2025+2026 only; from January every weekday trades.
+Fix: 2027 list + startup assertion ≥ 60 days of cover.
+
+### E5 — `/api/analytics/insights` recomputes dead-engine RPCs each visit (~2.8 s) 🟡 → [P-65]
+`insights_totals`, `daily_capture`, `trend_tells_effect`, `news_outcome_effect`
+aggregate tables frozen since 08-28; no `revalidate`. Fix: cache 1 h.
+
+### E6 — `amfi_nav` holds all 14,531 schemes (384k rows, 99 MB) for 3 held 🟡 → [P-66]
+Largest table in the DB. Fix: filter insert to `holding_scheme_map`, prune.
+
+### E7 — retired engine still imported; daily catch-up seq-scans `brain_decisions` 🟢 → [P-65]
+`scheduler.py:14` `from brain import TradingBrain`; `scheduler.py:172-179`
+`decision_outcomes.label_decisions_for_date` daily over a table with no new
+rows. Fix: guard both behind `ENGINE_ENABLED` (new, default false).
+
+### E8 — no retry on Supabase calls 🟡 → [P-67]
+`database.py` has no retry; one `httpx` timeout skips a job for the day
+(11-04 silent advisor with ONLINE heartbeat). Fix: 2 retries, 1 s/3 s,
+transport + 5xx only.
+
+### E9 — minor, no ticket 🟢
+Cold start ~3 s; `enc_token` plaintext in `app_config` (service key sits
+beside it anyway); local py3.9 vs prod 3.11; `select("*")` payloads
+(`/api/autopsy` 395 KB). Trim when touched.
 
 ## 2026-11-09 post-session findings
 

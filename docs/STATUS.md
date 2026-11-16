@@ -2090,6 +2090,14 @@ lessons (Sunday 08:00 IST). See `/advisor/calls`. Open checks V-35
 (daily rows) and V-36 (lessons silent until n ≥ 30). Nothing feeds back
 into the advisor; a lesson is for the operator to decide on.
 
+**Technical audit** the same evening
+([reference/TECH_AUDIT_2026-11-16.md](reference/TECH_AUDIT_2026-11-16.md)):
+nine findings, two red — the dashboard's data routes are open without a
+login (E1), and the brain keeps its once-a-day job state only in memory
+with no health check (E2). Fixes proposed as [P-61]–[P-67], none started;
+suggested order P-61 → P-63 → P-64. One defect from today's ship already
+fixed: `scipy` was missing from the server image (brain `7d799ce`).
+
 ### 📍 Exact resume point — 2026-11-09
 
 **Deployed:** brain `2261e59` (Nifty-500 pin fix on top of `45428c7`),

@@ -75,6 +75,7 @@ KNOWN_ISSUES *findings*; `P-01`…`P-34` are PIPELINE *work items*. `K7` is not
 - [reference/FINSERV_PLUGINS.md](reference/FINSERV_PLUGINS.md) — the claude-for-financial-services plugins: which four ideas transfer, and which are ruled out (so it isn't re-litigated).
 - [reference/RESUME_PROMPT.md](reference/RESUME_PROMPT.md) — the paste-block for starting a new session.
 - [reference/TEST_COVERAGE.md](reference/TEST_COVERAGE.md) — what the suite covers.
+- [reference/TECH_AUDIT_2026-11-16.md](reference/TECH_AUDIT_2026-11-16.md) — technical audit (security, reliability, latency, data hygiene): findings E1–E9 with evidence, fixes [P-61]–[P-67], and the method to re-run it.
 
 ## 📐 superpowers/plans/ — design docs for work not yet built
 - [superpowers/plans/2026-08-26-multi-tenant.md](superpowers/plans/2026-08-26-multi-tenant.md) — running the system for N Zerodha accounts: coupling inventory, staged architecture, migration phases. Includes the review that reversed its own shared-market-worker decision.

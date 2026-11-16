@@ -1281,6 +1281,40 @@ Read-only data access; every claim cites the rows it used.
   calls / 8,741 rows (advice 198, targets 81, Natwar 80, v1 7, scan
   1,438). First lessons run: holdings n=75 at day 20, 49.3% right, 0
   lessons; scan reaches day 20 ≈ 12-09. Checks: V-35, V-36.
+
+Technical audit 2026-11-16 ([reference/TECH_AUDIT_2026-11-16.md](reference/TECH_AUDIT_2026-11-16.md);
+findings E1–E9 in KNOWN_ISSUES). Engineering only — no scoring or setting
+changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
+
+- **[P-61] Login wall on the dashboard.** [me] · E1. Every data route
+  answers unauthenticated on the production alias (both accounts' book
+  readable by URL). `middleware.ts` cookie gate + `/login` page with one
+  shared secret in Vercel env; Playwright sets the cookie in globalSetup.
+  ~½ day. Verify: `curl` on `/api/advisor` → 302/401 without the cookie.
+- **[P-62] Durable job marks + health check for the brain.** [me] · E2.
+  Nine in-memory once-per-day guards die on restart; deploy overlap double
+  polls Telegram (409). `app_config` `job_done:<name>` marks checked
+  before / written after each job; `/health` thread on `$PORT` +
+  `healthcheckPath` in `railway.toml`. ~1 day. Verify: redeploy mid-morning,
+  no job runs twice, no 409.
+- **[P-63] Watchdog failures to Telegram.** [me] · E3. 16:40 watchdog FAIL
+  and a 09:45 token-dead skip each send one line via `telegram.send_message`.
+  ~1 h. Verify: next FAIL arrives in chat the same day.
+- **[P-64] 2027 holiday calendar + cover check.** [me] · E4.
+  `NSE_HOLIDAYS_2027` (fixed dates now, lunar ones when NSE publishes) and
+  a startup WARN + brief chore line when cover < 60 days. ~1 h. Add
+  "extend holidays" to Cadence every November.
+- **[P-65] Dead-engine hygiene.** [me] · E5 + E7. Cache the four engine
+  RPCs on `/api/analytics/insights` (`revalidate = 3600`; relabel the four
+  tiles "engine, retired"); guard `from brain import TradingBrain` and the
+  decision-labeling catch-up behind `ENGINE_ENABLED` (default false). ~3 h.
+  Verify: insights < 1 s warm; scheduler boots without `brain`.
+- **[P-66] Prune `amfi_nav` to held schemes.** [me] · E6. Insert only
+  `holding_scheme_map` codes; one-off delete of the rest after `pg_dump`.
+  384k → ~3k rows. ~1 h.
+- **[P-67] Retry on Supabase calls.** [me] · E8. One decorator in
+  `database.py`: 2 retries (1 s, 3 s) on httpx transport errors and
+  PostgREST 5xx; never 4xx. FakeSupabase test raises once. ~2 h.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 
