@@ -36,10 +36,11 @@ Claude extension; nothing below works without it.
    matches the screen's count.
 3. Import, from the brain repo:
    ```bash
-   cd ~/Desktop/GITHUB/zerodha-brain && python3 scripts/ingest_fundamentals.py \
+   cd ~/Desktop/GITHUB/zerodha-brain && python3 scripts/ingest_fundamentals.py --asof <export date YYYY-MM-DD> \
      ~/Desktop/GITHUB/zerodha-trading/universe.txt ~/Desktop/GITHUB/zerodha-trading/universe_extended.txt
    ```
-   The script prints coverage gaps (held names with no record). Report those
+   `--asof` is the day the export was taken — it dates the point-in-time copy in
+   `fundamentals_snapshots` [P-68]. The script prints coverage gaps (held names with no record). Report those
    names; the user adds them to the screen.
 4. Verify: `app_config.fundamentals_latest.asof` = today, and the /advisor
    summary strip no longer shows the fundamentals-age warning.
