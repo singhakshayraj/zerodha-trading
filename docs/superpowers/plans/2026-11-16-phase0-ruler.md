@@ -143,7 +143,9 @@ NSE's JSON endpoints (`/api/corporate-announcements`, `/api/corporates-pit`, boa
 - **D1-a (recommended): operator's Chrome, monthly, as a `monthly-chores` step** — the browser is already logged into nothing; the chore saves the JSON for the last 31 days of results dates, insider (PIT) trades, and bulk/block deals into `data/console/nse_<kind>_<date>.json`; `scripts/import_nse_events.py` loads them into `events (symbol, kind, event_date, data jsonb)`. Grading of PEAD/insider trials starts when 60 result dates have accrued.
 - **D1-b: server-side fetcher** with NSE's cookie handshake in the brain; the operator accepts the terms-of-use risk and the breakage risk when NSE changes the handshake.
 
-- [ ] **Step 1:** record D1 in this plan. **Step 2:** implement the chosen route with one parser test per feed. **Step 3:** `event_calendar.policy(d, symbol, results_symbols=…)` gets its `results_symbols` from `events` (capture only; no verdict uses it — the advisor doesn't call `policy()` today and still won't).
+**D1 decided 2026-11-16: skip events this phase.** Task 8 is not executed; fundamentals snapshots (T6) and index closes (T7) are the only Phase 4 capture. Revisit when the operator wants PEAD/insider trials.
+
+- [ ] ~~**Step 1:** record D1 in this plan.~~ **Step 2:** implement the chosen route with one parser test per feed. **Step 3:** `event_calendar.policy(d, symbol, results_symbols=…)` gets its `results_symbols` from `events` (capture only; no verdict uses it — the advisor doesn't call `policy()` today and still won't).
 
 ### Task 9: operator chores this phase (no code)
 

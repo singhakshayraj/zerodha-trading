@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 // buy targets they named; "universe" = the Nifty 500 scan. Worst first.
 
 type Out = { source: string; account: string; symbol: string; td: number; date: string;
-  signed_alpha_pct: number; nifty_pct: number; mae_pct: number; mfe_pct: number; pair_pct: number | null };
+  signed_alpha_pct: number; nifty_pct: number; mae_pct: number; mfe_pct: number; pair_pct: number | null;
+  sector_alpha_pct: number | null; size_alpha_pct: number | null };
 type Src = { symbol: string; verdict: string; sector_verdict?: string | null; last_price: number | null;
   regime?: string | null; market_regime?: string | null; trigger_type: string | null; confidence: number | null;
   reasons?: string[] | null; rotation_target_symbol?: string | null; rotation_buy_price?: number | null; account?: string };
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
     const srcCols = "symbol, verdict, last_price, trigger_type, confidence, rotation_target_symbol";
     const [rows, adv, nat, uni] = await Promise.all([
       paged<Out>((a, b) => supabaseServer.from("call_outcomes")
-        .select("source, account, symbol, td, date, signed_alpha_pct, nifty_pct, mae_pct, mfe_pct, pair_pct")
+        .select("source, account, symbol, td, date, signed_alpha_pct, nifty_pct, mae_pct, mfe_pct, pair_pct, sector_alpha_pct, size_alpha_pct")
         .eq("run_date", date).in("source", sources).order("source").order("account").order("symbol").order("td").range(a, b)),
       universe ? Promise.resolve([] as Src[]) : paged<Src>((a, b) => supabaseServer.from("portfolio_advice")
         .select(`${srcCols}, market_regime, reasons, rotation_buy_price`).eq("run_date", date).eq("is_official", true).range(a, b)),
@@ -79,6 +80,8 @@ export async function GET(req: NextRequest) {
         source, account, symbol, call, entry: m?.entry != null ? n(m.entry) : null, days: last.td,
         signed_alpha_pct: n(last.signed_alpha_pct), mae_pct: mae, mfe_pct: Math.max(...path.map((p) => n(p.mfe_pct))),
         worst_day: worst.td, pair_pct: last.pair_pct != null ? n(last.pair_pct) : null, target: m?.target ?? null,
+        sector_alpha_pct: last.sector_alpha_pct != null ? n(last.sector_alpha_pct) : null,
+        size_alpha_pct: last.size_alpha_pct != null ? n(last.size_alpha_pct) : null,
         correct: n(last.signed_alpha_pct) > 0, early_wrong_days: firstRight < 0 ? path.length : firstRight,
         should_have_sold: !SELLS.includes(call) && mae <= -10,
         path: path.map((p) => ({ date: p.date, td: p.td, signed_alpha_pct: n(p.signed_alpha_pct), nifty_pct: n(p.nifty_pct) })),

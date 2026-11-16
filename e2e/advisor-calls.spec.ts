@@ -8,10 +8,10 @@ const path = [-1, -1, -1, 8, 9.5, 12, 12, 12, 12, 12, 8].map((a, i) => ({
 const ATGL = {
   source: "advice", account: "primary", symbol: "ATGL", call: "SELL", entry: 612.5, days: 11,
   signed_alpha_pct: 8, mae_pct: -1, mfe_pct: 12, worst_day: 1, pair_pct: 9.7, target: "PETRONET",
-  correct: true, early_wrong_days: 3, should_have_sold: false, path,
+  correct: true, early_wrong_days: 3, should_have_sold: false, sector_alpha_pct: 6.5, size_alpha_pct: 2.1, path,
   context: { regime: "AGGRESSIVE_BULL", trigger_type: "MACRO", confidence: 72, reasons: ["below 50-DMA"] },
 };
-const HOLDER = { ...ATGL, symbol: "KHOLD", call: "HOLD", signed_alpha_pct: -12.4, mae_pct: -12.4, worst_day: 11,
+const HOLDER = { ...ATGL, symbol: "KHOLD", call: "HOLD", signed_alpha_pct: -12.4, mae_pct: -12.4, worst_day: 11, sector_alpha_pct: null,
   pair_pct: null, target: null, correct: false, should_have_sold: true };
 const NATCALL = { ...ATGL, symbol: "NONLY", account: "natwar", pair_pct: null, target: null };
 
@@ -37,7 +37,7 @@ async function mockCalls(page: Page) {
 test("calls page: day rows, path on tap, lessons, unscored day copy", async ({ page }) => {
   await mockCalls(page);
   await page.goto("/advisor/calls");
-  await expect(page.getByText("SELL ATGL 2026-11-03: right, +8.0% vs Nifty after 11 days; worst point -1.0% on day 1 · switch +9.7% after costs")).toBeVisible();
+  await expect(page.getByText("SELL ATGL 2026-11-03: right, +8.0% vs Nifty after 11 days; worst point -1.0% on day 1 (vs sector +6.5%) · switch +9.7% after costs")).toBeVisible();
   await expect(page.getByText("HOLD KHOLD 2026-11-03: wrong, -12.4% vs Nifty after 11 days; worst point -12.4% on day 11 — should have sold")).toBeVisible();
   await expect(page.getByText(/NONLY/)).toHaveCount(0);                  // Natwar's call is under his chip
   await page.getByText("SELL ATGL 2026-11-03").click();
