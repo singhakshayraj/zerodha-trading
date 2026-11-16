@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     const [rows, adv, nat, uni] = await Promise.all([
       paged<Out>((a, b) => supabaseServer.from("call_outcomes")
         .select("source, account, symbol, td, date, signed_alpha_pct, nifty_pct, mae_pct, mfe_pct, pair_pct")
-        .eq("run_date", date).in("source", sources).order("symbol").order("td").range(a, b)),
+        .eq("run_date", date).in("source", sources).order("source").order("account").order("symbol").order("td").range(a, b)),
       universe ? Promise.resolve([] as Src[]) : paged<Src>((a, b) => supabaseServer.from("portfolio_advice")
         .select(`${srcCols}, market_regime, reasons, rotation_buy_price`).eq("run_date", date).eq("is_official", true).range(a, b)),
       universe ? Promise.resolve([] as Src[]) : paged<Src>((a, b) => supabaseServer.from("account_calls")
