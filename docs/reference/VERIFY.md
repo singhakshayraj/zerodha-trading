@@ -252,6 +252,22 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-36 · lessons stay silent until n ≥ 30 — registered 2026-11-16
+Each Sunday from 11-22: `app_config.call_lessons_latest.asof` = that
+Sunday and `lessons: []` in both populations until a bucket has 30 calls
+scored at day 20. The first lesson, when it comes, must show n, hit %,
+the overall % and p in its text, and `buckets_scanned`/`haircut` must be
+set. FAIL on a lesson with n < 30, or a Sunday with no run. 11-16 first
+run: holdings n=75, 49.3%, 5 buckets, 0 lessons; universe n=0.
+
+### V-35 · call_outcomes has a row for every call × trading day — registered 2026-11-16
+From 11-18 morning: every call since 11-11 has `td` rows through the
+previous trading day — `select count(*) from call_outcomes where date =
+<yesterday>` ≥ open calls minus names without a bar (11-16 baseline: 5 of
+227 advice calls have no stored bars). The brain log shows
+`[call_outcomes] wrote N rows` after the bar sync. FAIL if a morning is
+missed two days running, or any row is dated today before 15:30.
+
 ### V-34 · every buy target carries its due diligence — registered 2026-11-16
 From the 11-17 run, both accounts: every row with `rotation_target_symbol`
 has `indicators.target_dd.symbol` = that target. Spot-check two flags

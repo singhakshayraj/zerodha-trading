@@ -1267,6 +1267,20 @@ Read-only data access; every claim cites the rows it used.
   under the moves; the Ask drawer routes any "what if / if I sell…" to the
   same code in code (no model guess). Prices come from held rows; a buy of
   an unheld name needs a ₹ amount.
+- **[P-60] Call evaluation.** [me] · *done 2026-11-16 (brain
+  `call_scoring.py`, `call_outcomes.py`, `call_lessons.py`; dashboard
+  `/advisor/calls`, Ask tool `call_scores`; spec
+  `docs/superpowers/specs/2026-11-16-call-evaluation-design.md`):* every
+  call (Kanaklata, Natwar + his v1 verdict, the buy targets, the Nifty 500
+  scan) is re-scored each trading day for 60 days after the morning bar
+  sync — signed alpha vs Nifty, worst/best point, and the sell→buy switch
+  after 0.3% costs — in `call_outcomes`. Sunday 08:00 IST: lessons at day
+  20 (n ≥ 30, ≥ 15pp under, binomial p ≤ 0.05/buckets) and a scorecard to
+  app_config; the brief carries a line when a lesson appears or clears.
+  Reported only — nothing changes the advisor. Backfill 11-16: 1,804
+  calls / 8,741 rows (advice 198, targets 81, Natwar 80, v1 7, scan
+  1,438). First lessons run: holdings n=75 at day 20, 49.3% right, 0
+  lessons; scan reaches day 20 ≈ 12-09. Checks: V-35, V-36.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 

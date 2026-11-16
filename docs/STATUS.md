@@ -2082,6 +2082,14 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
+### 📍 2026-11-16 — call evaluation shipped [P-60]
+
+Every advisor call is now scored daily for 60 trading days
+(`call_outcomes`, after the morning bar sync) and checked weekly for
+lessons (Sunday 08:00 IST). See `/advisor/calls`. Open checks V-35
+(daily rows) and V-36 (lessons silent until n ≥ 30). Nothing feeds back
+into the advisor; a lesson is for the operator to decide on.
+
 ### 📍 Exact resume point — 2026-11-09
 
 **Deployed:** brain `2261e59` (Nifty-500 pin fix on top of `45428c7`),
