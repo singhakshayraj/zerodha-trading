@@ -253,19 +253,25 @@ his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
 ### V-42 · household book publishes daily and adds up — registered 2026-11-17
-After each reconcile, `app_config.household_book_latest.asof` = today (IST
-session date), `returns.household.start` is set, and `net_worth.total` is
-within 1% of the sum of both accounts' latest `pnl_daily.value_close`. FAIL if
-the book is older than one trading day or the total disagrees by ≥ 1%.
+After each reconcile, `app_config.household_book_latest.asof` is within the
+trading-day window (today, or the last reconciled `pnl_daily` date, which is
+the previous trading day when the book publishes before the next reconcile),
+`returns.household.start` is set, and `net_worth.total` is within 1% of the
+sum of both accounts' latest `pnl_daily.value_close`.
 ```sql
 select
   (select value::json->>'asof' from app_config where key='household_book_latest') as asof,
+  (select max(date) from pnl_daily) as last_pnl_date,
   (select value::json->'returns'->'household'->>'start' from app_config where key='household_book_latest') as start,
   (select (value::json->'net_worth'->>'total')::numeric from app_config where key='household_book_latest') as nw_total,
   (select sum(value_close) from pnl_daily p
      where date = (select max(q.date) from pnl_daily q where q.account = p.account)) as pnl_total;
 ```
-**PASS** = `asof` = today, `start` not null, and `abs(nw_total - pnl_total) / pnl_total < 0.01`.
+**PASS** = `asof >= last_pnl_date` (ISO date string compare; `asof` is today or
+the previous trading day), `start` not null, and
+`abs(nw_total - pnl_total) / pnl_total < 0.01`.
+**FAIL** otherwise: `asof < last_pnl_date` (book older than one trading day),
+or the total disagrees by ≥ 1%.
 Built 2026-11-17: household ₹13,33,148 from the first publish.
 
 ### V-41 · tax rule replay nets ≥ 0 — registered 2026-11-17
