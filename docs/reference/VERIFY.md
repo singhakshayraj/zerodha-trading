@@ -252,6 +252,24 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-43 · daily Kite fills don't duplicate Console imports — registered 2026-11-18
+After the next market day with real fills (brain c2ae646), the `kite_daily`
+rows carry the exchange order id (13–19 digits, same as Console) and an IST
+timestamp, and no fill appears under both sources.
+```sql
+select
+  (select count(*) from tradebook k join tradebook c on c.account=k.account
+     and c.exchange=k.exchange and c.trade_id=k.trade_id and c.trade_date=k.trade_date
+     and c.source='console_import' where k.source='kite_daily') as dup_rows,
+  (select count(*) from tradebook where source='kite_daily' and trade_date > '2026-11-18'
+     and length(order_id) < 13) as kite_order_ids;
+```
+**PASS** = `dup_rows = 0` and `kite_order_ids = 0` once a post-fix fill
+exists. Also confirm at the next monthly Console import that the overlap days
+import with zero new rows. **NOT-YET** until a fill lands after 2026-11-18.
+Back-fill 2026-11-18: primary to Nov 2022, natwar to Jun 2021; every held lot
+dated in both accounts (bonus/demerger/rename in brain `data/lot_events.csv`).
+
 ### V-42 · household book publishes daily and adds up — registered 2026-11-17
 After each reconcile, `app_config.household_book_latest.asof` is within the
 trading-day window (today, or the last reconciled `pnl_daily` date, which is
