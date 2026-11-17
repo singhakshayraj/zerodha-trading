@@ -106,25 +106,24 @@ four minutes rather than shipping it on plausibility.
 ## Point-in-time re-run — 2026-11-17 ([P-68] Phase 0)
 
 Same eight variants, `--pit`: each date's cross-section restricted to that
-day's Nifty 500 members (`data/universe_history.csv`, six reviews Sep 2023
-→ Mar 2026; 135 trading leavers added to the bar cache). 46,599 observations
-(was 43,952), 101 dates.
+day's Nifty 500 members (`data/universe_history.csv`, eleven reviews Sep
+2022 → Sep 2026, membership spells; 190 trading leavers added to the bar
+cache). 47,180 observations (was 43,952), 101 dates.
 
 | variant | holdout IC (Aug 2026, pin) | **holdout IC (PIT)** | holdout t | Holm p |
 |---|---|---|---|---|
-| rs_off | −0.0242 | −0.0204 | −0.96 | 1.000 |
-| momentum_slow | −0.0245 | −0.0206 | −0.97 | 1.000 |
-| adx_strict | −0.0254 | −0.0212 | −1.04 | 1.000 |
-| anchor_heavy | −0.0253 | −0.0212 | −1.02 | 1.000 |
-| **baseline** | −0.0262 | **−0.0222** | −1.09 | 1.000 |
-| rs_heavy | −0.0273 | −0.0236 | −1.17 | 1.000 |
-| consistency_off | −0.0269 | −0.0240 | −1.24 | 1.000 |
-| momentum_heavy | −0.0283 | −0.0244 | −1.24 | 1.000 |
+| rs_off | −0.0242 | −0.0219 | −1.03 | 1.000 |
+| momentum_slow | −0.0245 | −0.0220 | −1.03 | 1.000 |
+| adx_strict | −0.0254 | −0.0226 | −1.11 | 1.000 |
+| anchor_heavy | −0.0253 | −0.0227 | −1.09 | 1.000 |
+| **baseline** | −0.0262 | **−0.0236** | −1.16 | 1.000 |
+| rs_heavy | −0.0273 | −0.0250 | −1.24 | 1.000 |
+| consistency_off | −0.0269 | −0.0254 | −1.32 | 1.000 |
+| momentum_heavy | −0.0283 | −0.0258 | −1.31 | 1.000 |
 
-Baseline IC by year (PIT): +0.021 (2022, n=12), −0.008, +0.003, −0.013,
-−0.017 (2026) — every year |t| < 1. **Conclusion unchanged:** no variant
-beats baseline, no variant is significant, the ordering is noise. The
-survivorship correction moved every holdout IC by +0.004 — the names that
-left the index were ones the trend score had ranked highly before they
-fell out, so the pin had been flattering the *negative* reading slightly.
-`data/advisor_lab_results.jsonl` entries with `"pit": true`.
+**Conclusion unchanged:** no variant beats baseline, no variant is
+significant, the ordering is noise. The survivorship correction moved
+every holdout IC by ~+0.003 — the names that left the index were ones the
+trend score had ranked highly before they fell out, so the pin had been
+flattering the *negative* reading slightly. `data/advisor_lab_results.jsonl`
+entries with `"pit": true` (last run = this table).

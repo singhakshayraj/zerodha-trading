@@ -100,30 +100,32 @@ fails, an unproven factor has started trading real money.
 ## Point-in-time re-run — 2026-11-17 ([P-68] Phase 0)
 
 The 2026-08-26 runs applied today's Nifty 500 pin to the past. This re-run
-uses `data/universe_history.csv` (NSE Indices press releases, six reviews
-Sep 2023 → Mar 2026; 149 leavers, 135 of them still trading and now in the
-bar cache) with `--pit`: each date's cross-section is the names that were
-members that day. Before Sep 2023 the leaver list is incomplete (older
-releases use other filenames), so survivorship is reduced, not removed.
+uses `data/universe_history.csv` (NSE Indices press releases, eleven
+reviews Sep 2022 → Sep 2026; 225 leavers, one row per membership spell so
+rejoiners count; 190 still-trading leavers added to the bar cache) with
+`--pit`: each date's cross-section is the names that were members that
+day. Before Sep 2022 the leaver list is incomplete (older releases were
+not found), so survivorship is reduced, not removed.
 
 | factor | holdout IC 10d (Aug 2026, pin) | **holdout IC 10d (PIT)** | hold t | Holm p | holdout IC 30d (PIT) |
 |---|---|---|---|---|---|
-| low_ivol | +0.0356 | **+0.0432** | 1.79 | 0.966 | +0.0523 |
-| low_vol | +0.0307 | +0.0372 | 1.33 | 1.000 | +0.0358 |
-| combo_ew | +0.0347 | +0.0366 | 1.37 | 1.000 | +0.0308 |
-| low_skew | +0.0268 | +0.0314 | 2.48 | 0.244 | +0.0443 |
-| mom_12_1 | +0.0254 | +0.0313 | 1.63 | 1.000 | +0.0347 |
-| prox_52w | +0.0255 | +0.0312 | 1.26 | 1.000 | +0.0304 |
-| trend_ma (≈ advisor) | +0.0002 | +0.0045 | 0.20 | 1.000 | −0.0076 |
-| amihud | −0.0224 | −0.0420 | −2.24 | 0.402 | −0.0460 |
-| combo_explore_sel | −0.0099 | +0.0338 | 1.45 | 1.000 | +0.0327 |
+| low_ivol | +0.0356 | **+0.0433** | 1.80 | 0.949 | +0.0518 |
+| low_vol | +0.0307 | +0.0370 | 1.32 | 1.000 | +0.0349 |
+| combo_ew | +0.0347 | +0.0352 | 1.32 | 1.000 | +0.0281 |
+| low_skew | +0.0268 | +0.0308 | 2.44 | 0.266 | +0.0434 |
+| prox_52w | +0.0255 | +0.0297 | 1.20 | 1.000 | +0.0283 |
+| mom_12_1 | +0.0254 | +0.0294 | 1.53 | 1.000 | +0.0323 |
+| trend_ma (≈ advisor) | +0.0002 | +0.0025 | 0.11 | 1.000 | −0.0104 |
+| amihud | −0.0224 | −0.0422 | −2.24 | 0.398 | −0.0463 |
+| combo_explore_sel | −0.0099 | +0.0319 | 1.36 | 1.000 | +0.0301 |
 
 **Nothing survives Holm, same as before.** The ordering is unchanged: the
 low-risk family and 12-1 momentum keep positive holdout signs; the trend
-read (`trend_ma`) sits at zero. Removing part of the survivorship made the
-numbers slightly *better*, not worse — the dropped names were, on average,
-names the trend score liked on the way down. `combo_explore_sel` flipped
-positive, which says only that selection-on-explore is noise, in both
-directions. Power is unchanged (101 dates certifies IC ≈ 0.03+); the
+read (`trend_ma`) sits at zero. Removing most of the survivorship moved
+every holdout IC up by ~+0.004 rather than down — the dropped names were,
+on average, names the trend score liked on the way down. `combo_explore_sel`
+flipped positive, which says only that selection-on-explore is noise in
+both directions. Power is unchanged (101 dates certifies IC ≈ 0.03+); the
 Phase 3 20-year panel is the only route to a verdict on the 0.03 names.
-Full rows: `data/factor_lab_results.jsonl` entries with `"pit": true`.
+Full rows: `data/factor_lab_results.jsonl` entries with `"pit": true`
+(the last run of each horizon is the one above).
