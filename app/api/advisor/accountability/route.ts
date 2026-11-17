@@ -50,7 +50,7 @@ type PositionRow = {
   is_open: boolean;
 };
 
-const BOOKS = ["MANAGEMENT", "PICKING"] as const;
+const BOOKS = ["MANAGEMENT", "PICKING", "PICKING_RP"] as const;
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
 function summarize(equity: EquityRow[], positions: PositionRow[]) {

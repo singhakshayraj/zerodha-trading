@@ -51,6 +51,10 @@ type Book = {
   openPositions: OpenPos[];
 };
 
+const EMPTY_BOOK = { curve: [], startEquity: null, endEquity: null, totalReturnPct: null, baselineReturnPct: null,
+  alphaVsBaselinePct: null, closedTrades: 0, wins: 0, losses: 0, winRatePct: null, realizedPnl: 0, avgReturnPct: null,
+  byVerdict: {}, bySource: {}, bestTrade: null, worstTrade: null, openPositions: [] } as unknown as Book;
+
 const inr = (v: number | null | undefined) =>
   v == null ? "—" : `₹${Math.round(v).toLocaleString("en-IN")}`;
 const pct = (v: number | null | undefined) =>
@@ -145,7 +149,7 @@ function BookCard({ name, subtitle, book }: { name: string; subtitle: string; bo
         </>
       ) : (
         <div className="h-[150px] flex items-center justify-center text-[11px] text-[#555]">
-          no snapshots yet
+          not yet seeded (no snapshots yet)
         </div>
       )}
 
@@ -361,6 +365,11 @@ export default function AccountabilityPage() {
                 name="Picking"
                 subtitle="₹100k cash · buys rotation/scan targets, exits at horizon · baseline = Nifty B&H"
                 book={books.PICKING}
+              />
+              <BookCard
+                name="Picking (risk-based)"
+                subtitle="Monthly rebalance to capped HRP weights vs the same money in Nifty 500 · shadow book"
+                book={books.PICKING_RP ?? EMPTY_BOOK}
               />
               <div className="lg:col-span-2"><RealExecutions real={real} /></div>
             </div>

@@ -41,7 +41,7 @@ type Advice = {
   v1_verdict?: Advice["verdict"] | null;
   sector_trend?: number | null;
   sector_rule?: string | null;
-  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null; target_dd?: TargetDD | null; tax?: Tax | null } | null;
+  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null; risk_size?: { target_pct: number; current_pct: number; sell_qty_to_target: number } | null; target_dd?: TargetDD | null; tax?: Tax | null } | null;
 };
 
 /** [P-68] Tax-aware action from the brain's tax_actions.plan. Display only. */
@@ -110,6 +110,10 @@ type TrackRecord = {
   adviceValueInr: number;
 };
 
+type RiskTargets = {
+  asof: string; step: number; enb_now: number | null; enb_target: number | null; enb_floor: number; below_floor: boolean;
+  regime: { drifted: boolean } | null; targets: { symbol: string; current_pct: number; target_pct: number; drift_pp: number }[];
+};
 type PortfolioRisk = {
   total_value: number;
   top_position: { symbol: string; weight_pct: number } | null;
@@ -295,7 +299,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
   const t = r.indicators?.thesis ?? null;
   const agree = t ? v2Bucket(t.action) === v1Bucket(r.verdict) : true;
   const pnl = r.pnl_percent ?? 0;
-  const hasPlan = !!(r.exit_target || r.stop_level || r.rotation_target_symbol || (r.rotation_buy_qty != null && r.rotation_freed_inr != null) || r.user_decision);
+  const hasPlan = !!(r.exit_target || r.stop_level || r.rotation_target_symbol || (r.rotation_buy_qty != null && r.rotation_freed_inr != null) || r.user_decision || r.indicators?.risk_size);
   const navBtn = "p-2 rounded-lg text-[#aaa] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] disabled:opacity-30";
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={`${r.symbol} details`}>
@@ -350,6 +354,13 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
                   <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#d5d5d5]" style={{ borderColor: `${GREEN}44` }}>
                     rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
                     <span className="text-[#6a6a6a]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
+                  </span>
+                )}
+                {r.indicators?.risk_size && (
+                  <span data-testid="risk-size" className="px-2 py-1 rounded bg-[#0d0d0d] border border-dashed border-[#2a2a2a] text-[#d5d5d5]">
+                    risk-based (shadow): {r.indicators.risk_size.sell_qty_to_target > 0
+                      ? <>sell {r.indicators.risk_size.sell_qty_to_target} to reach {r.indicators.risk_size.target_pct}%</>
+                      : "at or below target"}
                   </span>
                 )}
                 {r.rotation_buy_qty != null && r.rotation_freed_inr != null && (
@@ -506,6 +517,7 @@ export default function AdvisorPage() {
   const [isOfficial, setIsOfficial] = useState<boolean | null>(null);
   const [track, setTrack] = useState<TrackRecord | null>(null);
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
+  const [riskTargets, setRiskTargets] = useState<RiskTargets | null>(null);
   const [calibration, setCalibration] = useState<Calibration | null>(null);
   const [thesisTrack, setThesisTrack] = useState<ThesisTrack | null>(null);
   const [heroPicks, setHeroPicks] = useState<HeroPicks | null>(null);
@@ -541,6 +553,7 @@ export default function AdvisorPage() {
       setRows(r.rows ?? []); setRunDate(r.runDate ?? null);
       setRunAt(r.runAt ?? null); setIsOfficial(r.isOfficial ?? null);
       setRisk(r.portfolioRisk ?? null);
+      setRiskTargets(Array.isArray(r.riskTargets?.targets) ? r.riskTargets : null);
       setCalibration(r.calibration ?? null);
       setThesisTrack(r.thesisTrackRecord ?? null);
       setHeroPicks(r.heroPicks ?? null);
@@ -860,6 +873,41 @@ export default function AdvisorPage() {
               )}
 
               {/* ── DEEPER ANALYTICS (collapsible) ──────────────────── */}
+              {riskTargets && (() => {
+                const f = (n: number | null) => (n == null ? "—" : n.toFixed(1));
+                const ts = riskTargets.targets;
+                const over = ts.filter((t) => t.drift_pp > 0).sort((a, b) => b.drift_pp - a.drift_pp).slice(0, 5);
+                const under = ts.filter((t) => t.drift_pp < 0).sort((a, b) => a.drift_pp - b.drift_pp).slice(0, 5);
+                const row = (t: (typeof ts)[number]) => (
+                  <div key={t.symbol} className="flex justify-between text-[12px] text-[#d5d5d5]">
+                    <span className="truncate">{t.symbol}</span>
+                    <span className="text-[#888] shrink-0">{t.current_pct.toFixed(1)}% → {t.target_pct.toFixed(1)}% ({t.drift_pp > 0 ? "+" : ""}{t.drift_pp.toFixed(1)}pp)</span>
+                  </div>);
+                return (
+                  <div data-testid="risk-construction" className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <Network className="w-4 h-4 text-[#888] shrink-0" />
+                      <h3 className="text-sm font-semibold text-[#f5f5f5]">Risk construction</h3>
+                      <span className="text-[11px] text-[#6a6a6a]">shadow · as of {riskTargets.asof}</span>
+                    </div>
+                    <p className="text-[12px] text-[#d5d5d5]">
+                      Independent bets now <span className="font-semibold">{f(riskTargets.enb_now)}</span> · at target <span className="font-semibold">{f(riskTargets.enb_target)}</span> · floor {riskTargets.enb_floor}
+                    </p>
+                    {riskTargets.below_floor && riskTargets.enb_now != null && (
+                      <p className="text-[12px] mt-1" style={{ color: RED }}>
+                        You hold {ts.length} names but they act like ~{Math.round(riskTargets.enb_now)} independent bets
+                      </p>
+                    )}
+                    <p className="text-[11px] text-[#888] mt-1">
+                      {riskTargets.regime?.drifted ? "correlations drifted: 25%" : "calm: close 50% of the gap"}
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-4 mt-3">
+                      <div><p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1">Over target</p>{over.map(row)}</div>
+                      <div><p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1">Under target</p>{under.map(row)}</div>
+                    </div>
+                  </div>
+                );
+              })()}
               {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
                 <Section icon={Layers} title="Portfolio-level risk" note="the whole book, not one name at a time">
                   {risk.concentration_flags.length > 0 && (

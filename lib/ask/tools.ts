@@ -11,7 +11,7 @@ type Row = {
   quantity: number; last_price: number; pnl_percent: number | null; reasons?: string[]; counter_case?: string | null;
   rotation_target_symbol?: string | null; rotation_sell_qty?: number | null; rotation_freed_inr?: number | null;
   rotation_buy_qty?: number | null; rotation_buy_price?: number | null; sector_rule?: string | null;
-  indicators?: { thesis?: { action: string; quality: number | null; reason: string; falsifier: string } | null; household?: string | null; tax?: { text: string | null } | null } | null;
+  indicators?: { thesis?: { action: string; quality: number | null; reason: string; falsifier: string } | null; household?: string | null; tax?: { text: string | null } | null; risk_size?: { target_pct: number; sell_qty_to_target: number } | null } | null;
 };
 
 export const ACCOUNT_LABEL: Record<Account, string> = { primary: "Kanaklata", natwar: "Natwar" };
@@ -68,7 +68,8 @@ export const TOOLS: ToolSpec[] = [
         `. Trend score ${x.trend_score}, P&L ${round(x.pnl_percent)}%.` +
         (x.rotation_target_symbol ? ` Suggested switch: sell ${x.symbol}, buy ${x.rotation_target_symbol}.` : "") +
         (t ? ` 12-month view: ${t.action}.` : "") +
-        (x.indicators?.tax?.text ? ` · ${x.indicators.tax.text}` : "");
+        (x.indicators?.tax?.text ? ` · ${x.indicators.tax.text}` : "") +
+        (x.indicators?.risk_size ? ` Risk-based shadow size: ${x.indicators.risk_size.sell_qty_to_target > 0 ? `sell ${x.indicators.risk_size.sell_qty_to_target} to reach ${x.indicators.risk_size.target_pct}%` : "at or below target"}.` : "");
       return { account: ACCOUNT_LABEL[a], summary, symbol: x.symbol, call: x.verdict, v1_call: x.v1_verdict ?? null,
         sector_rule: x.sector_rule ?? null, trend_score: x.trend_score, confidence: x.confidence,
         pnl_pct: round(x.pnl_percent), reasons: (x.reasons ?? []).slice(0, 3), case_against: x.counter_case ?? null,

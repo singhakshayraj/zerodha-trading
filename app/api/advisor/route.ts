@@ -29,7 +29,7 @@ export async function GET() {
     // database; serial trips pushed this past the client's 15 s timeout).
     const CFG_KEYS = ["portfolio_risk_latest", "advisor_calibration_latest", "thesis_track_record",
       "hero_picks_latest", "sector_view_latest", "morning_brief_latest", "watchdog_latest",
-      "call_lessons_latest", "call_scorecard_latest"];
+      "call_lessons_latest", "call_scorecard_latest", "risk_targets_latest"];
     const [rowsRes, cfgRes, priorRes] = await Promise.all([
       supabaseServer.from("portfolio_advice").select("*").eq("run_id", runId)
         .order("trend_score", { ascending: true }),                // worst first — act on those
@@ -84,6 +84,7 @@ export async function GET() {
       sectorView,
       brief,
       watchdog,
+      riskTargets: (cfg.risk_targets_latest as { targets?: unknown } | undefined)?.targets ? cfg.risk_targets_latest : null, // P-68 ph2
       lessons: cfg.call_lessons_latest ?? null,       // P-60
       scorecard: cfg.call_scorecard_latest ?? null,
       priorRunDate,
