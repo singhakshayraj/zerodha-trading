@@ -2082,6 +2082,16 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
+### 📍 2026-11-17 — Phase 1 tax-aware actions shipped [P-68]
+
+Every SELL/TRIM row now carries tax + trading cost (`indicators.tax`), a
+"sell after <LTCG date>" wait only when tax saved beats the expected drift,
+a morning-brief `tax` line and a tax-aware action on the move cards.
+Verdicts untouched (deep-compare test). Replay over 153 past SELL-grade
+calls: 0 waits, net ₹0 — all lots <1y old, so no rule fires yet. Open checks
+V-40/V-41. **Operator owes:** Console tradebook since inception + LTCG
+exemption used this FY.
+
 ### 📍 2026-11-17 — advisor v3 Phase 0 "fix the ruler" + Phase 4 capture shipped [P-68]
 
 Every call is now graded three ways (vs Nifty, vs its sector cohort, vs

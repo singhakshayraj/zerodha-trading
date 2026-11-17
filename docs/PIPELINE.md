@@ -1343,6 +1343,18 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
   `data/nifty500.csv` still carries the 27 names NSE dropped on
   2026-09-30 and lacks the 27 added — the daily scan is on a stale pin
   (K-pin below). Next: Phase 1 (tax-aware actions) on greenlight.
+  · *Phase 1 SHIPPED 2026-11-17* (spec
+  `superpowers/specs/2026-11-17-tax-aware-actions-design.md`): marginal-FY
+  tax + trading cost on every SELL/TRIM row (`tax_actions.plan`), a wait
+  rule ("sell after <LTCG date>" only when tax saved > expected drift from
+  the stored SELL-call cost curve, cap 60 trading days), surfaced as
+  `indicators.tax`, a morning-brief `tax` line and a tax-aware action on the
+  /advisor move cards. Verdicts untouched (deep-compare test). Replay over
+  the 153 official SELL-grade calls since 08-25: 0 told to wait (every lot
+  is <1y old, nearest LTCG date 61+ trading days out), net ₹0
+  (`reference/TAX_REPLAY.md`). Checks: V-40, V-41. **Operator owes:**
+  Console tradebook since inception (ours starts 2026-02-11, so older lots
+  are unknown) and LTCG exemption used this FY.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 

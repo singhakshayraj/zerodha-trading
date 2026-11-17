@@ -252,6 +252,18 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-41 · tax rule replay nets ≥ 0 — registered 2026-11-17
+Monthly: rerun `python3 scripts/tax_replay.py` (brain repo, read-only). FAIL
+if `net_inr < 0` over the window (tax saved by waiting − drift paid). First
+read 2026-11-17: 153 calls, 0 told to wait, net ₹0 (see
+`reference/TAX_REPLAY.md`).
+
+### V-40 · every sell-grade row carries indicators.tax — registered 2026-11-17
+From 11-18: `select count(*) from portfolio_advice where run_date = <today>
+and is_official and verdict in ('SELL','SELL_ON_BOUNCE','TRIM') and
+indicators->'tax' is null` = 0; the morning brief has a `tax` line whenever a
+wait or a 30-day crossing exists. FAIL otherwise.
+
 ### V-39 · bar-integrity WARN fires only on a real jump — registered 2026-11-17
 Each 16:40 watchdog carries a `bar_integrity` check: PASS with "no jumps"
 on an ordinary day; WARN naming `SYMBOL ratio` when a close is outside
