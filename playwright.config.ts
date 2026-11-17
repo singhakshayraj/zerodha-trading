@@ -21,6 +21,10 @@ export default defineConfig({
     // PW_CHANNEL=chrome uses the installed Chrome instead of the bundled
     // browser (no `npx playwright install` needed on a dev laptop).
     ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+    // The deployment sits behind the dashboard password gate (middleware.ts).
+    ...(process.env.DASHBOARD_PASSWORD
+      ? { httpCredentials: { username: "e2e", password: process.env.DASHBOARD_PASSWORD } }
+      : {}),
   },
   webServer: isLocal
     ? {
