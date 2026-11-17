@@ -252,6 +252,27 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-39 · bar-integrity WARN fires only on a real jump — registered 2026-11-17
+Each 16:40 watchdog carries a `bar_integrity` check: PASS with "no jumps"
+on an ordinary day; WARN naming `SYMBOL ratio` when a close is outside
+0.6–1.6× the prior bar and `data/corporate_actions.csv` has no row for it.
+FAIL if a known split/demerger day passes silently or a clean day warns.
+11-13/14/16 prod reads: `[]`.
+
+### V-38 · every scored day carries sector and size alpha — registered 2026-11-17
+From 11-18: new `call_outcomes` rows have `size_alpha_pct` non-null for every
+row and `sector_alpha_pct` non-null wherever ≥ 5 same-sector names are
+priced (expect ≈ 88%, as the 11-17 backfill: 7,741 / 8,744). The Sunday
+scorecard cell carries `hit_ci`, `alpha_ci`, `sector`, `size`. FAIL on a
+null size alpha, or a scorecard without CIs.
+
+### V-37 · index_bars gets a row per index per trading day — registered 2026-11-17
+After each morning bar sync, `index_bars` has ≥ 100 rows for the previous
+trading day (`select count(*) from index_bars where trade_date = <prev>`),
+`app_config.index_bars_through` = that day, and the Nifty 500 close matches
+NSE's published close. Holidays add nothing (404 skipped). FAIL on a trading
+day with no rows by the 16:40 watchdog.
+
 ### V-36 · lessons stay silent until n ≥ 30 — registered 2026-11-16
 Each Sunday from 11-22: `app_config.call_lessons_latest.asof` = that
 Sunday and `lessons: []` in both populations until a bucket has 30 calls

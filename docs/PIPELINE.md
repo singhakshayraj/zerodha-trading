@@ -1325,6 +1325,24 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
   factors on a 20-y point-in-time panel · 4 fundamentals history + PEAD/
   insider/flow capture · 5 human-vs-advisor · 6 tournament. v1 stays as
   control. Needs greenlight per phase; Phase 0 + Phase 4 capture first.
+  · *Phase 0 + 4 capture SHIPPED 2026-11-17* (plan
+  `superpowers/plans/2026-11-16-phase0-ruler.md`; brain 5ddc645..3739952,
+  dashboard 835646f..8efbc91): `costs.py` (round-trip cost, FIFO
+  STCG/LTCG, `unmatched_qty`); sector + size alpha on every
+  `call_outcomes` row (8,744 rescored; sector filled 88%); bootstrap 95%
+  CIs per benchmark on the scorecard + toggle on /advisor/calls;
+  point-in-time Nifty 500 (`data/universe_history.csv`, 11 NSE reviews
+  Sep 2022 → Sep 2026, 225 leavers, membership spells) and `--pit` labs —
+  nothing survives Holm either way; bar-integrity WARN in the watchdog +
+  `corporate_actions.csv`; `--asof` on the fundamentals ingest;
+  `index_bars` (173 NSE indices daily from 2021-06-14, 159k rows).
+  Reviewed (1 critical + 4 important fixed, 6 minors deferred in the
+  ledger). Events/insider capture skipped (operator D1). Live day-20
+  holdings read: 49.3% [41–58] vs Nifty; vs size peers −0.48% [−0.92,
+  −0.05]. Checks: V-37, V-38, V-39. **Finding for [you]:**
+  `data/nifty500.csv` still carries the 27 names NSE dropped on
+  2026-09-30 and lacks the 27 added — the daily scan is on a stale pin
+  (K-pin below). Next: Phase 1 (tax-aware actions) on greenlight.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 

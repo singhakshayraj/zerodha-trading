@@ -2082,6 +2082,18 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
+### 📍 2026-11-17 — advisor v3 Phase 0 "fix the ruler" + Phase 4 capture shipped [P-68]
+
+Every call is now graded three ways (vs Nifty, vs its sector cohort, vs
+size peers) with bootstrap 95% ranges on `/advisor/calls`; a cost + tax
+model (`costs.py`) exists for Phase 1 to act on; the labs run on a
+point-in-time Nifty 500 (11 NSE reviews) — nothing survives Holm either
+way; the watchdog checks bar integrity; `index_bars` captures 173 NSE
+indices daily. Verdicts untouched. Open checks V-37/V-38/V-39. **New
+finding E10:** the Nifty-500 pin is a review behind (27 out, 27 in since
+2026-09-30) — operator decision. Roadmap:
+`superpowers/plans/2026-11-16-advisor-v3-roadmap.md`.
+
 ### 📍 2026-11-16 — call evaluation shipped [P-60]
 
 Every advisor call is now scored daily for 60 trading days

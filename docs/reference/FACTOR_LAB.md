@@ -96,3 +96,34 @@ fails, an unproven factor has started trading real money.
   within each cut.
 - The lab ranks the universe cross-sectionally. The advisor's other job —
   HOLD/SELL on names already held — is related but not identical.
+
+## Point-in-time re-run — 2026-11-17 ([P-68] Phase 0)
+
+The 2026-08-26 runs applied today's Nifty 500 pin to the past. This re-run
+uses `data/universe_history.csv` (NSE Indices press releases, six reviews
+Sep 2023 → Mar 2026; 149 leavers, 135 of them still trading and now in the
+bar cache) with `--pit`: each date's cross-section is the names that were
+members that day. Before Sep 2023 the leaver list is incomplete (older
+releases use other filenames), so survivorship is reduced, not removed.
+
+| factor | holdout IC 10d (Aug 2026, pin) | **holdout IC 10d (PIT)** | hold t | Holm p | holdout IC 30d (PIT) |
+|---|---|---|---|---|---|
+| low_ivol | +0.0356 | **+0.0432** | 1.79 | 0.966 | +0.0523 |
+| low_vol | +0.0307 | +0.0372 | 1.33 | 1.000 | +0.0358 |
+| combo_ew | +0.0347 | +0.0366 | 1.37 | 1.000 | +0.0308 |
+| low_skew | +0.0268 | +0.0314 | 2.48 | 0.244 | +0.0443 |
+| mom_12_1 | +0.0254 | +0.0313 | 1.63 | 1.000 | +0.0347 |
+| prox_52w | +0.0255 | +0.0312 | 1.26 | 1.000 | +0.0304 |
+| trend_ma (≈ advisor) | +0.0002 | +0.0045 | 0.20 | 1.000 | −0.0076 |
+| amihud | −0.0224 | −0.0420 | −2.24 | 0.402 | −0.0460 |
+| combo_explore_sel | −0.0099 | +0.0338 | 1.45 | 1.000 | +0.0327 |
+
+**Nothing survives Holm, same as before.** The ordering is unchanged: the
+low-risk family and 12-1 momentum keep positive holdout signs; the trend
+read (`trend_ma`) sits at zero. Removing part of the survivorship made the
+numbers slightly *better*, not worse — the dropped names were, on average,
+names the trend score liked on the way down. `combo_explore_sel` flipped
+positive, which says only that selection-on-explore is noise, in both
+directions. Power is unchanged (101 dates certifies IC ≈ 0.03+); the
+Phase 3 20-year panel is the only route to a verdict on the 0.03 names.
+Full rows: `data/factor_lab_results.jsonl` entries with `"pit": true`.

@@ -155,6 +155,25 @@ validated in production, not just in theory.
 
 ---
 
+## 2026-11-17 Phase 0 findings
+
+### E10 — the Nifty-500 pin is a review behind: 27 dropped names still scanned, 27 new ones missed 🟡 → [you]
+`data/nifty500.csv` (500 rows) matches the live instrument master for
+tokens (I-6) but not NSE's membership: the 2026-09-30 review removed
+3MINDIA, ABFRL, ABLBL, BAYERCROP, BBTC, BIKAJI, BLUEDART, BLUEJET, CHALET,
+DCMSHRIRAM, ERIS, GODIGIT, INDGN, JSWDULUX, JUBLPHARMA, LATENTVIEW,
+MAPMYINDIA, NEWGEN, NIVABUPA, PFIZER, SAPPHIRE, SAREGAMA, SBFC, SONATSOFTW,
+SPLPETRO, THELEELA, TRAVELFOOD and added AETHER, AVANTIFEED, AZAD, BAGMANE,
+BBOX, BHARATCOAL, BIRET, CLEANMAX, CMPDI, CUPID, EMBASSY, FRACTAL, INOXINDIA,
+KIRLOSBROS, KSB, MTARTECH, PRIVISCL, RUBICON, SANSERA, SHRIPISTON, STLTECH,
+TDPOWERSYS, THANGAMAYL, VAML, VEDPOWER, VISL, VOGL (per `universe_history`).
+**Why it matters:** the daily universe scan and rotation targets come from
+the pin; rotation can name a stock NSE no longer counts as Nifty 500, and
+cannot name the 27 entrants. **Fix:** `scripts/seed_nifty500_universe.py`
+from NSE's current list + `build_nifty500_tokens.py`, then I-6. Changes the
+scan population, so it is the operator's call; the I-6 audit should also
+diff membership, not just tokens, each review (March/September).
+
 ## 2026-11-16 technical audit
 
 Full write-up with evidence, fixes and method: [TECH_AUDIT_2026-11-16.md](TECH_AUDIT_2026-11-16.md).
