@@ -39,6 +39,9 @@ test("household page: sections, no XIRR number under a year, breach, ledger filt
   await expect(ret1).toContainText("Money-weighted return (XIRR) appears from 2027-08-10");
   await expect(ret1).not.toContainText("24.2");
   await expect(page.getByTestId("returns-chart")).toBeVisible();
+  await expect(page.getByTestId("chart-legend")).toContainText("Household");
+  await expect(page.getByTestId("chart-legend")).toContainText("Nifty-equivalent");
+  await expect(page.getByTestId("risk")).toContainText("Most of the book moves together");
   await expect(page.getByTestId("breach-Banks")).toBeVisible();
   await expect(page.getByTestId("rebalance")).toContainText("Banks is 10pp over target");
   await expect(page.getByTestId("risk")).toContainText("Independent risk sources: 1.5 (of 20 holdings)");
@@ -54,4 +57,12 @@ test("household page: empty state when book is absent", async ({ page }) => {
   await mock(page, null);
   await page.goto("/household");
   await expect(page.getByText("The household book hasn't been built yet")).toBeVisible();
+});
+
+test("household page: sparse tax.unmatched and null effective bets do not crash", async ({ page }) => {
+  await mock(page, { ...BOOK, tax: { ...BOOK.tax, unmatched: {} }, risk: { ...BOOK.risk, effective_bets: null } });
+  await page.goto("/household");
+  await expect(page.getByTestId("tax")).toBeVisible();
+  await expect(page.getByText("undated lots")).toHaveCount(0);
+  await expect(page.getByTestId("risk")).toContainText("Not enough shared price history to measure.");
 });

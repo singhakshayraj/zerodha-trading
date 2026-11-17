@@ -28,7 +28,7 @@ type Book = {
     clusters: { symbols: string[]; weight_pct: number; avg_corr: number }[]; n_used: number };
   tax: { fy_realised: Record<string, number | null>; unrealised_stcg: number | null; unrealised_ltcg: number | null;
     ltcg_calendar: { symbol: string; account: string; date: string; qty: number }[];
-    harvest: { symbol: string; account: string; loss_inr: number }[]; unmatched: { primary: string[]; natwar: string[] } };
+    harvest: { symbol: string; account: string; loss_inr: number }[]; unmatched?: { primary?: string[]; natwar?: string[] } };
   rebalance: Move[];
   funds_unconfirmed: string[]; targets_source: string;
   sections_asof: { positions: string | null; returns: string | null; xirr_since: string | null; tax: string | null; risk: string | null };
@@ -69,11 +69,15 @@ function Chart({ a, b }: { a: Pt[]; b: Pt[] }) {
   const vals = [...a, ...b].map((p) => p.index);
   const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
   const line = (s: Pt[]) => s.map((p, i) => `${P + (i / Math.max(s.length - 1, 1)) * (W - 2 * P)},${P + ((hi - p.index) / span) * (H - 2 * P)}`).join(" ");
-  return (
+  return (<>
     <svg data-testid="returns-chart" viewBox={`0 0 ${W} ${H}`} className="w-full h-36 mt-3" role="img" aria-label="Household return index against the Nifty-equivalent">
       <polyline points={line(b)} fill="none" stroke={MUTE} strokeWidth={1.5} strokeDasharray="4 4" />
       <polyline points={line(a)} fill="none" stroke="#a78bfa" strokeWidth={2} />
     </svg>
+    <div data-testid="chart-legend" className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#8a8a8a] mt-1">
+      <span className="flex items-center gap-1.5"><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke="#a78bfa" strokeWidth={2} /></svg>Household</span>
+      <span className="flex items-center gap-1.5"><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke={MUTE} strokeWidth={1.5} strokeDasharray="4 4" /></svg>Nifty-equivalent</span>
+    </div></>
   );
 }
 
@@ -104,7 +108,7 @@ export default function HouseholdPage() {
   const enough = !!(hh?.xirr_since && b && days(hh.xirr_since, b.asof) >= 365);
   const trims = b?.rebalance.filter((m): m is Extract<Move, { kind: "trim" }> => m.kind === "trim") ?? [];
   const unders = b?.rebalance.filter((m): m is Extract<Move, { kind: "underweight" }> => m.kind === "underweight") ?? [];
-  const undated = b ? b.tax.unmatched.primary.length + b.tax.unmatched.natwar.length : 0;
+  const undated = b ? (b.tax.unmatched?.primary ?? []).length + (b.tax.unmatched?.natwar ?? []).length : 0;
   const soon = b?.tax.ltcg_calendar.filter((l) => days(b.asof, l.date) <= 90) ?? [];
 
   return (
@@ -180,7 +184,8 @@ export default function HouseholdPage() {
 
             <Section id="risk" title="Risk" asof={sa.risk}>
               <p className="text-[13px]">Independent risk sources: {b.risk.effective_bets ?? "—"} (of {b.risk.n_used} holdings)</p>
-              <Muted>Most of the book moves with the market.</Muted>
+              <Muted>{b.risk.effective_bets == null ? "Not enough shared price history to measure."
+                : b.risk.effective_bets < b.risk.n_used / 4 ? "Most of the book moves together — few truly independent bets." : "Holdings move fairly independently."}</Muted>
               <div className="mt-3"><Table>
                 <thead><tr><Th>Name</Th><Th>Risk %</Th><Th>Value %</Th></tr></thead>
                 <tbody>{b.risk.top_contributors.map((c) => <tr key={c.symbol}><Td>{c.symbol}</Td><Td>{c.risk_pct.toFixed(1)}%</Td><Td>{c.value_pct.toFixed(1)}%</Td></tr>)}</tbody>
