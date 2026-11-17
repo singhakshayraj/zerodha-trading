@@ -2082,6 +2082,14 @@ Prior entries: `git log docs/STATUS.md`._
 
 ## ▶️ START HERE NEXT REVIEW (post-decommission operating mode)
 
+### 📍 2026-11-17 — household portfolio manager shipped [P-69]
+
+`/household` is live: one book across both accounts (net worth, time-weighted
+return vs Nifty-equivalent, X-ray, risk, tax, rebalance list). First book
+₹13,33,148: −5.94% since 08-27 vs Nifty-equivalent +4.87%, 0 target breaches;
+XIRR appears 2027-08-27. **Operator owes:** mutual fund codes and units in
+`holding_scheme_map`. Check: V-42.
+
 ### 📍 2026-11-17 — Phase 1 tax-aware actions shipped [P-68]
 
 Every SELL/TRIM row now carries tax + trading cost (`indicators.tax`), a
