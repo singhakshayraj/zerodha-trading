@@ -41,8 +41,12 @@ type Advice = {
   v1_verdict?: Advice["verdict"] | null;
   sector_trend?: number | null;
   sector_rule?: string | null;
-  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null; target_dd?: TargetDD | null } | null;
+  indicators: { rsi_14?: number; ema_50?: number; ema_200?: number; adx?: number; support?: number; resistance?: number; daily_bars?: number; calibrated_confidence?: number | null; calibration_low_n?: boolean; thesis?: Thesis | null; household?: string | null; target_dd?: TargetDD | null; tax?: Tax | null } | null;
 };
+
+/** [P-68] Tax-aware action from the brain's tax_actions.plan. Display only. */
+type Tax = { action: string | null; ltcg_date: string | null; tax_now_inr: number; saving_inr: number; lots: "known" | "partial" | "unknown"; unmatched_qty: number; text: string | null };
+const inrk = (n: number) => "₹" + (n >= 1000 ? `${Math.round(n / 100) / 10}k` : Math.round(n));
 
 /** [P-57] Due diligence on the buy target — red flags from fundamentals and
  *  recent news. Display only; never changes the target or the sizing. */
@@ -228,6 +232,11 @@ function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen:
         <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
           {sellQty(r)} sh · {INR(Math.round(freedInr(r)))} · <span style={{ color: (r.pnl_percent ?? 0) >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
         </p>
+        {r.indicators?.tax?.action && (
+          <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[10px] text-[#d5d5d5]">
+            after tax: {r.indicators.tax.action.startsWith("sell now") ? `sell now · ${inrk(r.indicators.tax.tax_now_inr)}` : `${r.indicators.tax.action} · saves ${inrk(r.indicators.tax.saving_inr)}`}
+          </span>
+        )}
       </div>
       <ArrowRight className="w-4 h-4 text-[#555] shrink-0" />
       {r.rotation_target_symbol ? (
@@ -319,6 +328,15 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
               <p className="text-[12px] text-[#d5d5d5] leading-relaxed">
                 v1 said <span style={{ color: VERDICT_META[r.v1_verdict]?.color }}>{VERDICT_META[r.v1_verdict]?.label}</span>; sector trend <span className="tabular-nums">{r.sector_trend != null ? (r.sector_trend > 0 ? "+" : "") + r.sector_trend : "—"}</span> → <span style={{ color: m.color }}>{m.label}</span> ({SECTOR_RULE_TEXT[r.sector_rule ?? ""] ?? r.sector_rule}). Both calls are graded; scripts/compare_sector_tilt.py shows which does better.
               </p>
+            </div>
+          )}
+
+          {r.indicators?.tax && (r.indicators.tax.action ? r.indicators.tax.text : r.indicators.tax.ltcg_date) && (
+            <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3 text-[11px] text-[#d5d5d5] space-y-1">
+              <p>{r.indicators.tax.action ? r.indicators.tax.text : `LTCG from ${r.indicators.tax.ltcg_date}`}</p>
+              {r.indicators.tax.action && r.indicators.tax.lots !== "known" && (
+                <p className="text-[#8a8a8a]">{r.indicators.tax.lots === "unknown" ? "lots: unknown" : `lots: ${r.quantity - r.indicators.tax.unmatched_qty} of ${r.quantity} dated`}</p>
+              )}
             </div>
           )}
 
