@@ -17,8 +17,8 @@ const BODY = {
   rows: [
     advice({ symbol: "TSELL", verdict: "SELL", trend_score: -70, indicators: { tax: tax({
       action: "sell after 2027-01-07", ltcg_date: "2027-01-07", wait_days: 31, tax_now_inr: 6600, tax_after_inr: 2100, saving_inr: 4500,
-      lots: "partial", unmatched_qty: 40,
-      text: "after tax: sell after 2027-01-07 (31 days) · saves ₹4,500 vs ₹2,100 expected drift · lots: 60 of 100 dated" }) } }),
+      lots: "partial", unmatched_qty: 10, sell_qty: 50,
+      text: "after tax: sell after 2027-01-07 (31 days) · saves ₹4,500 vs ₹2,100 expected drift · lots: 40 of 50 dated" }) } }),
     advice({ symbol: "THOLD", indicators: { tax: tax({ ltcg_date: "2026-12-15" }) } }),
   ],
   portfolioRisk: null, calibration: null, thesisTrackRecord: null, heroPicks: null, sectorView: null,
@@ -37,7 +37,7 @@ test("tax chip on move card, lines in sheet, HOLD unchanged", async ({ page }) =
   await sell.click();
   const dlg = page.getByRole("dialog");
   await expect(dlg.getByText(/saves ₹4,500 vs ₹2,100 expected drift/)).toBeVisible();
-  await expect(dlg.getByText("lots: 60 of 100 dated", { exact: true })).toBeVisible();
+  await expect(dlg.getByText("lots: 40 of 50 dated", { exact: true })).toBeVisible();
   await dlg.getByRole("button", { name: /close/i }).first().click();
   await page.getByRole("button", { name: /THOLD/ }).first().click();
   await expect(page.getByRole("dialog").getByText("LTCG from 2026-12-15")).toBeVisible();

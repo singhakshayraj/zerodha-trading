@@ -30,5 +30,7 @@ against waiting.
   so the script derived the same curve in memory from stored paths
   (5d +1.37%, 10d −0.45%, 20d −4.68%, 40d −7.25%).
 - ADV (liquidity) skipped.
+- A wait call with no outcome bar dated on/after its LTCG date yet is counted
+  as `pending` and excluded from net (no last-bar fallback).
 
 Gate: Rule stays on while net ≥ 0; re-read monthly (V-41).

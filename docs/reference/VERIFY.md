@@ -262,7 +262,9 @@ read 2026-11-17: 153 calls, 0 told to wait, net ₹0 (see
 From 11-18: `select count(*) from portfolio_advice where run_date = <today>
 and is_official and verdict in ('SELL','SELL_ON_BOUNCE','TRIM') and
 indicators->'tax' is null` = 0; the morning brief has a `tax` line whenever a
-wait or a 30-day crossing exists. FAIL otherwise.
+wait or a 30-day crossing exists. FAIL otherwise. Lite rows too: the chip is
+still present on /advisor at 11:00 (intraday refresh) — lite rows carry
+indicators.tax carried from the official row.
 
 ### V-39 · bar-integrity WARN fires only on a real jump — registered 2026-11-17
 Each 16:40 watchdog carries a `bar_integrity` check: PASS with "no jumps"

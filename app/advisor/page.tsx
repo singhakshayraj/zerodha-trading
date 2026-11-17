@@ -45,7 +45,7 @@ type Advice = {
 };
 
 /** [P-68] Tax-aware action from the brain's tax_actions.plan. Display only. */
-type Tax = { action: string | null; ltcg_date: string | null; tax_now_inr: number; saving_inr: number; lots: "known" | "partial" | "unknown"; unmatched_qty: number; text: string | null };
+type Tax = { action: string | null; ltcg_date: string | null; tax_now_inr: number; saving_inr: number; lots: "known" | "partial" | "unknown"; sell_qty?: number; unmatched_qty: number; text: string | null };
 const inrk = (n: number) => "₹" + (n >= 1000 ? `${Math.round(n / 100) / 10}k` : Math.round(n));
 
 /** [P-57] Due diligence on the buy target — red flags from fundamentals and
@@ -335,7 +335,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
             <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3 text-[11px] text-[#d5d5d5] space-y-1">
               <p>{r.indicators.tax.action ? r.indicators.tax.text : `LTCG from ${r.indicators.tax.ltcg_date}`}</p>
               {r.indicators.tax.action && r.indicators.tax.lots !== "known" && (
-                <p className="text-[#8a8a8a]">{r.indicators.tax.lots === "unknown" ? "lots: unknown" : `lots: ${r.quantity - r.indicators.tax.unmatched_qty} of ${r.quantity} dated`}</p>
+                <p className="text-[#8a8a8a]">{r.indicators.tax.lots === "unknown" ? "lots: unknown" : `lots: ${(r.indicators.tax.sell_qty ?? sellQty(r)) - r.indicators.tax.unmatched_qty} of ${r.indicators.tax.sell_qty ?? sellQty(r)} dated`}</p>
               )}
             </div>
           )}
