@@ -1,0 +1,57 @@
+import { test, expect, type Page } from "@playwright/test";
+
+// /household against a mocked API. All numbers are synthetic.
+
+const series = Array.from({ length: 12 }, (_, i) => ({ date: `2026-08-${String(10 + i).padStart(2, "0")}`, index: 100 - i * 0.5 }));
+const ret = (since: number) => ({ "1m": -2, "3m": -4, since, start: "2026-08-10", series, bench_1m: -1, bench_3m: -3, bench_since: -5,
+  bench_start: "2026-08-10", bench_series: series.map((p) => ({ ...p, index: p.index + 1 })),
+  max_drawdown: { pct: -8, peak: "2026-08-10", trough: "2026-10-20" }, xirr: -24.2, xirr_partial: true, xirr_note: "", xirr_since: "2026-08-10" });
+const BOOK = {
+  asof: "2026-11-01",
+  net_worth: { total: 1000000, by_account: { primary: 600000, natwar: 400000, unknown: 0 }, by_asset_class: { equity: 900000, etf_gold_silver: 100000, fund_unconfirmed: 0 }, unpriced: [] },
+  returns: { primary: ret(-6), natwar: ret(-6), household: ret(-6) },
+  xray: {
+    sectors: [{ name: "Banks", pct: 40, index_pct: 30, target_pct: 30, drift_pp: 10, breach: true }, { name: "IT", pct: 10, index_pct: 10, target_pct: 10, drift_pp: 0, breach: false }],
+    sizes: [{ size: "large", pct: 80, index_pct: 70, drift_pp: 10, breach: false }],
+    names: [{ symbol: "AAA", pct: 12, accounts: ["primary", "natwar"], breach: false }], etf_pct: 5, etf_breach: false },
+  risk: { effective_bets: 1.5, top_contributors: [{ symbol: "AAA", risk_pct: 30, value_pct: 12 }], clusters: [{ symbols: ["AAA", "BBB"], weight_pct: 20, avg_corr: 0.8 }], n_used: 20, excluded: [] },
+  tax: { fy_realised: { primary: 1000, natwar: null }, unrealised_stcg: 2000, unrealised_ltcg: 3000, by_account: {}, ltcg_calendar: [], harvest: [], unmatched: { primary: ["AAA"], natwar: [] } },
+  rebalance: [{ kind: "trim", symbol: "AAA", account: "primary", qty: 10, freed_inr: 5000, tax_inr: 100, cost_inr: 10, reason: "Banks is 10pp over target" }, { kind: "underweight", sector: "Pharma", gap_pp: 4 }],
+  funds_unconfirmed: ["Fund One", "Fund Two", "Fund Three"], targets_source: "default",
+  sections_asof: { positions: "2026-11-01", returns: "2026-11-01", xirr_since: "2026-08-10", tax: "2026-11-01", risk: "2026-10-31" },
+};
+const LEDGER = [
+  { account: "primary", symbol: "KANROW", trade_type: "buy", quantity: 5, price: 100, trade_date: "2026-10-30" },
+  { account: "natwar", symbol: "NATROW", trade_type: "sell", quantity: 3, price: 200, trade_date: "2026-10-29" },
+];
+
+async function mock(page: Page, book: unknown = BOOK) {
+  await page.addInitScript(() => localStorage.setItem("enc_token", "e2e"));
+  await page.route(/\/api\/household$/, (r) => r.fulfill({ json: { book, targets: { source: "default" }, ledger: LEDGER } }));
+}
+
+test("household page: sections, no XIRR number under a year, breach, ledger filter", async ({ page }) => {
+  await mock(page);
+  await page.goto("/household");
+  await expect(page.getByTestId("net-total")).toContainText("10,00,000");
+  const ret1 = page.getByTestId("returns");
+  await expect(ret1).toContainText("−6.0%");
+  await expect(ret1).toContainText("Money-weighted return (XIRR) appears from 2027-08-10");
+  await expect(ret1).not.toContainText("24.2");
+  await expect(page.getByTestId("returns-chart")).toBeVisible();
+  await expect(page.getByTestId("breach-Banks")).toBeVisible();
+  await expect(page.getByTestId("rebalance")).toContainText("Banks is 10pp over target");
+  await expect(page.getByTestId("risk")).toContainText("Independent risk sources: 1.5 (of 20 holdings)");
+  await expect(page.getByText("targets: default")).toBeVisible();
+  await expect(page.getByText("KANROW")).toBeVisible();
+  await page.getByTestId("ledger-filter").getByRole("button", { name: "Natwar" }).click();
+  await expect(page.getByText("KANROW")).toHaveCount(0);
+  await expect(page.getByText("NATROW")).toBeVisible();
+  await expect(page.getByTestId("funds")).toContainText("3 funds unconfirmed");
+});
+
+test("household page: empty state when book is absent", async ({ page }) => {
+  await mock(page, null);
+  await page.goto("/household");
+  await expect(page.getByText("The household book hasn't been built yet")).toBeVisible();
+});

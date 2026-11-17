@@ -227,6 +227,23 @@ export const TOOLS: ToolSpec[] = [
       return { summary: (texts.length ? texts.join("; ") + "." : "Nothing fires yet — a lesson needs 30 scored calls in one bucket.") + score, lessons: texts };
     },
   },
+  {
+    name: "household",
+    description: "The whole household's book (both accounts): net worth, time-weighted return since start vs the Nifty-equivalent, target breaches, independent risk sources.",
+    args: {},
+    async run(_args, ctx) {
+      const b = (await ctx.fetch("/household")).book;
+      if (!b) return { error: "the household book hasn't been built yet" };
+      const h = b.returns?.household ?? {};
+      const sg = (n: number | null | undefined) => (n == null ? "n/a" : (n > 0 ? "+" : "") + n.toFixed(1) + "%");
+      const x = b.xray ?? {};
+      const breaches = [...(x.sectors ?? []), ...(x.sizes ?? []), ...(x.names ?? [])].filter((r: { breach?: boolean }) => r.breach).length + (x.etf_breach ? 1 : 0);
+      const k = b.risk?.effective_bets;
+      return { summary: `Household ₹${Math.round(b.net_worth.total).toLocaleString("en-IN")}; since ${h.start}`
+        + ` time-weighted ${sg(h.since)} vs Nifty-equivalent ${sg(h.bench_since)}; ${breaches} target breaches; independent risk sources ${k ?? "n/a"}.`,
+        breaches, asof: b.asof };
+    },
+  },
 ];
 
 export const toolByName = (n: string) => TOOLS.find((t) => t.name === n);

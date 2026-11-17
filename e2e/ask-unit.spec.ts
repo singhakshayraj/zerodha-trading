@@ -117,3 +117,16 @@ test("call_scores: one call's running score, or the lessons + day-20 scorecard",
   const all = await tool.run({}, { account: "primary", fetch: f }) as Record<string, unknown>;
   expect(all.summary).toBe("SELL calls in CHOP: 10 of 40 right (25%) vs 53% overall, p=0.000. Holdings calls: 49.3% right at day 20 over 75 calls, mean +0.0% vs Nifty.");
 });
+
+test("household: one-line summary of net worth, TWR vs Nifty, breaches, risk sources", async () => {
+  const ret = { since: -6.1, start: "2026-08-10", bench_since: -5.2 };
+  const f = async (p: string) => {
+    if (p !== "/household") throw new Error("unexpected " + p);
+    return { book: { net_worth: { total: 1000000 }, returns: { household: ret },
+      xray: { sectors: [{ breach: true }, { breach: false }], sizes: [{ breach: false }], names: [{ breach: true }], etf_breach: false },
+      risk: { effective_bets: 1.5 } } };
+  };
+  const tool = TOOLS.find((t) => t.name === "household")!;
+  const r = await tool.run({}, { account: "primary", fetch: f }) as Record<string, unknown>;
+  expect(r.summary).toBe("Household ₹10,00,000; since 2026-08-10 time-weighted -6.1% vs Nifty-equivalent -5.2%; 2 target breaches; independent risk sources 1.5.");
+});
