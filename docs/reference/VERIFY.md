@@ -252,6 +252,28 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-44 · risk targets publish and the PICKING_RP book runs — registered 2026-11-18
+After each official advisor run (brain Phase 2):
+```sql
+select
+  (select value::json->>'asof' from app_config where key='risk_targets_latest') as asof,
+  (select max(run_date) from portfolio_advice where is_official) as last_official,
+  (select round(sum((t->>'target_pct')::numeric),2) from app_config,
+     json_array_elements(value::json->'targets') t where key='risk_targets_latest') as target_sum,
+  (select max((t->>'target_pct')::numeric) from app_config,
+     json_array_elements(value::json->'targets') t where key='risk_targets_latest') as max_target,
+  (select count(*) from advisor_paper_equity where book='PICKING_RP') as rp_snapshots,
+  (select count(distinct date_trunc('month', entry_date::date)) from advisor_paper_positions where book='PICKING_RP') as rp_rebalance_months;
+```
+**PASS**:
+- `asof = last_official`;
+- `target_sum` is 100 ± 0.01;
+- `max_target ≤ 8`, unless the stored `caps_infeasible` names `name`;
+- `rp_snapshots` grows by one per official run date;
+- `rp_rebalance_months` equals the number of calendar months since the seed.
+
+**FAIL** otherwise. The gate is read on 2027-03-31: PICKING_RP against MANAGEMENT and against `baseline_equity` (Nifty 500).
+
 ### V-43 · daily Kite fills don't duplicate Console imports — registered 2026-11-18
 After the next market day with real fills (brain c2ae646), the `kite_daily`
 rows carry the exchange order id (13–19 digits, same as Console) and an IST

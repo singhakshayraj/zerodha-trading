@@ -1355,7 +1355,28 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
   (`reference/TAX_REPLAY.md`). Checks: V-40, V-41. **Operator owes:**
   Console tradebook since inception (ours starts 2026-02-11, so older lots
   are unknown) and LTCG exemption used this FY.
-- **[P-69] Household portfolio manager (/household).** [me] · *done 2026-11-17 (brain `household_book.py`, dashboard `/household`; spec `superpowers/specs/2026-11-17-household-pms-design.md`):* one book across both accounts: net worth, time-weighted return vs a Nifty-equivalent (XIRR from 2027-08-27, once the window reaches 365 days; the number is hidden until then), max drawdown, X-ray vs targets (defaults in `app_config.household_targets`), risk via effective bets, tax summary, rebalance list. `publish()` writes `app_config.household_book_latest` after the daily reconcile and the official advisor run; it writes nothing when an account's positions are missing. First live book 2026-11-17: household ₹13,33,148 (Kanaklata ₹6,04,402, Natwar ₹7,28,746); time-weighted since 2026-08-27 −5.94% vs Nifty-equivalent +4.87% (Kanaklata −9.45%, Natwar −3.07%); max drawdown −12.94% (peak = the 100 base at 08-27, trough 10-23); target breaches by kind: 0 names, 0 sectors, ETF sleeve within cap, 2 size-mix rows (mid and large, shown on the page, not traded); no trims proposed; underweight NBFC & other finance (−7.5pp), Healthcare (−6.6pp), Automobile and Auto Components (−6.2pp); independent risk sources 1.52 across 51 holdings. Final-review fixes (brain e2933be): unheld index sectors are listed as underweights, size mix is equity-only, trims from accounts with undated lots are marked tax-unknown and ordered last, names in both accounts use the 3% overlap cap, positions date is per account (older shown, Natwar date when it differs), drawdown is measured from the 100 base, 1M/3M are blank until the history is long enough. **Not done:** mutual funds (3 schemes in `holding_scheme_map` have TODO codes / 0 units — operator to fill); dividends (no data — future Console chore). Check: V-42.
+  · *Operator data closed 2026-11-18:* tradebooks back-filled (primary to
+  Nov 2022, Natwar to Jun 2021); every held lot in both accounts dated, with
+  bonus/demerger/rename events in brain `data/lot_events.csv` (NMDC, ITC
+  Hotels, ICICIPRULI→ICICILIFE, ASHOKLEY, IRB). LTCG used this FY now
+  computed from the tradebook (`costs.realised_split`): both accounts
+  net LT-negative, so 0 of ₹1.25L used. The daily Kite sync now keys on the
+  exchange order id (16 duplicate natwar fills removed); check V-43.
+  E10 closed: `data/nifty500.csv` re-pinned to the 2026-09-30 review
+  (500 names incl. 3 REITs and BE-series `HFCL-BE`/`STLTECH-BE`).
+  · *Phase 2 SHIPPED 2026-11-18* (spec
+  `superpowers/specs/2026-11-18-risk-construction-design.md`): `risk_targets.py`
+  caps HRP weights at the household rules (name 8, sector 20, ETF 15) and
+  reports effective bets now vs target (floor 6) plus a regime step (0.5, or 0.25
+  when the largest sector's correlation drifted). The official run writes
+  `app_config.risk_targets_latest` and a shadow `indicators.risk_size` on
+  SELL/TRIM rows. Verdicts and `rotation_*` are unchanged (deep-compare test).
+  The new paper book PICKING_RP rebalances monthly to the targets, net of costs,
+  against the same money in Nifty 500. /advisor has a risk construction card and
+  the shadow size chip; /advisor/accountability lists the third book.
+  **Gate:** read PICKING_RP against MANAGEMENT and Nifty 500 on 2027-03-31.
+  Risk sizing goes live only after that read and an operator yes. Check: V-44.
+- **[P-69] Household portfolio manager (/household).** [me] · *done 2026-11-17 (brain `household_book.py`, dashboard `/household`; spec `superpowers/specs/2026-11-17-household-pms-design.md`):* one book across both accounts: net worth, time-weighted return vs a Nifty-equivalent (XIRR from 2027-08-27, once the window reaches 365 days; the number is hidden until then), max drawdown, X-ray vs targets (defaults in `app_config.household_targets`), risk via effective bets, tax summary, rebalance list. `publish()` writes `app_config.household_book_latest` after the daily reconcile and the official advisor run; it writes nothing when an account's positions are missing. First live book 2026-11-17: household ₹13,33,148 (Kanaklata ₹6,04,402, Natwar ₹7,28,746); time-weighted since 2026-08-27 −5.94% vs Nifty-equivalent +4.87% (Kanaklata −9.45%, Natwar −3.07%); max drawdown −12.94% (peak = the 100 base at 08-27, trough 10-23); target breaches by kind: 0 names, 0 sectors, ETF sleeve within cap, 2 size-mix rows (mid and large, shown on the page, not traded); no trims proposed; underweight NBFC & other finance (−7.5pp), Healthcare (−6.6pp), Automobile and Auto Components (−6.2pp); independent risk sources 1.52 across 51 holdings. Final-review fixes (brain e2933be): unheld index sectors are listed as underweights, size mix is equity-only, trims from accounts with undated lots are marked tax-unknown and ordered last, names in both accounts use the 3% overlap cap, positions date is per account (older shown, Natwar date when it differs), drawdown is measured from the 100 base, 1M/3M are blank until the history is long enough. Mutual funds done 2026-11-18: the 3 real Coin funds are valued at the latest `amfi_nav` (₹18,397) in a 'Mutual funds' bucket; the 3 stale silver-FoF rows were deleted. **Not done:** dividends (no data — future Console chore). Check: V-42.
 - *Not recommended:* in-browser LLMs (WebLLM etc.) — weak reasoning, no
   safe DB access; only for offline summaries of on-page data.
 
