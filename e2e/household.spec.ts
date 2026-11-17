@@ -66,3 +66,33 @@ test("household page: sparse tax.unmatched and null effective bets do not crash"
   await expect(page.getByText("undated lots")).toHaveCount(0);
   await expect(page.getByTestId("risk")).toContainText("Not enough shared price history to measure.");
 });
+
+test("household page: no-trims copy, size-mix note, underweight label", async ({ page }) => {
+  await mock(page, { ...BOOK,
+    xray: { ...BOOK.xray, sizes: [{ size: "large", pct: 80, index_pct: 60, drift_pp: 20, breach: true }] },
+    rebalance: [{ kind: "underweight", sector: "Pharma", gap_pp: 4 }] });
+  await page.goto("/household");
+  const r = page.getByTestId("rebalance");
+  await expect(r).toContainText("No trims proposed — no name or sector is over its cap.");
+  await expect(r).toContainText("Size mix drifts from the index; that is shown above, not traded here.");
+  await expect(r).not.toContainText("Nothing breaches your targets");
+  await expect(r).toContainText("4.0pp under index weight");
+});
+
+test("household page: unknown tax, per-account positions date, short-window dash; older books tolerated", async ({ page }) => {
+  await mock(page, { ...BOOK,
+    returns: { ...BOOK.returns, household: { ...ret(-6), "1m": null, "3m": null } },
+    rebalance: [{ kind: "trim", symbol: "AAA", account: "natwar", qty: 10, freed_inr: 5000, tax_inr: 0, cost_inr: 10, tax_known: false, unmatched_qty: 10, reason: "AAA 12% > 8% name cap" }],
+    sections_asof: { ...BOOK.sections_asof, positions: "2026-10-30", positions_primary: "2026-11-01", positions_natwar: "2026-10-30" } });
+  await page.goto("/household");
+  await expect(page.getByTestId("rebalance")).toContainText("tax unknown (undated lots)");
+  await expect(page.getByTestId("net")).toContainText("(Natwar as of 2026-10-30)");
+  await expect(page.getByTestId("returns").locator("tr").last()).toContainText("—");
+});
+
+test("household page: older book without the new fields renders", async ({ page }) => {
+  await mock(page);
+  await page.goto("/household");
+  await expect(page.getByTestId("rebalance")).toContainText("₹110");
+  await expect(page.getByTestId("net")).not.toContainText("Natwar as of");
+});

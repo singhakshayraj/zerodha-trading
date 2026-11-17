@@ -15,7 +15,7 @@ type Pt = { date: string; index: number };
 type Ret = { "1m": number | null; "3m": number | null; since: number | null; start: string | null; series: Pt[];
   bench_1m: number | null; bench_3m: number | null; bench_since: number | null; bench_series: Pt[];
   max_drawdown: { pct: number; peak: string | null; trough: string | null }; xirr: number | null; xirr_since: string | null };
-type Move = { kind: "trim"; symbol: string; account: string; qty: number; freed_inr: number; tax_inr: number; cost_inr: number; reason: string }
+type Move = { kind: "trim"; symbol: string; account: string; qty: number; freed_inr: number; tax_inr: number; cost_inr: number; reason: string; tax_known?: boolean; unmatched_qty?: number }
   | { kind: "underweight"; sector: string; gap_pp: number };
 type Book = {
   asof: string;
@@ -31,7 +31,7 @@ type Book = {
     harvest: { symbol: string; account: string; loss_inr: number }[]; unmatched?: { primary?: string[]; natwar?: string[] } };
   rebalance: Move[];
   funds_unconfirmed: string[]; targets_source: string;
-  sections_asof: { positions: string | null; returns: string | null; xirr_since: string | null; tax: string | null; risk: string | null };
+  sections_asof: { positions: string | null; positions_primary?: string | null; positions_natwar?: string | null; returns: string | null; xirr_since: string | null; tax: string | null; risk: string | null };
 };
 type Trade = { account: string; symbol: string; trade_type: string; quantity: number; price: number; trade_date: string };
 type Payload = { book: Book | null; targets: unknown; ledger: Trade[] };
@@ -109,6 +109,8 @@ export default function HouseholdPage() {
   const trims = b?.rebalance.filter((m): m is Extract<Move, { kind: "trim" }> => m.kind === "trim") ?? [];
   const unders = b?.rebalance.filter((m): m is Extract<Move, { kind: "underweight" }> => m.kind === "underweight") ?? [];
   const undated = b ? (b.tax.unmatched?.primary ?? []).length + (b.tax.unmatched?.natwar ?? []).length : 0;
+  const pa = sa?.positions_primary, na = sa?.positions_natwar;
+  const posAsof = sa ? sa.positions && na && pa && na !== pa ? `${sa.positions} (Natwar as of ${na})` : sa.positions : null;
   const soon = b?.tax.ltcg_calendar.filter((l) => days(b.asof, l.date) <= 90) ?? [];
 
   return (
@@ -128,7 +130,7 @@ export default function HouseholdPage() {
           {data && !b && <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6 text-[12px] text-[#8a8a8a]">The household book hasn&apos;t been built yet — it publishes after the daily reconcile.</div>}
 
           {data && b && sa && (<>
-            <Section id="net" title="Net worth" asof={sa.positions}>
+            <Section id="net" title="Net worth" asof={posAsof}>
               <p data-testid="net-total" className="text-2xl font-semibold tabular-nums">{INR(b.net_worth.total)}</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-[12px]">
                 <div>{Object.entries(b.net_worth.by_account).filter(([, v]) => v).map(([k, v]) => <p key={k} className="flex justify-between"><span className="text-[#8a8a8a]">{NAME[k] ?? k}</span><span className="tabular-nums">{INR(v)}</span></p>)}</div>
@@ -157,7 +159,7 @@ export default function HouseholdPage() {
                 : <Muted>Money-weighted return (XIRR) appears from {plusYear(hh.xirr_since)}</Muted>)}
             </Section>
 
-            <Section id="xray" title="X-ray" asof={sa.positions}>
+            <Section id="xray" title="X-ray" asof={posAsof}>
               {b.targets_source === "default" && <span className="inline-block text-[10px] px-2 py-0.5 rounded bg-[#1f1f1f] text-[#aaa] mb-3">targets: default</span>}
               <div className="space-y-2">
                 {b.xray.sectors.map((s) => (
@@ -206,14 +208,14 @@ export default function HouseholdPage() {
               {undated > 0 && <Muted>{undated} holdings have undated lots — import the Console tradebook.</Muted>}
             </Section>
 
-            <Section id="rebalance" title="Rebalance" asof={sa.positions}>
+            <Section id="rebalance" title="Rebalance" asof={posAsof}>
               {trims.length ? <Table>
                 <thead><tr><Th>Trim</Th><Th>Account</Th><Th>Qty</Th><Th>Frees</Th><Th>Tax</Th><Th>Why</Th></tr></thead>
-                <tbody>{trims.map((m, i) => <tr key={i}><Td>{m.symbol}</Td><Td>{NAME[m.account] ?? m.account}</Td><Td>{m.qty}</Td><Td>{INR(m.freed_inr)}</Td><Td>{INR(m.tax_inr + m.cost_inr)}</Td><td className="py-1 whitespace-normal min-w-[180px]">{m.reason}</td></tr>)}</tbody>
-              </Table> : <p className="text-[12px] text-[#8a8a8a]">Nothing breaches your targets.</p>}
+                <tbody>{trims.map((m, i) => <tr key={i}><Td>{m.symbol}</Td><Td>{NAME[m.account] ?? m.account}</Td><Td>{m.qty}</Td><Td>{INR(m.freed_inr)}</Td><Td>{m.tax_known === false ? "tax unknown (undated lots)" : INR(m.tax_inr + m.cost_inr)}</Td><td className="py-1 whitespace-normal min-w-[180px]">{m.reason}</td></tr>)}</tbody>
+              </Table> : <p className="text-[12px] text-[#8a8a8a]">No trims proposed — no name or sector is over its cap.{b.xray.sizes.some((z) => z.breach) && " Size mix drifts from the index; that is shown above, not traded here."}</p>}
               {unders.length > 0 && <>
                 <h3 className="text-[11px] uppercase tracking-wide text-[#7a7a7a] mt-4 mb-1">Underweight sectors</h3>
-                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#6a6a6a]">{u.gap_pp.toFixed(1)}pp under target</span></p>)}
+                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#6a6a6a]">{u.gap_pp.toFixed(1)}pp under index weight</span></p>)}
               </>}
             </Section>
 

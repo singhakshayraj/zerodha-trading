@@ -256,8 +256,9 @@ his token paste: 29 names in `advisor_natwar_latest`, nothing in
 After each reconcile, `app_config.household_book_latest.asof` is within the
 trading-day window (today, or the last reconciled `pnl_daily` date, which is
 the previous trading day when the book publishes before the next reconcile),
-`returns.household.start` is set, and `net_worth.total` is within 1% of the
-sum of both accounts' latest `pnl_daily.value_close`.
+`returns.household.start` is set, and `net_worth.total` is within 3% of the
+sum of both accounts' latest `pnl_daily.value_close`. The book prices at the
+09:20 LTP; the reconcile rewrites the close, so expect a small gap.
 ```sql
 select
   (select value::json->>'asof' from app_config where key='household_book_latest') as asof,
@@ -269,9 +270,9 @@ select
 ```
 **PASS** = `asof >= last_pnl_date` (ISO date string compare; `asof` is today or
 the previous trading day), `start` not null, and
-`abs(nw_total - pnl_total) / pnl_total < 0.01`.
+`abs(nw_total - pnl_total) / pnl_total < 0.03` (priced at the 09:20 LTP; reconcile rewrites the close).
 **FAIL** otherwise: `asof < last_pnl_date` (book older than one trading day),
-or the total disagrees by ≥ 1%.
+or the total disagrees by ≥ 3%.
 Built 2026-11-17: household ₹13,33,148 from the first publish.
 
 ### V-41 · tax rule replay nets ≥ 0 — registered 2026-11-17
