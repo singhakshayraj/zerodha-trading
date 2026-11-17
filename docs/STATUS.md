@@ -2089,8 +2089,11 @@ Every SELL/TRIM row now carries tax + trading cost (`indicators.tax`), a
 a morning-brief `tax` line and a tax-aware action on the move cards.
 Verdicts untouched (deep-compare test). Replay over 153 past SELL-grade
 calls: 0 waits, net ₹0 — all lots <1y old, so no rule fires yet. Open checks
-V-40/V-41. **Operator owes:** Console tradebook since inception + LTCG
-exemption used this FY.
+V-40/V-41. Final review fixed 9 issues before the first live run (brain
+`9685210`): the card chip now survives the intraday refresh, one bad row no
+longer blanks the whole book, the curve falls back when unset, and the
+60-day wait is priced off the 40-day number while day 60 is thin. **Operator
+owes:** Console tradebook since inception + LTCG exemption used this FY.
 
 ### 📍 2026-11-17 — advisor v3 Phase 0 "fix the ruler" + Phase 4 capture shipped [P-68]
 
