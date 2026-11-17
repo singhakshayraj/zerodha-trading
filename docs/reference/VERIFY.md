@@ -267,10 +267,10 @@ select
 ```
 **PASS**:
 - `asof = last_official`;
-- `target_sum` is 100 ± 0.01;
+- `target_sum` is 100 ± 0.5 (each target is rounded to 2 dp);
 - `max_target ≤ 8`, unless the stored `caps_infeasible` names `name`;
 - `rp_snapshots` grows by one per official run date;
-- `rp_rebalance_months` equals the number of calendar months since the seed.
+- `rp_rebalance_months` equals the number of distinct calendar months with an official run, counting the seed month.
 
 **FAIL** otherwise. The gate is read on 2027-03-31: PICKING_RP against MANAGEMENT and against `baseline_equity` (Nifty 500).
 
