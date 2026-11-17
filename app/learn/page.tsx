@@ -34,6 +34,7 @@ const SECTIONS = [
   { id: "what",      label: "What this is",      icon: Boxes },
   { id: "words",     label: "The words first",   icon: BookMarked },
   { id: "trader",    label: "The trader",        icon: Bot },
+  { id: "lab",       label: "Strategy lab",      icon: FlaskConical },
   { id: "advisor",   label: "The advisor",       icon: Compass },
   { id: "measure",   label: "How we measure",    icon: Ruler },
   { id: "found",     label: "What we found",     icon: FlaskConical },
@@ -357,6 +358,32 @@ export default function LearnPage() {
                   Every position is closed before the market shuts — shorts are covered around 15:15 and longs closed
                   around 15:20. So the account carries no market risk overnight, and each day is a clean, separate
                   experiment.
+                </p>
+              </Callout>
+            </Section>
+
+            {/* ── 3b. Strategy lab [P-70] ─────────────────────────────── */}
+            <Section id="lab" icon={FlaskConical} title="The strategy lab (paper, reopened 2026-11-18)"
+              lede="The intraday trader above was stopped in September. The lab brings intraday back as an experiment: many rules at once, paper money only.">
+              <p>
+                Instead of one engine, about <strong className="text-[#f5f5f5]">54 variants</strong> trade the 200 most-traded
+                Nifty 500 stocks side by side. There are six ideas (the old signal engine as a baseline, opening-range breakouts,
+                gap continuation, gap fades, VWAP reversion, and relative strength held to the close), and each runs with three
+                stop widths and three entry strictnesses. Each variant has its own pretend ₹50,000 intraday account: ₹25,000
+                per trade, at most 5× leverage, every Zerodha charge and slippage deducted, everything closed by 15:15.
+              </p>
+              <p>
+                The point of the wide stops (1–2%) is the lesson from the first run: charges cost roughly the same rupees
+                whatever the stop. With a tight 0.5% stop they ate about 0.4 of each trade&apos;s risk. With wider stops the
+                same charges are a much smaller share.
+              </p>
+              <Callout title="Why most variants should fail, and how a winner is recognised">
+                <p>
+                  With 54 rules running, some will look good by luck. So the rule for calling one a winner was written down
+                  before the first trade: a sequential test on its trades, a t-statistic of at least 3.72 on <em>daily</em>{" "}
+                  results (the variants all trade the same stocks at the same moments, so days, not trades, are the real
+                  sample), profit factor at least 1.3, and ₹100 a day net. A variant that is killed keeps trading on paper
+                  so the record stays complete. The live scoreboard is on <strong className="text-[#f5f5f5]">/lab</strong>.
                 </p>
               </Callout>
             </Section>

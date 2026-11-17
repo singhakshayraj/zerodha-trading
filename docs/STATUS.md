@@ -4,7 +4,9 @@
 create dated `HANDOFF_*` snapshots (those are archived). For the "why" see
 [VISION.md](VISION.md); for what's next see [ROADMAP.md](ROADMAP.md).
 
-_Last updated: **2026-11-18**. Both tradebooks are back-filled and every held lot is dated. LTCG used this FY is computed (0 used). The 3 Coin funds are in the household book. The Nifty 500 pin matches the 2026-09-30 review. **P-68 Phase 2 shipped:** capped HRP targets, the effective-bets floor and shadow risk sizing on /advisor, and a PICKING_RP paper book (gate 2027-03-31). Checks V-43 and V-44 are open. See [PIPELINE.md](PIPELINE.md) P-68 and P-69._
+_Last updated: **2026-11-18 (late)**. **[P-70] Intraday Strategy Lab built.** The operator reopened intraday as a paper experiment: 54 pre-registered variants on the Nifty 200, a ₹50k MIS book each, the `/lab` scoreboard, and V-45/46/47 registered. The first live day needs a token paste. TOTP (P-03) comes next, on 11-19._
+
+_Previous: **2026-11-18**. Both tradebooks are back-filled and every held lot is dated. LTCG used this FY is computed (0 used). The 3 Coin funds are in the household book. The Nifty 500 pin matches the 2026-09-30 review. **P-68 Phase 2 shipped:** capped HRP targets, the effective-bets floor and shadow risk sizing on /advisor, and a PICKING_RP paper book (gate 2027-03-31). Checks V-43 and V-44 are open. See [PIPELINE.md](PIPELINE.md) P-68 and P-69._
 
 _Previous: **2026-11-10** (Tue — today is the confirmed
 Diwali-Balipratipada NSE/BSE holiday; `portfolio_advice` shows 0 new

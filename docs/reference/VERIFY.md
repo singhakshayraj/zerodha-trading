@@ -252,6 +252,52 @@ split is needed. Natwar preview (P-45 provisional) landed 36s after
 his token paste: 29 names in `advisor_natwar_latest`, nothing in
 `portfolio_advice`._
 
+### V-47 · lab books never exceed the MIS margin cap — registered 2026-11-18 [P-70]
+Peak open notional per variant per day, rebuilt from entry/exit timestamps:
+```sql
+with ev as (
+  select trade_date, strategy_id, entry_ts as ts, qty*entry_ref as d from lab_trades
+  union all
+  select trade_date, strategy_id, exit_ts, -qty*entry_ref from lab_trades where exit_ts is not null),
+run as (select trade_date, strategy_id, sum(d) over (partition by trade_date, strategy_id order by ts, d) as open_notional from ev)
+select max(open_notional) as peak from run;
+```
+**PASS** = `peak ≤ 250000` on every lab day. **FAIL** otherwise: the margin invariant broke.
+
+### V-46 · lab charges match the Zerodha schedule — registered 2026-11-18 [P-70]
+For a sample of closed rows, `charges_inr` equals `paper_broker._zerodha_intraday_charges` for both legs:
+```sql
+select count(*) as bad from (
+  select l.*, case when side='LONG' then 'BUY' else 'SELL' end as s1 from lab_trades l where status='CLOSED') t
+where abs(charges_inr - (
+  round((least(20, qty*entry_price*0.0003) + case when s1='SELL' then qty*entry_price*0.00025 else 0 end
+   + qty*entry_price*0.0000307 + qty*entry_price*0.000001
+   + 0.18*(least(20, qty*entry_price*0.0003) + qty*entry_price*0.0000307 + qty*entry_price*0.000001)
+   + case when s1='BUY' then qty*entry_price*0.00003 else 0 end)::numeric, 2)
+ + round((least(20, qty*exit_price*0.0003) + case when s1='BUY' then qty*exit_price*0.00025 else 0 end
+   + qty*exit_price*0.0000307 + qty*exit_price*0.000001
+   + 0.18*(least(20, qty*exit_price*0.0003) + qty*exit_price*0.0000307 + qty*exit_price*0.000001)
+   + case when s1='SELL' then qty*exit_price*0.00003 else 0 end)::numeric, 2))) > 0.02;
+```
+**PASS** = `bad = 0`. **NOT-YET** until the first lab day closes.
+
+### V-45 · lab trades land, ~1,000+/day — registered 2026-11-18 [P-70]
+After the first full trading day with a live token (lab.py, brain `feat/strategy-lab`):
+```sql
+select trade_date, count(*) as trades, count(distinct strategy_id) as variants,
+  count(*) filter (where status='OPEN') as left_open,
+  (select count(*) from lab_daily d where d.trade_date=t.trade_date) as daily_rows,
+  (select count(*) from lab_strategies) as registered
+from lab_trades t group by trade_date order by trade_date desc limit 5;
+```
+**PASS**:
+- `registered = 54`;
+- `left_open = 0` after 15:20;
+- `daily_rows` = `variants`;
+- `trades ≥ 1000` on a full token day. If it is lower, read `lab_refusals` (margin / symbol_limit / bad_levels / token) before changing anything. A change of rule is a new `_v2` id.
+
+**Storage trigger (deferred archive):** when `pg_database_size` passes ~350 MB, or on 2027-01-17, archive `lab_trades` rows older than 60 days to Parquet (spec §4).
+
 ### V-44 · risk targets publish and the PICKING_RP book runs — registered 2026-11-18
 After each official advisor run (brain Phase 2):
 ```sql

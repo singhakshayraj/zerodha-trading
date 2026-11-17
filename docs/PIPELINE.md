@@ -1068,6 +1068,26 @@ explicitly lifted.
 
 ## 🔨 IN PROGRESS
 
+- **[P-70] Intraday Strategy Lab — ~54 parallel paper variants.** [me] ·
+  *done =* every trading day with a live token, `lab.py` runs 6 archetypes × 9
+  variants on the Nifty 200 (one ₹50k MIS book each, real charges + slippage,
+  5× margin cap, flat by 15:15). It writes `lab_trades` / `lab_daily` /
+  `lab_refusals`, with ~1,000+ trades a day, and `/lab` shows the scoreboard.
+  · *source:* operator 2026-11-18 — the original goal is passive income
+  (₹500/day on ₹50k; ₹100/day first). The operator chose to reopen intraday
+  paper trading, with many strategies at once to "get the factor moving".
+  **Freeze lifted for paper intraday only.** The outside review
+  (`reference/INTRADAY_REOPEN_PROMPT.md`) recommended multi-day strategies
+  instead. Its numbers are on record and were not acted on.
+  · *promotion rule (pre-registered):* SPRT on net R (α=0.05/54) + a
+  day-clustered t ≥ 3.72 + PF ≥ 1.3 + ₹100/day net. Real money is a separate
+  decision (Kite Connect + SEBI Algo-ID).
+  · *open:* P-03 TOTP (2026-11-19) removes the daily-paste gap; Parquet
+  archive deferred (V-45 trigger).
+  Spec: `superpowers/specs/2026-11-18-intraday-strategy-lab-design.md`; plan:
+  `superpowers/plans/2026-11-18-intraday-strategy-lab.md`. VERIFY: V-45, V-46,
+  V-47.
+
 - **[P-47] Thesis engine — advisor v2 in SHADOW mode.** [me] · *done =* every
   official run attaches `indicators.thesis` (HOLD/ADD/TRIM/EXIT, target
   weight, sized qty, fundamentals quality, reason, falsifier) to each holding
