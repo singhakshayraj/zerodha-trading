@@ -67,7 +67,7 @@ The operator lifts the engineering freeze for this. Paper only.
 - Fetch 5-minute candles once for the universe, then hand the same bars to every strategy.
 - Each strategy returns zero or more entries, each with a side, a stop and a target or exit
   rule.
-- A shared exit checker polls batch LTP every ~30 s for open lab positions.
+- Exits are checked on every 5-min cycle until 15:10, against each new bar's open/high/low. A retail enctoken has no `/quote/ltp` (it returns 400; finding of 2026-11-18, the first live run), so the price is the latest bar's close. The stop is checked first when a bar holds both levels; a gap past the stop fills at the open, capped at stop − 0.25R.
 - Every position is flattened at 15:15.
 
 **Paper book per strategy.**
