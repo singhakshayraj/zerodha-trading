@@ -134,6 +134,26 @@ A header line shows the best strategy by net PF, with its day count and an
 - A killed strategy keeps trading on paper (data is cheap) but is greyed out.
 - "Promoted" means "worth discussing real money", nothing more.
 
+**Historical replay (pre-registered 2026-11-18, before any replay output).**
+- **Data:** github.com/ganeshbiyer/nse_historical_data. It has 1-min bars for ~550 current Nifty
+  500 names, 2018–2025. We resample them to 5-min, on the Mac only (`zerodha-brain/scripts/lab_backtest.py`).
+- **Engine:** the same `lab.py` / `lab_book` / `lab_strategies` code that runs live.
+  - A fake Kite serves only fully closed bars.
+  - Storage is in memory; prod is never touched.
+- **Universe:** point in time, the top 200 by the prior 20-session traded value.
+  - A symbol is excluded for 20 sessions after any overnight gap of more than 25% (a corporate action or a
+    data break).
+- **Window:** 2018-03 → 2025-12. The same 54 frozen variants, with no tuning.
+- **A variant passes history only if every one of these holds:**
+  - over the full window: the SPRT state is `promoted` (N=54), the day-clustered t ≥ 3.72,
+    PF ≥ 1.3, and mean net ≥ ₹100 per replay day;
+  - **and** net ₹ is > 0 in each of the 3 blocks 2018-03→2020-12, 2021→2022 and 2023→2025.
+- Passing history is not a promotion. The variant still has to pass the live rule above.
+- **Known biases:**
+  - Survivorship: names that collapsed and left the index are missing. This flatters longs.
+  - The in-progress bar is dropped. This is conservative: live sees 30 s more.
+  - Only one data source.
+
 ## 6. Storage (new tables)
 
 - **`lab_strategies`:** id, version, rule text, params JSON, registered_at, spec hash.

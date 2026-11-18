@@ -263,6 +263,7 @@ run as (select trade_date, strategy_id, sum(d) over (partition by trade_date, st
 select max(open_notional) as peak from run;
 ```
 **PASS** = `peak ≤ 250000` on every lab day. **FAIL** otherwise: the margin invariant broke.
+_11-18 reading: peak 340,076 — **false FAIL** (artifact). Entries were stamped at cycle start (before the ~2-min fetch), exits at processing time, so a same-cycle exit sorted after the entry that reused its margin. In-memory cap check is per-symbol after exits. Fixed brain: entries stamped at placement; re-read from 11-19 only (`where trade_date >= '2026-11-19'`)._
 
 ### V-46 · lab charges match the Zerodha schedule — registered 2026-11-18 [P-70]
 For a sample of closed rows, `charges_inr` equals `paper_broker._zerodha_intraday_charges` for both legs:
@@ -280,6 +281,7 @@ where abs(charges_inr - (
    + case when s1='SELL' then qty*exit_price*0.00003 else 0 end)::numeric, 2))) > 0.02;
 ```
 **PASS** = `bad = 0`. **NOT-YET** until the first lab day closes.
+_11-18 reading: **PASS** — bad = 0 over 264 closed rows._
 
 ### V-45 · lab trades land, ~1,000+/day — registered 2026-11-18 [P-70]
 After the first full trading day with a live token (lab.py, brain `feat/strategy-lab`):
@@ -295,6 +297,8 @@ from lab_trades t group by trade_date order by trade_date desc limit 5;
 - `left_open = 0` after 15:20;
 - `daily_rows` = `variants`;
 - `trades ≥ 1000` on a full token day. If it is lower, read `lab_refusals` (margin / symbol_limit / bad_levels / token) before changing anything. A change of rule is a new `_v2` id.
+
+_11-18 reading (partial day, lab live from 12:12 IST): registered 54, left_open 0, daily_rows 18 = variants 18, trades 264 — **NOT-YET** on the ≥1000 bar; first full token day is 11-19._
 
 **Storage trigger (deferred archive):** when `pg_database_size` passes ~350 MB, or on 2027-01-17, archive `lab_trades` rows older than 60 days to Parquet (spec §4).
 
