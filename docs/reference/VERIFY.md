@@ -29,6 +29,13 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-50 · Home attention list matches the source pages — registered 2026-11-19 [P-74]
+Manual, next trading day. Open `/` and compare each "Needs your attention" row
+with its page: sell/trim counts = /advisor (both account tabs); skipped-call cost
+= sum of the two "Ignored sell calls" tiles on /pnl; household total = /household
+net worth. **PASS** = every number matches. **FAIL** = any mismatch, or a stale/
+failed data check on /advisor that the list does not show.
+
 ### V-49 · fluid style reads well on a real phone — registered 2026-11-19 [P-73]
 Manual: needs a device screenshot (no SQL). On the user's Android Chrome, open `/`,
 `/advisor`, `/pnl`, `/trading`. **PASS** = Home shows the big portfolio value,

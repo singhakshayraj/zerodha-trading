@@ -17,6 +17,8 @@ import { BrainStatus } from "@/components/BrainStatus";
 import { RiskMeter } from "@/components/RiskMeter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldAlert, History } from "lucide-react";
+import { AttentionList, HouseholdCard, MixCard, MonthCard, TaxCard, type MonthVsNifty } from "@/components/HomeWidgets";
+import { attentionItems, shortDate, type HouseholdBook } from "@/lib/attention";
 
 import { inr } from "@/lib/format";
 const GREEN = "#9be15d", RED = "#f08a76", AMBER = "#d9b84a", BLUE = "#b9ec8a", MUTE = "#8b968e";
@@ -27,6 +29,10 @@ type Holding = { quantity: number; average_price: number; last_price: number; da
 type Advice = {
   symbol: string; verdict: string; trend_score: number; pnl_percent: number | null;
   rotation_target_symbol?: string | null;
+};
+type PnlData = {
+  daily: { date: string; pnl: number; nifty_pnl: number | null }[];
+  ledger: { kind: string; impact_inr: number | null }[];
 };
 type PortfolioRisk = {
   concentration_flags: string[];
@@ -89,29 +95,48 @@ export default function CommandCenter() {
   const [changeCount, setChangeCount] = useState(0);
   const [edge, setEdge] = useState<{ profitFactor: number | null; maxDrawdownR: number; expectancyR: number; label: string; closed: number } | null>(null);
   const [edgeVerified, setEdgeVerified] = useState<boolean | null>(null); // null=loading, false=gate #6 not run, true=run
+  // household view (both accounts): brain's household book + per-account P&L ledgers
+  const [book, setBook] = useState<HouseholdBook | null>(null);
+  const [natwarAdvice, setNatwarAdvice] = useState<Advice[] | null>(null);
+  const [pnl, setPnl] = useState<Record<string, PnlData>>({});
+  const [brief, setBrief] = useState<{ lines: { kind: string; warn: boolean; text: string }[] } | null>(null);
+  const [watchdog, setWatchdog] = useState<{ fails: number } | null>(null);
+  const [enbFloor, setEnbFloor] = useState<number | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
   useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
   const load = useCallback(async () => {
-    try {
-      const t = (await api.get("/trades/live")).data;
-      const trades: Trade[] = t.trades ?? [];
+    const get = (u: string) => api.get(u).then((r) => r.data);
+    const [t, h, a, ins, hh, nw, p1, p2] = await Promise.allSettled([
+      get("/trades/live"), get("/portfolio/holdings"), get("/advisor"), get("/analytics/insights"),
+      get("/household"), get("/advisor/natwar"), get("/pnl?account=primary"), get("/pnl?account=natwar"),
+    ]);
+    // each card degrades to empty on its own failed call
+    if (t.status === "fulfilled") {
+      const trades: Trade[] = t.value.trades ?? [];
       const pnl = trades.filter((x) => x.status === "CLOSED").reduce((s, x) => s + (x.pnl ?? 0), 0);
-      setSess({ pnl, trades: t.tradesCount ?? 0, active: !!t.isSessionActive, config: t.sessionConfig ?? null });
-    } catch { /* card degrades to empty */ }
-    try { setHoldings((await api.get("/portfolio/holdings")).data?.holdings ?? []); } catch { /* */ }
-    try {
-      const a = (await api.get("/advisor")).data;
-      setAdvice(a.rows ?? []); setRisk(a.portfolioRisk ?? null); setRunDate(a.runDate ?? null);
-      setChangeCount((a.changes ?? []).length);
-    } catch { /* */ }
-    try {
-      const ins = (await api.get("/analytics/insights")).data;
-      const v = ins?.verdict;
+      setSess({ pnl, trades: t.value.tradesCount ?? 0, active: !!t.value.isSessionActive, config: t.value.sessionConfig ?? null });
+    }
+    if (h.status === "fulfilled") setHoldings(h.value?.holdings ?? []);
+    if (a.status === "fulfilled") {
+      const v = a.value;
+      setAdvice(v.rows ?? []); setRisk(v.portfolioRisk ?? null); setRunDate(v.runDate ?? null);
+      setChangeCount((v.changes ?? []).length);
+      setBrief(v.brief ?? null); setWatchdog(v.watchdog ?? null); setEnbFloor(v.riskTargets?.enb_floor ?? null);
+    }
+    if (ins.status === "fulfilled") {
+      const v = ins.value?.verdict;
       if (v) setEdge({ profitFactor: v.profitFactor ?? null, maxDrawdownR: v.maxDrawdownR ?? 0, expectancyR: v.expectancyR ?? 0, label: v.label ?? "", closed: v.closed ?? 0 });
-      setEdgeVerified(ins?.gate6 ? true : false);
-    } catch { /* edge strip degrades to empty */ }
+      setEdgeVerified(ins.value?.gate6 ? true : false);
+    }
+    if (hh.status === "fulfilled") setBook(hh.value?.book ?? null);
+    if (nw.status === "fulfilled") setNatwarAdvice(nw.value?.rows ?? []);
+    const pn: Record<string, PnlData> = {};
+    for (const [k, r] of [["primary", p1], ["natwar", p2]] as const) if (r.status === "fulfilled") pn[k] = r.value;
+    setPnl(pn);
+    setLoaded(true);
   }, []);
   useEffect(() => { if (isConnected) load(); }, [isConnected, load]);
   useRefreshOnVisible(load);
@@ -136,6 +161,22 @@ export default function CommandCenter() {
   const pfColor = !edge || edge.profitFactor == null ? MUTE : edge.profitFactor >= 1.3 ? GREEN : edge.profitFactor >= 1.1 ? AMBER : RED;
   const sign = (n: number) => (n >= 0 ? GREEN : RED);
 
+  const todayIso = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local
+  const attention = attentionItems({
+    today: todayIso,
+    advice: { primary: advice, natwar: natwarAdvice },
+    ledgers: { primary: pnl.primary?.ledger, natwar: pnl.natwar?.ledger },
+    book, enbFloor, brief, watchdog,
+  });
+  // latest month present in the P&L rows, per account: P&L vs Nifty on the same money
+  const lastDate = Object.values(pnl).flatMap((d) => d.daily ?? []).reduce((m, r) => (r.date > m ? r.date : m), "");
+  const month = lastDate.slice(0, 7);
+  const monthRows: MonthVsNifty[] = month ? Object.entries(pnl).flatMap(([account, d]) => {
+    const rows = (d.daily ?? []).filter((r) => r.date.startsWith(month));
+    return rows.length ? [{ account, pnl: rows.reduce((a, r) => a + r.pnl, 0), nifty: rows.reduce((a, r) => a + (r.nifty_pnl ?? 0), 0) }] : [];
+  }) : [];
+  const hhRet = book?.returns.household;
+
   return (
     <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
       <Sidebar />
@@ -147,14 +188,33 @@ export default function CommandCenter() {
               <h1 className="text-[34px] md:text-[44px] leading-[1.05] font-light tracking-[-0.02em] text-[#eef2ee]">Command<br />Center</h1>
               <div className="flex flex-wrap gap-2">
                 <Chip label="Date">{today}</Chip>
-                <span className="chip rounded-2xl inline-flex items-center px-4 py-2"><BrainStatus /></span>
+                <span className="chip rounded-2xl inline-flex items-center px-4 py-2 max-w-[300px] overflow-hidden"><BrainStatus /></span>
                 <Chip label="Paper engine"><span style={{ color: sess?.active ? GREEN : undefined }}>{sess?.active ? "Active" : "Idle"}</span></Chip>
                 {advice !== null && advice.length > 0 && (
                   <Chip label="Advisor">{actionable.length} action{actionable.length === 1 ? "" : "s"}</Chip>
                 )}
               </div>
             </div>
-            <Link href="/portfolio" className="flex flex-col items-start md:items-end gap-2.5">
+            {book ? (
+              <Link href="/household" className="flex flex-col items-start md:items-end md:ml-auto gap-2.5">
+                <span className="text-[13px] text-[#a9b3ab]">Household · both accounts · {shortDate(book.asof)}</span>
+                <span className="text-[40px] md:text-[52px] leading-none font-light tracking-[-0.02em] text-[#eef2ee]">{INR(book.net_worth.total)}</span>
+                {hhRet && hhRet["1m"] != null && (
+                  <span className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-[13px] font-medium rounded-full px-3 py-1 text-[#0f1a12]" style={{ background: sign(hhRet["1m"]) }}>
+                      {hhRet["1m"] >= 0 ? "+" : "−"}{Math.abs(hhRet["1m"]).toFixed(1)}% in 1 month
+                    </span>
+                    {hhRet.bench_1m != null && <span className="text-[13px] text-[#a9b3ab]">Nifty {hhRet.bench_1m >= 0 ? "+" : "−"}{Math.abs(hhRet.bench_1m).toFixed(1)}%</span>}
+                  </span>
+                )}
+                {holdings && holdings.length > 0 && (
+                  <span className="text-xs text-[#8b968e]">
+                    Kanaklata live {INR(totalCurrent)} · <span style={{ color: sign(dayPnl) }}>{inr(dayPnl, { signed: true })} today</span> · <span style={{ color: sign(totalPnl) }}>{totalPnl >= 0 ? "+" : ""}{totalPnlPct.toFixed(1)}% total</span>
+                  </span>
+                )}
+              </Link>
+            ) : (
+                        <Link href="/portfolio" className="flex flex-col items-start md:items-end gap-2.5">
               <span className="text-[13px] text-[#a9b3ab]">Portfolio value</span>
               {holdings === null ? (
                 <Skeleton className="h-12 w-52" />
@@ -174,6 +234,7 @@ export default function CommandCenter() {
                 </>
               )}
             </Link>
+            )}
           </header>
 
           {/* EDGE UNVERIFIED nag — clears only when gate #6 (historical
@@ -189,6 +250,9 @@ export default function CommandCenter() {
               </span>
             </p>
           )}
+
+          {/* what needs a decision or a look, both accounts, most urgent first */}
+          {loaded && <AttentionList items={attention} />}
 
           {/* today: paper engine · advisor top move · whole-portfolio risk */}
           <section aria-label="Today" className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]">
@@ -260,6 +324,22 @@ export default function CommandCenter() {
               </Link>
             )}
           </section>
+
+          {/* household book: split, asset mix, returns · sector mix vs index */}
+          {book && (
+            <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+              <HouseholdCard book={book} />
+              <MixCard book={book} />
+            </section>
+          )}
+
+          {/* this month vs Nifty (per account) · tax */}
+          {(monthRows.length > 0 || book) && (
+            <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+              {monthRows.length > 0 && <MonthCard month={month} rows={monthRows} />}
+              {book && <TaxCard book={book} today={todayIso} />}
+            </section>
+          )}
 
           {/* edge (paper) — the go/no-go metric (VISION §6.1) — beside the daily risk meter */}
           <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))]">

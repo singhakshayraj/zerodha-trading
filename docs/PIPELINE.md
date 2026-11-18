@@ -1421,6 +1421,18 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+- ~~**[P-74] Home: household widgets + "Needs your attention".**~~ ✅ **DONE 2026-11-19**
+  — mockup D approved. Header value is now the household book (both accounts,
+  as-of the brain's household_book date) with 1-month return vs Nifty; Kanaklata
+  live value/day change kept as a sub-line. New cards: Needs your attention
+  (`lib/attention.ts`, pure + `e2e/attention-unit.spec.ts`: sells/trims waiting
+  both accounts, skipped-call cost from /pnl ledgers, data-check fails, effective
+  bets below floor, cap-size band breach, stale brief lines, unconfirmed funds,
+  lots turning long-term within 60 days), Household book (account + asset split,
+  returns vs Nifty, worst drop), Where the money sits (top 5 sectors vs index,
+  underweights), Month vs Nifty per account, Tax (FY booked, unrealised, harvest,
+  next long-term dates). `components/HomeWidgets.tsx`. Home loads its 8 calls in
+  parallel now. No XIRR (hidden until 2027-08-27). VERIFY: V-50.
 - ~~**[P-73] "Fluid" visual style (mockup C, Cryon-inspired) on every page.**~~ ✅ **DONE 2026-11-19**
   — user picked C of three Home mockups (A calm dark, B light, C fluid). Palette
   swapped by one script across 35 files: forest-black `#0a0e0c` + two soft green
