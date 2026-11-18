@@ -202,3 +202,42 @@ Found 2026-11-19. Both tables allow only `book IN ('MANAGEMENT','PICKING')`. PIC
   **NOT-YET** before 2026-12-31.
 - [ ] **Step 4:** Update the P-71 entry: "S5 paper built (trial 265), first rebalance 2026-12-31".
 - [ ] **Step 5:** Commit and push. Confirm the Vercel deployment is READY.
+
+---
+
+## Execution record (2026-11-19, inline execution + one fresh final review)
+
+Shipped: brain `b85180e..3ef7a69` (fast-forwarded to main, auto-deployed 05:27 IST), trading
+`ef3ddb6`, `6b572f5`, `c893b09`. The brain suite was 1,295 passed. The dashboard build passed,
+e2e advisor 5/5, and tsc and lint were clean.
+
+**Rulings made (each with its cost if wrong):**
+1. **Brain work on a worktree branch; trading-repo docs and dashboard straight to main.**
+   Cost: none.
+2. **Trial count is 264 while S5 is numbered 265,** because 264 is held for S2.
+   Cost: the bar drifts by one trial (3.73 unchanged).
+3. **No invented 2027 holidays.** Instead, a Nifty 15:20-bar guard aborts and retries, then
+   skips the month. Cost: a 2027 month-end that falls on an unlisted holiday is skipped.
+   Add `NSE_HOLIDAYS_2027` before 2027-01-29.
+4. **Kit sizing formula plus a cash re-check loop.** Cost: none.
+5. **Rank on the Nifty-500 pin only.** Held names outside it sell. Cost: none.
+6. **An empty Kite fetch aborts the month,** even for a genuinely suspended holding (Kite
+   can't tell suspension from fetch failure). Cost: a long suspension freezes rebalances.
+7. **PICKING_RP lot updates are applied after the insert,** but an update failure after a
+   successful insert is not rolled back. Cost: one lot's quantity is wrong until fixed by
+   hand; it is logged.
+8. **The reviewer's M1 (400-day window) was re-graded to Important and fixed** (500 days).
+   Rules changed by the fix pass went into PREREG_S5 Addendum C before any output exists.
+
+**Deferred minors:**
+- **M2:** the baseline index lags one session.
+- **M3:** the demerger k snap is about 0.8% off for ABFRL-type ratios.
+- **M4:** the accountability route doesn't page `advisor_paper_equity`, so Supabase's
+  1000-row cap drops the newest rows around Q3 2027.
+- **M6:** a skipped month sends no Telegram, and an aborted rebalance retries next session,
+  not in the same window.
+
+**Found, not ours:**
+- Brain CI has failed since 11-18. `tests/test_lab_backtest.py` imports pandas, which CI
+  doesn't install, so collection fails before any test runs.
+- Commit `c893b09` also swept in another session's uncommitted P-75 / V-52 doc entries.
