@@ -27,7 +27,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | universe calls (daily Nifty-500 scan verdicts, shadow) — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
 | second-account (Natwar) calls — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
 | sector layer on top of v1 — exposure-weighted edge vs v1, registered 2026-11-11 before any grade | 1 |
-| **total** | **261** |
+| S1 monthly momentum (CNC) + S1-T 200-DMA variant — pre-registered 2026-11-18, tested same day, failed | 2 |
+| **total** | **263** |
 
 ## The threshold
 
@@ -37,7 +38,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **261 (this project)** | **3.73** |
+| **263 (this project)** | **3.73** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -136,3 +137,19 @@ run_dates of the per-date mean, vs the then-current threshold. Universe and
 second-account read separately, never pooled. Hit-rate is descriptive (the
 binary label cannot see SELL→TRIM). First read at ≥ 60 dates with a
 differing graded call. Tool: `scripts/compare_sector_tilt.py`.
+
+## Tested 2026-11-18 — S1 monthly momentum, CNC (trials 262–263)
+
+Pre-registered and hashed before any backtest output (outside chat session,
+kit `s1_momentum_kit.zip`): [s1_momentum/PREREG.md](s1_momentum/PREREG.md),
+sha256 `c251d8e2…5e5158`, 2026-11-18T09:33:56Z. Results:
+[s1_momentum/RESULTS.md](s1_momentum/RESULTS.md). Top 10 of the top-200
+liquid names by 6/12-month vol-scaled momentum, monthly at 15:25, ₹50k,
+Zerodha CNC costs. Data: ganeshbiyer/nse_historical_data (today's Nifty 500,
+survivor-biased), 2019–23 in-sample, 2024–25 holdout.
+
+- **262 S1:** holdout −3.1%/yr vs Nifty +9.7% → fails its own rule
+  (needed > 4.7%). In-sample t = +3.30, below 3.72. **Closed.**
+- **263 S1-T** (+ Nifty 200-DMA filter): drawdown cut 9.9 pts (rule ≥ 10),
+  CAGR −9.5 pts (rule ≤ 2) → not adopted. Its better holdout has been seen;
+  any re-run is a new trial judged only on data from 2026-12-31 on.

@@ -1088,6 +1088,21 @@ explicitly lifted.
   `superpowers/plans/2026-11-18-intraday-strategy-lab.md`. VERIFY: V-45, V-46,
   V-47.
 
+- **[P-71] Multi-day research lab (S2→S5), paper-only, alongside P-70.** [op→me] ·
+  *done =* each candidate gets one frozen history test (2018–25, matched-survivor
+  baseline, 2024–25 holdout) with a pass/fail against its pre-registration.
+  · *source:* outside plan "NSE Strategy Plan: ₹50k → ₹500/day" (2026-11-18).
+  It is VISION §7b's pre-committed pivot: multi-day CNC through the same gates.
+  · *call (2026-11-18):* P-70 keeps running; this track adds to it and replaces
+  nothing. **No brain build until a strategy passes history.** The live NSE
+  results feed (D1, phase0-ruler plan) is decided only after S2 passes. The core
+  index fund and SIP are the operator's own money, outside the system.
+  · *order:* S2 post-results drift → S3/S4 index deletion/inclusion → S5 S1-T
+  live paper from 2026-12-31. S1 already failed (trials 262–263).
+  · *blocked on operator:* `nse_results_2018_2025.csv` (NSE console script) and
+  the S2 pre-registration file (not in the S1 kit). S2 becomes trial 264 when
+  it is filed.
+
 - **[P-47] Thesis engine — advisor v2 in SHADOW mode.** [me] · *done =* every
   official run attaches `indicators.thesis` (HOLD/ADD/TRIM/EXIT, target
   weight, sized qty, fundamentals quality, reason, falsifier) to each holding
