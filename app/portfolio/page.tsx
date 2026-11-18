@@ -28,10 +28,10 @@ import {
   Legend,
 } from "recharts";
 
+import { inr } from "@/lib/format";
 // ─── helpers ───────────────────────────────────────────────────────────────
 
-const INR = (n: number) =>
-  "₹" + Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const INR = (n: number) => inr(Math.abs(n), { dp: 2, fixed: true });
 
 function Pnl({ value, showIcon = true }: { value: number; showIcon?: boolean }) {
   const pos = value >= 0;
@@ -161,7 +161,7 @@ export default function PortfolioPage() {
   }
 
   function SortIcon({ col }: { col: keyof Holding }) {
-    if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 text-[#333]" />;
+    if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 text-[#8a8a8a]" />;
     return sortDir === "asc"
       ? <ChevronUp className="w-3 h-3 text-[#3b82f6]" />
       : <ChevronDown className="w-3 h-3 text-[#3b82f6]" />;
@@ -196,7 +196,7 @@ export default function PortfolioPage() {
     {
       label: "Invested",
       value: INR(totalInvested),
-      icon: <DollarSign className="w-4 h-4 text-[#555]" />,
+      icon: <DollarSign className="w-4 h-4 text-[#8a8a8a]" />,
       color: "text-[#f5f5f5]",
       sub: null,
     },
@@ -246,13 +246,13 @@ export default function PortfolioPage() {
         {/* Header */}
         <div className="min-h-14 border-b border-[#1f1f1f] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0">
           <h1 className="text-sm font-semibold text-[#f5f5f5]">Portfolio</h1>
-          <div className="flex items-center gap-3 md:gap-5 text-xs text-[#444] flex-wrap">
+          <div className="flex items-center gap-3 md:gap-5 text-xs text-[#8a8a8a] flex-wrap">
             {lastUpdated && <span>Updated {secsAgo}s ago</span>}
-            <span>Refresh in <span className="text-[#666]">{countdown}s</span></span>
+            <span>Refresh in <span className="text-[#8a8a8a]">{countdown}s</span></span>
             <button
               onClick={() => fetchAll(true)}
               disabled={refreshing}
-              className="flex items-center gap-1.5 text-[#555] hover:text-[#f5f5f5] transition-colors disabled:opacity-40"
+              className="flex items-center gap-1.5 text-[#8a8a8a] hover:text-[#f5f5f5] transition-colors disabled:opacity-40"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
@@ -267,7 +267,7 @@ export default function PortfolioPage() {
             {summaryCards.map((c) => (
               <div key={c.label} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] uppercase tracking-wider text-[#444]">{c.label}</p>
+                  <p className="text-xs uppercase tracking-wider text-[#8a8a8a]">{c.label}</p>
                   {c.icon}
                 </div>
                 {loading ? (
@@ -288,13 +288,13 @@ export default function PortfolioPage() {
               <h2 className="text-sm font-semibold text-[#f5f5f5]">
                 Holdings
                 {!loading && (
-                  <span className="ml-2 text-xs font-normal text-[#444]">
+                  <span className="ml-2 text-xs font-normal text-[#8a8a8a]">
                     {filteredHoldings.length} stocks
                   </span>
                 )}
               </h2>
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#444]" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8a8a]" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -312,8 +312,8 @@ export default function PortfolioPage() {
                       <th
                         key={col.label}
                         onClick={() => col.sortable && toggleSort(col.key)}
-                        className={`text-left px-4 py-3 text-[10px] uppercase tracking-wider text-[#444] font-medium whitespace-nowrap
-                          ${col.sortable ? "cursor-pointer hover:text-[#888] select-none" : ""}`}
+                        className={`text-left px-4 py-3 text-xs uppercase tracking-wider text-[#8a8a8a] font-medium whitespace-nowrap
+                          ${col.sortable ? "cursor-pointer hover:text-[#d5d5d5] select-none" : ""}`}
                       >
                         <span className="inline-flex items-center gap-1">
                           {col.label}
@@ -335,7 +335,7 @@ export default function PortfolioPage() {
                           <tr key={h.tradingsymbol} className="border-b border-[#141414] hover:bg-[#151515] transition-colors">
                             <td className="px-4 py-3">
                               <p className="font-medium text-[#f5f5f5]">{h.tradingsymbol}</p>
-                              <p className="text-[10px] text-[#444]">{h.exchange}</p>
+                              <p className="text-xs text-[#8a8a8a]">{h.exchange}</p>
                             </td>
                             <td className="px-4 py-3 text-[#888]">{h.quantity}</td>
                             <td className="px-4 py-3 text-[#888]">{INR(h.average_price)}</td>
@@ -355,7 +355,7 @@ export default function PortfolioPage() {
                   }
                   {!loading && filteredHoldings.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-[#444] text-sm">
+                      <td colSpan={8} className="px-4 py-10 text-center text-[#8a8a8a] text-sm">
                         {search ? `No results for "${search}"` : "No holdings found"}
                       </td>
                     </tr>
@@ -374,7 +374,7 @@ export default function PortfolioPage() {
                 <h2 className="text-sm font-semibold text-[#f5f5f5]">
                   Intraday Positions
                   {!loading && (
-                    <span className="ml-2 text-xs font-normal text-[#444]">
+                    <span className="ml-2 text-xs font-normal text-[#8a8a8a]">
                       {openPositions.length} open
                     </span>
                   )}
@@ -385,7 +385,7 @@ export default function PortfolioPage() {
                   <thead>
                     <tr className="border-b border-[#1a1a1a]">
                       {["Symbol", "Qty", "Avg", "LTP", "P&L", "M2M"].map((h) => (
-                        <th key={h} className="text-left px-4 py-2.5 text-[10px] uppercase tracking-wider text-[#444] font-medium">
+                        <th key={h} className="text-left px-4 py-2.5 text-xs uppercase tracking-wider text-[#8a8a8a] font-medium">
                           {h}
                         </th>
                       ))}
@@ -398,7 +398,7 @@ export default function PortfolioPage() {
                           <tr key={`${p.tradingsymbol}-${p.product}`} className="border-b border-[#141414] hover:bg-[#151515] transition-colors">
                             <td className="px-4 py-3">
                               <p className="font-medium text-[#f5f5f5]">{p.tradingsymbol}</p>
-                              <p className="text-[10px] text-[#444]">{p.product}</p>
+                              <p className="text-xs text-[#8a8a8a]">{p.product}</p>
                             </td>
                             <td className={`px-4 py-3 font-medium text-sm ${p.quantity > 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
                               {p.quantity > 0 ? "+" : ""}{p.quantity}
@@ -412,7 +412,7 @@ export default function PortfolioPage() {
                     }
                     {!loading && openPositions.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-[#444] text-sm">
+                        <td colSpan={6} className="px-4 py-8 text-center text-[#8a8a8a] text-sm">
                           No open positions
                         </td>
                       </tr>
@@ -425,13 +425,13 @@ export default function PortfolioPage() {
             {/* Donut */}
             <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-5">
               <h2 className="text-sm font-semibold text-[#f5f5f5] mb-1">Allocation</h2>
-              <p className="text-xs text-[#444] mb-4">Top 10 holdings by value</p>
+              <p className="text-xs text-[#8a8a8a] mb-4">Top 10 holdings by value</p>
               {loading ? (
                 <div className="h-56 flex items-center justify-center">
                   <div className="w-36 h-36 rounded-full border-8 border-[#1f1f1f] animate-pulse" />
                 </div>
               ) : chartData.length === 0 ? (
-                <div className="h-56 flex items-center justify-center text-[#444] text-sm">No data</div>
+                <div className="h-56 flex items-center justify-center text-[#8a8a8a] text-sm">No data</div>
               ) : (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
@@ -453,7 +453,7 @@ export default function PortfolioPage() {
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       formatter={(v: any) => [INR(Number(v)), "Value"]}
                     />
-                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: "#555" }} />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, color: "#8a8a8a" }} />
                   </PieChart>
                 </ResponsiveContainer>
               )}

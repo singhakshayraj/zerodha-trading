@@ -16,6 +16,7 @@ import {
   AreaChart, Area, ReferenceLine, ScatterChart, Scatter, CartesianGrid, ZAxis,
 } from "recharts";
 
+import { inr } from "@/lib/format";
 // ─── types ───────────────────────────────────────────────────────────────────
 type Finding = { text: string; tone: "bad" | "warn" | "good" | "info" };
 type Insights = {
@@ -42,7 +43,7 @@ type Insights = {
 };
 
 const GREEN = "#22c55e", RED = "#ef4444", BLUE = "#3b82f6", AMBER = "#f59e0b", MUTE = "#3f3f46";
-const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+const INR = (n: number) => inr(n);
 const fmtDay = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 const toneColor: Record<Finding["tone"], string> = { bad: RED, warn: AMBER, good: GREEN, info: BLUE };
 const ToneIcon: Record<Finding["tone"], React.ElementType> = { bad: XCircle, warn: AlertTriangle, good: CheckCircle2, info: Info };
@@ -57,7 +58,7 @@ function SectionTitle({ children, hint }: { children: React.ReactNode; hint: str
   return (
     <div className="flex items-baseline gap-3 mt-2 mb-3">
       <h2 className="text-[13px] font-semibold text-[#f5f5f5] uppercase tracking-wider">{children}</h2>
-      <span className="text-[11px] text-[#555]">{hint}</span>
+      <span className="text-xs text-[#8a8a8a]">{hint}</span>
     </div>
   );
 }
@@ -67,7 +68,7 @@ function Panel({ title, subtitle, children, className = "" }: { title?: string; 
       {title && (
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-[#f5f5f5]">{title}</h3>
-          {subtitle && <p className="text-[11px] text-[#555] mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-[#8a8a8a] mt-0.5">{subtitle}</p>}
         </div>
       )}
       {children}
@@ -95,7 +96,7 @@ function GuideModal({ onClose }: { onClose: () => void }) {
             <BookOpen className="w-4 h-4 text-[#3b82f6]" />
             <span className="text-sm font-semibold text-[#f5f5f5]">What all of this means, in plain English</span>
           </div>
-          <button onClick={onClose} className="text-[#666] hover:text-[#f5f5f5] text-sm px-2">✕</button>
+          <button onClick={onClose} className="text-[#8a8a8a] hover:text-[#f5f5f5] text-sm px-2">✕</button>
         </div>
         <div className="p-5 grid gap-3 sm:grid-cols-2">
           {GUIDE_TERMS.map((t) => (
@@ -115,10 +116,10 @@ function Stat({ icon: Icon, label, value, tint, sub }: { icon: React.ElementType
     <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-4 h-4" style={{ color: tint }} />
-        <span className="text-[11px] text-[#666] uppercase tracking-wide">{label}</span>
+        <span className="text-xs text-[#8a8a8a] uppercase tracking-wide">{label}</span>
       </div>
       <p className="text-2xl font-semibold text-[#f5f5f5] tabular-nums">{value}</p>
-      {sub && <p className="text-[10px] text-[#555] mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-[#8a8a8a] mt-1">{sub}</p>}
     </div>
   );
 }
@@ -157,7 +158,7 @@ export default function InsightsPage() {
             <div className="flex items-center gap-2">
               <div>
                 <h1 className="text-xl font-semibold text-[#f5f5f5]">Data Insights</h1>
-                <p className="text-xs text-[#555] mt-1">What the brain has recorded — and what it means</p>
+                <p className="text-xs text-[#8a8a8a] mt-1">What the brain has recorded — and what it means</p>
               </div>
               <button onClick={() => setGuideOpen(true)} title="What does all this mean? Plain-English guide"
                       className="p-2 rounded-lg text-[#3b82f6] bg-[#111111] border border-[#1f1f1f] hover:bg-[#161616] transition-colors">
@@ -183,34 +184,34 @@ export default function InsightsPage() {
               {/* ── CURRENT STATE SNAPSHOT ───────────────────────────────── */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Trades taken</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Trades taken</p>
                   <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{data.scale.trades.toLocaleString()}</p>
-                  <p className="text-[10px] text-[#555] mt-0.5">{v.closed} closed</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">{v.closed} closed</p>
                 </div>
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Win rate</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Win rate</p>
                   <p className="text-xl font-semibold tabular-nums" style={{ color: v.winRate >= v.breakevenWinRate ? GREEN : RED }}>{v.winRate.toFixed(0)}%</p>
-                  <p className="text-[10px] text-[#555] mt-0.5">of closed trades</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">of closed trades</p>
                 </div>
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Total P&L</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Total P&L</p>
                   <p className="text-xl font-semibold tabular-nums" style={{ color: v.totalPnl >= 0 ? GREEN : RED }}>{INR(v.totalPnl)}</p>
-                  <p className="text-[10px] text-[#555] mt-0.5">paper money</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">paper money</p>
                 </div>
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Capital deployed</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Capital deployed</p>
                   <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{INR(data.scale.totalDeployed)}</p>
-                  <p className="text-[10px] text-[#555] mt-0.5">total across entries</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">total across entries</p>
                 </div>
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Decisions taken</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Decisions taken</p>
                   <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{data.scale.decisions.toLocaleString()}</p>
-                  <p className="text-[10px] text-[#555] mt-0.5">every look logged</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">every look logged</p>
                 </div>
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-[10px] text-[#666] uppercase tracking-wide mb-1">Sessions</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Sessions</p>
                   <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{data.scale.sessions.toLocaleString()}</p>
-                  <p className="text-[10px] text-[#555] mt-0.5">trading days run</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">trading days run</p>
                 </div>
               </div>
 
@@ -220,41 +221,41 @@ export default function InsightsPage() {
                   <div className="lg:w-72 shrink-0">
                     <div className="flex items-center gap-2 mb-2">
                       <Gauge className="w-4 h-4" style={{ color: toneColor[verdictTone] }} />
-                      <span className="text-[11px] text-[#888] uppercase tracking-wider">Is this working?</span>
+                      <span className="text-xs text-[#888] uppercase tracking-wider">Is this working?</span>
                     </div>
                     <p className="text-3xl font-bold tracking-tight" style={{ color: toneColor[verdictTone] }}>{v.label}</p>
-                    <p className="text-[11px] text-[#666] mt-2">{v.closed} closed trades · {v.confidence} confidence at this sample size</p>
+                    <p className="text-xs text-[#8a8a8a] mt-2">{v.closed} closed trades · {v.confidence} confidence at this sample size</p>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 flex-1">
                     <div>
-                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Expectancy</p>
+                      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Expectancy</p>
                       <p className="text-2xl font-semibold tabular-nums" style={{ color: v.expectancyR >= 0 ? GREEN : RED }}>{v.expectancyR >= 0 ? "+" : ""}{v.expectancyR.toFixed(2)}R</p>
-                      <p className="text-[10px] text-[#555] mt-0.5">per trade</p>
+                      <p className="text-xs text-[#8a8a8a] mt-0.5">per trade</p>
                     </div>
                     <div title="Gross profit ÷ gross loss, net of costs. Real-money gate (VISION §6.1): >1.3 to go, <1.1 to reject.">
-                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Profit factor</p>
+                      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Profit factor</p>
                       <p className="text-2xl font-semibold tabular-nums" style={{ color: v.profitFactor == null ? MUTE : v.profitFactor >= 1.3 ? GREEN : v.profitFactor >= 1.1 ? AMBER : RED }}>{v.profitFactor == null ? "—" : v.profitFactor.toFixed(2)}</p>
-                      <p className="text-[10px] text-[#555] mt-0.5">gate &gt;1.3 · kill &lt;1.1</p>
+                      <p className="text-xs text-[#8a8a8a] mt-0.5">gate &gt;1.3 · kill &lt;1.1</p>
                     </div>
                     <div>
-                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Win rate</p>
+                      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Win rate</p>
                       <p className="text-2xl font-semibold tabular-nums text-[#f5f5f5]">{v.winRate.toFixed(0)}%</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: v.winRate >= v.breakevenWinRate ? GREEN : RED }}>need {v.breakevenWinRate.toFixed(0)}% to break even</p>
+                      <p className="text-xs mt-0.5" style={{ color: v.winRate >= v.breakevenWinRate ? GREEN : RED }}>need {v.breakevenWinRate.toFixed(0)}% to break even</p>
                     </div>
                     <div title="Largest peak-to-trough decline of the cumulative-R equity curve. Real-money gate (VISION §6.1): <10% (of capital) to go, >15% to reject; shown in R here.">
-                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Max drawdown</p>
+                      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Max drawdown</p>
                       <p className="text-2xl font-semibold tabular-nums" style={{ color: v.maxDrawdownR <= 3 ? GREEN : v.maxDrawdownR <= 6 ? AMBER : RED }}>−{v.maxDrawdownR.toFixed(1)}R</p>
-                      <p className="text-[10px] text-[#555] mt-0.5">{INR(v.maxDrawdownInr)} peak-to-trough</p>
+                      <p className="text-xs text-[#8a8a8a] mt-0.5">{INR(v.maxDrawdownInr)} peak-to-trough</p>
                     </div>
                     <div>
-                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Total P&L</p>
+                      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Total P&L</p>
                       <p className="text-2xl font-semibold tabular-nums" style={{ color: v.totalPnl >= 0 ? GREEN : RED }}>{INR(v.totalPnl)}</p>
-                      <p className="text-[10px] text-[#555] mt-0.5">paper</p>
+                      <p className="text-xs text-[#8a8a8a] mt-0.5">paper</p>
                     </div>
                     <div>
-                      <p className="text-[11px] text-[#666] uppercase tracking-wide mb-1">Avg latency</p>
+                      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Avg latency</p>
                       <p className="text-2xl font-semibold tabular-nums text-[#f5f5f5]">{data.execution.samples ? `${(data.execution.avgLatencyMs / 1000).toFixed(1)}s` : "—"}</p>
-                      <p className="text-[10px] text-[#555] mt-0.5">decision → order</p>
+                      <p className="text-xs text-[#8a8a8a] mt-0.5">decision → order</p>
                     </div>
                   </div>
                 </div>
@@ -285,11 +286,11 @@ export default function InsightsPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-sm font-semibold text-[#f5f5f5]">Cumulative {curveMode === "R" ? "R" : "P&L"} curve</h3>
-                      <p className="text-[11px] text-[#555] mt-0.5">Every closed trade in sequence — the equity trajectory</p>
+                      <p className="text-xs text-[#8a8a8a] mt-0.5">Every closed trade in sequence — the equity trajectory</p>
                     </div>
                     <div className="flex rounded-lg overflow-hidden border border-[#1f1f1f]">
                       {(["R", "₹"] as const).map((m) => (
-                        <button key={m} onClick={() => setCurveMode(m)} className={`px-3 py-1.5 text-xs ${curveMode === m ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#0d0d0d] text-[#555]"}`}>{m}</button>
+                        <button key={m} onClick={() => setCurveMode(m)} className={`px-3 py-1.5 text-xs ${curveMode === m ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#0d0d0d] text-[#8a8a8a]"}`}>{m}</button>
                       ))}
                     </div>
                   </div>
@@ -302,8 +303,8 @@ export default function InsightsPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" vertical={false} />
-                      <XAxis dataKey="i" tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
-                      <YAxis tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="i" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
+                      <YAxis tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} />
                       <ReferenceLine y={0} stroke="#3f3f46" strokeDasharray="2 2" />
                       <Tooltip {...tooltipStyle} formatter={((val: number) => [curveMode === "R" ? `${val.toFixed(2)}R` : INR(val), `Cumulative ${curveMode}`]) as never} labelFormatter={(l) => `Trade #${l}`} />
                       <Area type="monotone" dataKey={curveMode === "R" ? "cumR" : "cumPnl"} stroke={BLUE} strokeWidth={2} fill="url(#eq)" />
@@ -313,8 +314,8 @@ export default function InsightsPage() {
                 <Panel title="R-multiple distribution" subtitle="Outcome of each closed trade, in risk units">
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={data.rDistribution} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
-                      <XAxis dataKey="bucket" tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
-                      <YAxis tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <XAxis dataKey="bucket" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
+                      <YAxis tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                       <Tooltip {...tooltipStyle} />
                       <Bar dataKey="count" name="Trades" radius={[3, 3, 0, 0]}>
                         {data.rDistribution.map((d, i) => <Cell key={i} fill={d.bucket.startsWith("-") || d.bucket === "≤-2" ? RED : GREEN} />)}
@@ -331,7 +332,7 @@ export default function InsightsPage() {
                   <Panel title="Win rate by regime" subtitle="Grouped by regime at entry (avg R in tooltip)">
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={data.byRegime} layout="vertical" margin={{ top: 4, right: 12, left: 20, bottom: 0 }}>
-                        <XAxis type="number" domain={[0, 100]} tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} unit="%" />
+                        <XAxis type="number" domain={[0, 100]} tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} unit="%" />
                         <YAxis type="category" dataKey="regime" tick={{ fill: "#888", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
                         <Tooltip {...tooltipStyle} formatter={((val: number, _n: unknown, p: { payload: { trades: number; avgR: number } }) => [`${val.toFixed(0)}%  (${p.payload.trades} trades, avg ${p.payload.avgR.toFixed(2)}R)`, "Win rate"]) as never} />
                         <Bar dataKey="winRate" name="Win rate" radius={[0, 3, 3, 0]}>
@@ -343,8 +344,8 @@ export default function InsightsPage() {
                   <Panel title="Win rate by time of day" subtitle="IST hour bucket at entry">
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={data.byTimeBucket} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
-                        <XAxis dataKey="bucket" tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
-                        <YAxis domain={[0, 100]} tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} unit="%" />
+                        <XAxis dataKey="bucket" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
+                        <YAxis domain={[0, 100]} tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} unit="%" />
                         <Tooltip {...tooltipStyle} formatter={((val: number, _n: unknown, p: { payload: { trades: number } }) => [`${val.toFixed(0)}%  (${p.payload.trades} trades)`, "Win rate"]) as never} />
                         <Bar dataKey="winRate" name="Win rate" fill={BLUE} radius={[3, 3, 0, 0]} />
                       </BarChart>
@@ -362,8 +363,8 @@ export default function InsightsPage() {
                       <ResponsiveContainer width="100%" height={220}>
                         <ScatterChart margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
-                          <XAxis type="number" dataKey="mae" name="MAE" unit="R" tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
-                          <YAxis type="number" dataKey="mfe" name="MFE" unit="R" tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
+                          <XAxis type="number" dataKey="mae" name="MAE" unit="R" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
+                          <YAxis type="number" dataKey="mfe" name="MFE" unit="R" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} />
                           <ZAxis range={[40, 40]} />
                           <Tooltip {...tooltipStyle} cursor={{ strokeDasharray: "3 3", stroke: "#333" }} formatter={((val: number) => `${val.toFixed(2)}R`) as never} />
                           <Scatter data={data.mfeScatter} name="Trades">
@@ -373,13 +374,13 @@ export default function InsightsPage() {
                       </ResponsiveContainer>
                     ) : (
                       <div className="h-[180px] flex flex-col items-center justify-center text-center gap-2">
-                        <Layers className="w-6 h-6 text-[#333]" />
-                        <p className="text-[12px] text-[#555] max-w-[240px]">Every trade&apos;s favorable/adverse path is now recorded — the scatter fills in after the next live session.</p>
+                        <Layers className="w-6 h-6 text-[#8a8a8a]" />
+                        <p className="text-[12px] text-[#8a8a8a] max-w-[240px]">Every trade&apos;s favorable/adverse path is now recorded — the scatter fills in after the next live session.</p>
                       </div>
                     )}
                     <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#1f1f1f]">
-                      <div><p className="text-[10px] text-[#666] uppercase mb-0.5">Stops too tight</p><p className="text-lg font-semibold text-[#f5f5f5] tabular-nums">{data.excursion.stopTooTight}</p></div>
-                      <div><p className="text-[10px] text-[#666] uppercase mb-0.5">Gave it back</p><p className="text-lg font-semibold text-[#f5f5f5] tabular-nums">{data.excursion.gaveItBack}</p></div>
+                      <div><p className="text-xs text-[#8a8a8a] uppercase mb-0.5">Stops too tight</p><p className="text-lg font-semibold text-[#f5f5f5] tabular-nums">{data.excursion.stopTooTight}</p></div>
+                      <div><p className="text-xs text-[#8a8a8a] uppercase mb-0.5">Gave it back</p><p className="text-lg font-semibold text-[#f5f5f5] tabular-nums">{data.excursion.gaveItBack}</p></div>
                     </div>
                   </Panel>
 
@@ -387,7 +388,7 @@ export default function InsightsPage() {
                     <div className="flex items-end gap-4 mb-4">
                       <div>
                         <p className="text-4xl font-bold tabular-nums" style={{ color: AMBER }}>{data.flags.trendTells.permitPct.toFixed(0)}%</p>
-                        <p className="text-[11px] text-[#666] mt-1">of {data.flags.trendTells.entrySignals.toLocaleString()} entry signals permitted</p>
+                        <p className="text-xs text-[#8a8a8a] mt-1">of {data.flags.trendTells.entrySignals.toLocaleString()} entry signals permitted</p>
                       </div>
                     </div>
                     <div className="h-2 rounded-full bg-[#1f1f1f] overflow-hidden mb-4">
@@ -418,7 +419,7 @@ export default function InsightsPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="text-[10px] uppercase tracking-wider text-[#555] border-b border-[#1a1a1a]">
+                            <tr className="text-xs uppercase tracking-wider text-[#8a8a8a] border-b border-[#1a1a1a]">
                               <th className="text-left py-2">Sentiment</th>
                               <th className="text-right py-2">Trades</th>
                               <th className="text-right py-2">Win%</th>
@@ -442,7 +443,7 @@ export default function InsightsPage() {
                           </tbody>
                         </table>
                       </div>
-                      <p className="text-[11px] text-[#666] mt-3 leading-relaxed">&quot;none&quot; = no tagged news in the 24h before entry. Causal: only news published before the decision counts.</p>
+                      <p className="text-xs text-[#8a8a8a] mt-3 leading-relaxed">&quot;none&quot; = no tagged news in the 24h before entry. Causal: only news published before the decision counts.</p>
                     </Panel>
                     <Panel title="Latest headlines" subtitle={`${data.news.total.toLocaleString()} stored`}>
                       <ul className="space-y-2.5">
@@ -454,7 +455,7 @@ export default function InsightsPage() {
                                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: c }} />
                                 <div className="min-w-0">
                                   <p className="text-[#ccc] truncate">{n.headline ?? "—"}</p>
-                                  <p className="text-[10px] text-[#555] mt-0.5">
+                                  <p className="text-xs text-[#8a8a8a] mt-0.5">
                                     {n.symbols.slice(0, 4).join(", ") || "macro"}
                                     {n.publishedAt ? " · " + new Date(n.publishedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : ""}
                                     {n.sentimentScore != null ? " · " + n.sentimentScore.toFixed(2) : ""}
@@ -482,9 +483,9 @@ export default function InsightsPage() {
                 <Panel title="Advisor calls per day" subtitle="Calls on your holdings (right axis) and the Nifty 500 scan (left axis). The intraday engine stopped 28 Aug.">
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={data.advisorDaily} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                      <XAxis dataKey="day" tickFormatter={fmtDay} tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
-                      <YAxis yAxisId="l" tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis yAxisId="r" orientation="right" tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="day" tickFormatter={fmtDay} tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
+                      <YAxis yAxisId="l" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} />
+                      <YAxis yAxisId="r" orientation="right" tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} />
                       <Tooltip {...tooltipStyle} labelFormatter={(l) => fmtDay(String(l))} />
                       <Bar yAxisId="l" dataKey="universe" name="Nifty 500 scan" fill={MUTE} radius={[3, 3, 0, 0]} />
                       <Bar yAxisId="r" dataKey="kanaklata" name="Kanaklata" stackId="h" fill={BLUE} />
@@ -497,7 +498,7 @@ export default function InsightsPage() {
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={data.advisorMix} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
                         <XAxis dataKey="verdict" tick={{ fill: "#888", fontSize: 12 }} axisLine={{ stroke: "#1f1f1f" }} tickLine={false} />
-                        <YAxis tick={{ fill: "#555", fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: "#8a8a8a", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip {...tooltipStyle} />
                         <Bar dataKey="holdings" name="Your holdings" fill={BLUE} radius={[3, 3, 0, 0]} />
                         <Bar dataKey="universe" name="Nifty 500 scan" fill={MUTE} radius={[3, 3, 0, 0]} />

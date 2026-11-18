@@ -20,6 +20,7 @@ import {
   ResponsiveContainer, ReferenceLine,
 } from "recharts";
 
+import { inr } from "@/lib/format";
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function isMarketOpen(): boolean {
@@ -39,11 +40,10 @@ function elapsed(start: Date | null): string {
   return `${m}:${ss}`;
 }
 
-const INR = (n: number) =>
-  (n < 0 ? "-" : "+") + "₹" + Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const INR = (n: number) => inr(n, { dp: 2, fixed: true, signed: true });
 
 const STATUS_COLORS = {
-  idle:    "bg-[#1f1f1f] text-[#666]",
+  idle:    "bg-[#1f1f1f] text-[#8a8a8a]",
   running: "bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/30",
   paused:  "bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30",
   stopped: "bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30",
@@ -368,13 +368,13 @@ export default function TradingPage() {
         <div className="min-h-14 border-b border-[#1f1f1f] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0 md:sticky md:top-0 bg-[#0a0a0a] z-10">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold text-[#f5f5f5]">Auto Trade</h1>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium uppercase ${STATUS_COLORS[session.status]}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium uppercase ${STATUS_COLORS[session.status]}`}>
               {session.status}
             </span>
           </div>
           <div className="flex items-center gap-4">
             <BrainStatus />
-            <div className="flex items-center gap-1.5 text-xs text-[#444]">
+            <div className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
               <Clock className="w-3 h-3" />
               {isMarketOpen()
                 ? <span className="text-[#22c55e]">Market Open</span>
@@ -392,7 +392,7 @@ export default function TradingPage() {
 
             {/* Capital */}
             <div>
-              <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs text-[#8a8a8a] uppercase tracking-wider mb-1.5">
                 Capital to Deploy (₹)
               </label>
               <input
@@ -406,7 +406,7 @@ export default function TradingPage() {
 
             {/* Max profit */}
             <div>
-              <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs text-[#8a8a8a] uppercase tracking-wider mb-1.5">
                 Profit Target (%)
               </label>
               <input
@@ -416,12 +416,12 @@ export default function TradingPage() {
                 disabled={session.status === "running"}
                 className="w-full bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-sm text-[#f5f5f5] focus:outline-none focus:border-[#3b82f6] disabled:opacity-40"
               />
-              <p className="text-[10px] text-[#444] mt-1">Stop when session P&L reaches this %</p>
+              <p className="text-xs text-[#8a8a8a] mt-1">Stop when session P&L reaches this %</p>
             </div>
 
             {/* Max loss */}
             <div>
-              <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs text-[#8a8a8a] uppercase tracking-wider mb-1.5">
                 Max Loss Limit (%)
               </label>
               <input
@@ -431,12 +431,12 @@ export default function TradingPage() {
                 disabled={session.status === "running"}
                 className="w-full bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-sm text-[#f5f5f5] focus:outline-none focus:border-[#3b82f6] disabled:opacity-40"
               />
-              <p className="text-[10px] text-[#444] mt-1">Auto-stop when loss exceeds this %</p>
+              <p className="text-xs text-[#8a8a8a] mt-1">Auto-stop when loss exceeds this %</p>
             </div>
 
             {/* Max trades */}
             <div>
-              <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs text-[#8a8a8a] uppercase tracking-wider mb-1.5">
                 Max Number of Trades
               </label>
               <input
@@ -450,13 +450,13 @@ export default function TradingPage() {
 
             {/* Mode toggle */}
             <div>
-              <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">Trading Mode</label>
+              <label className="block text-xs text-[#8a8a8a] uppercase tracking-wider mb-1.5">Trading Mode</label>
               {/* When a session is running show the brain's actual universe; otherwise use local config */}
               {runningUniverse ? (
                 <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-xs text-[#f5f5f5] font-medium">
                   {runningUniverse === "holdings" ? "Holdings Only" :
                    runningUniverse === "both"     ? "Holdings + Market" : runningUniverse.toUpperCase()}
-                  <span className="ml-2 text-[10px] text-[#22c55e]">(active)</span>
+                  <span className="ml-2 text-xs text-[#22c55e]">(active)</span>
                 </div>
               ) : (
                 <div className="flex rounded-lg overflow-hidden border border-[#1f1f1f]">
@@ -466,21 +466,21 @@ export default function TradingPage() {
                       onClick={() => field("mode", m)}
                       disabled={session.status === "running"}
                       className={`flex-1 py-2 text-xs font-medium transition-colors capitalize disabled:opacity-40
-                        ${config.mode === m ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#0d0d0d] text-[#444] hover:text-[#888]"}`}
+                        ${config.mode === m ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#0d0d0d] text-[#8a8a8a] hover:text-[#d5d5d5]"}`}
                     >
                       {m === "holdings" ? "Holdings Only" : "Open Market"}
                     </button>
                   ))}
                 </div>
               )}
-              <p className="text-[10px] text-[#444] mt-1">
+              <p className="text-xs text-[#8a8a8a] mt-1">
                 {(runningUniverse ?? config.mode) === "holdings" ? "Trades only within your existing holdings" : "Can buy new positions from market"}
               </p>
             </div>
 
             {/* Interval */}
             <div>
-              <label className="block text-[10px] text-[#555] uppercase tracking-wider mb-1.5">Trade Interval</label>
+              <label className="block text-xs text-[#8a8a8a] uppercase tracking-wider mb-1.5">Trade Interval</label>
               <select
                 value={config.intervalMinutes}
                 onChange={(e) => field("intervalMinutes", Number(e.target.value))}
@@ -504,28 +504,28 @@ export default function TradingPage() {
               const best    = sells.length ? Math.max(...sells.map((t) => t.pnl)) : 0;
               return (
                 <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg p-3 space-y-1.5">
-                  <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Session Stats</p>
-                  <div className="flex justify-between text-xs"><span className="text-[#444]">Win Rate</span><span className="text-[#f5f5f5] font-medium">{winRatePct.toFixed(0)}%</span></div>
-                  <div className="flex justify-between text-xs"><span className="text-[#444]">Avg Win</span><span className="text-[#22c55e] font-medium">+₹{avgWin.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-xs"><span className="text-[#444]">Avg Loss</span><span className="text-[#ef4444] font-medium">₹{avgLoss.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-xs"><span className="text-[#444]">Best Trade</span><span className="text-[#22c55e] font-medium">+₹{best.toFixed(2)}</span></div>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wider mb-2">Session Stats</p>
+                  <div className="flex justify-between text-xs"><span className="text-[#8a8a8a]">Win Rate</span><span className="text-[#f5f5f5] font-medium">{winRatePct.toFixed(0)}%</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#8a8a8a]">Avg Win</span><span className="text-[#22c55e] font-medium">+₹{avgWin.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#8a8a8a]">Avg Loss</span><span className="text-[#ef4444] font-medium">₹{avgLoss.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#8a8a8a]">Best Trade</span><span className="text-[#22c55e] font-medium">+₹{best.toFixed(2)}</span></div>
                 </div>
               );
             })()}
 
             {/* Computed values */}
             <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg p-3 space-y-1.5">
-              <p className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Computed</p>
+              <p className="text-xs text-[#8a8a8a] uppercase tracking-wider mb-2">Computed</p>
               <div className="flex justify-between text-xs">
-                <span className="text-[#444]">Max Loss Amount</span>
+                <span className="text-[#8a8a8a]">Max Loss Amount</span>
                 <span className="text-[#ef4444] font-medium">-₹{maxLossAmt.toLocaleString("en-IN")}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#444]">Profit Target</span>
+                <span className="text-[#8a8a8a]">Profit Target</span>
                 <span className="text-[#22c55e] font-medium">+₹{maxProfitAmt.toLocaleString("en-IN")}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#444]">Capital / Trade</span>
+                <span className="text-[#8a8a8a]">Capital / Trade</span>
                 <span className="text-[#f5f5f5] font-medium">₹{capitalPerTrade.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
@@ -548,7 +548,7 @@ export default function TradingPage() {
                         </button>
                         {!brainReady && (
                           <div className="absolute bottom-full left-0 right-0 mb-2 hidden group-hover:block z-20">
-                            <div className="bg-[#1f1f1f] border border-[#333] rounded-lg p-2.5 text-[11px] text-[#f59e0b] text-center">
+                            <div className="bg-[#1f1f1f] border border-[#333] rounded-lg p-2.5 text-xs text-[#f59e0b] text-center">
                               Brain server is offline. Check Railway deployment.
                             </div>
                           </div>
@@ -560,7 +560,7 @@ export default function TradingPage() {
                   {session.status === "stopped" && (
                     <button
                       onClick={resetSession}
-                      className="w-full py-2 rounded-lg text-xs text-[#555] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
+                      className="w-full py-2 rounded-lg text-xs text-[#8a8a8a] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
                     >
                       Reset Session
                     </button>
@@ -586,7 +586,7 @@ export default function TradingPage() {
               {[
                 {
                   label: "Status",
-                  value: <span className={`text-sm font-semibold capitalize ${session.status === "running" ? "text-[#22c55e]" : session.status === "stopped" ? "text-[#ef4444]" : "text-[#666]"}`}>{session.status}</span>,
+                  value: <span className={`text-sm font-semibold capitalize ${session.status === "running" ? "text-[#22c55e]" : session.status === "stopped" ? "text-[#ef4444]" : "text-[#8a8a8a]"}`}>{session.status}</span>,
                 },
                 {
                   label: "Session P&L",
@@ -613,7 +613,7 @@ export default function TradingPage() {
                 },
               ].map((c) => (
                 <div key={c.label} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-3">
-                  <p className="text-[10px] text-[#444] uppercase tracking-wider mb-1">{c.label}</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wider mb-1">{c.label}</p>
                   {c.value}
                 </div>
               ))}
@@ -632,7 +632,7 @@ export default function TradingPage() {
             {/* P&L Chart */}
             {session.pnlHistory.length > 1 && (
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 shrink-0">
-                <p className="text-xs text-[#444] uppercase tracking-wider mb-3">Session P&L</p>
+                <p className="text-xs text-[#8a8a8a] uppercase tracking-wider mb-3">Session P&L</p>
                 <ResponsiveContainer width="100%" height={80}>
                   <LineChart data={session.pnlHistory}>
                     <XAxis dataKey="time" hide />
@@ -660,10 +660,10 @@ export default function TradingPage() {
               <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
                 <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
                   Trade Log
-                  <span className="ml-2 font-normal text-[#444]">{liveTrades.length} trades</span>
+                  <span className="ml-2 font-normal text-[#8a8a8a]">{liveTrades.length} trades</span>
                 </h2>
                 {totalPages > 1 && (
-                  <div className="flex items-center gap-2 text-xs text-[#444]">
+                  <div className="flex items-center gap-2 text-xs text-[#8a8a8a]">
                     <button onClick={() => setLogPage((p) => Math.max(1, p - 1))} disabled={logPage === 1} className="hover:text-[#f5f5f5] disabled:opacity-30">←</button>
                     <span>{logPage}/{totalPages}</span>
                     <button onClick={() => setLogPage((p) => Math.min(totalPages, p + 1))} disabled={logPage === totalPages} className="hover:text-[#f5f5f5] disabled:opacity-30">→</button>
@@ -675,14 +675,14 @@ export default function TradingPage() {
                   <thead className="sticky top-0 bg-[#111111]">
                     <tr className="border-b border-[#1a1a1a]">
                       {["Time", "Symbol", "Side", "Qty", "Entry ₹", "Exit ₹", "P&L", "Status", "Reason"].map((h) => (
-                        <th key={h} className="text-left px-4 py-2.5 text-[10px] text-[#444] font-medium uppercase tracking-wider whitespace-nowrap">{h}</th>
+                        <th key={h} className="text-left px-4 py-2.5 text-xs text-[#8a8a8a] font-medium uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {pagedLogs.map((t) => (
                       <tr key={t.id} className="border-b border-[#141414] hover:bg-[#151515] transition-colors">
-                        <td className="px-4 py-2.5 text-[#444] font-mono whitespace-nowrap">
+                        <td className="px-4 py-2.5 text-[#8a8a8a] font-mono whitespace-nowrap">
                           {t.entry_at ? new Date(t.entry_at).toLocaleTimeString("en-IN", { hour12: false }) : "—"}
                         </td>
                         <td className="px-4 py-2.5 font-medium text-[#f5f5f5]">{t.symbol}</td>
@@ -704,21 +704,21 @@ export default function TradingPage() {
                             <span className={t.pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}>
                               {t.pnl >= 0 ? "+" : ""}₹{Number(t.pnl).toFixed(2)}
                             </span>
-                          ) : <span className="text-[#444]">—</span>}
+                          ) : <span className="text-[#8a8a8a]">—</span>}
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                          <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                             t.status === "OPEN"   ? "bg-[#f59e0b]/10 text-[#f59e0b]" :
                             t.status === "CLOSED" ? "bg-[#3b82f6]/10 text-[#3b82f6]" :
-                            "bg-[#555]/10 text-[#555]"
+                            "bg-[#555]/10 text-[#8a8a8a]"
                           }`}>{t.status}</span>
                         </td>
-                        <td className="px-4 py-2.5 text-[#555] max-w-xs truncate">{t.entry_reason ?? "—"}</td>
+                        <td className="px-4 py-2.5 text-[#8a8a8a] max-w-xs truncate">{t.entry_reason ?? "—"}</td>
                       </tr>
                     ))}
                     {liveTrades.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="px-4 py-8 text-center text-[#333] text-xs">
+                        <td colSpan={9} className="px-4 py-8 text-center text-[#8a8a8a] text-xs">
                           No trades yet for active session.
                         </td>
                       </tr>
@@ -744,19 +744,19 @@ export default function TradingPage() {
               <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
                 <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
                   Past Sessions
-                  <span className="ml-2 font-normal text-[#444]">{pastSessions.length}</span>
+                  <span className="ml-2 font-normal text-[#8a8a8a]">{pastSessions.length}</span>
                 </h2>
                 <button
                   onClick={fetchPastSessions}
                   disabled={sessionsLoading}
-                  className="text-[10px] text-[#444] hover:text-[#888] transition-colors disabled:opacity-30"
+                  className="text-xs text-[#8a8a8a] hover:text-[#d5d5d5] transition-colors disabled:opacity-30"
                 >
                   {sessionsLoading ? "Loading…" : "Refresh"}
                 </button>
               </div>
 
               {pastSessions.length === 0 ? (
-                <p className="px-5 py-8 text-center text-[#333] text-xs">
+                <p className="px-5 py-8 text-center text-[#8a8a8a] text-xs">
                   {sessionsLoading ? "Loading sessions…" : "No past sessions yet."}
                 </p>
               ) : (
@@ -765,7 +765,7 @@ export default function TradingPage() {
                     <thead className="sticky top-0 bg-[#111111]">
                       <tr className="border-b border-[#1a1a1a]">
                         {["", "Date", "Duration", "Trades", "Win Rate", "P&L", "Status", "End Reason"].map((h) => (
-                          <th key={h} className="text-left px-4 py-2.5 text-[10px] text-[#444] font-medium uppercase tracking-wider whitespace-nowrap">{h}</th>
+                          <th key={h} className="text-left px-4 py-2.5 text-xs text-[#8a8a8a] font-medium uppercase tracking-wider whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -780,7 +780,7 @@ export default function TradingPage() {
                               onClick={() => handleExpandSession(s.id)}
                               className="border-b border-[#141414] hover:bg-[#151515] cursor-pointer transition-colors"
                             >
-                              <td className="px-3 py-2.5 text-[#444]">
+                              <td className="px-3 py-2.5 text-[#8a8a8a]">
                                 {isExpanded
                                   ? <ChevronDown className="w-3 h-3" />
                                   : <ChevronRight className="w-3 h-3" />
@@ -798,7 +798,7 @@ export default function TradingPage() {
                                 </span>
                               </td>
                               <td className="px-4 py-2.5">
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                                   s.status === "RUNNING"
                                     ? "bg-[#22c55e]/10 text-[#22c55e]"
                                     : s.status === "COMPLETED"
@@ -808,7 +808,7 @@ export default function TradingPage() {
                                   {s.status}
                                 </span>
                               </td>
-                              <td className="px-4 py-2.5 text-[#555] max-w-[160px] truncate">
+                              <td className="px-4 py-2.5 text-[#8a8a8a] max-w-[160px] truncate">
                                 {s.end_reason ?? "—"}
                               </td>
                             </tr>
@@ -818,15 +818,15 @@ export default function TradingPage() {
                               <tr key={`${s.id}-expanded`} className="border-b border-[#1a1a1a]">
                                 <td colSpan={8} className="bg-[#0d0d0d] px-5 py-3">
                                   {loadingTrades === s.id ? (
-                                    <p className="text-[11px] text-[#444]">Loading trades…</p>
+                                    <p className="text-xs text-[#8a8a8a]">Loading trades…</p>
                                   ) : !trades || trades.length === 0 ? (
-                                    <p className="text-[11px] text-[#444]">No trades recorded for this session.</p>
+                                    <p className="text-xs text-[#8a8a8a]">No trades recorded for this session.</p>
                                   ) : (
-                                    <table className="w-full text-[11px]">
+                                    <table className="w-full text-xs">
                                       <thead>
                                         <tr className="border-b border-[#1a1a1a]">
                                           {["Symbol", "Entry", "Exit", "Qty", "Entry ₹", "Exit ₹", "P&L", "Status"].map((h) => (
-                                            <th key={h} className="text-left pb-2 pr-6 text-[10px] text-[#444] font-medium uppercase">{h}</th>
+                                            <th key={h} className="text-left pb-2 pr-6 text-xs text-[#8a8a8a] font-medium uppercase">{h}</th>
                                           ))}
                                         </tr>
                                       </thead>
@@ -834,8 +834,8 @@ export default function TradingPage() {
                                         {trades.map((t) => (
                                           <tr key={t.id} className="border-b border-[#141414]">
                                             <td className="py-1.5 pr-6 font-medium text-[#f5f5f5]">{t.symbol}</td>
-                                            <td className="py-1.5 pr-6 text-[#555]">{t.entry_at ? new Date(t.entry_at).toLocaleTimeString() : "—"}</td>
-                                            <td className="py-1.5 pr-6 text-[#555]">{t.exit_at ? new Date(t.exit_at).toLocaleTimeString() : "—"}</td>
+                                            <td className="py-1.5 pr-6 text-[#8a8a8a]">{t.entry_at ? new Date(t.entry_at).toLocaleTimeString() : "—"}</td>
+                                            <td className="py-1.5 pr-6 text-[#8a8a8a]">{t.exit_at ? new Date(t.exit_at).toLocaleTimeString() : "—"}</td>
                                             <td className="py-1.5 pr-6 text-[#888]">{t.quantity}</td>
                                             <td className="py-1.5 pr-6 text-[#888]">{t.entry_price != null ? `₹${t.entry_price.toFixed(2)}` : "—"}</td>
                                             <td className="py-1.5 pr-6 text-[#888]">{t.exit_price != null ? `₹${t.exit_price.toFixed(2)}` : "—"}</td>
@@ -844,15 +844,15 @@ export default function TradingPage() {
                                                 <span className={t.pnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}>
                                                   {t.pnl >= 0 ? "+" : ""}₹{t.pnl.toFixed(2)}
                                                 </span>
-                                              ) : <span className="text-[#444]">—</span>}
+                                              ) : <span className="text-[#8a8a8a]">—</span>}
                                             </td>
                                             <td className="py-1.5">
-                                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                              <span className={`text-xs px-1.5 py-0.5 rounded ${
                                                 t.status === "OPEN"
                                                   ? "bg-[#f59e0b]/10 text-[#f59e0b]"
                                                   : t.status === "CLOSED"
                                                   ? "bg-[#3b82f6]/10 text-[#3b82f6]"
-                                                  : "bg-[#555]/10 text-[#555]"
+                                                  : "bg-[#555]/10 text-[#8a8a8a]"
                                               }`}>
                                                 {t.status}
                                               </span>
@@ -888,16 +888,16 @@ export default function TradingPage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[#f5f5f5]">Confirm Auto Trade</h3>
-                <p className="text-xs text-[#555] mt-1">This will place real orders with your Zerodha account.</p>
+                <p className="text-xs text-[#8a8a8a] mt-1">This will place real orders with your Zerodha account.</p>
               </div>
             </div>
 
             <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-3 mb-5 space-y-1.5 text-xs">
-              <div className="flex justify-between"><span className="text-[#555]">Capital</span><span className="text-[#f5f5f5] font-medium">₹{config.capital.toLocaleString("en-IN")}</span></div>
-              <div className="flex justify-between"><span className="text-[#555]">Max Loss</span><span className="text-[#ef4444] font-medium">-₹{maxLossAmt.toLocaleString("en-IN")}</span></div>
-              <div className="flex justify-between"><span className="text-[#555]">Profit Target</span><span className="text-[#22c55e] font-medium">+₹{maxProfitAmt.toLocaleString("en-IN")}</span></div>
-              <div className="flex justify-between"><span className="text-[#555]">Max Trades</span><span className="text-[#f5f5f5] font-medium">{config.maxTrades}</span></div>
-              <div className="flex justify-between"><span className="text-[#555]">Mode</span><span className="text-[#f5f5f5] font-medium capitalize">{config.mode === "holdings" ? "Holdings Only" : "Open Market"}</span></div>
+              <div className="flex justify-between"><span className="text-[#8a8a8a]">Capital</span><span className="text-[#f5f5f5] font-medium">₹{config.capital.toLocaleString("en-IN")}</span></div>
+              <div className="flex justify-between"><span className="text-[#8a8a8a]">Max Loss</span><span className="text-[#ef4444] font-medium">-₹{maxLossAmt.toLocaleString("en-IN")}</span></div>
+              <div className="flex justify-between"><span className="text-[#8a8a8a]">Profit Target</span><span className="text-[#22c55e] font-medium">+₹{maxProfitAmt.toLocaleString("en-IN")}</span></div>
+              <div className="flex justify-between"><span className="text-[#8a8a8a]">Max Trades</span><span className="text-[#f5f5f5] font-medium">{config.maxTrades}</span></div>
+              <div className="flex justify-between"><span className="text-[#8a8a8a]">Mode</span><span className="text-[#f5f5f5] font-medium capitalize">{config.mode === "holdings" ? "Holdings Only" : "Open Market"}</span></div>
               {!isMarketOpen() && (
                 <div className="mt-2 pt-2 border-t border-[#1f1f1f] flex items-center gap-2 text-[#ef4444]">
                   <AlertTriangle className="w-3 h-3 shrink-0" />
@@ -909,7 +909,7 @@ export default function TradingPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 py-2.5 rounded-lg text-sm text-[#555] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
+                className="flex-1 py-2.5 rounded-lg text-sm text-[#8a8a8a] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
               >
                 Cancel
               </button>
@@ -935,7 +935,7 @@ export default function TradingPage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[#f5f5f5]">Stop Trading?</h3>
-                <p className="text-xs text-[#555] mt-1">
+                <p className="text-xs text-[#8a8a8a] mt-1">
                   This will stop the brain and square off open positions. Are you sure?
                 </p>
               </div>
@@ -943,7 +943,7 @@ export default function TradingPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowStopConfirm(false)}
-                className="flex-1 py-2.5 rounded-lg text-sm text-[#555] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
+                className="flex-1 py-2.5 rounded-lg text-sm text-[#8a8a8a] hover:text-[#f5f5f5] border border-[#1f1f1f] hover:border-[#333] transition-colors"
               >
                 Cancel
               </button>

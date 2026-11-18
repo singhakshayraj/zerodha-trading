@@ -20,7 +20,7 @@ export default function MockValidationsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-lg font-semibold text-[#f5f5f5]">Validations</h1>
-            <p className="text-xs text-[#666] mt-1">
+            <p className="text-xs text-[#8a8a8a] mt-1">
               Automated end-to-end checks against the staging simulation — grows
               with the system (see docs/PAPER_TRADING_ROADMAP.md).
             </p>

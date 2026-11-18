@@ -234,7 +234,7 @@ export function ValidationsPanel({ defaultOpen = false }: { defaultOpen?: boolea
       >
         {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         Validations
-        <span className="text-[#666] font-normal">— automated live-seed test (tasks #20/#21)</span>
+        <span className="text-[#8a8a8a] font-normal">— automated live-seed test (tasks #20/#21)</span>
       </button>
       {open && (
         <div className="px-4 pb-4">
@@ -255,8 +255,8 @@ export function ValidationsPanel({ defaultOpen = false }: { defaultOpen?: boolea
                   "text-[#999]"
                 }>
                   {s.id}. {s.name}
-                  {s.detail && <span className="text-[#666]"> — {s.detail}</span>}
-                  {s.ts && <span className="text-[#444]"> ({s.ts})</span>}
+                  {s.detail && <span className="text-[#8a8a8a]"> — {s.detail}</span>}
+                  {s.ts && <span className="text-[#8a8a8a]"> ({s.ts})</span>}
                 </span>
               </li>
             ))}

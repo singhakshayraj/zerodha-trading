@@ -29,6 +29,13 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-48 · readability pass renders on a real phone — registered 2026-11-19 [P-72]
+Manual: needs a device screenshot (no SQL). On the user's Android Chrome, open
+`/advisor` and `/pnl`. **PASS** = bottom bar shows exactly 5 tabs (Home, Trade,
+Folio, Advisor, More) with no clipped label; More opens a sheet listing all 13
+other pages; Advisor shows the Today/Timeline/Scorecard/Calls strip; no
+horizontal page scroll. **FAIL** = any clipped tab, missing page, or sideways scroll.
+
 ### V-18 · [Part B] the 0.631 alpha hit rate does NOT survive out-of-sample
 Ran the EXACT current verdict function (`advisor_scoring.advise`, unchanged)
 across the 5.2-year daily cache, graded with the stored alpha rule on

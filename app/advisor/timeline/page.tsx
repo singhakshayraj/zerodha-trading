@@ -54,7 +54,7 @@ function Sparkline({ points }: { points: Point[] }) {
   const valid = prices.filter((v): v is number => v != null);
   if (valid.length < 2) {
     return (
-      <div className="flex items-center justify-center h-[44px] text-[10px] text-[#555]">
+      <div className="flex items-center justify-center h-[44px] text-xs text-[#8a8a8a]">
         {valid.length === 1 ? "one reading — sparkline needs ≥2" : "no price readings yet"}
       </div>
     );
@@ -130,10 +130,10 @@ export default function TimelinePage() {
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </button>
           </div>
-          <p className="text-[12px] text-[#666] mb-5 flex items-center gap-1.5">
+          <p className="text-[12px] text-[#8a8a8a] mb-5 flex items-center gap-1.5">
             <Clock className="w-3 h-3" />
             Per-stock observation path (price · trend score · verdict) captured by the agent.
-            {updatedAt && <span className="text-[#555]">Latest: {IST(updatedAt)} IST</span>}
+            {updatedAt && <span className="text-[#8a8a8a]">Latest: {IST(updatedAt)} IST</span>}
           </p>
 
           {loading ? (
@@ -165,13 +165,13 @@ export default function TimelinePage() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-[#f5f5f5]">{s.symbol}</span>
                       <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                        className="text-xs font-medium px-1.5 py-0.5 rounded"
                         style={{ color: vColor(s.latest_verdict), background: vColor(s.latest_verdict) + "1a" }}
                       >
                         {s.latest_verdict ?? "—"}
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#888] mt-1">
+                    <div className="text-xs text-[#888] mt-1">
                       {s.latest_price != null ? `₹${s.latest_price}` : "—"}
                       {s.latest_score != null && (
                         <span className="ml-2" style={{ color: s.latest_score >= 0 ? GREEN : RED }}>
@@ -180,7 +180,7 @@ export default function TimelinePage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-[10px] text-[#555] mt-0.5">
+                    <div className="text-xs text-[#8a8a8a] mt-0.5">
                       {s.count} obs · last {IST(s.latest_at)}
                     </div>
                   </div>

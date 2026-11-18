@@ -109,7 +109,7 @@ export default function ConnectPage() {
               <Zap className="w-6 h-6 text-[#3b82f6]" fill="#3b82f6" />
             </div>
             <h1 className="text-2xl font-semibold text-[#f5f5f5] tracking-tight">Zerodha Trader</h1>
-            <p className="text-sm text-[#666666] mt-1">Autonomous Trading Platform</p>
+            <p className="text-sm text-[#8a8a8a] mt-1">Autonomous Trading Platform</p>
           </div>
 
           <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6">
@@ -122,11 +122,11 @@ export default function ConnectPage() {
                 <p className="text-sm font-medium text-[#f5f5f5]">
                   {userProfile?.name ?? "Connected"}
                 </p>
-                <p className="text-xs text-[#444]">
+                <p className="text-xs text-[#8a8a8a]">
                   {userProfile?.email ?? ""}{userProfile?.broker ? ` · ${userProfile.broker}` : ""}
                 </p>
               </div>
-              <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20 font-medium">
+              <span className="shrink-0 text-xs px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20 font-medium">
                 ZERODHA
               </span>
             </div>
@@ -143,12 +143,12 @@ export default function ConnectPage() {
                 ) : dbStatus === "disconnected" ? (
                   <XCircle className="w-5 h-5 text-[#ef4444]" />
                 ) : (
-                  <Loader2 className="w-5 h-5 text-[#666] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-[#8a8a8a] animate-spin" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-[#f5f5f5]">Database</p>
-                <p className="text-xs text-[#444]">
+                <p className="text-xs text-[#8a8a8a]">
                   {dbStatus === "connected"
                     ? "Supabase connected — trade history will be recorded"
                     : dbStatus === "disconnected"
@@ -156,10 +156,10 @@ export default function ConnectPage() {
                     : "Checking database connection…"}
                 </p>
               </div>
-              <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+              <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border font-medium ${
                 dbStatus === "connected" ? "bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20" :
                 dbStatus === "disconnected" ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20" :
-                "bg-[#666]/10 text-[#666] border-[#666]/20"
+                "bg-[#666]/10 text-[#8a8a8a] border-[#666]/20"
               }`}>
                 {dbStatus === "connected" ? "DB" : dbStatus === "disconnected" ? "OFFLINE" : "…"}
               </span>
@@ -176,12 +176,12 @@ export default function ConnectPage() {
                 ) : brainStatus === "offline" ? (
                   <XCircle className="w-5 h-5 text-[#ef4444]" />
                 ) : (
-                  <Loader2 className="w-5 h-5 text-[#666] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-[#8a8a8a] animate-spin" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-[#f5f5f5]">Brain Server</p>
-                <p className="text-xs text-[#444]">
+                <p className="text-xs text-[#8a8a8a]">
                   {brainStatus === "running"
                     ? "Brain is actively trading"
                     : brainStatus === "online"
@@ -191,11 +191,11 @@ export default function ConnectPage() {
                     : "Checking brain status…"}
                 </p>
               </div>
-              <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+              <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full border font-medium ${
                 brainStatus === "running" ? "bg-[#22c55e]/10 text-[#22c55e] border-[#22c55e]/20" :
                 brainStatus === "online"  ? "bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20" :
                 brainStatus === "offline" ? "bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20" :
-                "bg-[#666]/10 text-[#666] border-[#666]/20"
+                "bg-[#666]/10 text-[#8a8a8a] border-[#666]/20"
               }`}>
                 {brainStatus === "checking" ? "…" : brainStatus.toUpperCase()}
               </span>
@@ -227,7 +227,7 @@ export default function ConnectPage() {
               </button>
               <button
                 onClick={clearSession}
-                className="w-full text-[#444] hover:text-[#ef4444] py-2 text-xs transition-colors"
+                className="w-full text-[#8a8a8a] hover:text-[#ef4444] py-2 text-xs transition-colors"
               >
                 Disconnect & use different token
               </button>
@@ -236,7 +236,7 @@ export default function ConnectPage() {
 
           <NatwarTokenCard />
 
-          <div className="mt-4 flex items-start gap-2 text-xs text-[#333] px-1">
+          <div className="mt-4 flex items-start gap-2 text-xs text-[#8a8a8a] px-1">
             <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3b82f6]" />
             <span>Session expires at 6:00 AM. Token stored locally only.</span>
           </div>
@@ -297,7 +297,7 @@ export default function ConnectPage() {
           <h1 className="text-2xl font-semibold text-[#f5f5f5] tracking-tight">
             Zerodha Trader
           </h1>
-          <p className="text-sm text-[#666666] mt-1">Autonomous Trading Platform</p>
+          <p className="text-sm text-[#8a8a8a] mt-1">Autonomous Trading Platform</p>
         </div>
 
         {/* Card */}
@@ -308,7 +308,7 @@ export default function ConnectPage() {
 
           <form onSubmit={handleConnect} className="space-y-4">
             <div>
-              <label className="block text-xs text-[#666666] mb-2 uppercase tracking-wider">
+              <label className="block text-xs text-[#8a8a8a] mb-2 uppercase tracking-wider">
                 Access Token (enc_token)
               </label>
               <div className="relative">
@@ -329,7 +329,7 @@ export default function ConnectPage() {
                 <button
                   type="button"
                   onClick={() => setShowToken((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8a8a] hover:text-[#d5d5d5] transition-colors"
                   tabIndex={-1}
                 >
                   {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -373,7 +373,7 @@ export default function ConnectPage() {
                   <div
                     key={step}
                     className={`flex items-center gap-3 text-sm transition-all duration-300 ${
-                      done ? "text-[#f5f5f5]" : pending ? "text-[#666666]" : "text-[#2a2a2a]"
+                      done ? "text-[#f5f5f5]" : pending ? "text-[#8a8a8a]" : "text-[#2a2a2a]"
                     }`}
                   >
                     {done ? (
@@ -394,7 +394,7 @@ export default function ConnectPage() {
         <NatwarTokenCard />
 
         {/* Security note */}
-        <div className="mt-4 flex items-start gap-2 text-xs text-[#444] px-1">
+        <div className="mt-4 flex items-start gap-2 text-xs text-[#8a8a8a] px-1">
           <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3b82f6]" />
           <span>
             Your token is stored locally and never sent to any server other than Zerodha.
@@ -412,7 +412,7 @@ export default function ConnectPage() {
                 : "bg-[#666666] animate-pulse"
             }`}
           />
-          <span className="text-[#333]">
+          <span className="text-[#8a8a8a]">
             {dbStatus === "checking"
               ? "Checking database..."
               : dbStatus === "connected"
@@ -443,7 +443,7 @@ export default function ConnectPage() {
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-[#666666] hover:text-[#f5f5f5] transition-colors"
+                className="text-[#8a8a8a] hover:text-[#f5f5f5] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -483,14 +483,14 @@ export default function ConnectPage() {
                   </span>
                   <div>
                     <p className="text-xs font-medium text-[#f5f5f5]">{title}</p>
-                    <p className="text-xs text-[#666666] mt-0.5">{desc}</p>
+                    <p className="text-xs text-[#8a8a8a] mt-0.5">{desc}</p>
                   </div>
                 </li>
               ))}
             </ol>
 
             <div className="mt-5 p-3 bg-[#0a0a0a] rounded-lg border border-[#1f1f1f]">
-              <p className="text-xs text-[#666666]">
+              <p className="text-xs text-[#8a8a8a]">
                 <span className="text-[#f59e0b] font-medium">Note: </span>
                 The enc_token expires at 6:00 AM the next day. Repeat this process daily.
               </p>

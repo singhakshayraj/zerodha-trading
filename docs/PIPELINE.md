@@ -1421,6 +1421,15 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+- ~~**[P-72] Dashboard readability pass (no feature removed).**~~ ✅ **DONE 2026-11-19**
+  — nav grouped (desktop: Trading / Advisor / Money / Setup; phone: 5 tabs + a
+  "More" sheet, Advisor's 4 pages behind one tab with a sub-tab strip); 9–11px
+  text → 12px and sub-4.5:1 greys → `#8a8a8a` (P&L calendar cell kept at 10px —
+  it truncates larger); one `lib/format.ts` ₹ formatter replaces 15 local copies
+  (true minus everywhere); one `components/ui/stat-tile.tsx` replaces 3 copies.
+  Full audit + remaining ideas (as-of stamps, collapsible long pages, tap-able
+  tooltips, mobile tables): see the 11-19 session. VERIFY: V-48.
+
 - ~~**[P-44] Review's data-access channel (Supabase MCP) failed two
   consecutive passes with different root causes.**~~ ✅ **DONE 2026-11-03**
   — measure-of-done met on the "two consecutive clean passes" branch:

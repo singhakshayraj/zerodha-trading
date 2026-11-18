@@ -11,6 +11,8 @@ import { WhatIf } from "@/components/WhatIf";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Hourglass, Layers, Receipt, Network, Gauge, History, ChevronDown, FlaskConical, Anchor, PieChart, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react";
 
+import { inr } from "@/lib/format";
+import { StatTile } from "@/components/ui/stat-tile";
 type Advice = {
   symbol: string;
   quantity: number;
@@ -81,7 +83,7 @@ type ThesisTrack = { graded_at: string; theses: number; first_run_date: string; 
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a";
 const KAMT = (n: number) => (Math.abs(n) >= 10000 ? INR(Math.round(n / 1000)) + "k" : INR(Math.round(n)));
-const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const INR = (n: number) => inr(n, { dp: 2 });
 const THESIS_META: Record<Thesis["action"], { color: string; order: number }> = {
   EXIT: { color: RED, order: 0 }, TRIM: { color: AMBER, order: 1 }, ADD: { color: GREEN, order: 2 }, HOLD: { color: MUTE, order: 3 },
 };
@@ -144,21 +146,11 @@ type Calibration = {
 
 // ── small presentational atoms ───────────────────────────────────────────────
 
-function StatTile({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
-  return (
-    <div className="rounded-lg bg-[#0d0d0d] border border-[#1c1c1c] px-3 py-2.5">
-      <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">{label}</p>
-      <p className="text-lg font-semibold tabular-nums mt-0.5 leading-none" style={{ color: color ?? "#f5f5f5" }}>{value}</p>
-      {sub && <p className="text-[10px] text-[#5a5a5a] mt-1 leading-tight">{sub}</p>}
-    </div>
-  );
-}
-
 function Metric({ label, value, color, title }: { label: string; value: string; color?: string; title?: string }) {
   return (
     <span title={title} className="inline-flex items-baseline gap-1 px-2 py-1 rounded-md bg-[#0d0d0d] border border-[#1c1c1c]">
-      <span className="text-[9px] text-[#7a7a7a] uppercase tracking-wide">{label}</span>
-      <span className="text-[11px] font-medium tabular-nums" style={{ color: color ?? "#d5d5d5" }}>{value}</span>
+      <span className="text-xs text-[#8a8a8a] uppercase tracking-wide">{label}</span>
+      <span className="text-xs font-medium tabular-nums" style={{ color: color ?? "#d5d5d5" }}>{value}</span>
     </span>
   );
 }
@@ -169,8 +161,8 @@ function Section({ icon: Icon, title, note, children, defaultOpen = false }: { i
       <summary className="flex items-center gap-2 p-4 cursor-pointer list-none select-none hover:bg-[#141414] transition-colors">
         <Icon className="w-4 h-4 text-[#888] shrink-0" />
         <h3 className="text-sm font-semibold text-[#f5f5f5]">{title}</h3>
-        {note && <span className="text-[11px] text-[#6a6a6a] min-w-0 truncate">{note}</span>}
-        <ChevronDown className="w-4 h-4 text-[#666] ml-auto shrink-0 transition-transform group-open:rotate-180" />
+        {note && <span className="text-xs text-[#8a8a8a] min-w-0 truncate">{note}</span>}
+        <ChevronDown className="w-4 h-4 text-[#8a8a8a] ml-auto shrink-0 transition-transform group-open:rotate-180" />
       </summary>
       <div className="px-4 pb-4">{children}</div>
     </details>
@@ -195,7 +187,7 @@ function V2Mark({ r }: { r: Advice }) {
   const agree = v2Bucket(t.action) === v1Bucket(r.verdict);
   return (
     <span title={`Thesis engine (v2, shadow): ${t.action}${t.quality != null ? ` · quality ${t.quality}` : ""}`}
-      className="inline-flex items-center gap-1 text-[10px] font-medium whitespace-nowrap" style={{ color: agree ? "#6a6a6a" : AMBER }}>
+      className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap" style={{ color: agree ? "#6a6a6a" : AMBER }}>
       <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: agree ? "#4a4a4a" : AMBER }} />
       {agree ? "v2 agrees" : `v2: ${t.action}`}
     </span>
@@ -212,13 +204,13 @@ function V1Mark({ r }: { r: Advice }) {
   if (!r.v1_verdict || r.v1_verdict === r.verdict) return null;
   return (
     <span title={`Sector layer changed v1's call (sector trend ${r.sector_trend ?? "—"})`}
-      className="text-[10px] font-medium whitespace-nowrap text-[#a78bfa]">v1: {VERDICT_META[r.v1_verdict]?.label ?? r.v1_verdict}</span>
+      className="text-xs font-medium whitespace-nowrap text-[#a78bfa]">v1: {VERDICT_META[r.v1_verdict]?.label ?? r.v1_verdict}</span>
   );
 }
 
 function ChangeTag({ note }: { note: string | null }) {
   if (!note) return null;
-  return <span className="text-[10px] font-medium text-[#60a5fa] whitespace-nowrap">{note}</span>;
+  return <span className="text-xs font-medium text-[#60a5fa] whitespace-nowrap">{note}</span>;
 }
 
 function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen: () => void }) {
@@ -229,31 +221,31 @@ function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen:
       style={{ borderColor: `${m.color}40` }}>
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: m.color }}>{m.label}</span>
+          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: m.color }}>{m.label}</span>
           <V1Mark r={r} /><V2Mark r={r} /><ChangeTag note={note} />
         </div>
         <p className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</p>
-        <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
+        <p className="text-xs text-[#8a8a8a] tabular-nums truncate">
           {sellQty(r)} sh · {INR(Math.round(freedInr(r)))} · <span style={{ color: (r.pnl_percent ?? 0) >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
         </p>
         {r.indicators?.tax?.action && (
-          <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[10px] text-[#d5d5d5]">
+          <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-xs text-[#d5d5d5]">
             after tax: {r.indicators.tax.action.startsWith("sell now") ? `sell now · ${inrk(r.indicators.tax.tax_now_inr)}` : `${r.indicators.tax.action} · saves ${inrk(r.indicators.tax.saving_inr)}`}
           </span>
         )}
       </div>
-      <ArrowRight className="w-4 h-4 text-[#555] shrink-0" />
+      <ArrowRight className="w-4 h-4 text-[#8a8a8a] shrink-0" />
       {r.rotation_target_symbol ? (
         <div className="min-w-0 text-right">
-          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: GREEN }}>Buy</span>
+          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: GREEN }}>Buy</span>
           <p className="text-[15px] font-semibold text-[#f5f5f5] truncate">{r.rotation_target_symbol}</p>
-          <p className="text-[11px] text-[#8a8a8a] tabular-nums truncate">
+          <p className="text-xs text-[#8a8a8a] tabular-nums truncate">
             {r.rotation_buy_qty != null ? `~${r.rotation_buy_qty} @ ${INR(r.rotation_buy_price ?? 0)}` : `score ${r.rotation_target_score}`}
           </p>
           <DDBadge dd={r.indicators?.target_dd} />
         </div>
       ) : (
-        <p className="text-right text-[11px] text-[#6a6a6a]">{r.verdict === "TRIM" ? "keep the rest" : "no stronger home — hold cash"}</p>
+        <p className="text-right text-xs text-[#8a8a8a]">{r.verdict === "TRIM" ? "keep the rest" : "no stronger home — hold cash"}</p>
       )}
     </button>
   );
@@ -262,8 +254,8 @@ function MoveCard({ r, note, onOpen }: { r: Advice; note: string | null; onOpen:
 function DDBadge({ dd }: { dd?: TargetDD | null }) {
   if (!dd) return null;
   const red = dd.flags.filter((f) => f.severity === "red").length, n = dd.flags.length;
-  if (!n) return <p className="text-[10px]" style={{ color: GREEN }}>✓ no red flags</p>;
-  return <p className="text-[10px] font-semibold" style={{ color: red ? RED : AMBER }}>⚠ {n} flag{n > 1 ? "s" : ""}{red ? ` · ${red} red` : ""}</p>;
+  if (!n) return <p className="text-xs" style={{ color: GREEN }}>✓ no red flags</p>;
+  return <p className="text-xs font-semibold" style={{ color: red ? RED : AMBER }}>⚠ {n} flag{n > 1 ? "s" : ""}{red ? ` · ${red} red` : ""}</p>;
 }
 
 function HoldingTile({ r, note, onOpen }: { r: Advice; note: string | null; onOpen: () => void }) {
@@ -277,12 +269,12 @@ function HoldingTile({ r, note, onOpen }: { r: Advice; note: string | null; onOp
         <span className="text-[13px] font-semibold text-[#f5f5f5] truncate">{r.symbol}</span>
         <span className="text-[12px] font-semibold tabular-nums shrink-0" style={{ color: (r.pnl_percent ?? 0) >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
       </div>
-      <span className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{ color: m.color }}>{m.label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide mt-0.5" style={{ color: m.color }}>{m.label}</span>
       <V1Mark r={r} />
       <ChangeTag note={note} />
       <div className="mt-auto pt-2 flex items-center justify-between gap-1">
         <V2Mark r={r} />
-        {q != null && <span className="text-[10px] text-[#7a7a7a] tabular-nums">q {q}</span>}
+        {q != null && <span className="text-xs text-[#8a8a8a] tabular-nums">q {q}</span>}
       </div>
     </button>
   );
@@ -307,13 +299,13 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
       <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] rounded-t-2xl border-t md:inset-y-0 md:left-auto md:right-0 md:w-[460px] md:max-h-none md:rounded-none md:border-t-0 md:border-l bg-[#0f0f0f] border-[#262626] overflow-y-auto">
         <div className="sticky top-0 z-10 bg-[#0f0f0f] border-b border-[#1f1f1f] px-4 py-3 flex items-center gap-2">
           <span className="text-[16px] font-semibold text-[#f5f5f5] truncate min-w-0">{r.symbol}</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide shrink-0" style={{ background: `${m.color}1a`, color: m.color }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide shrink-0" style={{ background: `${m.color}1a`, color: m.color }}>
             <Icon className="w-3 h-3 inline mr-1 -mt-0.5" />{m.label}
           </span>
           <span className="text-[13px] font-semibold tabular-nums" style={{ color: pnl >= 0 ? GREEN : RED }}>{pct(r.pnl_percent)}</span>
           <div className="ml-auto flex items-center shrink-0 -mr-2">
             <button type="button" className={navBtn} onClick={onPrev} disabled={pos <= 0} aria-label="Previous"><ChevronLeft className="w-4 h-4" /></button>
-            <span className="hidden sm:inline text-[10px] text-[#6a6a6a] tabular-nums w-10 text-center">{pos + 1}/{total}</span>
+            <span className="hidden sm:inline text-xs text-[#8a8a8a] tabular-nums w-10 text-center">{pos + 1}/{total}</span>
             <button type="button" className={navBtn} onClick={onNext} disabled={pos >= total - 1} aria-label="Next"><ChevronRight className="w-4 h-4" /></button>
             <button type="button" className={navBtn} onClick={onClose} aria-label="Close"><X className="w-4 h-4" /></button>
           </div>
@@ -321,14 +313,14 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
 
         <div className="p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-4">
           <p className="text-[13px] text-[#e5e5e5] leading-relaxed">{(r.reasons ?? [])[0] ?? m.blurb}</p>
-          <p className="text-[11px] text-[#9a9a9a] tabular-nums">
+          <p className="text-xs text-[#9a9a9a] tabular-nums">
             {r.quantity} × avg {INR(r.avg_price)} → <span className="text-[#d5d5d5]">now {INR(r.last_price)}</span>
-            {(r.breakeven_gain_pct ?? 0) > 0 && <span className="text-[#6a6a6a]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span>}
+            {(r.breakeven_gain_pct ?? 0) > 0 && <span className="text-[#8a8a8a]"> · needs +{r.breakeven_gain_pct?.toFixed(0)}% to break even</span>}
           </p>
 
           {r.v1_verdict && r.v1_verdict !== r.verdict && (
             <div className="rounded-lg border p-3" style={{ borderColor: "#a78bfa55", background: "#a78bfa0a" }}>
-              <p className="text-[9px] text-[#a78bfa] uppercase tracking-wide mb-1">Sector layer · on top of v1 · under test</p>
+              <p className="text-xs text-[#a78bfa] uppercase tracking-wide mb-1">Sector layer · on top of v1 · under test</p>
               <p className="text-[12px] text-[#d5d5d5] leading-relaxed">
                 v1 said <span style={{ color: VERDICT_META[r.v1_verdict]?.color }}>{VERDICT_META[r.v1_verdict]?.label}</span>; sector trend <span className="tabular-nums">{r.sector_trend != null ? (r.sector_trend > 0 ? "+" : "") + r.sector_trend : "—"}</span> → <span style={{ color: m.color }}>{m.label}</span> ({SECTOR_RULE_TEXT[r.sector_rule ?? ""] ?? r.sector_rule}). Both calls are graded; scripts/compare_sector_tilt.py shows which does better.
               </p>
@@ -336,7 +328,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
           )}
 
           {r.indicators?.tax && (r.indicators.tax.action ? r.indicators.tax.text : r.indicators.tax.ltcg_date) && (
-            <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3 text-[11px] text-[#d5d5d5] space-y-1">
+            <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3 text-xs text-[#d5d5d5] space-y-1">
               <p>{r.indicators.tax.action ? r.indicators.tax.text : `LTCG from ${r.indicators.tax.ltcg_date}`}</p>
               {r.indicators.tax.action && r.indicators.tax.lots !== "known" && (
                 <p className="text-[#8a8a8a]">{r.indicators.tax.lots === "unknown" ? "lots: unknown" : `lots: ${(r.indicators.tax.sell_qty ?? sellQty(r)) - r.indicators.tax.unmatched_qty} of ${r.indicators.tax.sell_qty ?? sellQty(r)} dated`}</p>
@@ -346,14 +338,14 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
 
           {hasPlan && (
             <div className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3">
-              <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-2">Plan</p>
-              <div className="flex flex-wrap gap-2 text-[11px]">
+              <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-2">Plan</p>
+              <div className="flex flex-wrap gap-2 text-xs">
                 {r.exit_target && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">sell near <span style={{ color: AMBER }}>{INR(r.exit_target)}</span></span>}
                 {r.stop_level && <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] text-[#d5d5d5]">exit below <span style={{ color: RED }}>{INR(r.stop_level)}</span></span>}
                 {r.rotation_target_symbol && (
                   <span className="px-2 py-1 rounded bg-[#0d0d0d] border text-[#d5d5d5]" style={{ borderColor: `${GREEN}44` }}>
                     rotate into <span style={{ color: GREEN }} className="font-semibold">{r.rotation_target_symbol}</span>
-                    <span className="text-[#6a6a6a]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
+                    <span className="text-[#8a8a8a]"> · score {r.rotation_target_score}{r.rotation_reason === "same_sector" ? " · same sector" : ""}</span>
                   </span>
                 )}
                 {r.indicators?.risk_size && (
@@ -369,7 +361,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
                   </span>
                 )}
                 {r.user_decision && (
-                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-[10px]" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
+                  <span className="px-2 py-1 rounded bg-[#0d0d0d] border border-[#1f1f1f] font-semibold uppercase tracking-wide text-xs" style={{ color: r.user_decision === "accept" ? GREEN : RED }}>
                     you {r.user_decision === "accept" ? "accepted ✓" : "declined ✗"}
                   </span>
                 )}
@@ -380,7 +372,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
           {r.indicators?.target_dd && r.rotation_target_symbol && (
             <div className="rounded-lg border p-3" data-testid="target-dd"
               style={{ borderColor: r.indicators.target_dd.flags.some((f) => f.severity === "red") ? `${RED}55` : r.indicators.target_dd.flags.length ? `${AMBER}55` : "#1f1f1f", background: "#111" }}>
-              <p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1">Before you buy {r.indicators.target_dd.symbol}{r.indicators.target_dd.asof ? ` · data ${r.indicators.target_dd.asof}` : ""}</p>
+              <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Before you buy {r.indicators.target_dd.symbol}{r.indicators.target_dd.asof ? ` · data ${r.indicators.target_dd.asof}` : ""}</p>
               {r.indicators.target_dd.flags.length === 0 ? (
                 <p className="text-[12px]" style={{ color: GREEN }}>No red flags. Checked: {r.indicators.target_dd.checked}.</p>
               ) : (
@@ -396,7 +388,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
           )}
 
           {r.indicators?.household && (
-            <p className="text-[11px] text-[#8a8a8a] leading-relaxed -mt-1">
+            <p className="text-xs text-[#8a8a8a] leading-relaxed -mt-1">
               <span className="text-[#60a5fa]">Both accounts as one book: </span>{r.indicators.household}.
             </p>
           )}
@@ -404,20 +396,20 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
           {t && (
             <div className="rounded-lg border p-3" style={{ borderColor: agree ? "#1f1f1f" : `${AMBER}55`, background: agree ? "#111" : `${AMBER}0a` }}>
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <span className="text-[9px] text-[#6a6a6a] uppercase tracking-wide">v2 thesis · 12-month · shadow</span>
-                <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: THESIS_META[t.action].color }}>{t.action}</span>
-                <span className="text-[11px] text-[#8a8a8a]">quality <span className="text-[#e5e5e5] tabular-nums">{t.quality ?? "—"}</span></span>
-                {!agree && <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: AMBER }}>disagrees with v1</span>}
+                <span className="text-xs text-[#8a8a8a] uppercase tracking-wide">v2 thesis · 12-month · shadow</span>
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: THESIS_META[t.action].color }}>{t.action}</span>
+                <span className="text-xs text-[#8a8a8a]">quality <span className="text-[#e5e5e5] tabular-nums">{t.quality ?? "—"}</span></span>
+                {!agree && <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: AMBER }}>disagrees with v1</span>}
               </div>
               {t.qty_delta !== 0 && <p className="text-[12px] text-[#d5d5d5] mb-1">{t.qty_delta > 0 ? "Buy" : "Sell"} {Math.abs(t.qty_delta)} of {r.quantity} → {t.target_weight_pct}% of book</p>}
               <p className="text-[12px] text-[#c5c5c5] leading-relaxed">{t.reason}.</p>
-              <p className="text-[11px] text-[#c5b898] leading-relaxed mt-1"><span className="text-[#8a8a8a]">Flips if: </span>{t.falsifier}.</p>
+              <p className="text-xs text-[#c5b898] leading-relaxed mt-1"><span className="text-[#8a8a8a]">Flips if: </span>{t.falsifier}.</p>
             </div>
           )}
 
           {r.counter_case && (
             <div className="rounded border border-[#3a3320] bg-[#17140c] px-3 py-2">
-              <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: AMBER }}>
+              <p className="text-xs uppercase tracking-wide mb-1" style={{ color: AMBER }}>
                 {v1Bucket(r.verdict) === "sell" ? "Bull case — what would make this sell wrong" : "Bear case — what would make this call wrong"}
               </p>
               <p className="text-[12px] text-[#c5b898] leading-relaxed">{r.counter_case}</p>
@@ -425,7 +417,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
           )}
 
           <details className="group">
-            <summary className="text-[11px] text-[#8a8a8a] cursor-pointer list-none select-none flex items-center gap-1 hover:text-[#d5d5d5]">
+            <summary className="text-xs text-[#8a8a8a] cursor-pointer list-none select-none flex items-center gap-1 hover:text-[#d5d5d5]">
               <ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" /> Full reasoning &amp; indicators
             </summary>
             <ul className="space-y-1.5 mt-2">
@@ -446,7 +438,7 @@ function DetailPanel({ r, pos, total, onClose, onPrev, onNext }: { r: Advice; po
               {r.indicators?.rsi_14 != null && <Metric label="rsi" value={r.indicators.rsi_14.toFixed(0)} />}
               {r.indicators?.adx != null && <Metric label="adx" value={r.indicators.adx.toFixed(0)} />}
             </div>
-            <p className="text-[11px] text-[#6a6a6a] mt-2">{m.blurb}</p>
+            <p className="text-xs text-[#8a8a8a] mt-2">{m.blurb}</p>
           </details>
         </div>
       </div>
@@ -464,10 +456,10 @@ function SectorCard({ g, onOpen }: { g: SectorGroup; onOpen: (sym: string) => vo
     <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-3">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[13px] font-semibold text-[#f5f5f5]">{g.group}</span>
-        {tilt && <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: tilt === "overweight" ? AMBER : tilt === "underweight" ? "#60a5fa" : MUTE }}>{tilt}</span>}
-        <span className="ml-auto text-[11px] tabular-nums" style={{ color: trendColor }}>trend {g.trend_median != null ? (g.trend_median > 0 ? "+" : "") + g.trend_median : "—"}</span>
+        {tilt && <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: tilt === "overweight" ? AMBER : tilt === "underweight" ? "#60a5fa" : MUTE }}>{tilt}</span>}
+        <span className="ml-auto text-xs tabular-nums" style={{ color: trendColor }}>trend {g.trend_median != null ? (g.trend_median > 0 ? "+" : "") + g.trend_median : "—"}</span>
       </div>
-      <div className="mt-2 space-y-1 text-[10px] text-[#8a8a8a] tabular-nums">
+      <div className="mt-2 space-y-1 text-xs text-[#8a8a8a] tabular-nums">
         {[["you", g.my_weight_pct, "#e5e5e5"], ["index", g.index_weight_pct ?? 0, "#4a4a4a"]].map(([label, v, c]) => (
           <div key={label as string} className="flex items-center gap-2">
             <span className="w-9">{label}</span>
@@ -483,7 +475,7 @@ function SectorCard({ g, onOpen }: { g: SectorGroup; onOpen: (sym: string) => vo
             <div style={{ width: `${(g.mix.trim / n) * 100}%`, background: AMBER }} />
             <div style={{ width: `${(g.mix.hold / n) * 100}%`, background: GREEN }} />
           </div>
-          <p className="text-[10px] text-[#7a7a7a] mt-1 tabular-nums">
+          <p className="text-xs text-[#8a8a8a] mt-1 tabular-nums">
             {n} names: <span style={{ color: RED }}>{g.mix.sell} sell</span> · <span style={{ color: AMBER }}>{g.mix.trim} trim</span> · <span style={{ color: GREEN }}>{g.mix.hold} hold</span>
             {g.quality_median != null && <> · quality {g.quality_median}</>}
             {g.gnpa_median != null && <> · GNPA {g.gnpa_median}%</>}
@@ -495,11 +487,11 @@ function SectorCard({ g, onOpen }: { g: SectorGroup; onOpen: (sym: string) => vo
         <div className="mt-2 flex flex-wrap gap-1.5">
           {g.held.map((h) => (
             <button key={h.symbol} type="button" onClick={() => onOpen(h.symbol)}
-              className="text-[10px] px-1.5 py-0.5 rounded bg-[#0d0d0d] border hover:border-[#444]"
+              className="text-xs px-1.5 py-0.5 rounded bg-[#0d0d0d] border hover:border-[#444]"
               style={{ borderColor: `${h.verdict ? VERDICT_META[h.verdict]?.color ?? MUTE : MUTE}55` }}>
               <span className="text-[#e5e5e5] font-medium">{h.symbol}</span>
               {h.verdict && <span style={{ color: VERDICT_META[h.verdict]?.color ?? MUTE }}> {VERDICT_META[h.verdict]?.label ?? h.verdict}</span>}
-              {h.weight_pct != null && <span className="text-[#6a6a6a]"> {h.weight_pct}%</span>}
+              {h.weight_pct != null && <span className="text-[#8a8a8a]"> {h.weight_pct}%</span>}
             </button>
           ))}
         </div>
@@ -627,7 +619,7 @@ export default function AdvisorPage() {
                   <><span className="hidden sm:inline"> · </span>updated <span className="text-[#c5c5c5]">
                     {new Date(runAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })} IST
                   </span>
-                  {isOfficial === false ? <span className="text-[#6a6a6a]"> (intraday refresh)</span> : null}</>
+                  {isOfficial === false ? <span className="text-[#8a8a8a]"> (intraday refresh)</span> : null}</>
                 ) : runDate ? <><span className="hidden sm:inline"> · </span>run <span className="text-[#c5c5c5]">{runDate}</span></> : null}
               </p>
             </div>
@@ -636,7 +628,7 @@ export default function AdvisorPage() {
                 {([["primary", "Kanaklata"], ["natwar", "Natwar"]] as const).map(([k, label]) => (
                   <button key={k} onClick={() => setAccount(k)}
                     className={`px-3 ${account === k ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a] hover:text-[#f5f5f5]"} transition-colors`}>
-                    {label}{k === "natwar" && <span className="ml-1 text-[9px] text-[#f59e0b]">preview</span>}
+                    {label}{k === "natwar" && <span className="ml-1 text-xs text-[#f59e0b]">preview</span>}
                   </button>
                 ))}
               </div>
@@ -646,7 +638,7 @@ export default function AdvisorPage() {
             </div>
           </div>
           {account === "natwar" && (
-            <div className="mb-3 p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-[11px] text-[#f59e0b] leading-relaxed">
+            <div className="mb-3 p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-xs text-[#f59e0b] leading-relaxed">
               Natwar&apos;s account — preview: the same advisor plus a <span className="text-[#a78bfa]">sector layer</span> under test (calls it changed show a purple &quot;v1:&quot; mark). Both versions are graded separately from the main record; no Telegram digest.
               {previewNote ? <> {previewNote}</> : null}
             </div>
@@ -677,7 +669,7 @@ export default function AdvisorPage() {
               {/* ── MORNING BRIEF (P-55): both books, display only ──── */}
               {brief && (
                 <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl px-4 py-3" data-testid="morning-brief">
-                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-1.5">Morning brief · {brief.run_date}</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1.5">Morning brief · {brief.run_date}</p>
                   <ul className="space-y-1">
                     {brief.lines.map((l) => (
                       <li key={l.kind} className="text-[12px] leading-relaxed" style={{ color: l.warn ? AMBER : "#c5c5c5" }}>{l.text}</li>
@@ -685,14 +677,14 @@ export default function AdvisorPage() {
                   </ul>
                   {watchdog && (
                     <details className="mt-2" data-testid="watchdog">
-                      <summary className="text-[11px] cursor-pointer" style={{ color: watchdog.fails ? RED : watchdog.warns ? AMBER : "#7a7a7a" }}>
+                      <summary className="text-xs cursor-pointer" style={{ color: watchdog.fails ? RED : watchdog.warns ? AMBER : "#7a7a7a" }}>
                         Data checks {watchdog.run_date}: {watchdog.fails} fail · {watchdog.warns} warn · {watchdog.checks.length - watchdog.fails - watchdog.warns} pass
                       </summary>
                       <ul className="mt-1.5 space-y-1">
                         {watchdog.checks.map((c) => (
-                          <li key={c.name} className="text-[11px] leading-relaxed flex gap-2">
+                          <li key={c.name} className="text-xs leading-relaxed flex gap-2">
                             <span className="font-mono w-10 shrink-0" style={{ color: c.status === "FAIL" ? RED : c.status === "WARN" ? AMBER : GREEN }}>{c.status}</span>
-                            <span className="text-[#c5c5c5]">{c.name} · {c.evidence}{c.cause ? <span className="text-[#7a7a7a]"> — {c.cause}</span> : null}</span>
+                            <span className="text-[#c5c5c5]">{c.name} · {c.evidence}{c.cause ? <span className="text-[#8a8a8a]"> — {c.cause}</span> : null}</span>
                           </li>
                         ))}
                       </ul>
@@ -710,13 +702,13 @@ export default function AdvisorPage() {
                   <StatTile label="Changed" value={String(flipCount)} sub={diff?.priorRunDate ? `vs ${diff.priorRunDate}` : "no prior run"} color={flipCount ? "#60a5fa" : "#5a5a5a"} />
                 </div>
                 {fundAgeDays != null && fundAgeDays > 30 && (
-                  <p className="text-[11px] mt-3" style={{ color: AMBER }}>
+                  <p className="text-xs mt-3" style={{ color: AMBER }}>
                     Fundamentals are {fundAgeDays} days old (as of {thesisAsof}) — paste fresh Screener exports and run scripts/ingest_fundamentals.py. Quality scores go stale at 45 days.
                   </p>
                 )}
                 {regime && (
-                  <p className="text-[11px] text-[#8a8a8a] mt-3 flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide" style={{ background: `${regime.color}1a`, color: regime.color }}>{regime.label}</span>
+                  <p className="text-xs text-[#8a8a8a] mt-3 flex items-center gap-2 flex-wrap">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide" style={{ background: `${regime.color}1a`, color: regime.color }}>{regime.label}</span>
                     {regime.blurb}
                   </p>
                 )}
@@ -725,12 +717,12 @@ export default function AdvisorPage() {
               {/* ── MOVES TODAY: sell → buy pairs ─────────────────────── */}
               {moves.length > 0 && (
                 <div>
-                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2">Moves today · tap for why</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-2">Moves today · tap for why</p>
                   <div className="grid gap-2.5 md:grid-cols-2">
                     {moves.map((r) => <MoveCard key={r.symbol} r={r} note={changeNote(r.symbol)} onOpen={() => setSelected(r.symbol)} />)}
                   </div>
                   {account === "primary" && heroPicks && heroPicks.picks.length > 0 && (
-                    <p className="text-[11px] text-[#8a8a8a] mt-2.5">
+                    <p className="text-xs text-[#8a8a8a] mt-2.5">
                       Spare cash? Contrarian ideas:{" "}
                       {heroPicks.picks.map((p, i) => (
                         <span key={p.symbol}>{i > 0 && " · "}<a href="#contrarian" className="text-[#22c55e] font-semibold hover:underline">{p.symbol}</a></span>
@@ -746,7 +738,7 @@ export default function AdvisorPage() {
               {/* ── REST OF BOOK: tile grid ──────────────────────────── */}
               {(holdsChanged.length > 0 || holdsSame.length > 0) && (
                 <div>
-                  <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2">{moves.length ? "Rest of book" : "Holdings"} · tap a tile</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-2">{moves.length ? "Rest of book" : "Holdings"} · tap a tile</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
                     {[...holdsChanged, ...(showAllHolds ? holdsSame : [])].map((r) => (
                       <HoldingTile key={r.symbol} r={r} note={changeNote(r.symbol)} onOpen={() => setSelected(r.symbol)} />
@@ -768,7 +760,7 @@ export default function AdvisorPage() {
                 const shownGroups = showAllSectors ? sectorView.groups : held;
                 return (
                   <div>
-                    <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-2 flex items-center gap-1.5">
                       <PieChart className="w-3 h-3" /> Sectors · you vs Nifty-500 · {sectorView.scan_date ? `scan ${sectorView.scan_date}` : "holdings only"}
                     </p>
                     <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -783,7 +775,7 @@ export default function AdvisorPage() {
                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllSectors ? "rotate-180" : ""}`} />
                       </button>
                     )}
-                    <p className="text-[10px] text-[#5a5a5a] mt-2">{account === "natwar" ? "On this account a sector layer (under test) adjusts calls — those show a purple \u201cv1:\u201d mark." : "Display only — sector strength does not change any verdict on this account."} Index weight = share of Nifty-500 market cap. Trend = median advisor trend score of the sector&apos;s names.</p>
+                    <p className="text-xs text-[#8a8a8a] mt-2">{account === "natwar" ? "On this account a sector layer (under test) adjusts calls — those show a purple \u201cv1:\u201d mark." : "Display only — sector strength does not change any verdict on this account."} Index weight = share of Nifty-500 market cap. Trend = median advisor trend score of the sector&apos;s names.</p>
                   </div>
                 );
               })()}
@@ -794,7 +786,7 @@ export default function AdvisorPage() {
               {theses.length > 0 && (
                 <Section icon={FlaskConical} title="Thesis engine · shadow · 12-month"
                   note={`${["EXIT", "TRIM", "ADD", "HOLD"].filter((a) => thesisCounts[a]).map((a) => `${thesisCounts[a]} ${a.toLowerCase()}`).join(" · ")} · fundamentals ${thesisAsof ? `as of ${thesisAsof}` : "not pasted yet"}`}>
-                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-3">
+                  <p className="text-xs text-[#8a8a8a] leading-relaxed mb-3">
                     Advisor v2, running <span className="text-[#e5e5e5]">beside</span> the verdicts above, not instead of them. One 12-month action per holding from business quality (Screener fundamentals), position size and a loss budget:
                     max <span className="text-[#e5e5e5]">−20%</span> from cost unless the business is intact · max <span className="text-[#e5e5e5]">10%</span> in one name · max <span className="text-[#e5e5e5]">25%</span> in one sector. Graded on its own at 6 and 12 months; it earns promotion only by clearing the pre-registered bar.
                   </p>
@@ -803,20 +795,20 @@ export default function AdvisorPage() {
                       <div key={symbol} className="rounded-lg bg-[#0d0d0d] border border-[#1f1f1f] p-3">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
                           <span className="font-semibold text-[#f5f5f5] w-24">{symbol}</span>
-                          <span className="font-semibold uppercase tracking-wide text-[11px]" style={{ color: THESIS_META[t.action].color }}>{t.action}</span>
+                          <span className="font-semibold uppercase tracking-wide text-xs" style={{ color: THESIS_META[t.action].color }}>{t.action}</span>
                           {t.qty_delta !== 0 && (
                             <span className="text-[#d5d5d5]">{t.qty_delta > 0 ? "buy" : "sell"} <span className="tabular-nums">{Math.abs(t.qty_delta)}</span> of {qty} → {t.target_weight_pct}% of book</span>
                           )}
                           <span className="text-[#8a8a8a]">quality <span className="text-[#e5e5e5] tabular-nums">{t.quality ?? "—"}</span></span>
-                          {t.confidence === "low" && <span className="text-[10px] uppercase tracking-wide" style={{ color: AMBER }}>no fundamentals</span>}
-                          {t.fundamentals_asof && !t.fundamentals_fresh && <span className="text-[10px] uppercase tracking-wide" style={{ color: AMBER }}>stale data</span>}
+                          {t.confidence === "low" && <span className="text-xs uppercase tracking-wide" style={{ color: AMBER }}>no fundamentals</span>}
+                          {t.fundamentals_asof && !t.fundamentals_fresh && <span className="text-xs uppercase tracking-wide" style={{ color: AMBER }}>stale data</span>}
                         </div>
                         <p className="text-[12px] text-[#c5c5c5] leading-relaxed mt-1.5">{t.reason}.</p>
-                        <p className="text-[11px] text-[#c5b898] leading-relaxed mt-1"><span className="text-[#8a8a8a]">Flips if: </span>{t.falsifier}.</p>
+                        <p className="text-xs text-[#c5b898] leading-relaxed mt-1"><span className="text-[#8a8a8a]">Flips if: </span>{t.falsifier}.</p>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
+                  <p className="text-xs text-[#8a8a8a] leading-relaxed mt-3">
                     {thesisTrack?.h126?.n || thesisTrack?.h252?.n ? (
                       <>Track record (graded {thesisTrack.graded_at}): 6-month {thesisTrack.h126?.n ?? 0} calls, hit {thesisTrack.h126?.hit_rate != null ? Math.round(thesisTrack.h126.hit_rate * 100) : "—"}%, t {thesisTrack.h126?.fm_t ?? "—"} · 12-month {thesisTrack.h252?.n ?? 0} calls, hit {thesisTrack.h252?.hit_rate != null ? Math.round(thesisTrack.h252.hit_rate * 100) : "—"}%, t {thesisTrack.h252?.fm_t ?? "—"} · bar |t| ≥ {thesisTrack.threshold}.</>
                     ) : (
@@ -831,7 +823,7 @@ export default function AdvisorPage() {
                 <div id="contrarian" className="scroll-mt-4">
                 <Section icon={Anchor} title="Contrarian picks · 10–20% sleeve"
                   note={`${heroPicks.picks.length} pass all four gates · ${heroPicks.near_misses.length} miss one · screened ${heroPicks.n_screened} · as of ${heroPicks.asof}`}>
-                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-3">
+                  <p className="text-xs text-[#8a8a8a] leading-relaxed mb-3">
                     Separate from the holdings above: names the market is <span className="text-[#e5e5e5]">against</span> (≥35% off the 3-yr high or ≥25pt behind Nifty) whose balance sheet says it is overdone — net cash, ROCE ≥ 15 / Piotroski ≥ 6, no pledge — and that have stopped making new lows. Ranked by earnings yield, net cash and EV/EBITDA; max 2 per sector. Not graded yet; entries are logged for a 12-month read.
                   </p>
                   <div className="space-y-2">
@@ -842,9 +834,9 @@ export default function AdvisorPage() {
                         <div key={p.symbol} className="rounded-lg bg-[#0d0d0d] border border-[#1f1f1f] p-3" style={{ opacity: pass ? 1 : 0.75 }}>
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px]">
                             <span className="font-semibold text-[#f5f5f5] w-28">{p.symbol}</span>
-                            <span className="font-semibold uppercase tracking-wide text-[11px]" style={{ color: pass ? GREEN : AMBER }}>{pass ? "pick" : GATE_LABEL[p.failed![0]] ?? p.failed![0]}</span>
+                            <span className="font-semibold uppercase tracking-wide text-xs" style={{ color: pass ? GREEN : AMBER }}>{pass ? "pick" : GATE_LABEL[p.failed![0]] ?? p.failed![0]}</span>
                             <span className="text-[#8a8a8a]">{p.sector}</span>
-                            {i === heroPicks.picks.length && heroPicks.picks.length > 0 && <span className="ml-auto text-[10px] uppercase tracking-wide text-[#666]">near misses ↓</span>}
+                            {i === heroPicks.picks.length && heroPicks.picks.length > 0 && <span className="ml-auto text-xs uppercase tracking-wide text-[#8a8a8a]">near misses ↓</span>}
                           </div>
                           <p className="text-[12px] text-[#c5c5c5] leading-relaxed mt-1.5 tabular-nums">
                             <span className="text-[#8a8a8a]">off 3-yr high </span>{Math.round(p.dd_3y * 100)}%<span className="text-[#8a8a8a]"> · vs Nifty 3y </span>{p.rel_3y > 0 ? "+" : ""}{Math.round(p.rel_3y * 100)}pt<span className="text-[#8a8a8a]"> · 3m </span>{p.rel_3m > 0 ? "+" : ""}{Math.round(p.rel_3m * 100)}pt<span className="text-[#8a8a8a]"> · low </span>{p.low_age_days}d ago
@@ -855,7 +847,7 @@ export default function AdvisorPage() {
                       );
                     })}
                   </div>
-                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
+                  <p className="text-xs text-[#8a8a8a] leading-relaxed mt-3">
                     Refresh: monthly Screener paste → <span className="text-[#e5e5e5]">scripts/ingest_fundamentals.py</span> → <span className="text-[#e5e5e5]">scripts/hero_picks.py</span>. A pick is an idea for the contrarian sleeve, sized under the 10% single-name cap — not a verdict on anything you hold.
                   </p>
                 </Section>
@@ -888,7 +880,7 @@ export default function AdvisorPage() {
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <Network className="w-4 h-4 text-[#888] shrink-0" />
                       <h3 className="text-sm font-semibold text-[#f5f5f5]">Risk construction</h3>
-                      <span className="text-[11px] text-[#6a6a6a]">shadow · as of {riskTargets.asof}</span>
+                      <span className="text-xs text-[#8a8a8a]">shadow · as of {riskTargets.asof}</span>
                     </div>
                     <p className="text-[12px] text-[#d5d5d5]">
                       Independent bets now <span className="font-semibold">{f(riskTargets.enb_now)}</span> · at target <span className="font-semibold">{f(riskTargets.enb_target)}</span> · floor {riskTargets.enb_floor}
@@ -898,12 +890,12 @@ export default function AdvisorPage() {
                         You hold {ts.length} names but they act like ~{Math.round(riskTargets.enb_now)} independent bets
                       </p>
                     )}
-                    <p className="text-[11px] text-[#888] mt-1">
+                    <p className="text-xs text-[#888] mt-1">
                       {riskTargets.regime?.drifted ? "correlations drifted: 25%" : "calm: close 50% of the gap"}
                     </p>
                     <div className="grid sm:grid-cols-2 gap-4 mt-3">
-                      <div><p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1">Over target</p>{over.map(row)}</div>
-                      <div><p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide mb-1">Under target</p>{under.map(row)}</div>
+                      <div><p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Over target</p>{over.map(row)}</div>
+                      <div><p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-1">Under target</p>{under.map(row)}</div>
                     </div>
                   </div>
                 );
@@ -927,17 +919,17 @@ export default function AdvisorPage() {
                         <span className="text-[12px] text-[#f5f5f5] font-medium">
                           Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered}
                         </span>
-                        <span className="text-[11px] text-[#6a6a6a]">{risk.correlation.lookback_days}-day return correlation</span>
+                        <span className="text-xs text-[#8a8a8a]">{risk.correlation.lookback_days}-day return correlation</span>
                       </div>
-                      <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-2">
+                      <p className="text-xs text-[#8a8a8a] leading-relaxed mb-2">
                         Correlation-adjusted count of independent positions — names that move together collapse toward one bet, so the book is less diversified than the raw count suggests.
                       </p>
                       {risk.correlation.clusters.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {risk.correlation.clusters.map((c, i) => (
-                            <span key={i} className="text-[11px] px-2 py-0.5 rounded-md bg-[#f59e0b0d] text-[#e5e5e5]">
+                            <span key={i} className="text-xs px-2 py-0.5 rounded-md bg-[#f59e0b0d] text-[#e5e5e5]">
                               {c.symbols.join(" + ")}
-                              <span className="text-[#6a6a6a]"> · corr {c.avg_corr.toFixed(2)} · {c.weight_pct}%</span>
+                              <span className="text-[#8a8a8a]"> · corr {c.avg_corr.toFixed(2)} · {c.weight_pct}%</span>
                             </span>
                           ))}
                         </div>
@@ -952,14 +944,14 @@ export default function AdvisorPage() {
                           Tax-loss harvest: {INR(risk.harvestable_loss_inr)} in realizable losses
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#8a8a8a] leading-relaxed mb-2">
+                      <p className="text-xs text-[#8a8a8a] leading-relaxed mb-2">
                         Weak names already flagged to exit — selling books these losses to offset capital gains elsewhere. Short- vs long-term treatment depends on how long you&apos;ve held.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {risk.tax_loss_harvest.map((h) => (
-                          <span key={h.symbol} className="text-[11px] px-2 py-0.5 rounded-md bg-[#22c55e0d] text-[#e5e5e5]">
+                          <span key={h.symbol} className="text-xs px-2 py-0.5 rounded-md bg-[#22c55e0d] text-[#e5e5e5]">
                             {h.symbol} <span className="text-[#ef4444]">{INR(-Math.abs(h.unrealized_loss_inr))}</span>
-                            <span className="text-[#6a6a6a]"> · {h.verdict}</span>
+                            <span className="text-[#8a8a8a]"> · {h.verdict}</span>
                           </span>
                         ))}
                       </div>
@@ -969,21 +961,21 @@ export default function AdvisorPage() {
               )}
 
               {calibration && calibration.graded_calls > 0 && (
-                <Section icon={Gauge} title="Confidence calibration" note={<span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b0d] text-[#f59e0b] uppercase tracking-wide">Dark · not used</span>}>
+                <Section icon={Gauge} title="Confidence calibration" note={<span className="text-xs px-1.5 py-0.5 rounded bg-[#f59e0b0d] text-[#f59e0b] uppercase tracking-wide">Dark · not used</span>}>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] mb-3">
                     <span className="text-[#8a8a8a]">Base rate <span className="text-[#e5e5e5]">{calibration.base_rate_pct}%</span></span>
                     <span className="text-[#8a8a8a]">Calibration error <span className="text-[#e5e5e5]">{calibration.ece_pct}pp</span></span>
                     <span className="text-[#8a8a8a]">Reliable? {calibration.monotonic
                       ? <span className="text-[#22c55e]">monotonic ✓</span>
                       : <span className="text-[#f59e0b]">not monotonic — unusable yet</span>}</span>
-                    <span className="text-[#6a6a6a]">n={calibration.graded_calls}</span>
+                    <span className="text-[#8a8a8a]">n={calibration.graded_calls}</span>
                   </div>
                   {/* mobile-safe reliability rows: label + n on top, bar + numbers below */}
                   <div className="space-y-2.5">
                     {calibration.bins.map((b) => (
                       <div key={b.label}>
-                        <div className="flex items-center justify-between text-[11px] mb-1">
-                          <span className="text-[#c5c5c5] tabular-nums font-medium">{b.label} <span className="text-[#6a6a6a] font-normal">· n={b.n}{b.low_n ? " · low-n" : ""}</span></span>
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-[#c5c5c5] tabular-nums font-medium">{b.label} <span className="text-[#8a8a8a] font-normal">· n={b.n}{b.low_n ? " · low-n" : ""}</span></span>
                           <span className="text-[#8a8a8a] tabular-nums">pred {b.predicted_pct}% · <span className="text-[#e5e5e5]">emp {b.empirical_hit_pct}%</span> · calib {b.calibrated_pct}%</span>
                         </div>
                         <div className="relative h-2 rounded bg-[#1a1a1a] overflow-hidden">
@@ -994,14 +986,14 @@ export default function AdvisorPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-[11px] text-[#8a8a8a] leading-relaxed mt-3">
+                  <p className="text-xs text-[#8a8a8a] leading-relaxed mt-3">
                     Bar = empirical hit-rate; the light tick = predicted confidence. A usable confidence needs the bar to rise with the tick (monotonic) on enough calls. <span className="text-[#e5e5e5]">Calibrated</span> is the empirical rate shrunk toward the base rate so small buckets don&apos;t mislead. Logged only — it never changes a verdict until it earns promotion.
                   </p>
                 </Section>
               )}
             </div>
           )}
-          <p className="text-[11px] text-[#5a5a5a] mt-6">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
+          <p className="text-xs text-[#8a8a8a] mt-6">Advisory only — nothing here places orders. Generated from daily-timeframe structure (EMA stack, momentum, ADX, swing levels) + your position economics.</p>
         </div>
       </main>
       {selRow && <DetailPanel r={selRow} pos={selPos} total={order.length} onClose={closePanel} onPrev={prevPanel} onNext={nextPanel} />}

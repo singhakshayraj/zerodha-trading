@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
 import { Trophy, RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 
+import { inr } from "@/lib/format";
 const GREEN = "#22c55e", RED = "#ef4444", BLUE = "#3b82f6", MUTE = "#71717a";
 
 type CurvePoint = {
@@ -55,8 +56,6 @@ const EMPTY_BOOK = { curve: [], startEquity: null, endEquity: null, totalReturnP
   alphaVsBaselinePct: null, closedTrades: 0, wins: 0, losses: 0, winRatePct: null, realizedPnl: 0, avgReturnPct: null,
   byVerdict: {}, bySource: {}, bestTrade: null, worstTrade: null, openPositions: [] } as unknown as Book;
 
-const inr = (v: number | null | undefined) =>
-  v == null ? "—" : `₹${Math.round(v).toLocaleString("en-IN")}`;
 const pct = (v: number | null | undefined) =>
   v == null ? "—" : `${v > 0 ? "+" : ""}${v}%`;
 const sign = (v: number | null | undefined) =>
@@ -71,7 +70,7 @@ function EquityChart({ curve }: { curve: CurvePoint[] }) {
   const all = [...eq, ...base];
   if (all.length < 2 || curve.length < 2) {
     return (
-      <div className="flex items-center justify-center h-[150px] text-[11px] text-[#555]">
+      <div className="flex items-center justify-center h-[150px] text-xs text-[#8a8a8a]">
         needs ≥2 daily snapshots to draw the curve
       </div>
     );
@@ -97,7 +96,7 @@ function EquityChart({ curve }: { curve: CurvePoint[] }) {
 function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wide text-[#666]">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-[#8a8a8a]">{label}</p>
       <p className="text-sm font-semibold mt-0.5" style={{ color: color ?? "#f5f5f5" }}>{value}</p>
     </div>
   );
@@ -108,15 +107,15 @@ function BucketTable({ title, data }: { title: string; data: Bucket }) {
   if (keys.length === 0) return null;
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wide text-[#666] mb-1.5">{title}</p>
+      <p className="text-xs uppercase tracking-wide text-[#8a8a8a] mb-1.5">{title}</p>
       <div className="space-y-1">
         {keys.map((k) => {
           const b = data[k];
           const wr = b.n ? Math.round((b.wins / b.n) * 100) : 0;
           return (
-            <div key={k} className="flex items-center justify-between text-[11px]">
+            <div key={k} className="flex items-center justify-between text-xs">
               <span className="text-[#aaa]">{k}</span>
-              <span className="text-[#777]">
+              <span className="text-[#8a8a8a]">
                 {b.wins}/{b.n} · {wr}% · <span style={{ color: sign(b.pnl) }}>{inr(b.pnl)}</span>
               </span>
             </div>
@@ -137,18 +136,18 @@ function BookCard({ name, subtitle, book }: { name: string; subtitle: string; bo
           {book.alphaVsBaselinePct != null ? `${pct(book.alphaVsBaselinePct)} vs baseline` : "—"}
         </span>
       </div>
-      <p className="text-[11px] text-[#666] mb-4">{subtitle}</p>
+      <p className="text-xs text-[#8a8a8a] mb-4">{subtitle}</p>
 
       {hasCurve ? (
         <>
           <EquityChart curve={book.curve} />
-          <div className="flex items-center gap-4 mt-1 mb-4 text-[10px] text-[#666]">
+          <div className="flex items-center gap-4 mt-1 mb-4 text-xs text-[#8a8a8a]">
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-[2px]" style={{ background: BLUE }} /> advisor</span>
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-[2px] border-t border-dashed" style={{ borderColor: MUTE }} /> do-nothing baseline</span>
           </div>
         </>
       ) : (
-        <div className="h-[150px] flex items-center justify-center text-[11px] text-[#555]">
+        <div className="h-[150px] flex items-center justify-center text-xs text-[#8a8a8a]">
           not yet seeded (no snapshots yet)
         </div>
       )}
@@ -168,7 +167,7 @@ function BookCard({ name, subtitle, book }: { name: string; subtitle: string; bo
       </div>
 
       {(book.bestTrade || book.worstTrade) && (
-        <div className="mt-4 pt-3 border-t border-[#1f1f1f] grid grid-cols-2 gap-3 text-[11px]">
+        <div className="mt-4 pt-3 border-t border-[#1f1f1f] grid grid-cols-2 gap-3 text-xs">
           {book.bestTrade && (
             <div className="flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" style={{ color: GREEN }} />
@@ -213,7 +212,7 @@ function RealExecutions({ real }: { real: Real | null }) {
     <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-5 mt-4">
       <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
         <h3 className="text-sm font-semibold text-[#f5f5f5]">Your real executions</h3>
-        <span className="text-[11px] text-[#71717a]">
+        <span className="text-xs text-[#8a8a8a]">
           inferred from holdings snapshots · no manual step
         </span>
       </div>
@@ -225,7 +224,7 @@ function RealExecutions({ real }: { real: Real | null }) {
       </p>
 
       {executions.length === 0 ? (
-        <p className="text-[12px] text-[#71717a]">
+        <p className="text-[12px] text-[#8a8a8a]">
           No executions detected yet. Sell or add to a holding and it will appear here within
           one advisor refresh.
         </p>
@@ -241,7 +240,7 @@ function RealExecutions({ real }: { real: Real | null }) {
           <div className="overflow-x-auto">
             <table className="w-full text-[12px] tabular-nums">
               <thead>
-                <tr className="text-[#71717a] text-left">
+                <tr className="text-[#8a8a8a] text-left">
                   <th className="font-normal py-1 pr-3">Detected</th>
                   <th className="font-normal py-1 pr-3">Action</th>
                   <th className="font-normal py-1 pr-3">Qty</th>
@@ -261,13 +260,13 @@ function RealExecutions({ real }: { real: Real | null }) {
                     <td className="py-1.5 pr-3 text-[#a1a1aa]">{e.quantity}</td>
                     <td className="py-1.5 pr-3 text-[#a1a1aa]">
                       {e.price !== null ? `\u20b9${Number(e.price).toFixed(2)}` : "—"}
-                      {e.price_is_estimated && <span className="text-[#555]" title="broker leaves avg_price unchanged on a sale, so this is the run's last price"> est</span>}
+                      {e.price_is_estimated && <span className="text-[#8a8a8a]" title="broker leaves avg_price unchanged on a sale, so this is the run's last price"> est</span>}
                     </td>
                     <td className="py-1.5 pr-3 text-[#a1a1aa]">{e.verdict_at_time ?? "—"}</td>
                     <td className="py-1.5">
                       {e.followed_advice === true ? <span className="text-[#22c55e]">yes</span>
                         : e.followed_advice === false ? <span className="text-[#f59e0b]">no</span>
-                        : <span className="text-[#555]" title="the advisor had no opinion on this name">n/a</span>}
+                        : <span className="text-[#8a8a8a]" title="the advisor had no opinion on this name">n/a</span>}
                     </td>
                   </tr>
                 ))}
@@ -325,11 +324,11 @@ export default function AccountabilityPage() {
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </button>
           </div>
-          <p className="text-[12px] text-[#666] mb-5">
+          <p className="text-[12px] text-[#8a8a8a] mb-5">
             Paper-trading the advisor&apos;s own verdicts, two ways: <span className="text-[#aaa]">Management</span> mirrors
             your holdings and applies every HOLD/SELL/TRIM/rotation; <span className="text-[#aaa]">Picking</span> starts
             with cash and buys the rotation/scan targets. Each vs a do-nothing baseline.
-            {updatedAt && <span className="text-[#555]"> Last snapshot: {updatedAt}</span>}
+            {updatedAt && <span className="text-[#8a8a8a]"> Last snapshot: {updatedAt}</span>}
           </p>
 
           {loading ? (

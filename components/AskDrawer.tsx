@@ -77,8 +77,8 @@ export function AskDrawer() {
         <div className="fixed z-50 inset-x-0 bottom-0 h-[80dvh] md:inset-y-0 md:left-auto md:right-0 md:h-auto md:w-[420px] bg-[#0f0f0f] border-t md:border-t-0 md:border-l border-[#262626] rounded-t-2xl md:rounded-none flex flex-col" role="dialog" aria-label="Ask your book">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1f1f1f]">
             <span className="text-sm font-semibold text-[#f5f5f5]">Ask your book</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#a78bfa1a] text-[#a78bfa]">on-device · beta</span>
-            <div className="ml-auto flex rounded-md border border-[#262626] overflow-hidden text-[11px]">
+            <span className="text-xs px-1.5 py-0.5 rounded bg-[#a78bfa1a] text-[#a78bfa]">on-device · beta</span>
+            <div className="ml-auto flex rounded-md border border-[#262626] overflow-hidden text-xs">
               {(["primary", "natwar"] as const).map((a) => (
                 <button key={a} type="button" onClick={() => setAccount(a)}
                   className={`px-2 py-1 ${account === a ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a]"}`}>{a === "primary" ? "Kanaklata" : "Natwar"}</button>
@@ -101,12 +101,12 @@ export function AskDrawer() {
                 {progress ? (
                   <div>
                     <div className="h-1.5 rounded bg-[#1a1a1a] overflow-hidden"><div className="h-full bg-[#a78bfa]" style={{ width: `${Math.round(progress.pct * 100)}%` }} /></div>
-                    <p className="text-[10px] text-[#6a6a6a] mt-1 truncate">{progress.text}</p>
+                    <p className="text-xs text-[#8a8a8a] mt-1 truncate">{progress.text}</p>
                   </div>
                 ) : (
                   <button type="button" onClick={start} className="w-full rounded-lg bg-[#1f1f1f] border border-[#333] py-2 text-[12px] text-[#f5f5f5] hover:bg-[#2a2a2a]">Start the model</button>
                 )}
-                <p className="text-[11px] text-[#6a6a6a]">Try: “Why is ATGL a sell?” · “How did I do in October?” · “Which sectors am I overweight in?”</p>
+                <p className="text-xs text-[#8a8a8a]">Try: “Why is ATGL a sell?” · “How did I do in October?” · “Which sectors am I overweight in?”</p>
               </div>
             )}
             {msgs.map((m, i) => (
@@ -115,14 +115,14 @@ export function AskDrawer() {
                   {m.text}
                   {m.trace?.tool && (
                     <details className="mt-1.5">
-                      <summary className="text-[10px] text-[#6a6a6a] cursor-pointer flex items-center gap-1 list-none"><Database className="w-3 h-3" /> {m.trace.tool}{Object.keys(m.trace.args).length ? ` · ${Object.entries(m.trace.args).map(([k, v]) => `${k}=${v}`).join(", ")}` : ""} · {((m.trace.ms.route + m.trace.ms.answer) / 1000).toFixed(1)}s</summary>
-                      <pre className="text-[10px] text-[#8a8a8a] whitespace-pre-wrap break-words mt-1 max-h-40 overflow-y-auto">{JSON.stringify(m.trace.result, null, 1)}</pre>
+                      <summary className="text-xs text-[#8a8a8a] cursor-pointer flex items-center gap-1 list-none"><Database className="w-3 h-3" /> {m.trace.tool}{Object.keys(m.trace.args).length ? ` · ${Object.entries(m.trace.args).map(([k, v]) => `${k}=${v}`).join(", ")}` : ""} · {((m.trace.ms.route + m.trace.ms.answer) / 1000).toFixed(1)}s</summary>
+                      <pre className="text-xs text-[#8a8a8a] whitespace-pre-wrap break-words mt-1 max-h-40 overflow-y-auto">{JSON.stringify(m.trace.result, null, 1)}</pre>
                     </details>
                   )}
                 </div>
               </div>
             ))}
-            {busy && <p className="text-[11px] text-[#6a6a6a] flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> thinking on-device…</p>}
+            {busy && <p className="text-xs text-[#8a8a8a] flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> thinking on-device…</p>}
             <div ref={endRef} />
           </div>
 

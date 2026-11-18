@@ -18,8 +18,9 @@ import { RiskMeter } from "@/components/RiskMeter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, Briefcase, Compass, ArrowRight, TrendingUp, TrendingDown, Scissors, Hourglass, ShieldAlert, Layers, Gauge, History } from "lucide-react";
 
+import { inr } from "@/lib/format";
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
-const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+const INR = (n: number) => inr(n);
 
 type Trade = { status: string; pnl: number | null };
 type Holding = { quantity: number; average_price: number; last_price: number; day_change: number };
@@ -108,7 +109,7 @@ export default function CommandCenter() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-semibold text-[#f5f5f5]">Command Center</h1>
-              <p className="text-[12px] text-[#666] mt-0.5">{today}</p>
+              <p className="text-[12px] text-[#8a8a8a] mt-0.5">{today}</p>
             </div>
             <BrainStatus />
           </div>
@@ -137,20 +138,20 @@ export default function CommandCenter() {
               <div className="flex items-center gap-2 mb-3">
                 <Activity className="w-4 h-4 text-[#888]" />
                 <h3 className="text-sm font-semibold text-[#f5f5f5]">Paper engine</h3>
-                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium"
                       style={{ background: sess?.active ? `${GREEN}1a` : "#ffffff08", color: sess?.active ? GREEN : MUTE }}>
                   {sess?.active ? "ACTIVE" : "IDLE"}
                 </span>
               </div>
               <div className="flex items-baseline gap-4 mb-2">
                 <div>
-                  <p className="text-[10px] text-[#555] uppercase tracking-wide">Today P&L</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Today P&L</p>
                   <p className="text-xl font-semibold tabular-nums" style={{ color: (sess?.pnl ?? 0) >= 0 ? GREEN : RED }}>
                     {sess ? INR(sess.pnl) : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#555] uppercase tracking-wide">Trades</p>
+                  <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Trades</p>
                   <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{sess?.trades ?? 0}</p>
                 </div>
               </div>
@@ -161,26 +162,26 @@ export default function CommandCenter() {
               <div className="flex items-center gap-2 mb-3">
                 <Briefcase className="w-4 h-4 text-[#888]" />
                 <h3 className="text-sm font-semibold text-[#f5f5f5]">Portfolio</h3>
-                <Link href="/portfolio" className="ml-auto text-[10px] text-[#555] hover:text-[#888]">open →</Link>
+                <Link href="/portfolio" className="ml-auto text-xs text-[#8a8a8a] hover:text-[#d5d5d5]">open →</Link>
               </div>
               {holdings === null ? (
                 <div className="flex gap-4"><Skeleton className="h-7 w-20" /><Skeleton className="h-7 w-16" /><Skeleton className="h-7 w-12" /></div>
               ) : holdings.length === 0 ? (
-                <p className="text-[11px] text-[#444]">No holdings found.</p>
+                <p className="text-xs text-[#8a8a8a]">No holdings found.</p>
               ) : (
                 <div className="flex items-baseline gap-4">
                   <div>
-                    <p className="text-[10px] text-[#555] uppercase tracking-wide">Value</p>
+                    <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Value</p>
                     <p className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{INR(totalCurrent)}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[#555] uppercase tracking-wide">Total P&L</p>
+                    <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Total P&L</p>
                     <p className="text-xl font-semibold tabular-nums" style={{ color: totalPnl >= 0 ? GREEN : RED }}>
                       {totalPnl >= 0 ? "+" : ""}{totalPnlPct.toFixed(1)}%
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[#555] uppercase tracking-wide">Day</p>
+                    <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Day</p>
                     <p className="text-sm font-semibold tabular-nums" style={{ color: dayPnl >= 0 ? GREEN : RED }}>
                       {dayPnl >= 0 ? "+" : ""}{INR(dayPnl)}
                     </p>
@@ -194,7 +195,7 @@ export default function CommandCenter() {
               <div className="flex items-center gap-2 mb-3">
                 <Compass className="w-4 h-4 text-[#888]" />
                 <h3 className="text-sm font-semibold text-[#f5f5f5]">Advisor</h3>
-                <Link href="/advisor" className="ml-auto text-[10px] text-[#555] hover:text-[#888]">open →</Link>
+                <Link href="/advisor" className="ml-auto text-xs text-[#8a8a8a] hover:text-[#d5d5d5]">open →</Link>
               </div>
               {advice === null ? (
                 <div className="space-y-2"><Skeleton className="h-5 w-32" /><Skeleton className="h-4 w-40" /></div>
@@ -208,9 +209,9 @@ export default function CommandCenter() {
                     <div className="flex items-center gap-2">
                       <Icon className="w-4 h-4" style={{ color: m.color }} />
                       <span className="text-sm font-semibold text-[#f5f5f5]">{topAction.symbol}</span>
-                      <span className="text-[11px] px-1.5 py-0.5 rounded font-medium" style={{ background: `${m.color}1a`, color: m.color }}>{m.label}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: `${m.color}1a`, color: m.color }}>{m.label}</span>
                     </div>
-                    <p className="text-[11px] text-[#888] mt-1.5">
+                    <p className="text-xs text-[#888] mt-1.5">
                       trend {topAction.trend_score}
                       {topAction.pnl_percent != null && ` · ${topAction.pnl_percent >= 0 ? "+" : ""}${topAction.pnl_percent}%`}
                       {topAction.rotation_target_symbol && ` · rotate → ${topAction.rotation_target_symbol}`}
@@ -219,7 +220,7 @@ export default function CommandCenter() {
                 );
               })()}
               {advice !== null && advice.length > 0 && (actionable.length > 1 || changeCount > 0) && (
-                <p className="text-[10px] text-[#555] mt-2 flex items-center gap-1.5">
+                <p className="text-xs text-[#8a8a8a] mt-2 flex items-center gap-1.5">
                   <span>{actionable.length} action{actionable.length === 1 ? "" : "s"} today</span>
                   {changeCount > 0 && (
                     <span className="flex items-center gap-1 text-[#60a5fa]"><History className="w-3 h-3" />{changeCount} changed</span>
@@ -235,27 +236,27 @@ export default function CommandCenter() {
               <div className="flex items-center gap-2">
                 <Gauge className="w-4 h-4 text-[#888]" />
                 <span className="text-sm font-semibold text-[#f5f5f5]">Edge (paper)</span>
-                <span className="text-[10px] text-[#555]">{edge.closed} closed trades</span>
+                <span className="text-xs text-[#8a8a8a]">{edge.closed} closed trades</span>
               </div>
               <div>
-                <p className="text-[10px] text-[#555] uppercase tracking-wide">Profit factor</p>
+                <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Profit factor</p>
                 <p className="text-lg font-semibold tabular-nums" style={{ color: edge.profitFactor == null ? MUTE : edge.profitFactor >= 1.3 ? GREEN : edge.profitFactor >= 1.1 ? AMBER : RED }}>
                   {edge.profitFactor == null ? "—" : edge.profitFactor.toFixed(2)}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-[#555] uppercase tracking-wide">Max drawdown</p>
+                <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Max drawdown</p>
                 <p className="text-lg font-semibold tabular-nums text-[#f5f5f5]">{edge.maxDrawdownR.toFixed(1)}R</p>
               </div>
               <div>
-                <p className="text-[10px] text-[#555] uppercase tracking-wide">Expectancy</p>
+                <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">Expectancy</p>
                 <p className="text-lg font-semibold tabular-nums" style={{ color: edge.expectancyR >= 0 ? GREEN : RED }}>
                   {edge.expectancyR >= 0 ? "+" : ""}{edge.expectancyR.toFixed(2)}R
                 </p>
               </div>
-              <div className="ml-auto flex items-center gap-2 text-[11px] text-[#888]">
+              <div className="ml-auto flex items-center gap-2 text-xs text-[#888]">
                 <span className="px-2 py-0.5 rounded-full bg-[#ffffff08]">{edge.label}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#444] group-hover:text-[#888] transition-colors" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#8a8a8a] group-hover:text-[#d5d5d5] transition-colors" />
               </div>
             </Link>
           )}
@@ -271,7 +272,7 @@ export default function CommandCenter() {
               <div className="flex items-center gap-2 mb-2">
                 <Layers className="w-4 h-4 text-[#888]" />
                 <h3 className="text-sm font-semibold text-[#f5f5f5]">Portfolio-level risk</h3>
-                <Link href="/advisor" className="ml-auto text-[10px] text-[#555] hover:text-[#888]">detail →</Link>
+                <Link href="/advisor" className="ml-auto text-xs text-[#8a8a8a] hover:text-[#d5d5d5]">detail →</Link>
               </div>
               {risk.concentration_flags.slice(0, 2).map((f, i) => (
                 <div key={i} className="flex items-start gap-2 text-[12px] text-[#f59e0b] leading-relaxed mb-1">
@@ -279,12 +280,12 @@ export default function CommandCenter() {
                 </div>
               ))}
               {risk.correlation && risk.correlation.effective_bets != null && (
-                <p className="text-[11px] text-[#888] mt-1">
-                  🎯 Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered} <span className="text-[#555]">(correlation-adjusted)</span>
+                <p className="text-xs text-[#888] mt-1">
+                  🎯 Effective bets: {risk.correlation.effective_bets} of {risk.correlation.names_covered} <span className="text-[#8a8a8a]">(correlation-adjusted)</span>
                 </p>
               )}
               {risk.tax_loss_harvest.length > 0 && (
-                <p className="text-[11px] text-[#22c55e] mt-1">
+                <p className="text-xs text-[#22c55e] mt-1">
                   🧾 {INR(risk.harvestable_loss_inr)} in tax-loss harvest available across {risk.tax_loss_harvest.length} names
                 </p>
               )}
@@ -303,9 +304,9 @@ export default function CommandCenter() {
                     className="group bg-[#111111] border border-[#1f1f1f] hover:border-[#333] rounded-xl p-4 transition-colors">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-[#f5f5f5]">{l.label}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#444] group-hover:text-[#888] transition-colors" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#8a8a8a] group-hover:text-[#d5d5d5] transition-colors" />
                 </div>
-                <p className="text-[11px] text-[#555] mt-1">{l.desc}</p>
+                <p className="text-xs text-[#8a8a8a] mt-1">{l.desc}</p>
               </Link>
             ))}
           </div>

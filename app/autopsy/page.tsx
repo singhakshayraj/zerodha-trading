@@ -266,9 +266,9 @@ export default function AutopsyPage() {
                 { label: "Realized, gross of cost", value: R2(stats.grossActual), sub: "the entries alone", tone: stats.grossActual > 0 ? "#0ca30c" : "#e66767" },
               ].map((s) => (
                 <div key={s.label} className="rounded-lg border border-[#1f1f1f] bg-[#111111] p-3">
-                  <p className="text-[11px] uppercase tracking-wide text-[#71717a]">{s.label}</p>
+                  <p className="text-xs uppercase tracking-wide text-[#8a8a8a]">{s.label}</p>
                   <p className="text-xl font-semibold tabular-nums mt-1" style={{ color: s.tone }}>{s.value}</p>
-                  <p className="text-[11px] text-[#71717a] mt-0.5">{s.sub}</p>
+                  <p className="text-xs text-[#8a8a8a] mt-0.5">{s.sub}</p>
                 </div>
               ))}
             </section>
@@ -291,7 +291,7 @@ export default function AutopsyPage() {
                 {([["Optimistic", true], ["Pessimistic", false]] as const).map(([l, v]) => (
                   <button
                     key={l} onClick={() => setOptimistic(v)} aria-pressed={optimistic === v}
-                    className={`px-2 py-1 rounded border ${optimistic === v ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#71717a]"}`}
+                    className={`px-2 py-1 rounded border ${optimistic === v ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#8a8a8a]"}`}
                   >{l}</button>
                 ))}
               </div>
@@ -301,14 +301,14 @@ export default function AutopsyPage() {
                 {(["ALL", "LONG", "SHORT"] as const).map((s) => (
                   <button
                     key={s} onClick={() => setSide(s)} aria-pressed={side === s}
-                    className={`px-2 py-1 rounded border ${side === s ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#71717a]"}`}
+                    className={`px-2 py-1 rounded border ${side === s ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#8a8a8a]"}`}
                   >{s === "ALL" ? "All" : s === "LONG" ? "Long" : "Short"}</button>
                 ))}
               </div>
 
               <button
                 onClick={() => setAsTable((v) => !v)}
-                className="flex items-center gap-1.5 px-2 py-1 rounded border border-[#1f1f1f] text-[#71717a] text-xs ml-auto"
+                className="flex items-center gap-1.5 px-2 py-1 rounded border border-[#1f1f1f] text-[#8a8a8a] text-xs ml-auto"
               >
                 {asTable ? <Grid3x3 className="w-3.5 h-3.5" /> : <Table2 className="w-3.5 h-3.5" />}
                 {asTable ? "Heatmap" : "Table"}
@@ -320,11 +320,11 @@ export default function AutopsyPage() {
               <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
                 <h2 className="text-sm font-medium">
                   Expectancy per trade, by exit policy
-                  <span className="text-[#71717a] font-normal"> — {view.length} trades over {meta?.days} sessions</span>
+                  <span className="text-[#8a8a8a] font-normal"> — {view.length} trades over {meta?.days} sessions</span>
                 </h2>
                 {/* Legend: always present. The positive arm stays on screen even
                     when empty — its emptiness is the result. */}
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[10px] text-[#71717a]">
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-[#8a8a8a]">
                   <span className="tabular-nums">{scale!.leftLabel}</span>
                   <div className="flex h-3 rounded overflow-hidden" aria-hidden>
                     {Array.from({ length: 21 }, (_, i) => (
@@ -348,16 +348,16 @@ export default function AutopsyPage() {
                     </caption>
                     <thead>
                       <tr>
-                        <th scope="col" className="sticky left-0 bg-[#111111] text-left p-1.5 text-[#71717a] font-normal">Stop \ Target</th>
+                        <th scope="col" className="sticky left-0 bg-[#111111] text-left p-1.5 text-[#8a8a8a] font-normal">Stop \ Target</th>
                         {TARGETS.map((t) => (
-                          <th scope="col" key={t} className="p-1.5 text-[#71717a] font-normal">{t.toFixed(2)}</th>
+                          <th scope="col" key={t} className="p-1.5 text-[#8a8a8a] font-normal">{t.toFixed(2)}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {STOPS.map((s) => (
                         <tr key={s}>
-                          <th scope="row" className="sticky left-0 bg-[#111111] text-left p-1.5 text-[#71717a] font-normal">{s.toFixed(2)}</th>
+                          <th scope="row" className="sticky left-0 bg-[#111111] text-left p-1.5 text-[#8a8a8a] font-normal">{s.toFixed(2)}</th>
                           {TARGETS.map((t) => {
                             const c = surface.find((x) => x.tgt === t && x.stp === s)!;
                             return (
@@ -378,7 +378,7 @@ export default function AutopsyPage() {
                       <div className="w-14 shrink-0" />
                       <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${TARGETS.length}, minmax(30px, 1fr))` }}>
                         {TARGETS.map((t) => (
-                          <div key={t} className="text-[10px] text-[#71717a] text-center pb-1 tabular-nums">
+                          <div key={t} className="text-xs text-[#8a8a8a] text-center pb-1 tabular-nums">
                             {t % 1 === 0 || t % 0.5 === 0 ? t.toFixed(1) : ""}
                           </div>
                         ))}
@@ -386,7 +386,7 @@ export default function AutopsyPage() {
                     </div>
                     {STOPS.map((s) => (
                       <div key={s} className="flex items-stretch">
-                        <div className="w-14 shrink-0 text-[10px] text-[#71717a] flex items-center justify-end pr-2 tabular-nums">
+                        <div className="w-14 shrink-0 text-xs text-[#8a8a8a] flex items-center justify-end pr-2 tabular-nums">
                           {s.toFixed(2)}
                         </div>
                         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${TARGETS.length}, minmax(30px, 1fr))` }}>
@@ -412,7 +412,7 @@ export default function AutopsyPage() {
                                 }}
                               >
                                 {isBest && (
-                                  <span className="absolute inset-0 flex items-center justify-center text-[9px] font-semibold text-[#f5f5f5] tabular-nums">
+                                  <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-[#f5f5f5] tabular-nums">
                                     {c.exp.toFixed(2)}
                                   </span>
                                 )}
@@ -423,8 +423,8 @@ export default function AutopsyPage() {
                       </div>
                     ))}
                     <div className="flex mt-1.5">
-                      <div className="w-14 shrink-0 text-[10px] text-[#71717a] text-right pr-2">stop R</div>
-                      <div className="flex-1 text-[10px] text-[#71717a] text-center">take-profit R</div>
+                      <div className="w-14 shrink-0 text-xs text-[#8a8a8a] text-right pr-2">stop R</div>
+                      <div className="flex-1 text-xs text-[#8a8a8a] text-center">take-profit R</div>
                     </div>
                   </div>
                 </div>
@@ -439,7 +439,7 @@ export default function AutopsyPage() {
                     <span className="text-[#a1a1aa]">Expectancy <strong style={{ color: hover.exp > 0 ? "#0ca30c" : "#e66767" }}>{R2(hover.exp)}</strong></span>
                     <span className="text-[#a1a1aa]">
                       Band <strong className="text-[#f5f5f5]">{BAND(hover)}</strong>
-                      <span className="text-[#71717a]"> what the unresolved remainder can still move</span>
+                      <span className="text-[#8a8a8a]"> what the unresolved remainder can still move</span>
                     </span>
                     <span className="text-[#a1a1aa]">
                       Both levels touched <strong className="text-[#f5f5f5]">{hover.both}</strong>
@@ -452,7 +452,7 @@ export default function AutopsyPage() {
                     </span>
                   </div>
                 ) : (
-                  <span className="text-[#71717a]">
+                  <span className="text-[#8a8a8a]">
                     Hover or tab through a cell for its expectancy, how many trades the candle replay ordered exactly,
                     and how much the unresolved remainder can still move the number.
                     The outlined cell is the best policy on this surface.
@@ -511,7 +511,7 @@ export default function AutopsyPage() {
                 {meta?.firstDate && <> ({meta.firstDate} → {meta.lastDate})</>}
                 {!!meta?.dropped && <>; {meta.dropped} dropped as unusable</>}.
               </p>
-              <p className="text-[#71717a]">
+              <p className="text-[#8a8a8a]">
                 This is a diagnostic on the entries already taken. It is not gate #6 — it cannot tell you how these
                 signals behave in regimes the book never traded.
               </p>

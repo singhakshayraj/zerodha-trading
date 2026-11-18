@@ -62,18 +62,18 @@ export function BrainStatus() {
         </span>
 
         {secAgo !== null && (
-          <span className="text-[#333]">
+          <span className="text-[#8a8a8a]">
             · {secAgo < 60 ? `${secAgo}s ago` : `${Math.floor(secAgo / 60)}m ago`}
           </span>
         )}
 
         {brainMessage && (
-          <span className="text-[#555] truncate max-w-[200px]">{brainMessage}</span>
+          <span className="text-[#8a8a8a] truncate max-w-[200px]">{brainMessage}</span>
         )}
       </div>
 
       {isOffline && secAgo !== null && secAgo > 120 && (
-        <div className="flex items-center gap-1.5 text-[10px] text-[#f59e0b] bg-[#f59e0b]/5 border border-[#f59e0b]/20 rounded px-2 py-1">
+        <div className="flex items-center gap-1.5 text-xs text-[#f59e0b] bg-[#f59e0b]/5 border border-[#f59e0b]/20 rounded px-2 py-1">
           <AlertTriangle className="w-3 h-3 shrink-0" />
           Brain server offline — check Railway deployment
         </div>

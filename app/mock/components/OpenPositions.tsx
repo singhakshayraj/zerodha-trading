@@ -111,10 +111,10 @@ export function OpenPositions({ sessionId, isRunning }: Props) {
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
         <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
           Open Positions
-          <span className="ml-2 font-normal text-[#444]">{positions.length}</span>
+          <span className="ml-2 font-normal text-[#8a8a8a]">{positions.length}</span>
         </h2>
         {isRunning && (
-          <span className="flex items-center gap-1 text-[10px] text-[#22c55e]">
+          <span className="flex items-center gap-1 text-xs text-[#22c55e]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
             LIVE
           </span>
@@ -122,14 +122,14 @@ export function OpenPositions({ sessionId, isRunning }: Props) {
       </div>
 
       {positions.length === 0 ? (
-        <p className="px-5 py-8 text-center text-[#333] text-xs">No open positions.</p>
+        <p className="px-5 py-8 text-center text-[#8a8a8a] text-xs">No open positions.</p>
       ) : (
         <div className="overflow-x-auto scroll-touch">
           <table className="w-full min-w-[640px] md:min-w-0 text-xs">
             <thead className="bg-[#0d0d0d]">
               <tr className="border-b border-[#1a1a1a]">
                 {["Symbol", "Side", "Qty", "Entry", "Current", "P&L", "Stop / Target", "Held"].map((h) => (
-                  <th key={h} className="text-left px-3 py-2 text-[10px] text-[#444] font-medium uppercase tracking-wider whitespace-nowrap">
+                  <th key={h} className="text-left px-3 py-2 text-xs text-[#8a8a8a] font-medium uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -156,7 +156,7 @@ export function OpenPositions({ sessionId, isRunning }: Props) {
                       {profit ? "+" : ""}₹{pnl.toFixed(2)}
                     </td>
                     <td className="px-3 py-2.5 min-w-[160px]">
-                      <div className="flex items-center justify-between text-[10px] text-[#555] mb-1">
+                      <div className="flex items-center justify-between text-xs text-[#8a8a8a] mb-1">
                         <span className="text-[#ef4444]">₹{sl.toFixed(0)}</span>
                         <span className="text-[#22c55e]">₹{target.toFixed(0)}</span>
                       </div>

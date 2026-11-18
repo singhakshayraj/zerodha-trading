@@ -9,6 +9,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCw, Wallet } from "lucide-react";
 
+import { inr } from "@/lib/format";
+import { StatTile } from "@/components/ui/stat-tile";
 // [P-51] Real-money P&L — what the account actually made, day by day, and
 // which of those trades followed the advisor. Bookkeeping, not a model score.
 
@@ -21,7 +23,7 @@ type Statement = { period_from: string; period_to: string; uploaded_at: string;
 type Payload = { account: string; daily: Day[]; ledger: Decision[]; firstFillDate: string | null; statements: Statement[] };
 
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a", PURPLE = "#a78bfa";
-const INR = (n: number, d = 0) => (n < 0 ? "−" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: d });
+const INR = (n: number, d = 0) => inr(n, { dp: d });
 const SIGNED = (n: number) => (n > 0 ? "+" : "") + INR(n);
 const COMPACT = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "") + "₹" + (Math.abs(n) >= 1000 ? String(Number((Math.abs(n) / 1000).toFixed(Math.abs(n) >= 100000 ? 0 : 2))) + "k" : Math.round(Math.abs(n)).toString());
 const MONTH = (m: string) => new Date(m + "-01T00:00:00").toLocaleDateString("en-IN", { month: "short", year: "numeric" });
@@ -32,16 +34,6 @@ const KIND: Record<Decision["kind"], { label: string; color: string }> = {
   own_buy: { label: "own · buy", color: "#60a5fa" },
   ignored_call: { label: "ignored call", color: AMBER },
 };
-
-function Tile({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
-  return (
-    <div className="rounded-lg bg-[#0d0d0d] border border-[#1c1c1c] px-3 py-2.5">
-      <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">{label}</p>
-      <p className="text-lg font-semibold tabular-nums mt-0.5 leading-none" style={{ color: color ?? "#f5f5f5" }}>{value}</p>
-      {sub && <p className="text-[10px] text-[#5a5a5a] mt-1 leading-tight">{sub}</p>}
-    </div>
-  );
-}
 
 export default function PnlPage() {
   const router = useRouter();
@@ -155,7 +147,7 @@ export default function PnlPage() {
           {data && data.daily.length > 0 && month && (
             <>
               {account === "natwar" && data.firstFillDate && data.firstFillDate > data.daily[0].date && (
-                <div className="p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-[11px] text-[#f59e0b] leading-relaxed">
+                <div className="p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-xs text-[#f59e0b] leading-relaxed">
                   Fills for this account are on record only from {data.firstFillDate}. Days before that assume the holdings did not change — import his Console tradebook to make them exact.
                 </div>
               )}
@@ -166,7 +158,7 @@ export default function PnlPage() {
                   <button key={m} onClick={() => { setMonth(m); setDay(null); }}
                     className="shrink-0 rounded-lg border px-3 py-2 text-left min-w-[104px]"
                     style={{ borderColor: m === month ? "#3a3a3a" : "#1f1f1f", background: m === month ? "#161616" : "#111111" }}>
-                    <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide">{MONTH(m)}</p>
+                    <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">{MONTH(m)}</p>
                     <p className="text-[13px] font-semibold tabular-nums" style={{ color: x.pnl >= 0 ? GREEN : RED }}>{SIGNED(Math.round(x.pnl))}</p>
                   </button>
                 ))}
@@ -174,15 +166,15 @@ export default function PnlPage() {
 
               {/* month tiles */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <Tile label={`${MONTH(month)} P&L`} value={SIGNED(Math.round(mPnl))} sub={`${mDays.length} trading days · ${mDays.reduce((a, d) => a + d.fills, 0)} fills`} color={mPnl >= 0 ? GREEN : RED} />
-                <Tile label="vs Nifty 50" value={SIGNED(Math.round(mPnl - mNifty))} sub={`Nifty on the same money: ${SIGNED(Math.round(mNifty))}`} color={mPnl - mNifty >= 0 ? GREEN : RED} />
-                <Tile label="Best / worst day" value={best ? SIGNED(Math.round(best.pnl)) : "—"} sub={worst ? `worst ${SIGNED(Math.round(worst.pnl))} on ${worst.date.slice(5)}` : undefined} color={GREEN} />
-                <Tile label="Account value" value={lastValue != null ? INR(Math.round(lastValue)) : "—"} sub="holdings at last close" />
+                <StatTile label={`${MONTH(month)} P&L`} value={SIGNED(Math.round(mPnl))} sub={`${mDays.length} trading days · ${mDays.reduce((a, d) => a + d.fills, 0)} fills`} color={mPnl >= 0 ? GREEN : RED} />
+                <StatTile label="vs Nifty 50" value={SIGNED(Math.round(mPnl - mNifty))} sub={`Nifty on the same money: ${SIGNED(Math.round(mNifty))}`} color={mPnl - mNifty >= 0 ? GREEN : RED} />
+                <StatTile label="Best / worst day" value={best ? SIGNED(Math.round(best.pnl)) : "—"} sub={worst ? `worst ${SIGNED(Math.round(worst.pnl))} on ${worst.date.slice(5)}` : undefined} color={GREEN} />
+                <StatTile label="Account value" value={lastValue != null ? INR(Math.round(lastValue)) : "—"} sub="holdings at last close" />
               </div>
 
               {/* calendar */}
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                <div className="grid grid-cols-5 gap-1.5 text-[10px] text-[#6a6a6a] uppercase tracking-wide mb-1.5">
+                <div className="grid grid-cols-5 gap-1.5 text-xs text-[#8a8a8a] uppercase tracking-wide mb-1.5">
                   {["Mon", "Tue", "Wed", "Thu", "Fri"].map((d) => <span key={d}>{d}</span>)}
                 </div>
                 <div className="space-y-1.5">
@@ -197,15 +189,15 @@ export default function PnlPage() {
                           <button key={j} onClick={() => setDay(day === c.date ? null : c.date)}
                             className="h-14 rounded-md border text-left px-1.5 py-1 flex flex-col justify-between hover:border-[#555]"
                             style={{ background: `rgba(${col},${0.08 + a * 0.45})`, borderColor: day === c.date ? "#e5e5e5" : "#1f1f1f" }}>
-                            <span className="text-[10px] text-[#c5c5c5] tabular-nums">{Number(c.date.slice(8))}{c.fills > 0 && <span className="ml-1 text-[#f5f5f5]">•</span>}</span>
-                            <span className="text-[10px] sm:text-[11px] font-semibold tabular-nums text-[#f5f5f5] truncate">{COMPACT(c.pnl)}</span>
+                            <span className="text-xs text-[#c5c5c5] tabular-nums">{Number(c.date.slice(8))}{c.fills > 0 && <span className="ml-1 text-[#f5f5f5]">•</span>}</span>
+                            <span className="text-[10px] sm:text-xs font-semibold tabular-nums text-[#f5f5f5] truncate">{COMPACT(c.pnl)}</span>
                           </button>
                         );
                       })}
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-[#5a5a5a] mt-2">Tap a day for its detail · • = trades that day · grey = market holiday or no data</p>
+                <p className="text-xs text-[#8a8a8a] mt-2">Tap a day for its detail · • = trades that day · grey = market holiday or no data</p>
 
                 {dayRow && (
                   <div className="mt-3 rounded-lg border border-[#262626] bg-[#0d0d0d] p-3">
@@ -220,7 +212,7 @@ export default function PnlPage() {
                     {dayDecisions.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {dayDecisions.map((r, i) => (
-                          <span key={i} className="text-[11px] px-2 py-1 rounded bg-[#111] border border-[#1f1f1f]">
+                          <span key={i} className="text-xs px-2 py-1 rounded bg-[#111] border border-[#1f1f1f]">
                             <span style={{ color: r.side === "sell" ? RED : GREEN }}>{r.side}</span> <span className="text-[#e5e5e5] font-medium">{r.symbol}</span>
                             <span className="text-[#8a8a8a] tabular-nums"> {r.qty} @ {INR(r.price ?? 0, 2)}</span>
                             <span style={{ color: KIND[r.kind].color }}> · {KIND[r.kind].label}</span>
@@ -228,7 +220,7 @@ export default function PnlPage() {
                         ))}
                       </div>
                     )}
-                    {dayRow.missing_prices && <p className="text-[10px] text-[#f59e0b] mt-2">No close for {dayRow.missing_prices.join(", ")} — valued at the last known price.</p>}
+                    {dayRow.missing_prices && <p className="text-xs text-[#f59e0b] mt-2">No close for {dayRow.missing_prices.join(", ")} — valued at the last known price.</p>}
                   </div>
                 )}
               </div>
@@ -237,23 +229,23 @@ export default function PnlPage() {
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h3 className="text-sm font-semibold">Decisions</h3>
-                  <span className="text-[11px] text-[#6a6a6a]">every trade vs the call standing at the time · impact {`~10`} trading days later</span>
+                  <span className="text-xs text-[#8a8a8a]">every trade vs the call standing at the time · impact {`~10`} trading days later</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 my-3">
-                  <Tile label="Followed calls" value={SIGNED(Math.round(followedImpact))} sub="+ = the trade beat staying put" color={followedImpact >= 0 ? GREEN : RED} />
-                  <Tile label="Ignored sell calls" value={SIGNED(Math.round(ignoredImpact))} sub="+ = holding paid (ignoring was right)" color={ignoredImpact >= 0 ? GREEN : RED} />
+                  <StatTile label="Followed calls" value={SIGNED(Math.round(followedImpact))} sub="+ = the trade beat staying put" color={followedImpact >= 0 ? GREEN : RED} />
+                  <StatTile label="Ignored sell calls" value={SIGNED(Math.round(ignoredImpact))} sub="+ = holding paid (ignoring was right)" color={ignoredImpact >= 0 ? GREEN : RED} />
                 </div>
                 <div className="flex gap-1.5 mb-2.5">
                   {(["all", "followed", "ignored", "own"] as const).map((f) => (
                     <button key={f} onClick={() => setFilter(f)}
-                      className={`text-[11px] px-2.5 py-1 rounded-md border ${filter === f ? "bg-[#1f1f1f] border-[#333] text-[#f5f5f5]" : "border-[#1f1f1f] text-[#8a8a8a]"}`}>{f}</button>
+                      className={`text-xs px-2.5 py-1 rounded-md border ${filter === f ? "bg-[#1f1f1f] border-[#333] text-[#f5f5f5]" : "border-[#1f1f1f] text-[#8a8a8a]"}`}>{f}</button>
                   ))}
                 </div>
                 <div className="space-y-1.5">
                   {ledger.slice(0, 80).map((r, i) => (
                     <div key={i} className="grid grid-cols-[72px_1fr_auto] sm:grid-cols-[80px_110px_1fr_auto] items-center gap-2 text-[12px] rounded-md bg-[#0d0d0d] border border-[#1a1a1a] px-2.5 py-1.5">
                       <span className="text-[#8a8a8a] tabular-nums">{r.date.slice(5)}</span>
-                      <span className="hidden sm:block text-[10px] font-semibold uppercase tracking-wide" style={{ color: KIND[r.kind].color }}>{KIND[r.kind].label}</span>
+                      <span className="hidden sm:block text-xs font-semibold uppercase tracking-wide" style={{ color: KIND[r.kind].color }}>{KIND[r.kind].label}</span>
                       <span className="min-w-0 truncate">
                         <span className="text-[#f5f5f5] font-medium">{r.symbol}</span>
                         <span className="text-[#8a8a8a] tabular-nums">
@@ -264,18 +256,18 @@ export default function PnlPage() {
                       </span>
                       <span className="tabular-nums text-right" style={{ color: r.impact_inr == null ? MUTE : r.impact_inr >= 0 ? GREEN : RED }}>
                         {r.impact_inr == null ? "pending" : SIGNED(Math.round(r.impact_inr))}
-                        {r.impact_inr != null && (r.impact_days ?? 0) < 10 && <span className="text-[10px] text-[#6a6a6a]"> ({r.impact_days}d)</span>}
+                        {r.impact_inr != null && (r.impact_days ?? 0) < 10 && <span className="text-xs text-[#8a8a8a]"> ({r.impact_days}d)</span>}
                       </span>
                     </div>
                   ))}
-                  {ledger.length === 0 && <p className="text-[12px] text-[#6a6a6a]">Nothing here yet.</p>}
+                  {ledger.length === 0 && <p className="text-[12px] text-[#8a8a8a]">Nothing here yet.</p>}
                 </div>
               </div>
 
               {/* Zerodha statements — authoritative totals + fills reconciliation */}
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
                 <h3 className="text-sm font-semibold mb-1">Zerodha statements</h3>
-                <p className="text-[11px] text-[#6a6a6a] mb-3">Console P&amp;L exports, checked against our recorded fills: every sell value and every open quantity must match.</p>
+                <p className="text-xs text-[#8a8a8a] mb-3">Console P&amp;L exports, checked against our recorded fills: every sell value and every open quantity must match.</p>
                 {data.statements.length === 0 && <p className="text-[12px] text-[#8a8a8a]">None uploaded — Console → Reports → P&amp;L → Equity, then scripts/import_pnl_statement.py.</p>}
                 <div className="space-y-2.5">
                   {data.statements.map((st) => {
@@ -287,26 +279,26 @@ export default function PnlPage() {
                       <div key={st.period_from + st.period_to} className="rounded-lg bg-[#0d0d0d] border border-[#1a1a1a] p-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-[12px] font-semibold text-[#f5f5f5]">{st.period_from} → {st.period_to}</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                          <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
                             style={{ color: !c ? MUTE : ok ? GREEN : RED, background: !c ? "#71717a1a" : ok ? "#22c55e1a" : "#ef44441a" }}>
                             {!c ? "not checked" : ok ? "✓ reconciled" : `✗ ${bad} differ`}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-[11px] tabular-nums">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs tabular-nums">
                           {[["Realized", sm["Realized P&L"]], ["Unrealized", sm["Unrealized P&L"]], ["Charges", -(sm["Charges"] ?? 0)], ["Other debits", sm["Other Credit & Debit"]]].map(([k, v]) => (
-                            <div key={k as string}><p className="text-[9px] text-[#6a6a6a] uppercase tracking-wide">{k}</p>
+                            <div key={k as string}><p className="text-xs text-[#8a8a8a] uppercase tracking-wide">{k}</p>
                               <p style={{ color: (v as number) >= 0 ? GREEN : RED }}>{v == null ? "—" : SIGNED(Math.round(v as number))}</p></div>
                           ))}
                         </div>
                         {c && (
-                          <p className="text-[11px] text-[#8a8a8a] mt-2">
+                          <p className="text-xs text-[#8a8a8a] mt-2">
                             Sells: {c.sell_matched}/{c.sell_symbols} stocks match{c.open_checked ? ` · open quantities: ${c.open_mismatches.length === 0 ? "all match" : `${c.open_mismatches.length} differ`}` : ""}
                             {!c.covers_period && c.fills_on_record_from && <> · our fills start {c.fills_on_record_from}, so earlier trades are Zerodha&apos;s figures only</>}
                             {c.pending && c.pending.length > 0 && <> · <span style={{ color: AMBER }}>pending (Console not updated yet): {c.pending.join(", ")}</span></>}
                           </p>
                         )}
                         {c && [...c.sell_mismatches.map((m) => ({ ...m, k: "sell ₹" })), ...c.open_mismatches.map((m) => ({ ...m, k: "open qty" }))].map((m, i) => (
-                          <p key={i} className="text-[11px] text-[#ef4444] tabular-nums">✗ {m.symbol} {m.k}: Zerodha {m.zerodha.toLocaleString("en-IN")} vs ours {m.ours.toLocaleString("en-IN")}</p>
+                          <p key={i} className="text-xs text-[#ef4444] tabular-nums">✗ {m.symbol} {m.k}: Zerodha {m.zerodha.toLocaleString("en-IN")} vs ours {m.ours.toLocaleString("en-IN")}</p>
                         ))}
                       </div>
                     );
@@ -318,7 +310,7 @@ export default function PnlPage() {
               <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
                 <h3 className="text-sm font-semibold mb-2">By month</h3>
                 <div className="space-y-1 text-[12px] tabular-nums">
-                  <div className="grid grid-cols-5 text-[10px] text-[#6a6a6a] uppercase tracking-wide"><span>Month</span><span className="text-right">P&amp;L</span><span className="text-right">Nifty</span><span className="text-right">vs Nifty</span><span className="text-right">Fills</span></div>
+                  <div className="grid grid-cols-5 text-xs text-[#8a8a8a] uppercase tracking-wide"><span>Month</span><span className="text-right">P&amp;L</span><span className="text-right">Nifty</span><span className="text-right">vs Nifty</span><span className="text-right">Fills</span></div>
                   {months.map(([m, x]) => (
                     <div key={m} className="grid grid-cols-5">
                       <span className="text-[#c5c5c5]">{MONTH(m)}</span>
@@ -329,7 +321,7 @@ export default function PnlPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-[#5a5a5a] mt-3">Daily history starts 2026-08-26 (first stored closes). Before charges and taxes — Zerodha&apos;s charges are in the statements above.</p>
+                <p className="text-xs text-[#8a8a8a] mt-3">Daily history starts 2026-08-26 (first stored closes). Before charges and taxes — Zerodha&apos;s charges are in the statements above.</p>
               </div>
             </>
           )}

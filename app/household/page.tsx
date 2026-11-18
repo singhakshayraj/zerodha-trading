@@ -9,6 +9,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Landmark, RefreshCw } from "lucide-react";
 
+import { inr } from "@/lib/format";
 // Household book (both accounts), published daily by the brain. Read-only.
 
 type Pt = { date: string; index: number };
@@ -38,7 +39,7 @@ type Payload = { book: Book | null; targets: unknown; ledger: Trade[] };
 
 const GREEN = "#22c55e", RED = "#ef4444", MUTE = "#71717a";
 const NAME: Record<string, string> = { primary: "Kanaklata", natwar: "Natwar", household: "Household", unknown: "Unknown" };
-const INR = (n: number | null | undefined) => (n == null ? "—" : (n < 0 ? "−" : "") + "₹" + Math.abs(Math.round(n)).toLocaleString("en-IN"));
+const INR = (n: number | null | undefined) => inr(n);
 const PCT = (n: number | null | undefined) => (n == null ? "—" : (n < 0 ? "−" : n > 0 ? "+" : "") + Math.abs(n).toFixed(1) + "%");
 const col = (n: number | null | undefined) => (n == null ? MUTE : n < 0 ? RED : GREEN);
 const plusYear = (d: string) => `${Number(d.slice(0, 4)) + 1}${d.slice(4)}`;
@@ -49,7 +50,7 @@ function Section({ id, title, asof, children }: { id: string; title: string; aso
     <section data-testid={id} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 min-w-0">
       <div className="flex items-baseline justify-between gap-2 mb-3">
         <h2 className="text-sm font-semibold">{title}</h2>
-        {asof && <span className="text-[10px] text-[#6a6a6a]">as of {asof}</span>}
+        {asof && <span className="text-xs text-[#8a8a8a]">as of {asof}</span>}
       </div>
       {children}
     </section>
@@ -58,9 +59,9 @@ function Section({ id, title, asof, children }: { id: string; title: string; aso
 const Table = ({ children }: { children: React.ReactNode }) => (
   <div className="overflow-x-auto"><table className="w-full text-[12px] tabular-nums whitespace-nowrap">{children}</table></div>
 );
-const Th = ({ children }: { children?: React.ReactNode }) => <th className="text-left font-normal text-[10px] uppercase tracking-wide text-[#7a7a7a] pr-4 pb-1.5">{children}</th>;
+const Th = ({ children }: { children?: React.ReactNode }) => <th className="text-left font-normal text-xs uppercase tracking-wide text-[#8a8a8a] pr-4 pb-1.5">{children}</th>;
 const Td = ({ children, color }: { children?: React.ReactNode; color?: string }) => <td className="pr-4 py-1" style={{ color }}>{children}</td>;
-const Muted = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] text-[#7a7a7a] mt-2">{children}</p>;
+const Muted = ({ children }: { children: React.ReactNode }) => <p className="text-xs text-[#8a8a8a] mt-2">{children}</p>;
 
 // Household time-weighted index (solid) vs the Nifty-equivalent (dashed).
 function Chart({ a, b }: { a: Pt[]; b: Pt[] }) {
@@ -74,7 +75,7 @@ function Chart({ a, b }: { a: Pt[]; b: Pt[] }) {
       <polyline points={line(b)} fill="none" stroke={MUTE} strokeWidth={1.5} strokeDasharray="4 4" />
       <polyline points={line(a)} fill="none" stroke="#a78bfa" strokeWidth={2} />
     </svg>
-    <div data-testid="chart-legend" className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#8a8a8a] mt-1">
+    <div data-testid="chart-legend" className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#8a8a8a] mt-1">
       <span className="flex items-center gap-1.5"><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke="#a78bfa" strokeWidth={2} /></svg>Household</span>
       <span className="flex items-center gap-1.5"><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke={MUTE} strokeWidth={1.5} strokeDasharray="4 4" /></svg>Nifty-equivalent</span>
     </div></>
@@ -146,9 +147,9 @@ export default function HouseholdPage() {
                   {(["primary", "natwar", "household"] as const).map((k) => { const r = b.returns[k]; return r && (
                     <tr key={k}>
                       <Td>{NAME[k]}</Td>
-                      <Td><span style={{ color: col(r["1m"]) }}>{PCT(r["1m"])}</span> <span className="text-[#6a6a6a]">vs {PCT(r.bench_1m)}</span></Td>
-                      <Td><span style={{ color: col(r["3m"]) }}>{PCT(r["3m"])}</span> <span className="text-[#6a6a6a]">vs {PCT(r.bench_3m)}</span></Td>
-                      <Td><span style={{ color: col(r.since) }}>{PCT(r.since)}</span> <span className="text-[#6a6a6a]">vs {PCT(r.bench_since)}</span></Td>
+                      <Td><span style={{ color: col(r["1m"]) }}>{PCT(r["1m"])}</span> <span className="text-[#8a8a8a]">vs {PCT(r.bench_1m)}</span></Td>
+                      <Td><span style={{ color: col(r["3m"]) }}>{PCT(r["3m"])}</span> <span className="text-[#8a8a8a]">vs {PCT(r.bench_3m)}</span></Td>
+                      <Td><span style={{ color: col(r.since) }}>{PCT(r.since)}</span> <span className="text-[#8a8a8a]">vs {PCT(r.bench_since)}</span></Td>
                       <Td color={RED}>{PCT(r.max_drawdown.pct)}</Td>
                     </tr>); })}
                 </tbody>
@@ -160,13 +161,13 @@ export default function HouseholdPage() {
             </Section>
 
             <Section id="xray" title="X-ray" asof={posAsof}>
-              {b.targets_source === "default" && <span className="inline-block text-[10px] px-2 py-0.5 rounded bg-[#1f1f1f] text-[#aaa] mb-3">targets: default</span>}
+              {b.targets_source === "default" && <span className="inline-block text-xs px-2 py-0.5 rounded bg-[#1f1f1f] text-[#aaa] mb-3">targets: default</span>}
               <div className="space-y-2">
                 {b.xray.sectors.map((s) => (
                   <div key={s.name} data-testid={s.breach ? `breach-${s.name}` : undefined} className="text-[12px]">
                     <div className="flex justify-between" style={{ color: s.breach ? RED : undefined }}>
                       <span>{s.name}{s.breach && " · over target"}</span>
-                      <span className="tabular-nums">{s.pct.toFixed(1)}% <span className="text-[#6a6a6a]">(target {s.target_pct}%, index {s.index_pct.toFixed(1)}%)</span></span>
+                      <span className="tabular-nums">{s.pct.toFixed(1)}% <span className="text-[#8a8a8a]">(target {s.target_pct}%, index {s.index_pct.toFixed(1)}%)</span></span>
                     </div>
                     <div className="relative h-1.5 bg-[#1a1a1a] rounded mt-1">
                       <div className="h-full rounded" style={{ width: `${Math.min(s.pct, 100)}%`, background: s.breach ? RED : "#a78bfa" }} />
@@ -174,13 +175,13 @@ export default function HouseholdPage() {
                     </div>
                   </div>))}
               </div>
-              <h3 className="text-[11px] uppercase tracking-wide text-[#7a7a7a] mt-4 mb-1">Size mix vs index</h3>
+              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Size mix vs index</h3>
               <Table><tbody>{b.xray.sizes.map((z) => (
-                <tr key={z.size}><Td color={z.breach ? RED : undefined}>{z.size}</Td><Td color={z.breach ? RED : undefined}>{z.pct.toFixed(1)}%</Td><Td><span className="text-[#6a6a6a]">index {z.index_pct.toFixed(1)}%</span></Td></tr>))}</tbody></Table>
-              <h3 className="text-[11px] uppercase tracking-wide text-[#7a7a7a] mt-4 mb-1">Top names</h3>
+                <tr key={z.size}><Td color={z.breach ? RED : undefined}>{z.size}</Td><Td color={z.breach ? RED : undefined}>{z.pct.toFixed(1)}%</Td><Td><span className="text-[#8a8a8a]">index {z.index_pct.toFixed(1)}%</span></Td></tr>))}</tbody></Table>
+              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Top names</h3>
               <Table><tbody>{b.xray.names.map((n) => (
                 <tr key={n.symbol}><Td color={n.breach ? RED : undefined}>{n.symbol}</Td><Td color={n.breach ? RED : undefined}>{n.pct.toFixed(1)}%</Td>
-                  <Td><span className="text-[#6a6a6a]">{n.accounts.length > 1 ? "both accounts" : n.accounts.map((a) => NAME[a] ?? a).join(", ")}</span></Td></tr>))}</tbody></Table>
+                  <Td><span className="text-[#8a8a8a]">{n.accounts.length > 1 ? "both accounts" : n.accounts.map((a) => NAME[a] ?? a).join(", ")}</span></Td></tr>))}</tbody></Table>
               <p className="text-[12px] mt-3" style={{ color: b.xray.etf_breach ? RED : undefined }}>ETF sleeve: {b.xray.etf_pct.toFixed(1)}%{b.xray.etf_breach && " — over its cap"}</p>
             </Section>
 
@@ -201,9 +202,9 @@ export default function HouseholdPage() {
                 <p className="flex justify-between"><span className="text-[#8a8a8a]">Unrealised STCG</span><span className="tabular-nums">{INR(b.tax.unrealised_stcg)}</span></p>
                 <p className="flex justify-between"><span className="text-[#8a8a8a]">Unrealised LTCG</span><span className="tabular-nums">{INR(b.tax.unrealised_ltcg)}</span></p>
               </div>
-              <h3 className="text-[11px] uppercase tracking-wide text-[#7a7a7a] mt-4 mb-1">Turning long-term in the next 90 days</h3>
+              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Turning long-term in the next 90 days</h3>
               {soon.length ? <Table><tbody>{soon.map((l, i) => <tr key={i}><Td>{l.symbol}</Td><Td>{NAME[l.account] ?? l.account}</Td><Td>{l.date}</Td><Td>{l.qty} sh</Td></tr>)}</tbody></Table> : <Muted>None.</Muted>}
-              <h3 className="text-[11px] uppercase tracking-wide text-[#7a7a7a] mt-4 mb-1">Harvest candidates</h3>
+              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Harvest candidates</h3>
               {b.tax.harvest.length ? <Table><tbody>{b.tax.harvest.map((h, i) => <tr key={i}><Td>{h.symbol}</Td><Td>{NAME[h.account] ?? h.account}</Td><Td color={RED}>{INR(-Math.abs(h.loss_inr))}</Td></tr>)}</tbody></Table> : <Muted>None.</Muted>}
               {undated > 0 && <Muted>{undated} holdings have undated lots — import the Console tradebook.</Muted>}
             </Section>
@@ -214,8 +215,8 @@ export default function HouseholdPage() {
                 <tbody>{trims.map((m, i) => <tr key={i}><Td>{m.symbol}</Td><Td>{NAME[m.account] ?? m.account}</Td><Td>{m.qty}</Td><Td>{INR(m.freed_inr)}</Td><Td>{m.tax_known === false ? "tax unknown (undated lots)" : INR(m.tax_inr + m.cost_inr)}</Td><td className="py-1 whitespace-normal min-w-[180px]">{m.reason}</td></tr>)}</tbody>
               </Table> : <p className="text-[12px] text-[#8a8a8a]">No trims proposed — no name or sector is over its cap.{b.xray.sizes.some((z) => z.breach) && " Size mix drifts from the index; that is shown above, not traded here."}</p>}
               {unders.length > 0 && <>
-                <h3 className="text-[11px] uppercase tracking-wide text-[#7a7a7a] mt-4 mb-1">Underweight sectors</h3>
-                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#6a6a6a]">{u.gap_pp.toFixed(1)}pp under index weight</span></p>)}
+                <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Underweight sectors</h3>
+                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#8a8a8a]">{u.gap_pp.toFixed(1)}pp under index weight</span></p>)}
               </>}
             </Section>
 

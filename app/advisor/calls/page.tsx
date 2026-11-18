@@ -13,8 +13,9 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { CallPath } from "@/components/CallPath";
 import { pct, verdictSentence, type Call } from "@/lib/calls";
 
+import { inr } from "@/lib/format";
 const GREEN = "#22c55e", RED = "#ef4444";
-const INR = (n: number) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const INR = (n: number) => inr(n, { dp: 2 });
 
 type Day = { run_date: string; n: number; scored_days: number };
 type Lesson = { text: string };
@@ -89,17 +90,17 @@ export default function CallsPage() {
               <div className="flex gap-1 ml-auto" data-testid="bench-toggle">
                 {BENCHES.map(([b, label]) => (
                   <button key={b} onClick={() => setBench(b)}
-                    className={`px-2 min-h-[28px] rounded-md border text-[11px] ${bench === b ? "border-[#3a3a3a] bg-[#1f1f1f]" : "border-[#1f1f1f] text-[#8a8a8a]"}`}>{label}</button>))}
+                    className={`px-2 min-h-[28px] rounded-md border text-xs ${bench === b ? "border-[#3a3a3a] bg-[#1f1f1f]" : "border-[#1f1f1f] text-[#8a8a8a]"}`}>{label}</button>))}
               </div>
             </div>
             <table className="text-xs w-full min-w-[480px]">
-              <thead><tr className="text-[#666]"><th className="text-left font-normal py-1">Calls</th>
+              <thead><tr className="text-[#8a8a8a]"><th className="text-left font-normal py-1">Calls</th>
                 {CPS.map((c) => <th key={c} className="text-right font-normal">day {c}</th>)}</tr></thead>
               <tbody>{SOURCES.map(([src, label]) => (
                 <tr key={src} className="border-t border-[#1a1a1a]"><td className="py-1.5 text-[#ccc]">{label}</td>
                   {CPS.map((cp) => { const base = score?.by_source?.[src]?.[cp]; const v = bench === "nifty" ? base : base?.[bench] ?? null; return (
                     <td key={cp} className="text-right tabular-nums" title={v ? `${v.n} calls, average ${pct(v.mean_alpha_pct)} ${BENCHES.find(([b]) => b === bench)![1]}${v.alpha_ci ? ` [${pct(v.alpha_ci[0])} to ${pct(v.alpha_ci[1])}]` : ""}` : ""}>
-                      {v ? <span style={{ color: v.hit_pct >= 50 ? GREEN : RED }}>{v.hit_pct.toFixed(1)}%{v.hit_ci && <span className="text-[#666]"> [{Math.round(v.hit_ci[0])}–{Math.round(v.hit_ci[1])}]</span>}<span className="text-[#555]"> ({v.n})</span></span> : <span className="text-[#444]">—</span>}
+                      {v ? <span style={{ color: v.hit_pct >= 50 ? GREEN : RED }}>{v.hit_pct.toFixed(1)}%{v.hit_ci && <span className="text-[#8a8a8a]"> [{Math.round(v.hit_ci[0])}–{Math.round(v.hit_ci[1])}]</span>}<span className="text-[#8a8a8a]"> ({v.n})</span></span> : <span className="text-[#8a8a8a]">—</span>}
                     </td>); })}
                 </tr>))}</tbody>
             </table>
@@ -118,7 +119,7 @@ export default function CallsPage() {
                   className={`px-3 min-h-[36px] ${chip === k ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a]"}`}>{label}</button>
               ))}
             </div>
-            {calls === null ? <p className="text-sm text-[#666]">Loading…</p>
+            {calls === null ? <p className="text-sm text-[#8a8a8a]">Loading…</p>
               : shown.length === 0 ? <p className="text-sm text-[#8a8a8a]">No scored days yet — scores start the morning after the call.</p>
               : <ul className="space-y-2">{shown.map((c) => {
                   const k = `${c.source}|${c.account}|${c.symbol}`;
@@ -147,13 +148,13 @@ export default function CallsPage() {
           </section>
 
           <section data-testid="lessons" className="rounded-xl border border-[#1f1f1f] bg-[#111111] p-4 space-y-2">
-            <p className="text-sm font-medium">Lessons{lessons ? <span className="text-xs text-[#666] font-normal"> · checked {lessons.asof}, at day 20</span> : null}</p>
+            <p className="text-sm font-medium">Lessons{lessons ? <span className="text-xs text-[#8a8a8a] font-normal"> · checked {lessons.asof}, at day 20</span> : null}</p>
             {pops.every(([, p]) => !p.lessons.length) && <p className="text-xs text-[#8a8a8a]">Nothing fires yet — a lesson needs 30 scored calls in one bucket.</p>}
             {pops.map(([name, p]) => (
               <div key={name} className="text-xs space-y-1">
                 {p.lessons.map((l, i) => <p key={i} className="text-[#f59e0b]">{l.text}</p>)}
-                {p.strengths.map((l, i) => <p key={`s${i}`} className="text-[#666]">Strength: {l.text}</p>)}
-                <p className="text-[#555]">{name === "holdings" ? "Your holdings" : "Nifty 500 scan"}: {p.overall.n} calls reached day 20{p.overall.hit_pct != null ? `, ${p.overall.hit_pct}% right` : ""}.</p>
+                {p.strengths.map((l, i) => <p key={`s${i}`} className="text-[#8a8a8a]">Strength: {l.text}</p>)}
+                <p className="text-[#8a8a8a]">{name === "holdings" ? "Your holdings" : "Nifty 500 scan"}: {p.overall.n} calls reached day 20{p.overall.hit_pct != null ? `, ${p.overall.hit_pct}% right` : ""}.</p>
               </div>
             ))}
           </section>

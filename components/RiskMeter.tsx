@@ -1,4 +1,5 @@
 "use client";
+import { inr } from "@/lib/format";
 
 // Live daily-risk meter — the VISION §4c daily contract made visible.
 // One horizontal track from the hard floor (−maxLoss%) to the ceiling
@@ -9,7 +10,7 @@
 // command-center landing page.
 
 const RED = "#ef4444", AMBER = "#f59e0b", GREEN = "#22c55e";
-const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+const INR = (n: number) => inr(n);
 
 export function RiskMeter({
   pnl,
@@ -65,8 +66,8 @@ export function RiskMeter({
   return (
     <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
       <div className="flex items-baseline justify-between mb-3">
-        <span className="text-[10px] text-[#444] uppercase tracking-wider">Daily risk</span>
-        <span className="text-[11px]" style={{ color: barColor }}>
+        <span className="text-xs text-[#8a8a8a] uppercase tracking-wider">Daily risk</span>
+        <span className="text-xs" style={{ color: barColor }}>
           {pnlPct >= 0 ? "+" : ""}{pnlPct.toFixed(2)}% · {headline}
         </span>
       </div>
@@ -88,7 +89,7 @@ export function RiskMeter({
         <div className="absolute -top-0.5 w-2 h-7 rounded-sm -translate-x-1/2 border border-[#0a0a0a]" style={{ left: `${valPos}%`, background: barColor }} />
       </div>
 
-      <div className="relative h-4 mt-1 text-[9px] text-[#555]">
+      <div className="relative h-4 mt-1 text-xs text-[#8a8a8a]">
         <span className="absolute left-0" style={{ color: RED }}>−{Math.abs(floorPct)}%</span>
         <span className="absolute -translate-x-1/2" style={{ left: `${stopPos}%`, color: `${RED}cc` }}>3R</span>
         <span className="absolute -translate-x-1/2" style={{ left: `${zeroPos}%` }}>0</span>

@@ -9,8 +9,9 @@ import api from "@/lib/api";
 import { parseMoves, simulate, booksFrom, CAPS, type WhatIf as Result, type Books } from "@/lib/ask/whatif";
 import type { Account } from "@/lib/ask/tools";
 
+import { inr } from "@/lib/format";
 const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b";
-const INR = (n: number) => (n < 0 ? "-" : "") + "₹" + Math.round(Math.abs(n)).toLocaleString("en-IN");
+const INR = (n: number) => inr(n);
 
 export function WhatIf({ account }: { account: Account }) {
   const [text, setText] = useState("");
@@ -31,7 +32,7 @@ export function WhatIf({ account }: { account: Account }) {
 
   return (
     <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4" data-testid="what-if">
-      <p className="text-[10px] text-[#7a7a7a] uppercase tracking-wide mb-2 flex items-center gap-1.5"><FlaskConical className="w-3 h-3" /> What if · both accounts as one book</p>
+      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-2 flex items-center gap-1.5"><FlaskConical className="w-3 h-3" /> What if · both accounts as one book</p>
       <form onSubmit={(e) => { e.preventDefault(); run(); }} className="flex gap-2">
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder={`sell 10 ATGL, buy ₹50k PETRONET${account === "natwar" ? "" : " in natwar"}, switch IOB to UNIONBANK`}
           className="flex-1 min-w-0 bg-[#0a0a0a] border border-[#262626] rounded-lg px-3 py-2 text-[12px] text-[#f5f5f5] placeholder-[#444] focus:outline-none focus:border-[#60a5fa]" />
@@ -41,7 +42,7 @@ export function WhatIf({ account }: { account: Account }) {
         <div className="mt-3 space-y-2 text-[12px]">
           <p className="text-[#d5d5d5]">
             Net cash <span className="font-semibold tabular-nums" style={{ color: res.net_cash >= 0 ? GREEN : AMBER }}>{INR(res.net_cash)}</span>
-            <span className="text-[#7a7a7a]"> · sold {INR(res.cash_freed)} · bought {INR(res.cash_deployed)} · book {INR(res.total_before)} → {INR(res.total_after)}</span>
+            <span className="text-[#8a8a8a]"> · sold {INR(res.cash_freed)} · bought {INR(res.cash_deployed)} · book {INR(res.total_before)} → {INR(res.total_after)}</span>
           </p>
           {res.sectors.length > 0 && (
             <ul className="space-y-0.5">
@@ -50,7 +51,7 @@ export function WhatIf({ account }: { account: Account }) {
                   <span className="text-[#c5c5c5] flex-1 min-w-0 truncate">{l.group}</span>
                   <span className="text-[#8a8a8a]">{l.before}% →</span>
                   <span className="font-semibold" style={{ color: l.breach ? RED : "#f5f5f5" }}>{l.after}%</span>
-                  <span className="text-[#6a6a6a] w-20 text-right">{l.index != null ? `index ${l.index}%` : ""}</span>
+                  <span className="text-[#8a8a8a] w-20 text-right">{l.index != null ? `index ${l.index}%` : ""}</span>
                 </li>
               ))}
             </ul>

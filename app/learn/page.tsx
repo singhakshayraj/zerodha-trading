@@ -7,6 +7,7 @@ import {
   Server, ShieldCheck, BookMarked, ArrowDown,
 } from "lucide-react";
 
+import { inr } from "@/lib/format";
 // ── Learn ────────────────────────────────────────────────────────────────────
 // Teaches the system to someone who knows basic finance but did not build this.
 //
@@ -96,7 +97,7 @@ function Callout({ kind = "plain", title, children }: {
           : { b: "#1f1f1f", bg: "#0f0f0f", t: MUTE };
   return (
     <div className="rounded-lg border px-3.5 py-3 my-3" style={{ borderColor: c.b, background: c.bg }}>
-      {title && <p className="text-[10px] uppercase tracking-wide mb-1.5" style={{ color: c.t }}>{title}</p>}
+      {title && <p className="text-xs uppercase tracking-wide mb-1.5" style={{ color: c.t }}>{title}</p>}
       <div className="text-[13px] text-[#c5c5c5] leading-relaxed space-y-2">{children}</div>
     </div>
   );
@@ -105,7 +106,7 @@ function Callout({ kind = "plain", title, children }: {
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <li className="relative pl-10 pb-5 last:pb-0">
-      <span className="absolute left-0 top-0 w-7 h-7 rounded-full bg-[#111] border border-[#2a2a2a] flex items-center justify-center text-[11px] font-semibold text-[#8ab4f8]">{n}</span>
+      <span className="absolute left-0 top-0 w-7 h-7 rounded-full bg-[#111] border border-[#2a2a2a] flex items-center justify-center text-xs font-semibold text-[#8ab4f8]">{n}</span>
       <span className="absolute left-[13px] top-8 bottom-0 w-px bg-[#1f1f1f] last:hidden" aria-hidden />
       <h4 className="text-[13px] font-semibold text-[#f5f5f5] mb-1">{title}</h4>
       <div className="text-[13px] text-[#b5b5b5] leading-relaxed space-y-2">{children}</div>
@@ -140,8 +141,7 @@ const APPROX = (n: number | null | undefined) => {
   if (n >= 1000) return "~" + (Math.round(n / 100) / 10).toFixed(1).replace(/\.0$/, "") + "k";
   return "~" + Math.round(n / 10) * 10;
 };
-const INR = (n: number | null | undefined) =>
-  n === null || n === undefined ? "—" : (n < 0 ? "−" : "") + "₹" + Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+const INR = (n: number | null | undefined) => inr(n);
 
 export default function LearnPage() {
   const [s, setS] = useState<Stats | null>(null);
@@ -205,7 +205,7 @@ export default function LearnPage() {
                      className={`block px-2.5 py-1.5 rounded text-[11.5px] whitespace-nowrap border transition-colors ${
                        active === x.id
                          ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10"
-                         : "border-[#1f1f1f] text-[#71717a] hover:text-[#c5c5c5]"}`}>
+                         : "border-[#1f1f1f] text-[#8a8a8a] hover:text-[#c5c5c5]"}`}>
                     {x.label}
                   </a>
                 </li>
@@ -245,7 +245,7 @@ export default function LearnPage() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 my-4">
                 {facts.map((f) => (
                   <div key={f.k} className="rounded-lg border border-[#1f1f1f] bg-[#111] p-3">
-                    <p className="text-[10px] uppercase tracking-wide" style={{ color: MUTE }}>{f.k}</p>
+                    <p className="text-xs uppercase tracking-wide" style={{ color: MUTE }}>{f.k}</p>
                     <p className="text-lg font-semibold tabular-nums mt-1" style={{ color: f.tone ?? "#f5f5f5" }}>{f.v}</p>
                     <p className="text-[10.5px] mt-0.5" style={{ color: MUTE }}>{f.sub}</p>
                   </div>
@@ -626,7 +626,7 @@ export default function LearnPage() {
                     <summary className="cursor-pointer list-none px-3.5 py-2.5 flex items-baseline gap-2">
                       <span className="text-[13px] font-semibold text-[#f5f5f5]">{g.term}</span>
                       <span className="text-[12px]" style={{ color: MUTE }}>{g.short}</span>
-                      <ArrowDown className="w-3 h-3 ml-auto shrink-0 self-center text-[#555] transition-transform group-open:rotate-180" />
+                      <ArrowDown className="w-3 h-3 ml-auto shrink-0 self-center text-[#8a8a8a] transition-transform group-open:rotate-180" />
                     </summary>
                     <p className="px-3.5 pb-3 text-[12.5px] text-[#b5b5b5] leading-relaxed">{g.body}</p>
                   </details>

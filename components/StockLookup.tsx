@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Search, Loader2, RefreshCw } from "lucide-react";
 import api from "@/lib/api";
 
+import { inr } from "@/lib/format";
 // Look up any Nifty-500 name, not just holdings.
 //
 // Reads the score the daily rotation scan already persists to
@@ -50,7 +51,7 @@ const VERDICT: Record<Detail["verdict"], { color: string; label: string }> = {
   INSUFFICIENT:   { color: "#71717a", label: "No read" },
 };
 
-const INR = (n: number) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const INR = (n: number) => inr(n, { dp: 2 });
 
 export function StockLookup() {
   const [q, setQ] = useState("");
@@ -142,7 +143,7 @@ export function StockLookup() {
         <Search className="w-4 h-4 text-[#3b82f6]" />
         <h2 className="text-sm font-medium text-[#f5f5f5]">Check any stock</h2>
       </div>
-      <p className="text-[11px] text-[#6a6a6a] mb-3">
+      <p className="text-xs text-[#8a8a8a] mb-3">
         Any of the ~500 names the advisor scans daily — not just the ones you hold.
       </p>
 
@@ -157,7 +158,7 @@ export function StockLookup() {
           aria-label="Stock symbol"
           list="stock-symbols"
           autoComplete="off"
-          className="flex-1 min-w-0 bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-[13px] text-[#f5f5f5] placeholder:text-[#555] focus:outline-none focus:border-[#3b82f6]"
+          className="flex-1 min-w-0 bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-[13px] text-[#f5f5f5] placeholder:text-[#8a8a8a] focus:outline-none focus:border-[#3b82f6]"
         />
         <datalist id="stock-symbols">
           {opts.map((o) => (
@@ -198,9 +199,9 @@ export function StockLookup() {
             <div className="min-w-0">
               <p className="text-[14px] font-semibold text-[#f5f5f5]">
                 {m.symbol}
-                {m.inNifty50 && <span className="ml-2 text-[10px] text-[#6a6a6a]">NIFTY 50</span>}
+                {m.inNifty50 && <span className="ml-2 text-xs text-[#8a8a8a]">NIFTY 50</span>}
               </p>
-              <p className="text-[11px] text-[#8a8a8a] truncate">
+              <p className="text-xs text-[#8a8a8a] truncate">
                 {m.name}{m.sector ? ` · ${m.sector}` : ""}
               </p>
             </div>
@@ -209,7 +210,7 @@ export function StockLookup() {
                 <p className="text-2xl font-semibold tabular-nums" style={{ color: TONE[m.band.tone] }}>
                   {m.score > 0 ? "+" : ""}{m.score}
                 </p>
-                <p className="text-[11px]" style={{ color: TONE[m.band.tone] }}>{m.band.label}</p>
+                <p className="text-xs" style={{ color: TONE[m.band.tone] }}>{m.band.label}</p>
               </div>
             ) : m.held ? (
               // The daily scan deliberately EXCLUDES holdings (they get a full
@@ -221,7 +222,7 @@ export function StockLookup() {
             )}
           </div>
 
-          <p className="mt-3 text-[11px] text-[#6a6a6a] leading-relaxed">
+          <p className="mt-3 text-xs text-[#8a8a8a] leading-relaxed">
             {m.score === null && m.held
               ? "Held names are scored as a full verdict rather than a bare number — see the list below. "
               : ""}
@@ -245,12 +246,12 @@ export function StockLookup() {
               <button
                 onClick={analyseLive}
                 disabled={live === "sending" || live === "polling"}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] bg-[#22c55e]/10 border border-[#22c55e]/40 text-[#7ee2a8] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-[#22c55e]/10 border border-[#22c55e]/40 text-[#7ee2a8] disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${live === "sending" || live === "polling" ? "animate-spin" : ""}`} />
                 {live === "sending" || live === "polling" ? "Analysing…" : live === "done" ? "Updated" : "Analyse this name live"}
               </button>
-              <span className="text-[11px] text-[#6a6a6a]">
+              <span className="text-xs text-[#8a8a8a]">
                 {live === "polling"
                   ? "Scoring just this name with the live token — updates here in ~30s."
                   : live === "timeout"
@@ -273,7 +274,7 @@ export function StockLookup() {
                                background: `${VERDICT[m.detail.verdict].color}14` }}>
                   {VERDICT[m.detail.verdict].label}
                 </span>
-                <span className="text-[11px] text-[#6a6a6a]">
+                <span className="text-xs text-[#8a8a8a]">
                   confidence {m.detail.confidence}%
                   {m.detail.trigger_type ? ` · ${m.detail.trigger_type === "MACRO" ? "long-term structure" : "short-term signal"}` : ""}
                 </span>
@@ -291,7 +292,7 @@ export function StockLookup() {
                   list above, which is confirmatory by construction. */}
               {m.detail.counter_case && (
                 <div className="rounded border border-[#3a3320] bg-[#17140c] px-2.5 py-2">
-                  <p className="text-[9px] uppercase tracking-wide mb-1" style={{ color: "#f59e0b" }}>
+                  <p className="text-xs uppercase tracking-wide mb-1" style={{ color: "#f59e0b" }}>
                     {m.detail.verdict === "SELL" || m.detail.verdict === "SELL_ON_BOUNCE"
                       ? "Bull case — what would make this sell wrong"
                       : "Bear case — what would make this call wrong"}
@@ -303,27 +304,27 @@ export function StockLookup() {
               {(m.detail.stop_level || m.detail.exit_target || m.detail.indicators) && (
                 <div className="flex flex-wrap gap-2">
                   {m.detail.exit_target && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#d5d5d5]">
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#d5d5d5]">
                       sell near <span style={{ color: "#f59e0b" }}>{INR(m.detail.exit_target)}</span>
                     </span>
                   )}
                   {m.detail.stop_level && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#d5d5d5]">
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#d5d5d5]">
                       exit below <span style={{ color: "#ef4444" }}>{INR(m.detail.stop_level)}</span>
                     </span>
                   )}
                   {m.detail.indicators?.rsi_14 != null && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#8a8a8a]">
                       RSI {m.detail.indicators.rsi_14.toFixed(0)}
                     </span>
                   )}
                   {m.detail.indicators?.adx != null && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#8a8a8a]">
                       ADX {m.detail.indicators.adx.toFixed(0)}
                     </span>
                   )}
                   {m.detail.indicators?.relative_strength_vs_nifty != null && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#8a8a8a]">
                       vs NIFTY {m.detail.indicators.relative_strength_vs_nifty > 0 ? "+" : ""}
                       {m.detail.indicators.relative_strength_vs_nifty.toFixed(1)}pp
                     </span>
@@ -334,14 +335,14 @@ export function StockLookup() {
           )}
 
           {m.score === null && !m.held && !m.inScanUniverse && (
-            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-xs text-[#8a8a8a]">
               This name sits outside the Nifty 500 universe the advisor scans, so
               there is nothing to report — not a gap in the data.
             </p>
           )}
 
           {m.score !== null && !m.detail && (
-            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-[11px] text-[#8a8a8a]">
+            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-xs text-[#8a8a8a]">
               Only the trend score is stored for this name so far — the full
               read (reasons, levels, bear case) lands on the next advisor run.
             </p>
@@ -353,12 +354,12 @@ export function StockLookup() {
               <button
                 onClick={requestRefresh}
                 disabled={queue === "sending" || queue === "queued"}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] bg-[#3b82f6]/10 border border-[#3b82f6]/40 text-[#7fb4ff] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-[#3b82f6]/10 border border-[#3b82f6]/40 text-[#7fb4ff] disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${queue === "sending" ? "animate-spin" : ""}`} />
                 {queue === "queued" ? "Requested" : "Re-run analysis"}
               </button>
-              <span className="text-[11px] text-[#6a6a6a]">
+              <span className="text-xs text-[#8a8a8a]">
                 {queue === "queued"
                   ? "Queued — the brain picks it up within ~30s and needs a live token. Refresh this page after that."
                   : queue === "failed"
@@ -369,7 +370,7 @@ export function StockLookup() {
           )}
 
           {m.held && (
-            <p className="mt-2 text-[11px] text-[#7fb4ff]">
+            <p className="mt-2 text-xs text-[#7fb4ff]">
               You hold this — its full verdict, reasons and bear case are in the list below.
             </p>
           )}

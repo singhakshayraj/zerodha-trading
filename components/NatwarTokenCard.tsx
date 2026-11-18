@@ -39,9 +39,9 @@ export function NatwarTokenCard() {
       <div className="flex items-center gap-2 mb-1">
         <UserPlus className="w-4 h-4 text-[#8a8a8a]" />
         <h2 className="text-sm font-medium text-[#f5f5f5]">Second account · Natwar Raj Singh</h2>
-        <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20 font-medium">PREVIEW</span>
+        <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20 font-medium">PREVIEW</span>
       </div>
-      <p className="text-[11px] text-[#666] mb-3">
+      <p className="text-xs text-[#8a8a8a] mb-3">
         Optional. Paste his enc_token to get advice on his holdings under the Natwar tab on /advisor. Kept separate from the main account; not graded yet.
         {status && <> Token pasted: <span className="text-[#aaa]">{fmt(status.tokenUpdatedAt)}</span> · last preview: <span className="text-[#aaa]">{fmt(status.previewUpdatedAt)}</span>.</>}
       </p>
