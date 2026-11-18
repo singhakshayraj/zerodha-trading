@@ -17,7 +17,7 @@ export async function GET() {
 
     const [latest, series, refusals] = await Promise.all([
       supabaseServer.from("lab_daily").select("*").eq("trade_date", date),
-      supabaseServer.from("lab_daily").select("trade_date, strategy_id, cum_net_inr").order("trade_date").limit(20000),
+      supabaseServer.from("lab_daily").select("trade_date, strategy_id, cum_net_inr, n, net_win_inr, net_loss_inr").order("trade_date").limit(20000),
       supabaseServer.from("lab_refusals").select("strategy_id, reason, count").eq("trade_date", date),
     ]);
     for (const q of [latest, series, refusals]) if (q.error) throw q.error;

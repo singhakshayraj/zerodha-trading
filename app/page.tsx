@@ -21,6 +21,7 @@ import { AttentionList, HouseholdCard, MixCard, MonthCard, TaxCard, type MonthVs
 import { attentionItems, shortDate, type HouseholdBook } from "@/lib/attention";
 
 import { inr } from "@/lib/format";
+import { labPf, PF_START, PF_TARGET, MIN_TRADES, type LabPf } from "@/lib/labPf";
 const GREEN = "#9be15d", RED = "#f08a76", AMBER = "#d9b84a", BLUE = "#b9ec8a", MUTE = "#8b968e";
 const INR = (n: number) => inr(n);
 
@@ -81,6 +82,24 @@ function PfGauge({ pf, color }: { pf: number | null; color: string }) {
     </div>
   );
 }
+// daily lab PF, 0–2 scale, with the target and the old engine's PF as reference lines
+function PfTrail({ days }: { days: { date: string; pf: number | null }[] }) {
+  const pts = days.slice(-30), W = 300, H = 60;
+  const y = (v: number) => (H - 4 - (Math.min(2, v) / 2) * (H - 8)).toFixed(1);
+  const x = (i: number) => (pts.length > 1 ? 4 + (i * (W - 8)) / (pts.length - 1) : W / 2).toFixed(1);
+  const xy = pts.flatMap((d, i) => (d.pf == null ? [] : [{ x: x(i), y: y(d.pf), ok: d.pf >= PF_TARGET, date: d.date, pf: d.pf }]));
+  return (
+    <svg role="img" aria-label={`Daily profit factor for the last ${pts.length} lab days against the ${PF_TARGET} target`}
+         viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+      <line x1="0" x2={W} y1={y(PF_TARGET)} y2={y(PF_TARGET)} stroke="#b9ec8a" strokeDasharray="4 4" strokeWidth="1" />
+      <line x1="0" x2={W} y1={y(PF_START)} y2={y(PF_START)} stroke="#f08a76" strokeDasharray="4 4" strokeWidth="1" opacity="0.7" />
+      {xy.length > 1 && <polyline points={xy.map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="rgba(238,242,238,0.5)" strokeWidth="1.5" />}
+      {xy.map((p) => (
+        <circle key={p.date} cx={p.x} cy={p.y} r="3" fill={p.ok ? GREEN : "#eef2ee"}><title>{`${p.date} · PF ${p.pf.toFixed(2)}`}</title></circle>
+      ))}
+    </svg>
+  );
+}
 const ACTIONABLE = new Set(["SELL", "SELL_ON_BOUNCE", "TRIM"]);
 
 export default function CommandCenter() {
@@ -93,7 +112,7 @@ export default function CommandCenter() {
   const [risk, setRisk] = useState<PortfolioRisk | null>(null);
   const [runDate, setRunDate] = useState<string | null>(null);
   const [changeCount, setChangeCount] = useState(0);
-  const [edge, setEdge] = useState<{ profitFactor: number | null; maxDrawdownR: number; expectancyR: number; label: string; closed: number } | null>(null);
+  const [lab, setLab] = useState<LabPf | null>(null);
   const [edgeVerified, setEdgeVerified] = useState<boolean | null>(null); // null=loading, false=gate #6 not run, true=run
   // household view (both accounts): brain's household book + per-account P&L ledgers
   const [book, setBook] = useState<HouseholdBook | null>(null);
@@ -109,9 +128,9 @@ export default function CommandCenter() {
 
   const load = useCallback(async () => {
     const get = (u: string) => api.get(u).then((r) => r.data);
-    const [t, h, a, ins, hh, nw, p1, p2] = await Promise.allSettled([
+    const [t, h, a, ins, hh, nw, p1, p2, lb] = await Promise.allSettled([
       get("/trades/live"), get("/portfolio/holdings"), get("/advisor"), get("/analytics/insights"),
-      get("/household"), get("/advisor/natwar"), get("/pnl?account=primary"), get("/pnl?account=natwar"),
+      get("/household"), get("/advisor/natwar"), get("/pnl?account=primary"), get("/pnl?account=natwar"), get("/lab"),
     ]);
     // each card degrades to empty on its own failed call
     if (t.status === "fulfilled") {
@@ -126,11 +145,8 @@ export default function CommandCenter() {
       setChangeCount((v.changes ?? []).length);
       setBrief(v.brief ?? null); setWatchdog(v.watchdog ?? null); setEnbFloor(v.riskTargets?.enb_floor ?? null);
     }
-    if (ins.status === "fulfilled") {
-      const v = ins.value?.verdict;
-      if (v) setEdge({ profitFactor: v.profitFactor ?? null, maxDrawdownR: v.maxDrawdownR ?? 0, expectancyR: v.expectancyR ?? 0, label: v.label ?? "", closed: v.closed ?? 0 });
-      setEdgeVerified(ins.value?.gate6 ? true : false);
-    }
+    if (ins.status === "fulfilled") setEdgeVerified(ins.value?.gate6 ? true : false);
+    if (lb.status === "fulfilled") setLab(labPf(lb.value));
     if (hh.status === "fulfilled") setBook(hh.value?.book ?? null);
     if (nw.status === "fulfilled") setNatwarAdvice(nw.value?.rows ?? []);
     const pn: Record<string, PnlData> = {};
@@ -158,7 +174,8 @@ export default function CommandCenter() {
   const maxProfitPct = (cfg.maxProfitPercent as number) ?? 7;
 
   const today = new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
-  const pfColor = !edge || edge.profitFactor == null ? MUTE : edge.profitFactor >= 1.3 ? GREEN : edge.profitFactor >= 1.1 ? AMBER : RED;
+  const pfColor = !lab || lab.pf == null ? MUTE : lab.pf >= PF_TARGET ? GREEN : lab.pf >= 1.1 ? AMBER : RED;
+  const lastDay = lab?.days[lab.days.length - 1];
   const sign = (n: number) => (n >= 0 ? GREEN : RED);
 
   const todayIso = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local
@@ -341,34 +358,44 @@ export default function CommandCenter() {
             </section>
           )}
 
-          {/* edge (paper) — the go/no-go metric (VISION §6.1) — beside the daily risk meter */}
+          {/* intraday lab PF vs the 1.3 target, daily (P-70) — beside the daily risk meter */}
           <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))]">
-            {edge && edge.closed > 0 && (
-              <Link href="/insights" className="glass rounded-3xl p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors"
+            {lab && lab.days.length > 0 && (
+              <Link href="/lab" className="glass rounded-3xl p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors"
                     style={{ backgroundImage: "linear-gradient(160deg, rgba(155,225,93,0.07), rgba(255,255,255,0.02) 55%)" }}>
                 <span className="flex justify-between items-center gap-3">
                   <span className="text-[15px] font-medium text-[#eef2ee]">
-                    Edge on paper <span className="text-[#8b968e] font-normal">· {edge.closed.toLocaleString("en-IN")} trades</span>
+                    Intraday lab <span className="text-[#8b968e] font-normal">· {lab.trades.toLocaleString("en-IN")} trades · {lab.days.length} day{lab.days.length === 1 ? "" : "s"}</span>
                   </span>
-                  {edge.label && (
-                    <span className="text-xs rounded-full px-2.5 py-0.5" style={{ color: pfColor, boxShadow: `inset 0 0 0 1px ${pfColor}66` }}>{edge.label}</span>
+                  {lab.pf != null && (
+                    <span className="text-xs rounded-full px-2.5 py-0.5 whitespace-nowrap" style={{ color: pfColor, boxShadow: `inset 0 0 0 1px ${pfColor}66` }}>
+                      {lab.pf >= PF_TARGET ? "on target" : `${(PF_TARGET - lab.pf).toFixed(2)} to go`}
+                    </span>
                   )}
                 </span>
                 <div className="flex flex-wrap items-end gap-6">
-                  <PfGauge pf={edge.profitFactor} color={pfColor} />
+                  <PfGauge pf={lab.pf} color={pfColor} />
                   <div className="flex flex-col gap-3.5 pb-1.5">
                     <span className="flex flex-col gap-0.5">
-                      <span className="text-xs text-[#8b968e]">Expectancy</span>
-                      <span className="text-[22px] font-light" style={{ color: sign(edge.expectancyR) }}>
-                        {edge.expectancyR >= 0 ? "+" : "−"}{Math.abs(edge.expectancyR).toFixed(2)}R
-                      </span>
+                      <span className="text-xs text-[#8b968e]">Last day · {lastDay ? shortDate(lastDay.date) : "—"}</span>
+                      <span className="text-[22px] font-light text-[#eef2ee]">{lastDay?.pf == null ? "—" : lastDay.pf.toFixed(2)}</span>
                     </span>
                     <span className="flex flex-col gap-0.5">
-                      <span className="text-xs text-[#8b968e]">Max drawdown</span>
-                      <span className="text-[22px] font-light text-[#eef2ee]">{edge.maxDrawdownR.toFixed(1)}R</span>
+                      <span className="text-xs text-[#8b968e]">Best strategy</span>
+                      {lab.best ? (
+                        <span className="text-[22px] font-light" style={{ color: lab.best.pf >= PF_TARGET ? GREEN : "#eef2ee" }} title={lab.best.id}>
+                          {lab.best.pf.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-[13px] text-[#a9b3ab]">too early · {lab.leader ? `${lab.leader.n}/${MIN_TRADES} trades` : "no trades"}</span>
+                      )}
                     </span>
                   </div>
                 </div>
+                <PfTrail days={lab.days} />
+                <span className="text-xs text-[#8b968e]">
+                  Daily PF, all strategies pooled · <span className="text-[#b9ec8a]">— {PF_TARGET} target</span> · <span className="text-[#f08a76]">— {PF_START} where we started</span>
+                </span>
               </Link>
             )}
             <RiskMeter pnl={sess?.pnl ?? 0} capital={capital} maxLossPct={maxLossPct} maxProfitPct={maxProfitPct} />
