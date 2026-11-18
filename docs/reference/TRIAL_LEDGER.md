@@ -28,7 +28,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | second-account (Natwar) calls — 10d/30d alpha label, registered 2026-11-11 before any grade | 1 |
 | sector layer on top of v1 — exposure-weighted edge vs v1, registered 2026-11-11 before any grade | 1 |
 | S1 monthly momentum (CNC) + S1-T 200-DMA variant — pre-registered 2026-11-18, tested same day, failed | 2 |
-| **total** | **263** |
+| S5 live paper (S1-T re-registered, judged 2028-12-31) — registered 2026-11-19 before any output | 1 |
+| **total** | **264** |
 
 ## The threshold
 
@@ -38,7 +39,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **263 (this project)** | **3.73** |
+| **264 (this project)** | **3.73** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -153,3 +154,15 @@ survivor-biased), 2019–23 in-sample, 2024–25 holdout.
 - **263 S1-T** (+ Nifty 200-DMA filter): drawdown cut 9.9 pts (rule ≥ 10),
   CAGR −9.5 pts (rule ≤ 2) → not adopted. Its better holdout has been seen;
   any re-run is a new trial judged only on data from 2026-12-31 on.
+
+## Registered 2026-11-19 — S5 live paper (trial 265; 264 reserved for S2)
+
+[s1_momentum/PREREG_S5.md](s1_momentum/PREREG_S5.md), sha256 `ba48a683…059ee2`,
+frozen 2026-11-18T23:10:26Z, before any S5 output (first rebalance 2026-12-31).
+S1-T rules plus Addendum B (live adaptations). ₹50k paper book `S5` in
+`advisor_paper_*` (brain `s5_momentum.py`). One read on **2028-12-31**: adopt only
+if net CAGR beats the Nifty200 Momentum 30 price index **and** max drawdown is
+smaller. Not a significance test: at ~60 trades a year, 24 months cannot clear
+3.73. The read decides fund vs code, not whether the edge is real. Number 264 is
+held for S2 (post-results drift), which is counted when its pre-registration file
+is filed.
