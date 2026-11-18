@@ -25,15 +25,15 @@ type Payload = {
   refusals: { strategy_id: string; reason: string; count: number }[];
 };
 
-const GREEN = "#22c55e", RED = "#ef4444", MUTE = "#71717a";
-const LINE_COLORS = ["#22c55e", "#60a5fa", "#f59e0b", "#a78bfa", "#f472b6", "#71717a", "#52525b", "#3f3f46"];
+const GREEN = "#9be15d", RED = "#f08a76", MUTE = "#8b968e";
+const LINE_COLORS = ["#9be15d", "#8fc7e8", "#d9b84a", "#a78bfa", "#f472b6", "#8b968e", "#52525b", "#34443a"];
 const INR = (n: number) => inr(n, { signed: true });
 const NUM = (n: number | null | undefined, d = 2) => (n == null ? "—" : Number(n).toFixed(d));
 const MIN_TRADES = 300;
 
 function Chip({ state }: { state: Daily["sprt_state"] }) {
-  const style = state === "promoted" ? { color: GREEN, borderColor: GREEN } : state === "killed" ? { color: MUTE, borderColor: "#27272a" } : { color: "#a1a1aa", borderColor: "#3f3f46" };
-  return <span className="px-1.5 py-0.5 rounded border text-xs" style={style}>{state}</span>;
+  const style = state === "promoted" ? { color: GREEN, borderColor: GREEN } : state === "killed" ? { color: MUTE, borderColor: "#2a372e" } : { color: "#a9b3ab", borderColor: "#34443a" };
+  return <span className="px-1.5 py-0.5 rounded-full border text-xs" style={style}>{state}</span>;
 }
 
 export default function LabPage() {
@@ -77,36 +77,36 @@ export default function LabPage() {
   }, [rows, data]);
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
       <Sidebar />
       <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto space-y-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-xl font-semibold flex items-center gap-2"><FlaskConical className="w-5 h-5 text-[#888]" /> Strategy lab</h1>
-              <p className="text-xs text-[#8a8a8a] mt-1">
+              <h1 className="text-xl font-semibold flex items-center gap-2"><FlaskConical className="w-5 h-5 text-[#8b968e]" /> Strategy lab</h1>
+              <p className="text-xs text-[#8b968e] mt-1">
                 {data?.strategies.length ?? 0} pre-registered intraday variants paper-trade the Nifty 200 in parallel, each in its own ₹50k MIS book, after all charges and slippage.
               </p>
             </div>
-            <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#aaa] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] min-h-[40px] shrink-0">
+            <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#a9b3ab] bg-[#121a15] border border-[#223027] hover:text-[#eef2ee] min-h-[40px] shrink-0">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
 
-          {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4">{error}</div>}
-          {!data && loading && <Skeleton className="h-64 w-full rounded-xl bg-[#111]" />}
+          {error && <div className="bg-[#f08a76]/10 border border-[#f08a76]/30 text-[#f08a76] text-sm rounded-xl p-4">{error}</div>}
+          {!data && loading && <Skeleton className="h-64 w-full rounded-xl bg-[#121a15]" />}
 
           {data && !data.date && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6 text-[12px] text-[#8a8a8a]">No lab trades yet — the scoreboard fills in at 15:20 IST on the first trading day with a live token.</div>
+            <div className="glass rounded-3xl p-6 text-[12px] text-[#8b968e]">No lab trades yet — the scoreboard fills in at 15:20 IST on the first trading day with a live token.</div>
           )}
 
           {data?.date && (
             <>
-              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 text-[12px] space-y-1">
+              <div className="glass rounded-3xl p-4 text-[12px] space-y-1">
                 {best
                   ? <p>Best by net PF: <span className="font-semibold">{best.strategy_id}</span> — PF {NUM(best.pf)} over {best.cum_n} trades on {best.cum_days} days.</p>
-                  : <p className="text-[#a1a1aa]">n not yet meaningful (need {MIN_TRADES} trades per variant before any PF is worth reading).</p>}
-                <p className="text-[#8a8a8a]">Variants trade the same stocks at the same moments — the real sample is trading days, not trades.</p>
+                  : <p className="text-[#a9b3ab]">n not yet meaningful (need {MIN_TRADES} trades per variant before any PF is worth reading).</p>}
+                <p className="text-[#8b968e]">Variants trade the same stocks at the same moments — the real sample is trading days, not trades.</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -117,15 +117,15 @@ export default function LabPage() {
               </div>
 
               {chart.points.length > 1 && (
-                <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                  <p className="text-xs text-[#8a8a8a] mb-2">Cumulative net ₹ — top 5 variants + CONF baselines</p>
+                <div className="glass rounded-3xl p-4">
+                  <p className="text-xs text-[#8b968e] mb-2">Cumulative net ₹ — top 5 variants + CONF baselines</p>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chart.points}>
-                        <CartesianGrid stroke="#1f1f1f" vertical={false} />
-                        <XAxis dataKey="date" tick={{ fill: "#8a8a8a", fontSize: 11 }} />
-                        <YAxis tick={{ fill: "#8a8a8a", fontSize: 11 }} width={60} />
-                        <Tooltip contentStyle={{ background: "#111", border: "1px solid #27272a", fontSize: 11 }} />
+                        <CartesianGrid stroke="#223027" vertical={false} />
+                        <XAxis dataKey="date" tick={{ fill: "#8b968e", fontSize: 11 }} />
+                        <YAxis tick={{ fill: "#8b968e", fontSize: 11 }} width={60} />
+                        <Tooltip contentStyle={{ background: "#121a15", border: "1px solid #2a372e", fontSize: 11 }} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
                         {chart.keep.map((id, i) => <Line key={id} dataKey={id} dot={false} strokeWidth={1.5} stroke={LINE_COLORS[i % LINE_COLORS.length]} />)}
                       </LineChart>
@@ -134,10 +134,10 @@ export default function LabPage() {
                 </div>
               )}
 
-              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-x-auto">
+              <div className="glass rounded-3xl overflow-x-auto">
                 <table className="w-full text-xs tabular-nums">
-                  <thead className="text-[#8a8a8a] text-left">
-                    <tr className="border-b border-[#1f1f1f]">
+                  <thead className="text-[#8b968e] text-left">
+                    <tr className="border-b border-[#223027]">
                       {["Variant", "Today n", "Today net", "Cum n", "Days", "Cum net", "PF", "Win %", "Gross R / Cost R", "t (days)", "SPRT", "Refused"].map((h) => (
                         <th key={h} className="px-3 py-2 font-normal whitespace-nowrap">{h}</th>
                       ))}
@@ -145,7 +145,7 @@ export default function LabPage() {
                   </thead>
                   <tbody>
                     {rows.map((r) => (
-                      <tr key={r.strategy_id} className={`border-b border-[#161616] ${r.sprt_state === "killed" ? "text-[#8a8a8a] line-through" : ""}`}>
+                      <tr key={r.strategy_id} className={`border-b border-[#1a241e] ${r.sprt_state === "killed" ? "text-[#8b968e] line-through" : ""}`}>
                         <td className="px-3 py-1.5 whitespace-nowrap">{r.strategy_id}</td>
                         <td className="px-3 py-1.5">{r.n}</td>
                         <td className="px-3 py-1.5" style={{ color: Number(r.net_inr) >= 0 ? GREEN : RED }}>{INR(Number(r.net_inr))}</td>

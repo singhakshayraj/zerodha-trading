@@ -12,9 +12,9 @@ export function CallPath({ path }: { path: { td: number; signed_alpha_pct: numbe
   return (
     <svg data-testid="call-path" viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[320px] h-20" role="img"
       aria-label="Daily score of this call against the Nifty">
-      <line x1={P} x2={W - P} y1={y(0)} y2={y(0)} stroke="#333" strokeWidth={1} />
-      <polyline points={line("nifty_pct")} fill="none" stroke="#71717a" strokeWidth={1} strokeDasharray="3 3" />
-      <polyline points={line("signed_alpha_pct")} fill="none" stroke={last >= 0 ? "#22c55e" : "#ef4444"} strokeWidth={2} />
+      <line x1={P} x2={W - P} y1={y(0)} y2={y(0)} stroke="#34443a" strokeWidth={1} />
+      <polyline points={line("nifty_pct")} fill="none" stroke="#8b968e" strokeWidth={1} strokeDasharray="3 3" />
+      <polyline points={line("signed_alpha_pct")} fill="none" stroke={last >= 0 ? "#9be15d" : "#f08a76"} strokeWidth={2} />
     </svg>
   );
 }

@@ -96,7 +96,7 @@ export default function BrainActivityFeed({
           Error: {error}
         </div>
       )}
-      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg h-72 md:h-[400px] overflow-y-auto scroll-touch font-mono text-xs p-3">
+      <div className="bg-[#0a0e0c] border border-[#223027] rounded-lg h-72 md:h-[400px] overflow-y-auto scroll-touch font-mono text-xs p-3">
         {events.length === 0 ? (
           <div className="text-gray-500 italic">Waiting for brain activity...</div>
         ) : (

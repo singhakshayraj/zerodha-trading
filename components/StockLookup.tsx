@@ -39,16 +39,16 @@ type Match = {
   inNifty50: boolean; inScanUniverse: boolean; held: boolean;
 };
 
-const TONE = { good: "#22c55e", bad: "#ef4444", mid: "#f59e0b" } as const;
+const TONE = { good: "#9be15d", bad: "#f08a76", mid: "#d9b84a" } as const;
 
 // Same palette/wording the holdings list uses, so a searched name and a held
 // name read identically — the analysis is the same analysis.
 const VERDICT: Record<Detail["verdict"], { color: string; label: string }> = {
-  HOLD:           { color: "#22c55e", label: "Hold" },
-  TRIM:           { color: "#3b82f6", label: "Trim" },
-  SELL_ON_BOUNCE: { color: "#f59e0b", label: "Sell on bounce" },
-  SELL:           { color: "#ef4444", label: "Sell" },
-  INSUFFICIENT:   { color: "#71717a", label: "No read" },
+  HOLD:           { color: "#9be15d", label: "Hold" },
+  TRIM:           { color: "#b9ec8a", label: "Trim" },
+  SELL_ON_BOUNCE: { color: "#d9b84a", label: "Sell on bounce" },
+  SELL:           { color: "#f08a76", label: "Sell" },
+  INSUFFICIENT:   { color: "#8b968e", label: "No read" },
 };
 
 const INR = (n: number) => inr(n, { dp: 2 });
@@ -138,12 +138,12 @@ export function StockLookup() {
     : null;
 
   return (
-    <section className="mb-5 rounded-xl border border-[#1f1f1f] bg-[#111111] p-4">
+    <section className="mb-5 rounded-xl border border-[#223027] bg-[#121a15] p-4">
       <div className="flex items-center gap-2 mb-1">
-        <Search className="w-4 h-4 text-[#3b82f6]" />
-        <h2 className="text-sm font-medium text-[#f5f5f5]">Check any stock</h2>
+        <Search className="w-4 h-4 text-[#b9ec8a]" />
+        <h2 className="text-sm font-medium text-[#eef2ee]">Check any stock</h2>
       </div>
-      <p className="text-xs text-[#8a8a8a] mb-3">
+      <p className="text-xs text-[#8b968e] mb-3">
         Any of the ~500 names the advisor scans daily — not just the ones you hold.
       </p>
 
@@ -158,7 +158,7 @@ export function StockLookup() {
           aria-label="Stock symbol"
           list="stock-symbols"
           autoComplete="off"
-          className="flex-1 min-w-0 bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-3 py-2 text-[13px] text-[#f5f5f5] placeholder:text-[#8a8a8a] focus:outline-none focus:border-[#3b82f6]"
+          className="flex-1 min-w-0 bg-[#0e1410] border border-[#223027] rounded-lg px-3 py-2 text-[13px] text-[#eef2ee] placeholder:text-[#8b968e] focus:outline-none focus:border-[#b9ec8a]"
         />
         <datalist id="stock-symbols">
           {opts.map((o) => (
@@ -171,21 +171,21 @@ export function StockLookup() {
         <button
           type="submit"
           disabled={busy || !q.trim()}
-          className="px-4 py-2 rounded-lg text-[13px] bg-[#3b82f6]/10 border border-[#3b82f6]/40 text-[#7fb4ff] disabled:opacity-40 min-h-[40px]"
+          className="px-4 py-2 rounded-lg text-[13px] bg-[#b9ec8a]/10 border border-[#b9ec8a]/40 text-[#8fc7e8] disabled:opacity-40 min-h-[40px]"
         >
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Check"}
         </button>
       </form>
 
       {res && !m && (
-        <p className="mt-3 text-[12px] text-[#8a8a8a]">
-          No exact match for <span className="text-[#f5f5f5]">{res.query}</span>.
+        <p className="mt-3 text-[12px] text-[#8b968e]">
+          No exact match for <span className="text-[#eef2ee]">{res.query}</span>.
           {res.suggestions.length > 0 && (
             <> Did you mean{" "}
               {res.suggestions.map((s, i) => (
                 <span key={s}>
                   {i > 0 && ", "}
-                  <button onClick={() => run(s)} className="text-[#7fb4ff] underline underline-offset-2">{s}</button>
+                  <button onClick={() => run(s)} className="text-[#8fc7e8] underline underline-offset-2">{s}</button>
                 </span>
               ))}?
             </>
@@ -194,14 +194,14 @@ export function StockLookup() {
       )}
 
       {m && (
-        <div className="mt-3 rounded-lg border border-[#1f1f1f] bg-[#0d0d0d] p-3">
+        <div className="mt-3 rounded-lg border border-[#223027] bg-[#0e1410] p-3">
           <div className="flex items-baseline justify-between gap-3 flex-wrap">
             <div className="min-w-0">
-              <p className="text-[14px] font-semibold text-[#f5f5f5]">
+              <p className="text-[14px] font-semibold text-[#eef2ee]">
                 {m.symbol}
-                {m.inNifty50 && <span className="ml-2 text-xs text-[#8a8a8a]">NIFTY 50</span>}
+                {m.inNifty50 && <span className="ml-2 text-xs text-[#8b968e]">NIFTY 50</span>}
               </p>
-              <p className="text-xs text-[#8a8a8a] truncate">
+              <p className="text-xs text-[#8b968e] truncate">
                 {m.name}{m.sector ? ` · ${m.sector}` : ""}
               </p>
             </div>
@@ -216,26 +216,26 @@ export function StockLookup() {
               // The daily scan deliberately EXCLUDES holdings (they get a full
               // verdict instead), so "not scored" here would read as a gap when
               // it is by design.
-              <p className="text-[12px] text-[#7fb4ff] shrink-0">in your portfolio</p>
+              <p className="text-[12px] text-[#8fc7e8] shrink-0">in your portfolio</p>
             ) : (
-              <p className="text-[12px] text-[#8a8a8a] shrink-0">not scored yet</p>
+              <p className="text-[12px] text-[#8b968e] shrink-0">not scored yet</p>
             )}
           </div>
 
-          <p className="mt-3 text-xs text-[#8a8a8a] leading-relaxed">
+          <p className="mt-3 text-xs text-[#8b968e] leading-relaxed">
             {m.score === null && m.held
               ? "Held names are scored as a full verdict rather than a bare number — see the list below. "
               : ""}
             Trend score runs −100 to +100 and is the same input the advisor&apos;s verdict is built on —
-            but it is <span className="text-[#a1a1aa]">not itself a verdict</span>: a full call also weighs
+            but it is <span className="text-[#a9b3ab]">not itself a verdict</span>: a full call also weighs
             swing support, overbought stretch and weekly alignment before choosing hold, trim or sell.
             {m.scoredAt && (
               <> Scored{" "}
-                <span className="text-[#a1a1aa]">
+                <span className="text-[#a9b3ab]">
                   {new Date(m.scoredAt).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })}
                 </span>
                 {stale !== null && stale > 1 && (
-                  <span style={{ color: "#f59e0b" }}> — {stale} days ago, so it is stale until the advisor next runs</span>
+                  <span style={{ color: "#d9b84a" }}> — {stale} days ago, so it is stale until the advisor next runs</span>
                 )}.
               </>
             )}
@@ -246,12 +246,12 @@ export function StockLookup() {
               <button
                 onClick={analyseLive}
                 disabled={live === "sending" || live === "polling"}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-[#22c55e]/10 border border-[#22c55e]/40 text-[#7ee2a8] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-[#9be15d]/10 border border-[#9be15d]/40 text-[#7ee2a8] disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${live === "sending" || live === "polling" ? "animate-spin" : ""}`} />
                 {live === "sending" || live === "polling" ? "Analysing…" : live === "done" ? "Updated" : "Analyse this name live"}
               </button>
-              <span className="text-xs text-[#8a8a8a]">
+              <span className="text-xs text-[#8b968e]">
                 {live === "polling"
                   ? "Scoring just this name with the live token — updates here in ~30s."
                   : live === "timeout"
@@ -266,15 +266,15 @@ export function StockLookup() {
           )}
 
           {m.detail && m.detail.verdict !== "INSUFFICIENT" && (
-            <div className="mt-3 pt-3 border-t border-[#1f1f1f] space-y-3">
+            <div className="mt-3 pt-3 border-t border-[#223027] space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-1 rounded-md text-[12px] font-semibold border"
+                <span className="px-2 py-1 rounded-full text-[12px] font-semibold border"
                       style={{ color: VERDICT[m.detail.verdict].color,
                                borderColor: `${VERDICT[m.detail.verdict].color}55`,
                                background: `${VERDICT[m.detail.verdict].color}14` }}>
                   {VERDICT[m.detail.verdict].label}
                 </span>
-                <span className="text-xs text-[#8a8a8a]">
+                <span className="text-xs text-[#8b968e]">
                   confidence {m.detail.confidence}%
                   {m.detail.trigger_type ? ` · ${m.detail.trigger_type === "MACRO" ? "long-term structure" : "short-term signal"}` : ""}
                 </span>
@@ -282,8 +282,8 @@ export function StockLookup() {
 
               <ul className="space-y-1.5">
                 {m.detail.reasons.map((r, i) => (
-                  <li key={i} className="text-[12px] text-[#c5c5c5] leading-relaxed flex gap-2">
-                    <span className="mt-1.5 h-1 w-1 rounded-full bg-[#555] shrink-0" />{r}
+                  <li key={i} className="text-[12px] text-[#c2ccc4] leading-relaxed flex gap-2">
+                    <span className="mt-1.5 h-1 w-1 rounded-full bg-[#5c6a60] shrink-0" />{r}
                   </li>
                 ))}
               </ul>
@@ -292,7 +292,7 @@ export function StockLookup() {
                   list above, which is confirmatory by construction. */}
               {m.detail.counter_case && (
                 <div className="rounded border border-[#3a3320] bg-[#17140c] px-2.5 py-2">
-                  <p className="text-xs uppercase tracking-wide mb-1" style={{ color: "#f59e0b" }}>
+                  <p className="text-xs mb-1" style={{ color: "#d9b84a" }}>
                     {m.detail.verdict === "SELL" || m.detail.verdict === "SELL_ON_BOUNCE"
                       ? "Bull case — what would make this sell wrong"
                       : "Bear case — what would make this call wrong"}
@@ -304,27 +304,27 @@ export function StockLookup() {
               {(m.detail.stop_level || m.detail.exit_target || m.detail.indicators) && (
                 <div className="flex flex-wrap gap-2">
                   {m.detail.exit_target && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#d5d5d5]">
-                      sell near <span style={{ color: "#f59e0b" }}>{INR(m.detail.exit_target)}</span>
+                    <span className="px-2 py-1 rounded-full bg-[#0a0e0c] border border-[#223027] text-xs text-[#d3dbd5]">
+                      sell near <span style={{ color: "#d9b84a" }}>{INR(m.detail.exit_target)}</span>
                     </span>
                   )}
                   {m.detail.stop_level && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#d5d5d5]">
-                      exit below <span style={{ color: "#ef4444" }}>{INR(m.detail.stop_level)}</span>
+                    <span className="px-2 py-1 rounded-full bg-[#0a0e0c] border border-[#223027] text-xs text-[#d3dbd5]">
+                      exit below <span style={{ color: "#f08a76" }}>{INR(m.detail.stop_level)}</span>
                     </span>
                   )}
                   {m.detail.indicators?.rsi_14 != null && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#8a8a8a]">
+                    <span className="px-2 py-1 rounded-full bg-[#0a0e0c] border border-[#223027] text-xs text-[#8b968e]">
                       RSI {m.detail.indicators.rsi_14.toFixed(0)}
                     </span>
                   )}
                   {m.detail.indicators?.adx != null && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#8a8a8a]">
+                    <span className="px-2 py-1 rounded-full bg-[#0a0e0c] border border-[#223027] text-xs text-[#8b968e]">
                       ADX {m.detail.indicators.adx.toFixed(0)}
                     </span>
                   )}
                   {m.detail.indicators?.relative_strength_vs_nifty != null && (
-                    <span className="px-2 py-1 rounded bg-[#0a0a0a] border border-[#1f1f1f] text-xs text-[#8a8a8a]">
+                    <span className="px-2 py-1 rounded-full bg-[#0a0e0c] border border-[#223027] text-xs text-[#8b968e]">
                       vs NIFTY {m.detail.indicators.relative_strength_vs_nifty > 0 ? "+" : ""}
                       {m.detail.indicators.relative_strength_vs_nifty.toFixed(1)}pp
                     </span>
@@ -335,14 +335,14 @@ export function StockLookup() {
           )}
 
           {m.score === null && !m.held && !m.inScanUniverse && (
-            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-xs text-[#8a8a8a]">
+            <p className="mt-3 pt-3 border-t border-[#223027] text-xs text-[#8b968e]">
               This name sits outside the Nifty 500 universe the advisor scans, so
               there is nothing to report — not a gap in the data.
             </p>
           )}
 
           {m.score !== null && !m.detail && (
-            <p className="mt-3 pt-3 border-t border-[#1f1f1f] text-xs text-[#8a8a8a]">
+            <p className="mt-3 pt-3 border-t border-[#223027] text-xs text-[#8b968e]">
               Only the trend score is stored for this name so far — the full
               read (reasons, levels, bear case) lands on the next advisor run.
             </p>
@@ -350,16 +350,16 @@ export function StockLookup() {
 
 
           {m.scoredAt && stale !== null && stale > 1 && (
-            <div className="mt-3 pt-3 border-t border-[#1f1f1f] flex items-center gap-3 flex-wrap">
+            <div className="mt-3 pt-3 border-t border-[#223027] flex items-center gap-3 flex-wrap">
               <button
                 onClick={requestRefresh}
                 disabled={queue === "sending" || queue === "queued"}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-[#3b82f6]/10 border border-[#3b82f6]/40 text-[#7fb4ff] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-[#b9ec8a]/10 border border-[#b9ec8a]/40 text-[#8fc7e8] disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${queue === "sending" ? "animate-spin" : ""}`} />
                 {queue === "queued" ? "Requested" : "Re-run analysis"}
               </button>
-              <span className="text-xs text-[#8a8a8a]">
+              <span className="text-xs text-[#8b968e]">
                 {queue === "queued"
                   ? "Queued — the brain picks it up within ~30s and needs a live token. Refresh this page after that."
                   : queue === "failed"
@@ -370,7 +370,7 @@ export function StockLookup() {
           )}
 
           {m.held && (
-            <p className="mt-2 text-xs text-[#7fb4ff]">
+            <p className="mt-2 text-xs text-[#8fc7e8]">
               You hold this — its full verdict, reasons and bear case are in the list below.
             </p>
           )}

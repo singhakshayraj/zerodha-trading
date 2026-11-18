@@ -22,7 +22,7 @@ type Statement = { period_from: string; period_to: string; uploaded_at: string;
   check_result: { sell_symbols: number; sell_matched: number; sell_mismatches: Mismatch[]; open_checked: boolean; open_mismatches: Mismatch[]; pending?: string[]; lag_from?: string | null; fills_on_record_from: string | null; covers_period: boolean } | null };
 type Payload = { account: string; daily: Day[]; ledger: Decision[]; firstFillDate: string | null; statements: Statement[] };
 
-const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", MUTE = "#71717a", PURPLE = "#a78bfa";
+const GREEN = "#9be15d", RED = "#f08a76", AMBER = "#d9b84a", MUTE = "#8b968e", PURPLE = "#a78bfa";
 const INR = (n: number, d = 0) => inr(n, { dp: d });
 const SIGNED = (n: number) => (n > 0 ? "+" : "") + INR(n);
 const COMPACT = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "") + "₹" + (Math.abs(n) >= 1000 ? String(Number((Math.abs(n) / 1000).toFixed(Math.abs(n) >= 100000 ? 0 : 2))) + "k" : Math.round(Math.abs(n)).toString());
@@ -30,8 +30,8 @@ const MONTH = (m: string) => new Date(m + "-01T00:00:00").toLocaleDateString("en
 const KIND: Record<Decision["kind"], { label: string; color: string }> = {
   followed_sell: { label: "followed · sell", color: GREEN },
   followed_buy: { label: "followed · buy", color: GREEN },
-  own_sell: { label: "own · sell", color: "#60a5fa" },
-  own_buy: { label: "own · buy", color: "#60a5fa" },
+  own_sell: { label: "own · sell", color: "#8fc7e8" },
+  own_buy: { label: "own · buy", color: "#8fc7e8" },
   ignored_call: { label: "ignored call", color: AMBER },
 };
 
@@ -115,39 +115,39 @@ export default function PnlPage() {
   const dayDecisions = day ? (data?.ledger ?? []).filter((r) => r.date === day && r.kind !== "ignored_call") : [];
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
       <Sidebar />
       <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto space-y-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-xl font-semibold flex items-center gap-2"><Wallet className="w-5 h-5 text-[#888]" /> Real-money P&amp;L</h1>
-              <p className="text-xs text-[#8a8a8a] mt-1">What the account actually made, from Zerodha fills marked to each day&apos;s close — and which trades followed the advisor.</p>
+              <h1 className="text-xl font-semibold flex items-center gap-2"><Wallet className="w-5 h-5 text-[#8b968e]" /> Real-money P&amp;L</h1>
+              <p className="text-xs text-[#8b968e] mt-1">What the account actually made, from Zerodha fills marked to each day&apos;s close — and which trades followed the advisor.</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <div className="flex rounded-lg border border-[#1f1f1f] bg-[#111111] overflow-hidden text-xs min-h-[40px]">
+              <div className="flex rounded-lg border border-[#223027] bg-[#121a15] overflow-hidden text-xs min-h-[40px]">
                 {([["primary", "Kanaklata"], ["natwar", "Natwar"]] as const).map(([k, label]) => (
                   <button key={k} onClick={() => { setAccount(k); setDay(null); }}
-                    className={`px-3 ${account === k ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a] hover:text-[#f5f5f5]"}`}>{label}</button>
+                    className={`px-3 ${account === k ? "bg-[#223027] text-[#eef2ee]" : "text-[#8b968e] hover:text-[#eef2ee]"}`}>{label}</button>
                 ))}
               </div>
-              <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#aaa] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] min-h-[40px]">
+              <button onClick={load} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#a9b3ab] bg-[#121a15] border border-[#223027] hover:text-[#eef2ee] min-h-[40px]">
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
               </button>
             </div>
           </div>
 
-          {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4">{error}</div>}
-          {!data && loading && <Skeleton className="h-64 w-full rounded-xl bg-[#111]" />}
+          {error && <div className="bg-[#f08a76]/10 border border-[#f08a76]/30 text-[#f08a76] text-sm rounded-xl p-4">{error}</div>}
+          {!data && loading && <Skeleton className="h-64 w-full rounded-xl bg-[#121a15]" />}
 
           {data && data.daily.length === 0 && (
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6 text-[12px] text-[#8a8a8a]">No P&amp;L computed yet for this account — it fills in after the next 15:35 post-close run.</div>
+            <div className="glass rounded-3xl p-6 text-[12px] text-[#8b968e]">No P&amp;L computed yet for this account — it fills in after the next 15:35 post-close run.</div>
           )}
 
           {data && data.daily.length > 0 && month && (
             <>
               {account === "natwar" && data.firstFillDate && data.firstFillDate > data.daily[0].date && (
-                <div className="p-3 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 text-xs text-[#f59e0b] leading-relaxed">
+                <div className="p-3 rounded-lg border border-[#d9b84a]/20 bg-[#d9b84a]/5 text-xs text-[#d9b84a] leading-relaxed">
                   Fills for this account are on record only from {data.firstFillDate}. Days before that assume the holdings did not change — import his Console tradebook to make them exact.
                 </div>
               )}
@@ -157,8 +157,8 @@ export default function PnlPage() {
                 {months.map(([m, x]) => (
                   <button key={m} onClick={() => { setMonth(m); setDay(null); }}
                     className="shrink-0 rounded-lg border px-3 py-2 text-left min-w-[104px]"
-                    style={{ borderColor: m === month ? "#3a3a3a" : "#1f1f1f", background: m === month ? "#161616" : "#111111" }}>
-                    <p className="text-xs text-[#8a8a8a] uppercase tracking-wide">{MONTH(m)}</p>
+                    style={{ borderColor: m === month ? "#34443a" : "#223027", background: m === month ? "#1a241e" : "#121a15" }}>
+                    <p className="text-xs text-[#8b968e]">{MONTH(m)}</p>
                     <p className="text-[13px] font-semibold tabular-nums" style={{ color: x.pnl >= 0 ? GREEN : RED }}>{SIGNED(Math.round(x.pnl))}</p>
                   </button>
                 ))}
@@ -173,8 +173,8 @@ export default function PnlPage() {
               </div>
 
               {/* calendar */}
-              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-                <div className="grid grid-cols-5 gap-1.5 text-xs text-[#8a8a8a] uppercase tracking-wide mb-1.5">
+              <div className="glass rounded-3xl p-4">
+                <div className="grid grid-cols-5 gap-1.5 text-xs text-[#8b968e] mb-1.5">
                   {["Mon", "Tue", "Wed", "Thu", "Fri"].map((d) => <span key={d}>{d}</span>)}
                 </div>
                 <div className="space-y-1.5">
@@ -182,54 +182,54 @@ export default function PnlPage() {
                     <div key={i} className="grid grid-cols-5 gap-1.5">
                       {w.map((c, j) => {
                         if (c === "pad") return <div key={j} />;
-                        if (c === null) return <div key={j} className="h-14 rounded-md bg-[#0b0b0b] border border-[#161616]" />;
+                        if (c === null) return <div key={j} className="h-14 rounded-md bg-[#0e1410] border border-[#1a241e]" />;
                         const a = Math.min(1, Math.abs(c.pnl) / maxAbs);
-                        const col = c.pnl >= 0 ? "34,197,94" : "239,68,68";
+                        const col = c.pnl >= 0 ? "155,225,93" : "240,138,118";
                         return (
                           <button key={j} onClick={() => setDay(day === c.date ? null : c.date)}
-                            className="h-14 rounded-md border text-left px-1.5 py-1 flex flex-col justify-between hover:border-[#555]"
-                            style={{ background: `rgba(${col},${0.08 + a * 0.45})`, borderColor: day === c.date ? "#e5e5e5" : "#1f1f1f" }}>
-                            <span className="text-xs text-[#c5c5c5] tabular-nums">{Number(c.date.slice(8))}{c.fills > 0 && <span className="ml-1 text-[#f5f5f5]">•</span>}</span>
-                            <span className="text-[10px] sm:text-xs font-semibold tabular-nums text-[#f5f5f5] truncate">{COMPACT(c.pnl)}</span>
+                            className="h-14 rounded-md border text-left px-1.5 py-1 flex flex-col justify-between hover:border-[#5c6a60]"
+                            style={{ background: `rgba(${col},${0.06 + a * 0.34})`, borderColor: day === c.date ? "#e2e8e3" : "#223027" }}>
+                            <span className="text-xs text-[#c2ccc4] tabular-nums">{Number(c.date.slice(8))}{c.fills > 0 && <span className="ml-1 text-[#eef2ee]">•</span>}</span>
+                            <span className="text-[10px] sm:text-xs font-semibold tabular-nums text-[#eef2ee] truncate">{COMPACT(c.pnl)}</span>
                           </button>
                         );
                       })}
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-[#8a8a8a] mt-2">Tap a day for its detail · • = trades that day · grey = market holiday or no data</p>
+                <p className="text-xs text-[#8b968e] mt-2">Tap a day for its detail · • = trades that day · grey = market holiday or no data</p>
 
                 {dayRow && (
-                  <div className="mt-3 rounded-lg border border-[#262626] bg-[#0d0d0d] p-3">
+                  <div className="mt-3 rounded-lg border border-[#2a372e] bg-[#0e1410] p-3">
                     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[12px]">
-                      <span className="font-semibold text-[#f5f5f5]">{new Date(dayRow.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}</span>
+                      <span className="font-semibold text-[#eef2ee]">{new Date(dayRow.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}</span>
                       <span className="tabular-nums" style={{ color: dayRow.pnl >= 0 ? GREEN : RED }}>{SIGNED(Math.round(dayRow.pnl))}</span>
-                      {dayRow.nifty_pnl != null && <span className="text-[#8a8a8a] tabular-nums">Nifty {SIGNED(Math.round(dayRow.nifty_pnl))}</span>}
-                      {dayRow.value_open != null && dayRow.value_close != null && <span className="text-[#8a8a8a] tabular-nums">value {INR(Math.round(dayRow.value_open))} → {INR(Math.round(dayRow.value_close))}</span>}
-                      {(dayRow.buys_inr ?? 0) > 0 && <span className="text-[#8a8a8a] tabular-nums">bought {INR(Math.round(dayRow.buys_inr!))}</span>}
-                      {(dayRow.sells_inr ?? 0) > 0 && <span className="text-[#8a8a8a] tabular-nums">sold {INR(Math.round(dayRow.sells_inr!))}</span>}
+                      {dayRow.nifty_pnl != null && <span className="text-[#8b968e] tabular-nums">Nifty {SIGNED(Math.round(dayRow.nifty_pnl))}</span>}
+                      {dayRow.value_open != null && dayRow.value_close != null && <span className="text-[#8b968e] tabular-nums">value {INR(Math.round(dayRow.value_open))} → {INR(Math.round(dayRow.value_close))}</span>}
+                      {(dayRow.buys_inr ?? 0) > 0 && <span className="text-[#8b968e] tabular-nums">bought {INR(Math.round(dayRow.buys_inr!))}</span>}
+                      {(dayRow.sells_inr ?? 0) > 0 && <span className="text-[#8b968e] tabular-nums">sold {INR(Math.round(dayRow.sells_inr!))}</span>}
                     </div>
                     {dayDecisions.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {dayDecisions.map((r, i) => (
-                          <span key={i} className="text-xs px-2 py-1 rounded bg-[#111] border border-[#1f1f1f]">
-                            <span style={{ color: r.side === "sell" ? RED : GREEN }}>{r.side}</span> <span className="text-[#e5e5e5] font-medium">{r.symbol}</span>
-                            <span className="text-[#8a8a8a] tabular-nums"> {r.qty} @ {INR(r.price ?? 0, 2)}</span>
+                          <span key={i} className="text-xs px-2 py-1 rounded-full bg-[#121a15] border border-[#223027]">
+                            <span style={{ color: r.side === "sell" ? RED : GREEN }}>{r.side}</span> <span className="text-[#e2e8e3] font-medium">{r.symbol}</span>
+                            <span className="text-[#8b968e] tabular-nums"> {r.qty} @ {INR(r.price ?? 0, 2)}</span>
                             <span style={{ color: KIND[r.kind].color }}> · {KIND[r.kind].label}</span>
                           </span>
                         ))}
                       </div>
                     )}
-                    {dayRow.missing_prices && <p className="text-xs text-[#f59e0b] mt-2">No close for {dayRow.missing_prices.join(", ")} — valued at the last known price.</p>}
+                    {dayRow.missing_prices && <p className="text-xs text-[#d9b84a] mt-2">No close for {dayRow.missing_prices.join(", ")} — valued at the last known price.</p>}
                   </div>
                 )}
               </div>
 
               {/* decision ledger */}
-              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+              <div className="glass rounded-3xl p-4">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h3 className="text-sm font-semibold">Decisions</h3>
-                  <span className="text-xs text-[#8a8a8a]">every trade vs the call standing at the time · impact {`~10`} trading days later</span>
+                  <span className="text-xs text-[#8b968e]">every trade vs the call standing at the time · impact {`~10`} trading days later</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 my-3">
                   <StatTile label="Followed calls" value={SIGNED(Math.round(followedImpact))} sub="+ = the trade beat staying put" color={followedImpact >= 0 ? GREEN : RED} />
@@ -238,17 +238,17 @@ export default function PnlPage() {
                 <div className="flex gap-1.5 mb-2.5">
                   {(["all", "followed", "ignored", "own"] as const).map((f) => (
                     <button key={f} onClick={() => setFilter(f)}
-                      className={`text-xs px-2.5 py-1 rounded-md border ${filter === f ? "bg-[#1f1f1f] border-[#333] text-[#f5f5f5]" : "border-[#1f1f1f] text-[#8a8a8a]"}`}>{f}</button>
+                      className={`text-xs px-2.5 py-1 rounded-full border ${filter === f ? "bg-[#223027] border-[#34443a] text-[#eef2ee]" : "border-[#223027] text-[#8b968e]"}`}>{f}</button>
                   ))}
                 </div>
                 <div className="space-y-1.5">
                   {ledger.slice(0, 80).map((r, i) => (
-                    <div key={i} className="grid grid-cols-[72px_1fr_auto] sm:grid-cols-[80px_110px_1fr_auto] items-center gap-2 text-[12px] rounded-md bg-[#0d0d0d] border border-[#1a1a1a] px-2.5 py-1.5">
-                      <span className="text-[#8a8a8a] tabular-nums">{r.date.slice(5)}</span>
-                      <span className="hidden sm:block text-xs font-semibold uppercase tracking-wide" style={{ color: KIND[r.kind].color }}>{KIND[r.kind].label}</span>
+                    <div key={i} className="grid grid-cols-[72px_1fr_auto] sm:grid-cols-[80px_110px_1fr_auto] items-center gap-2 text-[12px] rounded-md bg-[#0e1410] border border-[#1a241e] px-2.5 py-1.5">
+                      <span className="text-[#8b968e] tabular-nums">{r.date.slice(5)}</span>
+                      <span className="hidden sm:block text-xs font-semibold" style={{ color: KIND[r.kind].color }}>{KIND[r.kind].label}</span>
                       <span className="min-w-0 truncate">
-                        <span className="text-[#f5f5f5] font-medium">{r.symbol}</span>
-                        <span className="text-[#8a8a8a] tabular-nums">
+                        <span className="text-[#eef2ee] font-medium">{r.symbol}</span>
+                        <span className="text-[#8b968e] tabular-nums">
                           {r.kind === "ignored_call" ? ` ${r.call_verdict} ${r.qty} @ ${INR(r.price ?? 0, 2)}` : ` ${r.side} ${r.qty} @ ${INR(r.price ?? 0, 2)}`}
                           {r.rotation_from && <span style={{ color: PURPLE }}> ← from {r.rotation_from}</span>}
                           {r.call_verdict && r.kind !== "ignored_call" && <span> · call {r.call_verdict} {r.call_run_date?.slice(5)}</span>}
@@ -256,19 +256,19 @@ export default function PnlPage() {
                       </span>
                       <span className="tabular-nums text-right" style={{ color: r.impact_inr == null ? MUTE : r.impact_inr >= 0 ? GREEN : RED }}>
                         {r.impact_inr == null ? "pending" : SIGNED(Math.round(r.impact_inr))}
-                        {r.impact_inr != null && (r.impact_days ?? 0) < 10 && <span className="text-xs text-[#8a8a8a]"> ({r.impact_days}d)</span>}
+                        {r.impact_inr != null && (r.impact_days ?? 0) < 10 && <span className="text-xs text-[#8b968e]"> ({r.impact_days}d)</span>}
                       </span>
                     </div>
                   ))}
-                  {ledger.length === 0 && <p className="text-[12px] text-[#8a8a8a]">Nothing here yet.</p>}
+                  {ledger.length === 0 && <p className="text-[12px] text-[#8b968e]">Nothing here yet.</p>}
                 </div>
               </div>
 
               {/* Zerodha statements — authoritative totals + fills reconciliation */}
-              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+              <div className="glass rounded-3xl p-4">
                 <h3 className="text-sm font-semibold mb-1">Zerodha statements</h3>
-                <p className="text-xs text-[#8a8a8a] mb-3">Console P&amp;L exports, checked against our recorded fills: every sell value and every open quantity must match.</p>
-                {data.statements.length === 0 && <p className="text-[12px] text-[#8a8a8a]">None uploaded — Console → Reports → P&amp;L → Equity, then scripts/import_pnl_statement.py.</p>}
+                <p className="text-xs text-[#8b968e] mb-3">Console P&amp;L exports, checked against our recorded fills: every sell value and every open quantity must match.</p>
+                {data.statements.length === 0 && <p className="text-[12px] text-[#8b968e]">None uploaded — Console → Reports → P&amp;L → Equity, then scripts/import_pnl_statement.py.</p>}
                 <div className="space-y-2.5">
                   {data.statements.map((st) => {
                     const c = st.check_result;
@@ -276,29 +276,29 @@ export default function PnlPage() {
                     const ok = !!c && bad === 0;
                     const sm = st.summary;
                     return (
-                      <div key={st.period_from + st.period_to} className="rounded-lg bg-[#0d0d0d] border border-[#1a1a1a] p-3">
+                      <div key={st.period_from + st.period_to} className="rounded-lg bg-[#0e1410] border border-[#1a241e] p-3">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[12px] font-semibold text-[#f5f5f5]">{st.period_from} → {st.period_to}</span>
-                          <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full"
-                            style={{ color: !c ? MUTE : ok ? GREEN : RED, background: !c ? "#71717a1a" : ok ? "#22c55e1a" : "#ef44441a" }}>
+                          <span className="text-[12px] font-semibold text-[#eef2ee]">{st.period_from} → {st.period_to}</span>
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                            style={{ color: !c ? MUTE : ok ? GREEN : RED, background: !c ? "#8b968e1a" : ok ? "#9be15d1a" : "#f08a761a" }}>
                             {!c ? "not checked" : ok ? "✓ reconciled" : `✗ ${bad} differ`}
                           </span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs tabular-nums">
                           {[["Realized", sm["Realized P&L"]], ["Unrealized", sm["Unrealized P&L"]], ["Charges", -(sm["Charges"] ?? 0)], ["Other debits", sm["Other Credit & Debit"]]].map(([k, v]) => (
-                            <div key={k as string}><p className="text-xs text-[#8a8a8a] uppercase tracking-wide">{k}</p>
+                            <div key={k as string}><p className="text-xs text-[#8b968e]">{k}</p>
                               <p style={{ color: (v as number) >= 0 ? GREEN : RED }}>{v == null ? "—" : SIGNED(Math.round(v as number))}</p></div>
                           ))}
                         </div>
                         {c && (
-                          <p className="text-xs text-[#8a8a8a] mt-2">
+                          <p className="text-xs text-[#8b968e] mt-2">
                             Sells: {c.sell_matched}/{c.sell_symbols} stocks match{c.open_checked ? ` · open quantities: ${c.open_mismatches.length === 0 ? "all match" : `${c.open_mismatches.length} differ`}` : ""}
                             {!c.covers_period && c.fills_on_record_from && <> · our fills start {c.fills_on_record_from}, so earlier trades are Zerodha&apos;s figures only</>}
                             {c.pending && c.pending.length > 0 && <> · <span style={{ color: AMBER }}>pending (Console not updated yet): {c.pending.join(", ")}</span></>}
                           </p>
                         )}
                         {c && [...c.sell_mismatches.map((m) => ({ ...m, k: "sell ₹" })), ...c.open_mismatches.map((m) => ({ ...m, k: "open qty" }))].map((m, i) => (
-                          <p key={i} className="text-xs text-[#ef4444] tabular-nums">✗ {m.symbol} {m.k}: Zerodha {m.zerodha.toLocaleString("en-IN")} vs ours {m.ours.toLocaleString("en-IN")}</p>
+                          <p key={i} className="text-xs text-[#f08a76] tabular-nums">✗ {m.symbol} {m.k}: Zerodha {m.zerodha.toLocaleString("en-IN")} vs ours {m.ours.toLocaleString("en-IN")}</p>
                         ))}
                       </div>
                     );
@@ -307,21 +307,21 @@ export default function PnlPage() {
               </div>
 
               {/* month table */}
-              <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+              <div className="glass rounded-3xl p-4">
                 <h3 className="text-sm font-semibold mb-2">By month</h3>
                 <div className="space-y-1 text-[12px] tabular-nums">
-                  <div className="grid grid-cols-5 text-xs text-[#8a8a8a] uppercase tracking-wide"><span>Month</span><span className="text-right">P&amp;L</span><span className="text-right">Nifty</span><span className="text-right">vs Nifty</span><span className="text-right">Fills</span></div>
+                  <div className="grid grid-cols-5 text-xs text-[#8b968e]"><span>Month</span><span className="text-right">P&amp;L</span><span className="text-right">Nifty</span><span className="text-right">vs Nifty</span><span className="text-right">Fills</span></div>
                   {months.map(([m, x]) => (
                     <div key={m} className="grid grid-cols-5">
-                      <span className="text-[#c5c5c5]">{MONTH(m)}</span>
+                      <span className="text-[#c2ccc4]">{MONTH(m)}</span>
                       <span className="text-right" style={{ color: x.pnl >= 0 ? GREEN : RED }}>{SIGNED(Math.round(x.pnl))}</span>
-                      <span className="text-right text-[#8a8a8a]">{SIGNED(Math.round(x.nifty))}</span>
+                      <span className="text-right text-[#8b968e]">{SIGNED(Math.round(x.nifty))}</span>
                       <span className="text-right" style={{ color: x.pnl - x.nifty >= 0 ? GREEN : RED }}>{SIGNED(Math.round(x.pnl - x.nifty))}</span>
-                      <span className="text-right text-[#8a8a8a]">{x.fills}</span>
+                      <span className="text-right text-[#8b968e]">{x.fills}</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-[#8a8a8a] mt-3">Daily history starts 2026-08-26 (first stored closes). Before charges and taxes — Zerodha&apos;s charges are in the statements above.</p>
+                <p className="text-xs text-[#8b968e] mt-3">Daily history starts 2026-08-26 (first stored closes). Before charges and taxes — Zerodha&apos;s charges are in the statements above.</p>
               </div>
             </>
           )}

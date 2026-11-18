@@ -227,21 +227,21 @@ export function ValidationsPanel({ defaultOpen = false }: { defaultOpen?: boolea
   };
 
   return (
-    <div className="border border-[#1f1f1f] rounded-lg bg-[#0f0f0f]">
+    <div className="border border-[#223027] rounded-lg bg-[#0e1410]">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#f5f5f5]"
+        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-[#eef2ee]"
       >
         {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         Validations
-        <span className="text-[#8a8a8a] font-normal">— automated live-seed test (tasks #20/#21)</span>
+        <span className="text-[#8b968e] font-normal">— automated live-seed test (tasks #20/#21)</span>
       </button>
       {open && (
         <div className="px-4 pb-4">
           <button
             onClick={run}
             disabled={running}
-            className="mb-3 px-3 py-1.5 rounded bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/30 hover:bg-[#22c55e]/20 disabled:opacity-50 text-xs font-medium"
+            className="mb-3 px-3 py-1.5 rounded bg-[#9be15d]/10 text-[#9be15d] border border-[#9be15d]/30 hover:bg-[#9be15d]/20 disabled:opacity-50 text-xs font-medium"
           >
             {running ? "Running…" : "Run Validations"}
           </button>
@@ -250,19 +250,19 @@ export function ValidationsPanel({ defaultOpen = false }: { defaultOpen?: boolea
               <li key={s.id} className="flex items-start gap-2 text-xs font-mono">
                 <span>{ICONS[s.status]}</span>
                 <span className={
-                  s.status === "FAIL" ? "text-[#ef4444]" :
-                  s.status === "PASS" ? "text-[#22c55e]" :
-                  "text-[#999]"
+                  s.status === "FAIL" ? "text-[#f08a76]" :
+                  s.status === "PASS" ? "text-[#9be15d]" :
+                  "text-[#a9b3ab]"
                 }>
                   {s.id}. {s.name}
-                  {s.detail && <span className="text-[#8a8a8a]"> — {s.detail}</span>}
-                  {s.ts && <span className="text-[#8a8a8a]"> ({s.ts})</span>}
+                  {s.detail && <span className="text-[#8b968e]"> — {s.detail}</span>}
+                  {s.ts && <span className="text-[#8b968e]"> ({s.ts})</span>}
                 </span>
               </li>
             ))}
           </ul>
           {verdict && (
-            <div className={`mt-3 text-xs font-bold ${verdict.startsWith("ALL") ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+            <div className={`mt-3 text-xs font-bold ${verdict.startsWith("ALL") ? "text-[#9be15d]" : "text-[#f08a76]"}`}>
               {verdict}
             </div>
           )}

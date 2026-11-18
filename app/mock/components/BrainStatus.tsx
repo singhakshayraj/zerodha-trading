@@ -48,32 +48,32 @@ export function BrainStatus() {
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2 text-xs">
         <Radio className={`w-3 h-3 shrink-0 ${
-          isRunning ? "text-[#f59e0b] animate-pulse" :
-          isOnline  ? "text-[#22c55e]" :
-          "text-[#ef4444]"
+          isRunning ? "text-[#d9b84a] animate-pulse" :
+          isOnline  ? "text-[#9be15d]" :
+          "text-[#f08a76]"
         }`} />
 
         <span className={
-          isRunning ? "text-[#f59e0b]" :
-          isOnline  ? "text-[#22c55e]" :
-          "text-[#ef4444]"
+          isRunning ? "text-[#d9b84a]" :
+          isOnline  ? "text-[#9be15d]" :
+          "text-[#f08a76]"
         }>
           Brain {brainStatus}
         </span>
 
         {secAgo !== null && (
-          <span className="text-[#8a8a8a]">
+          <span className="text-[#8b968e]">
             · {secAgo < 60 ? `${secAgo}s ago` : `${Math.floor(secAgo / 60)}m ago`}
           </span>
         )}
 
         {brainMessage && (
-          <span className="text-[#8a8a8a] truncate max-w-[200px]">{brainMessage}</span>
+          <span className="text-[#8b968e] truncate max-w-[200px]">{brainMessage}</span>
         )}
       </div>
 
       {isOffline && secAgo !== null && secAgo > 120 && (
-        <div className="flex items-center gap-1.5 text-xs text-[#f59e0b] bg-[#f59e0b]/5 border border-[#f59e0b]/20 rounded px-2 py-1">
+        <div className="flex items-center gap-1.5 text-xs text-[#d9b84a] bg-[#d9b84a]/5 border border-[#d9b84a]/20 rounded px-2 py-1">
           <AlertTriangle className="w-3 h-3 shrink-0" />
           Brain server offline — check Railway deployment
         </div>

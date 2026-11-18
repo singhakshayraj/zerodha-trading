@@ -185,9 +185,9 @@ export default function AutopsyPage() {
 
   if (err)
     return (
-      <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
+      <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
         <Sidebar />
-        <main className="flex-1 min-h-0 overflow-y-auto p-6"><p className="text-[#ef4444]">Failed to load: {err}</p></main>
+        <main className="flex-1 min-h-0 overflow-y-auto p-6"><p className="text-[#f08a76]">Failed to load: {err}</p></main>
       </div>
     );
 
@@ -200,20 +200,20 @@ export default function AutopsyPage() {
     //     refuses to shrink below its content and overflow-y-auto never
     //     activates. The page then ran past the viewport with nothing able to
     //     scroll it, so the bottom was unreachable.
-    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
       <Sidebar />
       <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-5">
 
         {/* ── Header ─────────────────────────────────────────────────── */}
         <header className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-[#3b82f6]" />
+            <Crosshair className="w-5 h-5 text-[#b9ec8a]" />
             <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Exit-Policy Frontier</h1>
           </div>
-          <p className="text-sm text-[#a1a1aa] max-w-3xl leading-relaxed">
-            Of the money this strategy lost, how much was the <strong className="text-[#f5f5f5]">entries</strong> being
-            wrong, how much the <strong className="text-[#f5f5f5]">exit rule</strong>, and how much
-            plain <strong className="text-[#f5f5f5]">transaction costs</strong>? Every closed trade stores the best and
+          <p className="text-sm text-[#a9b3ab] max-w-3xl leading-relaxed">
+            Of the money this strategy lost, how much was the <strong className="text-[#eef2ee]">entries</strong> being
+            wrong, how much the <strong className="text-[#eef2ee]">exit rule</strong>, and how much
+            plain <strong className="text-[#eef2ee]">transaction costs</strong>? Every closed trade stores the best and
             worst unrealized R it ever reached, so every fixed take-profit/stop policy can be replayed against the paths
             the book actually walked — no historical data purchase required.
           </p>
@@ -230,13 +230,13 @@ export default function AutopsyPage() {
             <section
               className={`rounded-lg border p-4 ${
                 stats.anyProfitable
-                  ? "border-[#0ca30c]/40 bg-[#0ca30c]/5"
+                  ? "border-[#9be15d]/40 bg-[#9be15d]/5"
                   : "border-[#d03b3b]/40 bg-[#d03b3b]/5"
               }`}
             >
               <div className="flex items-start gap-2.5">
                 <TriangleAlert
-                  className={`w-4 h-4 mt-0.5 shrink-0 ${stats.anyProfitable ? "text-[#0ca30c]" : "text-[#e66767]"}`}
+                  className={`w-4 h-4 mt-0.5 shrink-0 ${stats.anyProfitable ? "text-[#9be15d]" : "text-[#f08a76]"}`}
                 />
                 <div className="space-y-1">
                   <p className="text-sm font-medium">
@@ -244,12 +244,12 @@ export default function AutopsyPage() {
                       ? `${surface.filter((c) => c.exp > 0).length} of ${surface.length} exit policies clear breakeven.`
                       : `None of the ${surface.length} exit policies clears breakeven.`}
                   </p>
-                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                  <p className="text-xs text-[#a9b3ab] leading-relaxed">
                     At the best cell (T {best.tgt.toFixed(2)}R / S {best.stp.toFixed(2)}R) the 5-minute candle replay
-                    orders <strong className="text-[#f5f5f5]">{best.resolved} of {best.both}</strong> trades that touched
+                    orders <strong className="text-[#eef2ee]">{best.resolved} of {best.both}</strong> trades that touched
                     both levels exactly, leaving {best.intrabar} intra-bar and {best.nodata} without bars. The remaining
-                    assumption is worth <strong className="text-[#f5f5f5]">{BAND(best)}</strong> — so this is
-                    an <strong className="text-[#f5f5f5]">{optimistic ? "optimistic" : "pessimistic"}</strong> reading of
+                    assumption is worth <strong className="text-[#eef2ee]">{BAND(best)}</strong> — so this is
+                    an <strong className="text-[#eef2ee]">{optimistic ? "optimistic" : "pessimistic"}</strong> reading of
                     a residual that small, not of the whole ambiguous bucket.
                     {!stats.anyProfitable && " The verdict does not turn on it."}
                   </p>
@@ -260,55 +260,55 @@ export default function AutopsyPage() {
             {/* ── Decomposition ─────────────────────────────────────── */}
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
-                { label: "Realized", value: R2(stats.actual), sub: "what actually happened, net", tone: "#e66767" },
-                { label: "Best achievable exit", value: R2(best.exp), sub: `T ${best.tgt.toFixed(2)}R / S ${best.stp.toFixed(2)}R · ${BAND(best)}`, tone: best.exp > 0 ? "#0ca30c" : "#e66767" },
+                { label: "Realized", value: R2(stats.actual), sub: "what actually happened, net", tone: "#f08a76" },
+                { label: "Best achievable exit", value: R2(best.exp), sub: `T ${best.tgt.toFixed(2)}R / S ${best.stp.toFixed(2)}R · ${BAND(best)}`, tone: best.exp > 0 ? "#9be15d" : "#f08a76" },
                 { label: "Cost drag", value: "−" + stats.cost.toFixed(3) + "R", sub: `${costPct}% round trip, per trade`, tone: "#eda100" },
-                { label: "Realized, gross of cost", value: R2(stats.grossActual), sub: "the entries alone", tone: stats.grossActual > 0 ? "#0ca30c" : "#e66767" },
+                { label: "Realized, gross of cost", value: R2(stats.grossActual), sub: "the entries alone", tone: stats.grossActual > 0 ? "#9be15d" : "#f08a76" },
               ].map((s) => (
-                <div key={s.label} className="rounded-lg border border-[#1f1f1f] bg-[#111111] p-3">
-                  <p className="text-xs uppercase tracking-wide text-[#8a8a8a]">{s.label}</p>
+                <div key={s.label} className="rounded-lg border border-[#223027] bg-[#121a15] p-3">
+                  <p className="text-xs text-[#8b968e]">{s.label}</p>
                   <p className="text-xl font-semibold tabular-nums mt-1" style={{ color: s.tone }}>{s.value}</p>
-                  <p className="text-xs text-[#8a8a8a] mt-0.5">{s.sub}</p>
+                  <p className="text-xs text-[#8b968e] mt-0.5">{s.sub}</p>
                 </div>
               ))}
             </section>
 
             {/* ── Controls ──────────────────────────────────────────── */}
-            <section className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-[#1f1f1f] bg-[#111111] p-3">
+            <section className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-lg border border-[#223027] bg-[#121a15] p-3">
               <label className="flex items-center gap-2.5 text-xs">
-                <span className="text-[#a1a1aa] whitespace-nowrap">Round-trip cost</span>
+                <span className="text-[#a9b3ab] whitespace-nowrap">Round-trip cost</span>
                 <input
                   type="range" min={0} max={0.3} step={0.01} value={costPct}
                   onChange={(e) => setCostPct(Number(e.target.value))}
-                  className="w-32 accent-[#3b82f6]"
+                  className="w-32 accent-[#b9ec8a]"
                   aria-label="Round-trip transaction cost, percent of position value"
                 />
-                <span className="tabular-nums w-10 text-[#f5f5f5]">{costPct.toFixed(2)}%</span>
+                <span className="tabular-nums w-10 text-[#eef2ee]">{costPct.toFixed(2)}%</span>
               </label>
 
               <div className="flex items-center gap-1.5 text-xs" role="group" aria-label="Ambiguity resolution">
-                <span className="text-[#a1a1aa]">Ambiguity</span>
+                <span className="text-[#a9b3ab]">Ambiguity</span>
                 {([["Optimistic", true], ["Pessimistic", false]] as const).map(([l, v]) => (
                   <button
                     key={l} onClick={() => setOptimistic(v)} aria-pressed={optimistic === v}
-                    className={`px-2 py-1 rounded border ${optimistic === v ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#8a8a8a]"}`}
+                    className={`px-2 py-1 rounded-full border ${optimistic === v ? "border-[#b9ec8a] text-[#b9ec8a] bg-[#b9ec8a]/10" : "border-[#223027] text-[#8b968e]"}`}
                   >{l}</button>
                 ))}
               </div>
 
               <div className="flex items-center gap-1.5 text-xs" role="group" aria-label="Side filter">
-                <span className="text-[#a1a1aa]">Side</span>
+                <span className="text-[#a9b3ab]">Side</span>
                 {(["ALL", "LONG", "SHORT"] as const).map((s) => (
                   <button
                     key={s} onClick={() => setSide(s)} aria-pressed={side === s}
-                    className={`px-2 py-1 rounded border ${side === s ? "border-[#3b82f6] text-[#3b82f6] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#8a8a8a]"}`}
+                    className={`px-2 py-1 rounded-full border ${side === s ? "border-[#b9ec8a] text-[#b9ec8a] bg-[#b9ec8a]/10" : "border-[#223027] text-[#8b968e]"}`}
                   >{s === "ALL" ? "All" : s === "LONG" ? "Long" : "Short"}</button>
                 ))}
               </div>
 
               <button
                 onClick={() => setAsTable((v) => !v)}
-                className="flex items-center gap-1.5 px-2 py-1 rounded border border-[#1f1f1f] text-[#8a8a8a] text-xs ml-auto"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-[#223027] text-[#8b968e] text-xs ml-auto"
               >
                 {asTable ? <Grid3x3 className="w-3.5 h-3.5" /> : <Table2 className="w-3.5 h-3.5" />}
                 {asTable ? "Heatmap" : "Table"}
@@ -316,15 +316,15 @@ export default function AutopsyPage() {
             </section>
 
             {/* ── The surface ───────────────────────────────────────── */}
-            <section className="rounded-lg border border-[#1f1f1f] bg-[#111111] p-4">
+            <section className="rounded-lg border border-[#223027] bg-[#121a15] p-4">
               <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
                 <h2 className="text-sm font-medium">
                   Expectancy per trade, by exit policy
-                  <span className="text-[#8a8a8a] font-normal"> — {view.length} trades over {meta?.days} sessions</span>
+                  <span className="text-[#8b968e] font-normal"> — {view.length} trades over {meta?.days} sessions</span>
                 </h2>
                 {/* Legend: always present. The positive arm stays on screen even
                     when empty — its emptiness is the result. */}
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-[#8a8a8a]">
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-[#8b968e]">
                   <span className="tabular-nums">{scale!.leftLabel}</span>
                   <div className="flex h-3 rounded overflow-hidden" aria-hidden>
                     {Array.from({ length: 21 }, (_, i) => (
@@ -332,7 +332,7 @@ export default function AutopsyPage() {
                     ))}
                   </div>
                   <span className="tabular-nums">{scale!.rightLabel}</span>
-                  <span className="whitespace-nowrap sm:ml-1.5 sm:pl-1.5 sm:border-l border-[#1f1f1f]">
+                  <span className="whitespace-nowrap sm:ml-1.5 sm:pl-1.5 sm:border-l border-[#223027]">
                     {scale!.straddles
                       ? "0 = breakeven · blue clears it"
                       : "whole range is below breakeven"}
@@ -348,20 +348,20 @@ export default function AutopsyPage() {
                     </caption>
                     <thead>
                       <tr>
-                        <th scope="col" className="sticky left-0 bg-[#111111] text-left p-1.5 text-[#8a8a8a] font-normal">Stop \ Target</th>
+                        <th scope="col" className="sticky left-0 bg-[#121a15] text-left p-1.5 text-[#8b968e] font-normal">Stop \ Target</th>
                         {TARGETS.map((t) => (
-                          <th scope="col" key={t} className="p-1.5 text-[#8a8a8a] font-normal">{t.toFixed(2)}</th>
+                          <th scope="col" key={t} className="p-1.5 text-[#8b968e] font-normal">{t.toFixed(2)}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {STOPS.map((s) => (
                         <tr key={s}>
-                          <th scope="row" className="sticky left-0 bg-[#111111] text-left p-1.5 text-[#8a8a8a] font-normal">{s.toFixed(2)}</th>
+                          <th scope="row" className="sticky left-0 bg-[#121a15] text-left p-1.5 text-[#8b968e] font-normal">{s.toFixed(2)}</th>
                           {TARGETS.map((t) => {
                             const c = surface.find((x) => x.tgt === t && x.stp === s)!;
                             return (
-                              <td key={t} className={`p-1.5 text-right ${c === best ? "text-[#f5f5f5] font-semibold" : "text-[#a1a1aa]"}`}>
+                              <td key={t} className={`p-1.5 text-right ${c === best ? "text-[#eef2ee] font-semibold" : "text-[#a9b3ab]"}`}>
                                 {c.exp.toFixed(3)}
                               </td>
                             );
@@ -378,7 +378,7 @@ export default function AutopsyPage() {
                       <div className="w-14 shrink-0" />
                       <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${TARGETS.length}, minmax(30px, 1fr))` }}>
                         {TARGETS.map((t) => (
-                          <div key={t} className="text-xs text-[#8a8a8a] text-center pb-1 tabular-nums">
+                          <div key={t} className="text-xs text-[#8b968e] text-center pb-1 tabular-nums">
                             {t % 1 === 0 || t % 0.5 === 0 ? t.toFixed(1) : ""}
                           </div>
                         ))}
@@ -386,7 +386,7 @@ export default function AutopsyPage() {
                     </div>
                     {STOPS.map((s) => (
                       <div key={s} className="flex items-stretch">
-                        <div className="w-14 shrink-0 text-xs text-[#8a8a8a] flex items-center justify-end pr-2 tabular-nums">
+                        <div className="w-14 shrink-0 text-xs text-[#8b968e] flex items-center justify-end pr-2 tabular-nums">
                           {s.toFixed(2)}
                         </div>
                         <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${TARGETS.length}, minmax(30px, 1fr))` }}>
@@ -407,12 +407,12 @@ export default function AutopsyPage() {
                                 style={{
                                   background: scale!.color(c.exp),
                                   // 2px surface gap between fills
-                                  boxShadow: `inset 0 0 0 1px #111111${isBest ? ", 0 0 0 2px #f5f5f5" : ""}`,
+                                  boxShadow: `inset 0 0 0 1px #121a15${isBest ? ", 0 0 0 2px #eef2ee" : ""}`,
                                   zIndex: isBest ? 2 : undefined,
                                 }}
                               >
                                 {isBest && (
-                                  <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-[#f5f5f5] tabular-nums">
+                                  <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-[#eef2ee] tabular-nums">
                                     {c.exp.toFixed(2)}
                                   </span>
                                 )}
@@ -423,36 +423,36 @@ export default function AutopsyPage() {
                       </div>
                     ))}
                     <div className="flex mt-1.5">
-                      <div className="w-14 shrink-0 text-xs text-[#8a8a8a] text-right pr-2">stop R</div>
-                      <div className="flex-1 text-xs text-[#8a8a8a] text-center">take-profit R</div>
+                      <div className="w-14 shrink-0 text-xs text-[#8b968e] text-right pr-2">stop R</div>
+                      <div className="flex-1 text-xs text-[#8b968e] text-center">take-profit R</div>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Hover readout — a fixed slot, so the grid never reflows on hover. */}
-              <div className="mt-3 pt-3 border-t border-[#1f1f1f] text-xs min-h-[36px]">
+              <div className="mt-3 pt-3 border-t border-[#223027] text-xs min-h-[36px]">
                 {hover ? (
                   <div className="flex flex-wrap gap-x-5 gap-y-1 tabular-nums">
-                    <span className="text-[#a1a1aa]">Target <strong className="text-[#f5f5f5]">{hover.tgt.toFixed(2)}R</strong></span>
-                    <span className="text-[#a1a1aa]">Stop <strong className="text-[#f5f5f5]">{hover.stp.toFixed(2)}R</strong></span>
-                    <span className="text-[#a1a1aa]">Expectancy <strong style={{ color: hover.exp > 0 ? "#0ca30c" : "#e66767" }}>{R2(hover.exp)}</strong></span>
-                    <span className="text-[#a1a1aa]">
-                      Band <strong className="text-[#f5f5f5]">{BAND(hover)}</strong>
-                      <span className="text-[#8a8a8a]"> what the unresolved remainder can still move</span>
+                    <span className="text-[#a9b3ab]">Target <strong className="text-[#eef2ee]">{hover.tgt.toFixed(2)}R</strong></span>
+                    <span className="text-[#a9b3ab]">Stop <strong className="text-[#eef2ee]">{hover.stp.toFixed(2)}R</strong></span>
+                    <span className="text-[#a9b3ab]">Expectancy <strong style={{ color: hover.exp > 0 ? "#9be15d" : "#f08a76" }}>{R2(hover.exp)}</strong></span>
+                    <span className="text-[#a9b3ab]">
+                      Band <strong className="text-[#eef2ee]">{BAND(hover)}</strong>
+                      <span className="text-[#8b968e]"> what the unresolved remainder can still move</span>
                     </span>
-                    <span className="text-[#a1a1aa]">
-                      Both levels touched <strong className="text-[#f5f5f5]">{hover.both}</strong>
+                    <span className="text-[#a9b3ab]">
+                      Both levels touched <strong className="text-[#eef2ee]">{hover.both}</strong>
                       {" → "}
-                      <strong className="text-[#f5f5f5]">{hover.resolved}</strong> resolved
+                      <strong className="text-[#eef2ee]">{hover.resolved}</strong> resolved
                       {" · "}
-                      <strong className="text-[#f5f5f5]">{hover.intrabar}</strong> intra-bar
+                      <strong className="text-[#eef2ee]">{hover.intrabar}</strong> intra-bar
                       {" · "}
-                      <strong className="text-[#f5f5f5]">{hover.nodata}</strong> no data
+                      <strong className="text-[#eef2ee]">{hover.nodata}</strong> no data
                     </span>
                   </div>
                 ) : (
-                  <span className="text-[#8a8a8a]">
+                  <span className="text-[#8b968e]">
                     Hover or tab through a cell for its expectancy, how many trades the candle replay ordered exactly,
                     and how much the unresolved remainder can still move the number.
                     The outlined cell is the best policy on this surface.
@@ -462,28 +462,28 @@ export default function AutopsyPage() {
             </section>
 
             {/* ── Method ────────────────────────────────────────────── */}
-            <section className="rounded-lg border border-[#1f1f1f] bg-[#111111] p-4 text-xs text-[#a1a1aa] space-y-2 leading-relaxed">
-              <h2 className="text-sm font-medium text-[#f5f5f5] flex items-center gap-1.5">
+            <section className="rounded-lg border border-[#223027] bg-[#121a15] p-4 text-xs text-[#a9b3ab] space-y-2 leading-relaxed">
+              <h2 className="text-sm font-medium text-[#eef2ee] flex items-center gap-1.5">
                 <RefreshCw className="w-3.5 h-3.5" /> How this is computed, and what it can&apos;t tell you
               </h2>
               <p>
-                Each trade records <code className="text-[#f5f5f5]">mfe_r</code> (best unrealized R reached) and{" "}
-                <code className="text-[#f5f5f5]">mae_r</code> (worst). For a policy (T, S): if only the target was
-                reached the trade books <strong className="text-[#f5f5f5]">+T</strong>; if only the stop,{" "}
-                <strong className="text-[#f5f5f5]">&minus;S</strong>; if neither, its real exit stands.
+                Each trade records <code className="text-[#eef2ee]">mfe_r</code> (best unrealized R reached) and{" "}
+                <code className="text-[#eef2ee]">mae_r</code> (worst). For a policy (T, S): if only the target was
+                reached the trade books <strong className="text-[#eef2ee]">+T</strong>; if only the stop,{" "}
+                <strong className="text-[#eef2ee]">&minus;S</strong>; if neither, its real exit stands.
               </p>
               <p>
-                <strong className="text-[#f5f5f5]">When a trade touched both</strong>, the extremes don&apos;t say which
-                came first. The archived <strong className="text-[#f5f5f5]">5-minute candles</strong> do: whichever level
+                <strong className="text-[#eef2ee]">When a trade touched both</strong>, the extremes don&apos;t say which
+                came first. The archived <strong className="text-[#eef2ee]">5-minute candles</strong> do: whichever level
                 a bar reaches first decides the trade, and a bar that already <em>opened</em> through a level reached it
                 on its first tick.{" "}
-                {meta && <><strong className="text-[#f5f5f5]">{meta.withBars}</strong> of {meta.n} trades ({PCT(meta.barCoveragePct)}) have
+                {meta && <><strong className="text-[#eef2ee]">{meta.withBars}</strong> of {meta.n} trades ({PCT(meta.barCoveragePct)}) have
                 bars covering their holding window.</>} The extremes stay the authority on <em>whether</em> a level was
                 touched — bars only ever order two touches already known to have happened, so the replay can split the
                 ambiguous bucket but never create or destroy one.
               </p>
               <p>
-                <strong className="text-[#f5f5f5]">What is still unresolved,</strong> and why the bounds have not gone
+                <strong className="text-[#eef2ee]">What is still unresolved,</strong> and why the bounds have not gone
                 away: a single 5-minute bar whose high reached the target <em>and</em> whose low reached the stop cannot
                 be ordered at this resolution, and some windows have no archived bar at all. The ambiguity is narrowed
                 from hours to one bar, not eliminated. The optimistic/pessimistic toggle now governs only that
@@ -491,27 +491,27 @@ export default function AutopsyPage() {
               </p>
               {meta?.truth && (meta.truth.stopChecked > 0 || meta.truth.tgtChecked > 0) && (
                 <p>
-                  <strong className="text-[#f5f5f5]">Ground truth:</strong> trades whose real exit was a clean stop or
+                  <strong className="text-[#eef2ee]">Ground truth:</strong> trades whose real exit was a clean stop or
                   target already know the answer, so the replay is held to them. Of{" "}
-                  <strong className="text-[#f5f5f5]">{meta.truth.stopChecked}</strong> real{" "}
-                  <code className="text-[#f5f5f5]">STOP_LOSS_HIT</code> trades with bars, the replay finds the 1.00R stop
-                  touched in <strong className="text-[#f5f5f5]">{meta.truth.stopAgree}</strong>; of{" "}
-                  <strong className="text-[#f5f5f5]">{meta.truth.tgtChecked}</strong> real{" "}
-                  <code className="text-[#f5f5f5]">TARGET_HIT</code> trades, it finds the target touched in{" "}
-                  <strong className="text-[#f5f5f5]">{meta.truth.tgtAgree}</strong>.
+                  <strong className="text-[#eef2ee]">{meta.truth.stopChecked}</strong> real{" "}
+                  <code className="text-[#eef2ee]">STOP_LOSS_HIT</code> trades with bars, the replay finds the 1.00R stop
+                  touched in <strong className="text-[#eef2ee]">{meta.truth.stopAgree}</strong>; of{" "}
+                  <strong className="text-[#eef2ee]">{meta.truth.tgtChecked}</strong> real{" "}
+                  <code className="text-[#eef2ee]">TARGET_HIT</code> trades, it finds the target touched in{" "}
+                  <strong className="text-[#eef2ee]">{meta.truth.tgtAgree}</strong>.
                   {!!meta.truth.noData && <> {meta.truth.noData} more had no bars and cannot be judged.</>}
                 </p>
               )}
               <p>
-                Counterfactual exits are <strong className="text-[#f5f5f5]">gross</strong>, so each is charged the
+                Counterfactual exits are <strong className="text-[#eef2ee]">gross</strong>, so each is charged the
                 round-trip cost above, scaled by that trade&apos;s own rupee risk (the book sizes by Kelly, so there is
                 no single ₹-per-R). Realized legs already carry their true costs. Sample:{" "}
-                <strong className="text-[#f5f5f5]">{meta?.n}</strong> closed trades with excursion data over{" "}
-                <strong className="text-[#f5f5f5]">{meta?.days}</strong> sessions
+                <strong className="text-[#eef2ee]">{meta?.n}</strong> closed trades with excursion data over{" "}
+                <strong className="text-[#eef2ee]">{meta?.days}</strong> sessions
                 {meta?.firstDate && <> ({meta.firstDate} → {meta.lastDate})</>}
                 {!!meta?.dropped && <>; {meta.dropped} dropped as unusable</>}.
               </p>
-              <p className="text-[#8a8a8a]">
+              <p className="text-[#8b968e]">
                 This is a diagnostic on the entries already taken. It is not gate #6 — it cannot tell you how these
                 signals behave in regimes the book never traded.
               </p>

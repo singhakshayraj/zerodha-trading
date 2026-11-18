@@ -69,69 +69,69 @@ export function AskDrawer() {
     <>
       {!open && (
         <button type="button" onClick={() => setOpen(true)} aria-label="Ask about your portfolio"
-          className="fixed z-40 right-4 bottom-20 md:bottom-6 h-12 w-12 rounded-full bg-[#1f1f1f] border border-[#333] text-[#e5e5e5] shadow-lg flex items-center justify-center hover:bg-[#2a2a2a]">
+          className="fixed z-40 right-4 bottom-20 md:bottom-6 h-12 w-12 rounded-full bg-[#223027] border border-[#34443a] text-[#e2e8e3] shadow-lg flex items-center justify-center hover:bg-[#2a372e]">
           <MessageCircle className="w-5 h-5" />
         </button>
       )}
       {open && (
-        <div className="fixed z-50 inset-x-0 bottom-0 h-[80dvh] md:inset-y-0 md:left-auto md:right-0 md:h-auto md:w-[420px] bg-[#0f0f0f] border-t md:border-t-0 md:border-l border-[#262626] rounded-t-2xl md:rounded-none flex flex-col" role="dialog" aria-label="Ask your book">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1f1f1f]">
-            <span className="text-sm font-semibold text-[#f5f5f5]">Ask your book</span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-[#a78bfa1a] text-[#a78bfa]">on-device · beta</span>
-            <div className="ml-auto flex rounded-md border border-[#262626] overflow-hidden text-xs">
+        <div className="fixed z-50 inset-x-0 bottom-0 h-[80dvh] md:inset-y-0 md:left-auto md:right-0 md:h-auto md:w-[420px] bg-[#0e1410] border-t md:border-t-0 md:border-l border-[#2a372e] rounded-t-2xl md:rounded-none flex flex-col" role="dialog" aria-label="Ask your book">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#223027]">
+            <span className="text-sm font-semibold text-[#eef2ee]">Ask your book</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-[#a78bfa1a] text-[#a78bfa]">on-device · beta</span>
+            <div className="ml-auto flex rounded-md border border-[#2a372e] overflow-hidden text-xs">
               {(["primary", "natwar"] as const).map((a) => (
                 <button key={a} type="button" onClick={() => setAccount(a)}
-                  className={`px-2 py-1 ${account === a ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a]"}`}>{a === "primary" ? "Kanaklata" : "Natwar"}</button>
+                  className={`px-2 py-1 ${account === a ? "bg-[#223027] text-[#eef2ee]" : "text-[#8b968e]"}`}>{a === "primary" ? "Kanaklata" : "Natwar"}</button>
               ))}
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="p-1 text-[#8a8a8a] hover:text-[#f5f5f5]"><X className="w-4 h-4" /></button>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="p-1 text-[#8b968e] hover:text-[#eef2ee]"><X className="w-4 h-4" /></button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-            {!gpu && <p className="text-[12px] text-[#f59e0b]">This browser has no WebGPU, so the on-device model can&apos;t run here. Use desktop Chrome or Edge.</p>}
+            {!gpu && <p className="text-[12px] text-[#d9b84a]">This browser has no WebGPU, so the on-device model can&apos;t run here. Use desktop Chrome or Edge.</p>}
             {gpu && !chat && (
               <div className="space-y-3">
-                <p className="text-[12px] text-[#8a8a8a] leading-relaxed">
+                <p className="text-[12px] text-[#8b968e] leading-relaxed">
                   Answers come from a model running inside this browser, reading only this app&apos;s data — nothing is sent to an AI service. The first start downloads the model once ({sel.gb} GB); after that it loads from the browser cache.
                 </p>
                 <select value={model} onChange={(e) => setModel(e.target.value)} disabled={!!progress}
-                  className="w-full bg-[#0a0a0a] border border-[#262626] rounded-lg px-2 py-2 text-[12px] text-[#e5e5e5]">
+                  className="w-full bg-[#0a0e0c] border border-[#2a372e] rounded-lg px-2 py-2 text-[12px] text-[#e2e8e3]">
                   {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label} · {m.gb} GB</option>)}
                 </select>
                 {progress ? (
                   <div>
-                    <div className="h-1.5 rounded bg-[#1a1a1a] overflow-hidden"><div className="h-full bg-[#a78bfa]" style={{ width: `${Math.round(progress.pct * 100)}%` }} /></div>
-                    <p className="text-xs text-[#8a8a8a] mt-1 truncate">{progress.text}</p>
+                    <div className="h-1.5 rounded bg-[#1a241e] overflow-hidden"><div className="h-full bg-[#a78bfa]" style={{ width: `${Math.round(progress.pct * 100)}%` }} /></div>
+                    <p className="text-xs text-[#8b968e] mt-1 truncate">{progress.text}</p>
                   </div>
                 ) : (
-                  <button type="button" onClick={start} className="w-full rounded-lg bg-[#1f1f1f] border border-[#333] py-2 text-[12px] text-[#f5f5f5] hover:bg-[#2a2a2a]">Start the model</button>
+                  <button type="button" onClick={start} className="w-full rounded-lg bg-[#223027] border border-[#34443a] py-2 text-[12px] text-[#eef2ee] hover:bg-[#2a372e]">Start the model</button>
                 )}
-                <p className="text-xs text-[#8a8a8a]">Try: “Why is ATGL a sell?” · “How did I do in October?” · “Which sectors am I overweight in?”</p>
+                <p className="text-xs text-[#8b968e]">Try: “Why is ATGL a sell?” · “How did I do in October?” · “Which sectors am I overweight in?”</p>
               </div>
             )}
             {msgs.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : ""}>
-                <div className={`max-w-[90%] rounded-xl px-3 py-2 text-[13px] leading-relaxed ${m.role === "user" ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-[#111] border border-[#1f1f1f] text-[#d5d5d5]"}`}>
+                <div className={`max-w-[90%] rounded-xl px-3 py-2 text-[13px] leading-relaxed ${m.role === "user" ? "bg-[#223027] text-[#eef2ee]" : "bg-[#121a15] border border-[#223027] text-[#d3dbd5]"}`}>
                   {m.text}
                   {m.trace?.tool && (
                     <details className="mt-1.5">
-                      <summary className="text-xs text-[#8a8a8a] cursor-pointer flex items-center gap-1 list-none"><Database className="w-3 h-3" /> {m.trace.tool}{Object.keys(m.trace.args).length ? ` · ${Object.entries(m.trace.args).map(([k, v]) => `${k}=${v}`).join(", ")}` : ""} · {((m.trace.ms.route + m.trace.ms.answer) / 1000).toFixed(1)}s</summary>
-                      <pre className="text-xs text-[#8a8a8a] whitespace-pre-wrap break-words mt-1 max-h-40 overflow-y-auto">{JSON.stringify(m.trace.result, null, 1)}</pre>
+                      <summary className="text-xs text-[#8b968e] cursor-pointer flex items-center gap-1 list-none"><Database className="w-3 h-3" /> {m.trace.tool}{Object.keys(m.trace.args).length ? ` · ${Object.entries(m.trace.args).map(([k, v]) => `${k}=${v}`).join(", ")}` : ""} · {((m.trace.ms.route + m.trace.ms.answer) / 1000).toFixed(1)}s</summary>
+                      <pre className="text-xs text-[#8b968e] whitespace-pre-wrap break-words mt-1 max-h-40 overflow-y-auto">{JSON.stringify(m.trace.result, null, 1)}</pre>
                     </details>
                   )}
                 </div>
               </div>
             ))}
-            {busy && <p className="text-xs text-[#8a8a8a] flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> thinking on-device…</p>}
+            {busy && <p className="text-xs text-[#8b968e] flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> thinking on-device…</p>}
             <div ref={endRef} />
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex gap-2 p-3 border-t border-[#1f1f1f]">
+          <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex gap-2 p-3 border-t border-[#223027]">
             <input value={input} onChange={(e) => setInput(e.target.value)} disabled={!chat || busy}
               placeholder={chat ? "Ask about your calls, sectors, P&L…" : "Start the model first"}
-              className="flex-1 bg-[#0a0a0a] border border-[#262626] rounded-lg px-3 py-2 text-[13px] text-[#f5f5f5] placeholder-[#444] focus:outline-none focus:border-[#a78bfa] disabled:opacity-50" />
+              className="flex-1 bg-[#0a0e0c] border border-[#2a372e] rounded-lg px-3 py-2 text-[13px] text-[#eef2ee] placeholder-[#5c6a60] focus:outline-none focus:border-[#a78bfa] disabled:opacity-50" />
             <button type="submit" disabled={!chat || busy || !input.trim()} aria-label="Send"
-              className="px-3 rounded-lg bg-[#1f1f1f] border border-[#333] text-[#f5f5f5] disabled:opacity-40"><Send className="w-4 h-4" /></button>
+              className="px-3 rounded-lg bg-[#223027] border border-[#34443a] text-[#eef2ee] disabled:opacity-40"><Send className="w-4 h-4" /></button>
           </form>
         </div>
       )}

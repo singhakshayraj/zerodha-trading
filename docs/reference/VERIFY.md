@@ -29,6 +29,14 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-49 · fluid style reads well on a real phone — registered 2026-11-19 [P-73]
+Manual: needs a device screenshot (no SQL). On the user's Android Chrome, open `/`,
+`/advisor`, `/pnl`, `/trading`. **PASS** = Home shows the big portfolio value,
+status pills, profit-factor dial and ribbed daily-risk bar; every label/number is
+readable on the green-black background; scrolling is smooth (no jank from the
+glass cards); no horizontal page scroll. **FAIL** = unreadable text, stutter on
+scroll, or any feature missing vs before.
+
 ### V-48 · readability pass renders on a real phone — registered 2026-11-19 [P-72]
 Manual: needs a device screenshot (no SQL). On the user's Android Chrome, open
 `/advisor` and `/pnl`. **PASS** = bottom bar shows exactly 5 tabs (Home, Trade,

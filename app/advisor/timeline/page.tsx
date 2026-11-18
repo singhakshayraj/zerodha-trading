@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
 import { Activity, RefreshCw, Clock } from "lucide-react";
 
-const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b", BLUE = "#3b82f6", MUTE = "#71717a";
+const GREEN = "#9be15d", RED = "#f08a76", AMBER = "#d9b84a", BLUE = "#b9ec8a", MUTE = "#8b968e";
 
 // Same palette the /advisor verdicts use, so a stock reads the same everywhere.
 const VERDICT_COLOR: Record<string, string> = {
@@ -54,7 +54,7 @@ function Sparkline({ points }: { points: Point[] }) {
   const valid = prices.filter((v): v is number => v != null);
   if (valid.length < 2) {
     return (
-      <div className="flex items-center justify-center h-[44px] text-xs text-[#8a8a8a]">
+      <div className="flex items-center justify-center h-[44px] text-xs text-[#8b968e]">
         {valid.length === 1 ? "one reading — sparkline needs ≥2" : "no price readings yet"}
       </div>
     );
@@ -114,42 +114,42 @@ export default function TimelinePage() {
   }, [load]);
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
       <Sidebar />
       <main className="flex-1 min-h-0 overflow-y-auto p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-[#888]" />
-              <h1 className="text-lg font-semibold text-[#f5f5f5]">Stock timeline</h1>
+              <Activity className="w-5 h-5 text-[#8b968e]" />
+              <h1 className="text-lg font-semibold text-[#eef2ee]">Stock timeline</h1>
             </div>
             <button
               onClick={load}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#888] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#8b968e] bg-[#121a15] border border-[#223027] hover:text-[#eef2ee] transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </button>
           </div>
-          <p className="text-[12px] text-[#8a8a8a] mb-5 flex items-center gap-1.5">
+          <p className="text-[12px] text-[#8b968e] mb-5 flex items-center gap-1.5">
             <Clock className="w-3 h-3" />
             Per-stock observation path (price · trend score · verdict) captured by the agent.
-            {updatedAt && <span className="text-[#8a8a8a]">Latest: {IST(updatedAt)} IST</span>}
+            {updatedAt && <span className="text-[#8b968e]">Latest: {IST(updatedAt)} IST</span>}
           </p>
 
           {loading ? (
             <div className="grid gap-3">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-[92px] w-full rounded-xl bg-[#111111]" />
+                <Skeleton key={i} className="h-[92px] w-full rounded-xl bg-[#121a15]" />
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-4 text-[13px] text-[#ef4444]">
+            <div className="rounded-xl bg-[#121a15] border border-[#223027] p-4 text-[13px] text-[#f08a76]">
               {error}
             </div>
           ) : symbols.length === 0 ? (
-            <div className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-4">
-              <h3 className="text-sm font-semibold text-[#f5f5f5] mb-1">No observations yet</h3>
-              <p className="text-[12px] text-[#888]">
+            <div className="rounded-xl bg-[#121a15] border border-[#223027] p-4">
+              <h3 className="text-sm font-semibold text-[#eef2ee] mb-1">No observations yet</h3>
+              <p className="text-[12px] text-[#8b968e]">
                 The per-stock agent writes a row per holding each capture (pre-open / hourly /
                 post-close). Once a session runs with a live token, timelines appear here.
               </p>
@@ -159,19 +159,19 @@ export default function TimelinePage() {
               {symbols.map((s) => (
                 <div
                   key={s.symbol}
-                  className="rounded-xl bg-[#111111] border border-[#1f1f1f] p-4 flex flex-col md:flex-row md:items-center gap-4"
+                  className="rounded-xl bg-[#121a15] border border-[#223027] p-4 flex flex-col md:flex-row md:items-center gap-4"
                 >
                   <div className="md:w-[190px] shrink-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-[#f5f5f5]">{s.symbol}</span>
+                      <span className="text-sm font-semibold text-[#eef2ee]">{s.symbol}</span>
                       <span
-                        className="text-xs font-medium px-1.5 py-0.5 rounded"
+                        className="text-xs font-medium px-1.5 py-0.5 rounded-full"
                         style={{ color: vColor(s.latest_verdict), background: vColor(s.latest_verdict) + "1a" }}
                       >
                         {s.latest_verdict ?? "—"}
                       </span>
                     </div>
-                    <div className="text-xs text-[#888] mt-1">
+                    <div className="text-xs text-[#8b968e] mt-1">
                       {s.latest_price != null ? `₹${s.latest_price}` : "—"}
                       {s.latest_score != null && (
                         <span className="ml-2" style={{ color: s.latest_score >= 0 ? GREEN : RED }}>
@@ -180,7 +180,7 @@ export default function TimelinePage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-[#8a8a8a] mt-0.5">
+                    <div className="text-xs text-[#8b968e] mt-0.5">
                       {s.count} obs · last {IST(s.latest_at)}
                     </div>
                   </div>

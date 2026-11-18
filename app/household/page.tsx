@@ -37,7 +37,7 @@ type Book = {
 type Trade = { account: string; symbol: string; trade_type: string; quantity: number; price: number; trade_date: string };
 type Payload = { book: Book | null; targets: unknown; ledger: Trade[] };
 
-const GREEN = "#22c55e", RED = "#ef4444", MUTE = "#71717a";
+const GREEN = "#9be15d", RED = "#f08a76", MUTE = "#8b968e";
 const NAME: Record<string, string> = { primary: "Kanaklata", natwar: "Natwar", household: "Household", unknown: "Unknown" };
 const INR = (n: number | null | undefined) => inr(n);
 const PCT = (n: number | null | undefined) => (n == null ? "—" : (n < 0 ? "−" : n > 0 ? "+" : "") + Math.abs(n).toFixed(1) + "%");
@@ -47,10 +47,10 @@ const days = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / 864e5;
 
 function Section({ id, title, asof, children }: { id: string; title: string; asof?: string | null; children: React.ReactNode }) {
   return (
-    <section data-testid={id} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 min-w-0">
+    <section data-testid={id} className="glass rounded-3xl p-4 min-w-0">
       <div className="flex items-baseline justify-between gap-2 mb-3">
         <h2 className="text-sm font-semibold">{title}</h2>
-        {asof && <span className="text-xs text-[#8a8a8a]">as of {asof}</span>}
+        {asof && <span className="text-xs text-[#8b968e]">as of {asof}</span>}
       </div>
       {children}
     </section>
@@ -59,9 +59,9 @@ function Section({ id, title, asof, children }: { id: string; title: string; aso
 const Table = ({ children }: { children: React.ReactNode }) => (
   <div className="overflow-x-auto"><table className="w-full text-[12px] tabular-nums whitespace-nowrap">{children}</table></div>
 );
-const Th = ({ children }: { children?: React.ReactNode }) => <th className="text-left font-normal text-xs uppercase tracking-wide text-[#8a8a8a] pr-4 pb-1.5">{children}</th>;
+const Th = ({ children }: { children?: React.ReactNode }) => <th className="text-left font-normal text-xs text-[#8b968e] pr-4 pb-1.5">{children}</th>;
 const Td = ({ children, color }: { children?: React.ReactNode; color?: string }) => <td className="pr-4 py-1" style={{ color }}>{children}</td>;
-const Muted = ({ children }: { children: React.ReactNode }) => <p className="text-xs text-[#8a8a8a] mt-2">{children}</p>;
+const Muted = ({ children }: { children: React.ReactNode }) => <p className="text-xs text-[#8b968e] mt-2">{children}</p>;
 
 // Household time-weighted index (solid) vs the Nifty-equivalent (dashed).
 function Chart({ a, b }: { a: Pt[]; b: Pt[] }) {
@@ -75,7 +75,7 @@ function Chart({ a, b }: { a: Pt[]; b: Pt[] }) {
       <polyline points={line(b)} fill="none" stroke={MUTE} strokeWidth={1.5} strokeDasharray="4 4" />
       <polyline points={line(a)} fill="none" stroke="#a78bfa" strokeWidth={2} />
     </svg>
-    <div data-testid="chart-legend" className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#8a8a8a] mt-1">
+    <div data-testid="chart-legend" className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#8b968e] mt-1">
       <span className="flex items-center gap-1.5"><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke="#a78bfa" strokeWidth={2} /></svg>Household</span>
       <span className="flex items-center gap-1.5"><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke={MUTE} strokeWidth={1.5} strokeDasharray="4 4" /></svg>Nifty-equivalent</span>
     </div></>
@@ -115,27 +115,27 @@ export default function HouseholdPage() {
   const soon = b?.tax.ltcg_calendar.filter((l) => days(b.asof, l.date) <= 90) ?? [];
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] text-[#f5f5f5] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
       <Sidebar />
       <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto space-y-4">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-xl font-semibold flex items-center gap-2"><Landmark className="w-5 h-5 text-[#888]" /> Household</h1>
-            <button onClick={load} aria-label="Refresh" className="px-3 py-2 rounded-lg text-[#aaa] bg-[#111111] border border-[#1f1f1f] hover:text-[#f5f5f5] min-h-[40px]">
+            <h1 className="text-xl font-semibold flex items-center gap-2"><Landmark className="w-5 h-5 text-[#8b968e]" /> Household</h1>
+            <button onClick={load} aria-label="Refresh" className="px-3 py-2 rounded-lg text-[#a9b3ab] bg-[#121a15] border border-[#223027] hover:text-[#eef2ee] min-h-[40px]">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
 
-          {error && <div className="bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm rounded-xl p-4">{error}</div>}
-          {!data && loading && <Skeleton className="h-64 w-full rounded-xl bg-[#111]" />}
-          {data && !b && <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-6 text-[12px] text-[#8a8a8a]">The household book hasn&apos;t been built yet — it publishes after the daily reconcile.</div>}
+          {error && <div className="bg-[#f08a76]/10 border border-[#f08a76]/30 text-[#f08a76] text-sm rounded-xl p-4">{error}</div>}
+          {!data && loading && <Skeleton className="h-64 w-full rounded-xl bg-[#121a15]" />}
+          {data && !b && <div className="glass rounded-3xl p-6 text-[12px] text-[#8b968e]">The household book hasn&apos;t been built yet — it publishes after the daily reconcile.</div>}
 
           {data && b && sa && (<>
             <Section id="net" title="Net worth" asof={posAsof}>
               <p data-testid="net-total" className="text-2xl font-semibold tabular-nums">{INR(b.net_worth.total)}</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-[12px]">
-                <div>{Object.entries(b.net_worth.by_account).filter(([, v]) => v).map(([k, v]) => <p key={k} className="flex justify-between"><span className="text-[#8a8a8a]">{NAME[k] ?? k}</span><span className="tabular-nums">{INR(v)}</span></p>)}</div>
-                <div>{Object.entries(b.net_worth.by_asset_class).filter(([, v]) => v).map(([k, v]) => <p key={k} className="flex justify-between"><span className="text-[#8a8a8a]">{k.replace(/_/g, " ")}</span><span className="tabular-nums">{INR(v)}</span></p>)}</div>
+                <div>{Object.entries(b.net_worth.by_account).filter(([, v]) => v).map(([k, v]) => <p key={k} className="flex justify-between"><span className="text-[#8b968e]">{NAME[k] ?? k}</span><span className="tabular-nums">{INR(v)}</span></p>)}</div>
+                <div>{Object.entries(b.net_worth.by_asset_class).filter(([, v]) => v).map(([k, v]) => <p key={k} className="flex justify-between"><span className="text-[#8b968e]">{k.replace(/_/g, " ")}</span><span className="tabular-nums">{INR(v)}</span></p>)}</div>
               </div>
               {b.net_worth.unpriced.length > 0 && <Muted>Unpriced: {b.net_worth.unpriced.join(", ")}</Muted>}
             </Section>
@@ -147,9 +147,9 @@ export default function HouseholdPage() {
                   {(["primary", "natwar", "household"] as const).map((k) => { const r = b.returns[k]; return r && (
                     <tr key={k}>
                       <Td>{NAME[k]}</Td>
-                      <Td><span style={{ color: col(r["1m"]) }}>{PCT(r["1m"])}</span> <span className="text-[#8a8a8a]">vs {PCT(r.bench_1m)}</span></Td>
-                      <Td><span style={{ color: col(r["3m"]) }}>{PCT(r["3m"])}</span> <span className="text-[#8a8a8a]">vs {PCT(r.bench_3m)}</span></Td>
-                      <Td><span style={{ color: col(r.since) }}>{PCT(r.since)}</span> <span className="text-[#8a8a8a]">vs {PCT(r.bench_since)}</span></Td>
+                      <Td><span style={{ color: col(r["1m"]) }}>{PCT(r["1m"])}</span> <span className="text-[#8b968e]">vs {PCT(r.bench_1m)}</span></Td>
+                      <Td><span style={{ color: col(r["3m"]) }}>{PCT(r["3m"])}</span> <span className="text-[#8b968e]">vs {PCT(r.bench_3m)}</span></Td>
+                      <Td><span style={{ color: col(r.since) }}>{PCT(r.since)}</span> <span className="text-[#8b968e]">vs {PCT(r.bench_since)}</span></Td>
                       <Td color={RED}>{PCT(r.max_drawdown.pct)}</Td>
                     </tr>); })}
                 </tbody>
@@ -161,27 +161,27 @@ export default function HouseholdPage() {
             </Section>
 
             <Section id="xray" title="X-ray" asof={posAsof}>
-              {b.targets_source === "default" && <span className="inline-block text-xs px-2 py-0.5 rounded bg-[#1f1f1f] text-[#aaa] mb-3">targets: default</span>}
+              {b.targets_source === "default" && <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-[#223027] text-[#a9b3ab] mb-3">targets: default</span>}
               <div className="space-y-2">
                 {b.xray.sectors.map((s) => (
                   <div key={s.name} data-testid={s.breach ? `breach-${s.name}` : undefined} className="text-[12px]">
                     <div className="flex justify-between" style={{ color: s.breach ? RED : undefined }}>
                       <span>{s.name}{s.breach && " · over target"}</span>
-                      <span className="tabular-nums">{s.pct.toFixed(1)}% <span className="text-[#8a8a8a]">(target {s.target_pct}%, index {s.index_pct.toFixed(1)}%)</span></span>
+                      <span className="tabular-nums">{s.pct.toFixed(1)}% <span className="text-[#8b968e]">(target {s.target_pct}%, index {s.index_pct.toFixed(1)}%)</span></span>
                     </div>
-                    <div className="relative h-1.5 bg-[#1a1a1a] rounded mt-1">
+                    <div className="relative h-1.5 bg-[#1a241e] rounded mt-1">
                       <div className="h-full rounded" style={{ width: `${Math.min(s.pct, 100)}%`, background: s.breach ? RED : "#a78bfa" }} />
-                      <div className="absolute -top-0.5 h-2.5 w-px bg-[#f5f5f5]" style={{ left: `${Math.min(s.target_pct, 100)}%` }} />
+                      <div className="absolute -top-0.5 h-2.5 w-px bg-[#eef2ee]" style={{ left: `${Math.min(s.target_pct, 100)}%` }} />
                     </div>
                   </div>))}
               </div>
-              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Size mix vs index</h3>
+              <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Size mix vs index</h3>
               <Table><tbody>{b.xray.sizes.map((z) => (
-                <tr key={z.size}><Td color={z.breach ? RED : undefined}>{z.size}</Td><Td color={z.breach ? RED : undefined}>{z.pct.toFixed(1)}%</Td><Td><span className="text-[#8a8a8a]">index {z.index_pct.toFixed(1)}%</span></Td></tr>))}</tbody></Table>
-              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Top names</h3>
+                <tr key={z.size}><Td color={z.breach ? RED : undefined}>{z.size}</Td><Td color={z.breach ? RED : undefined}>{z.pct.toFixed(1)}%</Td><Td><span className="text-[#8b968e]">index {z.index_pct.toFixed(1)}%</span></Td></tr>))}</tbody></Table>
+              <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Top names</h3>
               <Table><tbody>{b.xray.names.map((n) => (
                 <tr key={n.symbol}><Td color={n.breach ? RED : undefined}>{n.symbol}</Td><Td color={n.breach ? RED : undefined}>{n.pct.toFixed(1)}%</Td>
-                  <Td><span className="text-[#8a8a8a]">{n.accounts.length > 1 ? "both accounts" : n.accounts.map((a) => NAME[a] ?? a).join(", ")}</span></Td></tr>))}</tbody></Table>
+                  <Td><span className="text-[#8b968e]">{n.accounts.length > 1 ? "both accounts" : n.accounts.map((a) => NAME[a] ?? a).join(", ")}</span></Td></tr>))}</tbody></Table>
               <p className="text-[12px] mt-3" style={{ color: b.xray.etf_breach ? RED : undefined }}>ETF sleeve: {b.xray.etf_pct.toFixed(1)}%{b.xray.etf_breach && " — over its cap"}</p>
             </Section>
 
@@ -198,13 +198,13 @@ export default function HouseholdPage() {
 
             <Section id="tax" title="Tax" asof={sa.tax}>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
-                {(["primary", "natwar"] as const).map((k) => <p key={k} className="flex justify-between"><span className="text-[#8a8a8a]">FY realised · {NAME[k]}</span><span className="tabular-nums">{b.tax.fy_realised[k] == null ? "unknown" : INR(b.tax.fy_realised[k])}</span></p>)}
-                <p className="flex justify-between"><span className="text-[#8a8a8a]">Unrealised STCG</span><span className="tabular-nums">{INR(b.tax.unrealised_stcg)}</span></p>
-                <p className="flex justify-between"><span className="text-[#8a8a8a]">Unrealised LTCG</span><span className="tabular-nums">{INR(b.tax.unrealised_ltcg)}</span></p>
+                {(["primary", "natwar"] as const).map((k) => <p key={k} className="flex justify-between"><span className="text-[#8b968e]">FY realised · {NAME[k]}</span><span className="tabular-nums">{b.tax.fy_realised[k] == null ? "unknown" : INR(b.tax.fy_realised[k])}</span></p>)}
+                <p className="flex justify-between"><span className="text-[#8b968e]">Unrealised STCG</span><span className="tabular-nums">{INR(b.tax.unrealised_stcg)}</span></p>
+                <p className="flex justify-between"><span className="text-[#8b968e]">Unrealised LTCG</span><span className="tabular-nums">{INR(b.tax.unrealised_ltcg)}</span></p>
               </div>
-              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Turning long-term in the next 90 days</h3>
+              <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Turning long-term in the next 90 days</h3>
               {soon.length ? <Table><tbody>{soon.map((l, i) => <tr key={i}><Td>{l.symbol}</Td><Td>{NAME[l.account] ?? l.account}</Td><Td>{l.date}</Td><Td>{l.qty} sh</Td></tr>)}</tbody></Table> : <Muted>None.</Muted>}
-              <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Harvest candidates</h3>
+              <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Harvest candidates</h3>
               {b.tax.harvest.length ? <Table><tbody>{b.tax.harvest.map((h, i) => <tr key={i}><Td>{h.symbol}</Td><Td>{NAME[h.account] ?? h.account}</Td><Td color={RED}>{INR(-Math.abs(h.loss_inr))}</Td></tr>)}</tbody></Table> : <Muted>None.</Muted>}
               {undated > 0 && <Muted>{undated} holdings have undated lots — import the Console tradebook.</Muted>}
             </Section>
@@ -213,17 +213,17 @@ export default function HouseholdPage() {
               {trims.length ? <Table>
                 <thead><tr><Th>Trim</Th><Th>Account</Th><Th>Qty</Th><Th>Frees</Th><Th>Tax</Th><Th>Why</Th></tr></thead>
                 <tbody>{trims.map((m, i) => <tr key={i}><Td>{m.symbol}</Td><Td>{NAME[m.account] ?? m.account}</Td><Td>{m.qty}</Td><Td>{INR(m.freed_inr)}</Td><Td>{m.tax_known === false ? "tax unknown (undated lots)" : INR(m.tax_inr + m.cost_inr)}</Td><td className="py-1 whitespace-normal min-w-[180px]">{m.reason}</td></tr>)}</tbody>
-              </Table> : <p className="text-[12px] text-[#8a8a8a]">No trims proposed — no name or sector is over its cap.{b.xray.sizes.some((z) => z.breach) && " Size mix drifts from the index; that is shown above, not traded here."}</p>}
+              </Table> : <p className="text-[12px] text-[#8b968e]">No trims proposed — no name or sector is over its cap.{b.xray.sizes.some((z) => z.breach) && " Size mix drifts from the index; that is shown above, not traded here."}</p>}
               {unders.length > 0 && <>
-                <h3 className="text-xs uppercase tracking-wide text-[#8a8a8a] mt-4 mb-1">Underweight sectors</h3>
-                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#8a8a8a]">{u.gap_pp.toFixed(1)}pp under index weight</span></p>)}
+                <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Underweight sectors</h3>
+                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#8b968e]">{u.gap_pp.toFixed(1)}pp under index weight</span></p>)}
               </>}
             </Section>
 
             <Section id="ledger" title="Ledger" asof={data.ledger[0]?.trade_date ?? null}>
-              <div data-testid="ledger-filter" className="flex rounded-lg border border-[#1f1f1f] overflow-hidden text-xs w-fit mb-3">
+              <div data-testid="ledger-filter" className="flex rounded-lg border border-[#223027] overflow-hidden text-xs w-fit mb-3">
                 {([["all", "All"], ["primary", "Kanaklata"], ["natwar", "Natwar"]] as const).map(([k, label]) => (
-                  <button key={k} onClick={() => setAcct(k)} className={`px-3 min-h-[36px] ${acct === k ? "bg-[#1f1f1f] text-[#f5f5f5]" : "text-[#8a8a8a]"}`}>{label}</button>))}
+                  <button key={k} onClick={() => setAcct(k)} className={`px-3 min-h-[36px] ${acct === k ? "bg-[#223027] text-[#eef2ee]" : "text-[#8b968e]"}`}>{label}</button>))}
               </div>
               <Table>
                 <thead><tr><Th>Date</Th><Th>Account</Th><Th>Symbol</Th><Th>Side</Th><Th>Qty</Th><Th>Price</Th></tr></thead>

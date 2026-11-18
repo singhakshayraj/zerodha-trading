@@ -1421,6 +1421,16 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+- ~~**[P-73] "Fluid" visual style (mockup C, Cryon-inspired) on every page.**~~ ✅ **DONE 2026-11-19**
+  — user picked C of three Home mockups (A calm dark, B light, C fluid). Palette
+  swapped by one script across 35 files: forest-black `#0a0e0c` + two soft green
+  glows on `body`, text `#eef2ee/#a9b3ab/#8b968e`, gain/primary lime `#9be15d`/
+  `#b9ec8a`, loss coral `#f08a76`, caution gold `#d9b84a`. Standard cards →
+  `.glass` (faint white wash + top highlight, 24px radius, NO backdrop-blur —
+  Android jank); modals stay solid. `.chip` pills; sidebar is a pill nav; caps
+  labels → sentence case; light large numbers. Home rebuilt to C's layout (value
+  + status pills header, profit-factor half-dial, ribbed RiskMeter — also on Auto
+  Trade). Same data, links and features. VERIFY: V-49.
 - ~~**[P-72] Dashboard readability pass (no feature removed).**~~ ✅ **DONE 2026-11-19**
   — nav grouped (desktop: Trading / Advisor / Money / Setup; phone: 5 tabs + a
   "More" sheet, Advisor's 4 pages behind one tab with a sub-tab strip); 9–11px

@@ -38,5 +38,5 @@ export default function AskEvalClient() {
     };
     setStatus("ready");
   }, []);
-  return <pre data-testid="ask-eval-status" style={{ padding: 16, color: "#ddd" }}>{status}</pre>;
+  return <pre data-testid="ask-eval-status" style={{ padding: 16, color: "#e2e8e3" }}>{status}</pre>;
 }

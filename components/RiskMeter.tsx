@@ -9,7 +9,7 @@ import { inr } from "@/lib/format";
 // lines that stop the machine." Reused by the trading page and (later) the
 // command-center landing page.
 
-const RED = "#ef4444", AMBER = "#f59e0b", GREEN = "#22c55e";
+const RED = "#f08a76", AMBER = "#d9b84a", GREEN = "#9be15d";
 const INR = (n: number) => inr(n);
 
 export function RiskMeter({
@@ -63,37 +63,43 @@ export function RiskMeter({
   const fillLeft = pnlPct < 0 ? valPos : zeroPos;
   const fillWidth = Math.abs(valPos - zeroPos);
 
+  // ribbed track look (mockup C): thin vertical ribs instead of a solid bar
+  const rib = (c: string) => `repeating-linear-gradient(90deg, ${c} 0 2px, transparent 2px 6px)`;
+
   return (
-    <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
-      <div className="flex items-baseline justify-between mb-3">
-        <span className="text-xs text-[#8a8a8a] uppercase tracking-wider">Daily risk</span>
-        <span className="text-xs" style={{ color: barColor }}>
-          {pnlPct >= 0 ? "+" : ""}{pnlPct.toFixed(2)}% · {headline}
-        </span>
+    <div className="glass rounded-3xl p-5 flex flex-col gap-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <span className="text-[15px] font-medium text-[#eef2ee]">Daily risk</span>
+        <span className="text-[13px] text-[#a9b3ab]">{headline}</span>
       </div>
 
-      <div className="relative h-6">
-        {/* track */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-[#1a1a1a]" />
-        {/* danger zone: floor → 3R stop */}
-        <div className="absolute top-1/2 -translate-y-1/2 h-2 rounded-l-full" style={{ left: 0, width: `${stopPos}%`, background: `${RED}22` }} />
-        {/* caution zone: 3R stop → zero */}
-        <div className="absolute top-1/2 -translate-y-1/2 h-2" style={{ left: `${stopPos}%`, width: `${zeroPos - stopPos}%`, background: `${AMBER}1a` }} />
-        {/* fill */}
-        <div className="absolute top-1/2 -translate-y-1/2 h-2 rounded-full transition-all" style={{ left: `${fillLeft}%`, width: `${fillWidth}%`, background: barColor }} />
-        {/* 3R stop tick */}
-        <div className="absolute top-0 h-6 w-px" style={{ left: `${stopPos}%`, background: RED }} title="3R operational stop" />
-        {/* zero tick */}
-        <div className="absolute top-0 h-6 w-px bg-[#555]" style={{ left: `${zeroPos}%` }} />
-        {/* value marker */}
-        <div className="absolute -top-0.5 w-2 h-7 rounded-sm -translate-x-1/2 border border-[#0a0a0a]" style={{ left: `${valPos}%`, background: barColor }} />
-      </div>
+      <span className="text-[40px] leading-none font-light" style={{ color: pnlPct === 0 ? "#eef2ee" : barColor }}>
+        {pnlPct >= 0 ? "+" : "−"}{Math.abs(pnlPct).toFixed(2)}%
+      </span>
 
-      <div className="relative h-4 mt-1 text-xs text-[#8a8a8a]">
-        <span className="absolute left-0" style={{ color: RED }}>−{Math.abs(floorPct)}%</span>
-        <span className="absolute -translate-x-1/2" style={{ left: `${stopPos}%`, color: `${RED}cc` }}>3R</span>
-        <span className="absolute -translate-x-1/2" style={{ left: `${zeroPos}%` }}>0</span>
-        <span className="absolute right-0" style={{ color: GREEN }}>+{ceilPct}%</span>
+      <div>
+        <div className="relative h-[26px] rounded-full ring-1 ring-inset ring-white/[0.06]" style={{ background: rib("rgba(255,255,255,0.14)") }}>
+          {/* danger zone: floor → 3R stop */}
+          <div className="absolute inset-y-0 left-0 rounded-l-full" style={{ width: `${stopPos}%`, background: rib(`${RED}8c`) }} />
+          {/* caution zone: 3R stop → zero */}
+          <div className="absolute inset-y-0" style={{ left: `${stopPos}%`, width: `${zeroPos - stopPos}%`, background: rib(`${AMBER}4d`) }} />
+          {/* fill */}
+          <div className="absolute inset-y-0 transition-all" style={{ left: `${fillLeft}%`, width: `${fillWidth}%`, background: rib(barColor) }} />
+          {/* 3R stop tick */}
+          <div className="absolute -top-1 -bottom-1 w-0.5" style={{ left: `${stopPos}%`, background: RED }} title="3R operational stop" />
+          {/* zero tick */}
+          <div className="absolute -top-1 -bottom-1 w-px bg-[#6b776e]" style={{ left: `${zeroPos}%` }} />
+          {/* value knob */}
+          <div className="absolute top-[3px] w-5 h-5 -translate-x-1/2 rounded-full bg-[#eef2ee] transition-all"
+               style={{ left: `${valPos}%`, boxShadow: `0 0 0 4px ${barColor}40` }} />
+        </div>
+
+        <div className="relative h-4 mt-2 text-xs text-[#8b968e]">
+          <span className="absolute left-0" style={{ color: RED }}>−{Math.abs(floorPct)}%</span>
+          <span className="absolute -translate-x-1/2" style={{ left: `${stopPos}%`, color: RED }}>3R</span>
+          <span className="absolute -translate-x-1/2" style={{ left: `${zeroPos}%` }}>0</span>
+          <span className="absolute right-0" style={{ color: GREEN }}>+{ceilPct}%</span>
+        </div>
       </div>
     </div>
   );

@@ -107,29 +107,29 @@ export function OpenPositions({ sessionId, isRunning }: Props) {
   }, []);
 
   return (
-    <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-[#1f1f1f]">
-        <h2 className="text-xs font-semibold text-[#f5f5f5] uppercase tracking-wider">
+    <div className="glass rounded-3xl overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[#223027]">
+        <h2 className="text-xs font-semibold text-[#eef2ee]">
           Open Positions
-          <span className="ml-2 font-normal text-[#8a8a8a]">{positions.length}</span>
+          <span className="ml-2 font-normal text-[#8b968e]">{positions.length}</span>
         </h2>
         {isRunning && (
-          <span className="flex items-center gap-1 text-xs text-[#22c55e]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
+          <span className="flex items-center gap-1 text-xs text-[#9be15d]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#9be15d] animate-pulse" />
             LIVE
           </span>
         )}
       </div>
 
       {positions.length === 0 ? (
-        <p className="px-5 py-8 text-center text-[#8a8a8a] text-xs">No open positions.</p>
+        <p className="px-5 py-8 text-center text-[#8b968e] text-xs">No open positions.</p>
       ) : (
         <div className="overflow-x-auto scroll-touch">
           <table className="w-full min-w-[640px] md:min-w-0 text-xs">
-            <thead className="bg-[#0d0d0d]">
-              <tr className="border-b border-[#1a1a1a]">
+            <thead className="bg-[#0e1410]">
+              <tr className="border-b border-[#1a241e]">
                 {["Symbol", "Side", "Qty", "Entry", "Current", "P&L", "Stop / Target", "Held"].map((h) => (
-                  <th key={h} className="text-left px-3 py-2 text-xs text-[#8a8a8a] font-medium uppercase tracking-wider whitespace-nowrap">
+                  <th key={h} className="text-left px-3 py-2 text-xs text-[#8b968e] font-medium whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -146,28 +146,28 @@ export function OpenPositions({ sessionId, isRunning }: Props) {
                 const profit  = pnl >= 0;
 
                 return (
-                  <tr key={p.id} className="border-b border-[#141414] hover:bg-[#151515]">
-                    <td className="px-3 py-2.5 font-medium text-[#f5f5f5]">{p.symbol}</td>
-                    <td className="px-3 py-2.5 text-[#22c55e] font-semibold">BUY</td>
-                    <td className="px-3 py-2.5 text-[#888]">{p.quantity}</td>
-                    <td className="px-3 py-2.5 text-[#888]">₹{entry.toFixed(2)}</td>
-                    <td className="px-3 py-2.5 text-[#f5f5f5]">₹{current.toFixed(2)}</td>
-                    <td className={`px-3 py-2.5 font-semibold ${profit ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                  <tr key={p.id} className="border-b border-[#1a241e] hover:bg-[#16201a]">
+                    <td className="px-3 py-2.5 font-medium text-[#eef2ee]">{p.symbol}</td>
+                    <td className="px-3 py-2.5 text-[#9be15d] font-semibold">BUY</td>
+                    <td className="px-3 py-2.5 text-[#8b968e]">{p.quantity}</td>
+                    <td className="px-3 py-2.5 text-[#8b968e]">₹{entry.toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-[#eef2ee]">₹{current.toFixed(2)}</td>
+                    <td className={`px-3 py-2.5 font-semibold ${profit ? "text-[#9be15d]" : "text-[#f08a76]"}`}>
                       {profit ? "+" : ""}₹{pnl.toFixed(2)}
                     </td>
                     <td className="px-3 py-2.5 min-w-[160px]">
-                      <div className="flex items-center justify-between text-xs text-[#8a8a8a] mb-1">
-                        <span className="text-[#ef4444]">₹{sl.toFixed(0)}</span>
-                        <span className="text-[#22c55e]">₹{target.toFixed(0)}</span>
+                      <div className="flex items-center justify-between text-xs text-[#8b968e] mb-1">
+                        <span className="text-[#f08a76]">₹{sl.toFixed(0)}</span>
+                        <span className="text-[#9be15d]">₹{target.toFixed(0)}</span>
                       </div>
-                      <div className="w-full bg-[#1a1a1a] rounded-full h-1.5 relative">
+                      <div className="w-full bg-[#1a241e] rounded-full h-1.5 relative">
                         <div
-                          className={`h-1.5 rounded-full ${profit ? "bg-[#22c55e]" : "bg-[#ef4444]"}`}
+                          className={`h-1.5 rounded-full ${profit ? "bg-[#9be15d]" : "bg-[#f08a76]"}`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-[#888] font-mono" data-tick={tick}>{timeHeld(p.entry_at)}</td>
+                    <td className="px-3 py-2.5 text-[#8b968e] font-mono" data-tick={tick}>{timeHeld(p.entry_at)}</td>
                   </tr>
                 );
               })}

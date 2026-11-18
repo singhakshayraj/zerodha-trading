@@ -94,15 +94,15 @@ export function Sidebar() {
   return (
     <>
       {/* ─── Desktop sidebar ──────────────────────────────────────────── */}
-      <aside className="hidden md:flex w-56 bg-[#111111] border-r border-[#1f1f1f] flex-col h-dvh sticky top-0 shrink-0">
-        <div className="p-5 border-b border-[#1f1f1f]">
+      <aside className="hidden md:flex w-56 flex-col h-dvh sticky top-0 shrink-0">
+        <div className="p-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#3b82f6]/10 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-[#3b82f6]" fill="#3b82f6" />
+            <div className="w-7 h-7 rounded-full bg-[radial-gradient(circle_at_35%_30%,#c8f29c,#5fae3a_70%)] flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-[#0f1a12]" fill="#0f1a12" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#f5f5f5]">Zerodha Trader</p>
-              <p className="text-xs text-[#8a8a8a]">Autonomous Platform</p>
+              <p className="text-sm font-semibold text-[#eef2ee]">Zerodha Trader</p>
+              <p className="text-xs text-[#8b968e]">Autonomous Platform</p>
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function Sidebar() {
         <nav className="flex-1 min-h-0 overflow-y-auto p-3 space-y-4">
           {navGroups.map((g) => (
             <div key={g.title ?? "top"} className="space-y-0.5">
-              {g.title && <p className="px-3 pb-1 text-xs font-medium text-[#8a8a8a]">{g.title}</p>}
+              {g.title && <p className="px-3 pb-1 text-xs font-medium text-[#8b968e]">{g.title}</p>}
               {g.items.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
@@ -118,10 +118,10 @@ export function Sidebar() {
                   onClick={(e) => handleNavClick(e, href)}
                   aria-current={pathname === href ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                    "flex items-center gap-3 px-3.5 py-2 rounded-full text-sm transition-colors",
                     pathname === href
-                      ? "bg-[#1f1f1f] text-[#f5f5f5] font-medium"
-                      : "text-[#a1a1aa] hover:text-[#f5f5f5] hover:bg-[#181818]"
+                      ? "bg-[#9be15d]/[0.12] ring-1 ring-inset ring-[#9be15d]/35 text-[#e3f7cf] font-medium"
+                      : "text-[#a9b3ab] hover:text-[#eef2ee] hover:bg-white/[0.04]"
                   )}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
@@ -132,16 +132,16 @@ export function Sidebar() {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-[#1f1f1f] space-y-3">
+        <div className="p-3 space-y-3">
           {userProfile && (
-            <div className="px-3 py-2 bg-[#0d0d0d] rounded-lg">
-              <p className="text-xs font-medium text-[#f5f5f5] truncate">{userProfile.name}</p>
-              <p className="text-xs text-[#8a8a8a] mt-0.5">{userProfile.broker}</p>
+            <div className="px-3.5 py-2 chip rounded-2xl">
+              <p className="text-xs font-medium text-[#eef2ee] truncate">{userProfile.name}</p>
+              <p className="text-xs text-[#8b968e] mt-0.5">{userProfile.broker}</p>
             </div>
           )}
           <button
             onClick={handleDisconnect}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#a1a1aa] hover:text-[#ef4444] hover:bg-[#181818] w-full transition-colors"
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-full text-sm text-[#a9b3ab] hover:text-[#f08a76] hover:bg-white/[0.04] w-full transition-colors"
           >
             <LogOut className="w-4 h-4 shrink-0" />
             Disconnect
@@ -154,16 +154,16 @@ export function Sidebar() {
           position:fixed. Fixed bars over a scrolling body jank on Android Chrome
           as the URL bar hides; here the body never scrolls (main does), so the
           URL bar stays put and the bar never overlaps content. */}
-      <header className="md:hidden order-first shrink-0 bg-[#111111] border-b border-[#1f1f1f] pt-safe">
+      <header className="md:hidden order-first shrink-0 bg-[#0d130f] border-b border-[#223027] pt-safe">
         <div className="h-12 flex items-center justify-between px-4">
           <div className="flex items-center gap-2 min-w-0">
-            <Zap className="w-4 h-4 text-[#3b82f6] shrink-0" fill="#3b82f6" />
-            <p className="text-sm font-semibold text-[#f5f5f5] truncate">{activeLabel}</p>
+            <Zap className="w-4 h-4 text-[#b9ec8a] shrink-0" fill="#b9ec8a" />
+            <p className="text-sm font-semibold text-[#eef2ee] truncate">{activeLabel}</p>
           </div>
           <button
             onClick={handleDisconnect}
             aria-label="Disconnect"
-            className="text-[#8a8a8a] hover:text-[#ef4444] p-2"
+            className="text-[#8b968e] hover:text-[#f08a76] p-2"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -174,7 +174,7 @@ export function Sidebar() {
       {/* The four Advisor pages share one bottom tab; this strip switches
           between them. order-first keeps it directly under the header. */}
       {isAdvisor(pathname) && (
-        <div className="md:hidden order-first shrink-0 bg-[#111111] border-b border-[#1f1f1f] flex overflow-x-auto">
+        <div className="md:hidden order-first shrink-0 bg-[#121a15] border-b border-[#223027] flex overflow-x-auto">
           {ADVISOR_TABS.map(({ href, label }) => (
             <Link
               key={href}
@@ -183,7 +183,7 @@ export function Sidebar() {
               aria-current={pathname === href ? "page" : undefined}
               className={cn(
                 "flex-1 text-center whitespace-nowrap px-3 py-2.5 text-sm border-b-2",
-                pathname === href ? "border-[#3b82f6] text-[#f5f5f5] font-medium" : "border-transparent text-[#a1a1aa]"
+                pathname === href ? "border-[#b9ec8a] text-[#eef2ee] font-medium" : "border-transparent text-[#a9b3ab]"
               )}
             >
               {label === "Advisor" ? "Today" : label}
@@ -195,7 +195,7 @@ export function Sidebar() {
       {/* ─── Mobile bottom nav ────────────────────────────────────────── */}
       {/* order-last → sits below the scrollable main in the flex column (flow,
           not fixed) so no content is ever hidden behind it. */}
-      <nav className="md:hidden order-last shrink-0 bg-[#111111] border-t border-[#1f1f1f] pb-safe">
+      <nav className="md:hidden order-last shrink-0 bg-[#0d130f] border-t border-[#223027] pb-safe">
         <div className="grid grid-cols-5">
           {MOBILE_TABS.map((href) => {
             const { label, short, icon: Icon } = navItems.find((i) => i.href === href)!;
@@ -208,7 +208,7 @@ export function Sidebar() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 py-1.5 min-h-[56px]",
-                  active ? "text-[#3b82f6]" : "text-[#a1a1aa] active:text-[#f5f5f5]"
+                  active ? "text-[#b9ec8a]" : "text-[#a9b3ab] active:text-[#eef2ee]"
                 )}
               >
                 <Icon className="w-5 h-5 shrink-0" />
@@ -221,7 +221,7 @@ export function Sidebar() {
             aria-expanded={moreOpen}
             className={cn(
               "flex flex-col items-center justify-center gap-1 py-1.5 min-h-[56px]",
-              moreActive ? "text-[#3b82f6]" : "text-[#a1a1aa] active:text-[#f5f5f5]"
+              moreActive ? "text-[#b9ec8a]" : "text-[#a9b3ab] active:text-[#eef2ee]"
             )}
           >
             <MoreHorizontal className="w-5 h-5 shrink-0" />
@@ -234,14 +234,14 @@ export function Sidebar() {
       {moreOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-label="All pages">
           <button aria-label="Close" className="absolute inset-0 bg-black/60" onClick={() => setMoreOpen(false)} />
-          <div className="relative bg-[#111111] border-t border-[#262626] rounded-t-2xl px-4 pt-3 pb-safe max-h-[80dvh] overflow-y-auto">
+          <div className="relative bg-[#121a15] border-t border-[#2a372e] rounded-t-2xl px-4 pt-3 pb-safe max-h-[80dvh] overflow-y-auto">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold text-[#f5f5f5]">All pages</p>
-              <button aria-label="Close" onClick={() => setMoreOpen(false)} className="p-2 text-[#a1a1aa]"><X className="w-5 h-5" /></button>
+              <p className="text-sm font-semibold text-[#eef2ee]">All pages</p>
+              <button aria-label="Close" onClick={() => setMoreOpen(false)} className="p-2 text-[#a9b3ab]"><X className="w-5 h-5" /></button>
             </div>
             {navGroups.filter((g) => g.title).map((g) => (
               <div key={g.title} className="mb-4">
-                <p className="text-xs font-medium text-[#8a8a8a] mb-1.5">{g.title}</p>
+                <p className="text-xs font-medium text-[#8b968e] mb-1.5">{g.title}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {g.items.map(({ href, label, icon: Icon }) => (
                     <Link
@@ -250,7 +250,7 @@ export function Sidebar() {
                       aria-current={pathname === href ? "page" : undefined}
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm border",
-                        pathname === href ? "border-[#3b82f6] text-[#f5f5f5] bg-[#3b82f6]/10" : "border-[#1f1f1f] text-[#d5d5d5] bg-[#0d0d0d]"
+                        pathname === href ? "border-[#b9ec8a] text-[#eef2ee] bg-[#b9ec8a]/10" : "border-[#223027] text-[#d3dbd5] bg-[#0e1410]"
                       )}
                     >
                       <Icon className="w-4 h-4 shrink-0" />

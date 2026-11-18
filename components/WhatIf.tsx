@@ -10,7 +10,7 @@ import { parseMoves, simulate, booksFrom, CAPS, type WhatIf as Result, type Book
 import type { Account } from "@/lib/ask/tools";
 
 import { inr } from "@/lib/format";
-const GREEN = "#22c55e", RED = "#ef4444", AMBER = "#f59e0b";
+const GREEN = "#9be15d", RED = "#f08a76", AMBER = "#d9b84a";
 const INR = (n: number) => inr(n);
 
 export function WhatIf({ account }: { account: Account }) {
@@ -31,33 +31,33 @@ export function WhatIf({ account }: { account: Account }) {
   }
 
   return (
-    <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4" data-testid="what-if">
-      <p className="text-xs text-[#8a8a8a] uppercase tracking-wide mb-2 flex items-center gap-1.5"><FlaskConical className="w-3 h-3" /> What if · both accounts as one book</p>
+    <div className="glass rounded-3xl p-4" data-testid="what-if">
+      <p className="text-xs text-[#8b968e] mb-2 flex items-center gap-1.5"><FlaskConical className="w-3 h-3" /> What if · both accounts as one book</p>
       <form onSubmit={(e) => { e.preventDefault(); run(); }} className="flex gap-2">
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder={`sell 10 ATGL, buy ₹50k PETRONET${account === "natwar" ? "" : " in natwar"}, switch IOB to UNIONBANK`}
-          className="flex-1 min-w-0 bg-[#0a0a0a] border border-[#262626] rounded-lg px-3 py-2 text-[12px] text-[#f5f5f5] placeholder-[#444] focus:outline-none focus:border-[#60a5fa]" />
-        <button type="submit" className="px-3 rounded-lg bg-[#1f1f1f] border border-[#333] text-[12px] text-[#f5f5f5] hover:bg-[#2a2a2a]">Simulate</button>
+          className="flex-1 min-w-0 bg-[#0a0e0c] border border-[#2a372e] rounded-lg px-3 py-2 text-[12px] text-[#eef2ee] placeholder-[#5c6a60] focus:outline-none focus:border-[#8fc7e8]" />
+        <button type="submit" className="px-3 rounded-lg bg-[#223027] border border-[#34443a] text-[12px] text-[#eef2ee] hover:bg-[#2a372e]">Simulate</button>
       </form>
       {res && (
         <div className="mt-3 space-y-2 text-[12px]">
-          <p className="text-[#d5d5d5]">
+          <p className="text-[#d3dbd5]">
             Net cash <span className="font-semibold tabular-nums" style={{ color: res.net_cash >= 0 ? GREEN : AMBER }}>{INR(res.net_cash)}</span>
-            <span className="text-[#8a8a8a]"> · sold {INR(res.cash_freed)} · bought {INR(res.cash_deployed)} · book {INR(res.total_before)} → {INR(res.total_after)}</span>
+            <span className="text-[#8b968e]"> · sold {INR(res.cash_freed)} · bought {INR(res.cash_deployed)} · book {INR(res.total_before)} → {INR(res.total_after)}</span>
           </p>
           {res.sectors.length > 0 && (
             <ul className="space-y-0.5">
               {res.sectors.map((l) => (
                 <li key={l.group} className="flex gap-2 tabular-nums">
-                  <span className="text-[#c5c5c5] flex-1 min-w-0 truncate">{l.group}</span>
-                  <span className="text-[#8a8a8a]">{l.before}% →</span>
-                  <span className="font-semibold" style={{ color: l.breach ? RED : "#f5f5f5" }}>{l.after}%</span>
-                  <span className="text-[#8a8a8a] w-20 text-right">{l.index != null ? `index ${l.index}%` : ""}</span>
+                  <span className="text-[#c2ccc4] flex-1 min-w-0 truncate">{l.group}</span>
+                  <span className="text-[#8b968e]">{l.before}% →</span>
+                  <span className="font-semibold" style={{ color: l.breach ? RED : "#eef2ee" }}>{l.after}%</span>
+                  <span className="text-[#8b968e] w-20 text-right">{l.index != null ? `index ${l.index}%` : ""}</span>
                 </li>
               ))}
             </ul>
           )}
           {res.names.map((n) => (
-            <p key={n.symbol} className="text-[#8a8a8a] tabular-nums">{n.symbol}: {n.before}% → <span style={{ color: n.breach ? RED : "#d5d5d5" }}>{n.after}%</span> of the household{n.accounts.length > 1 ? " (both accounts)" : ""}</p>
+            <p key={n.symbol} className="text-[#8b968e] tabular-nums">{n.symbol}: {n.before}% → <span style={{ color: n.breach ? RED : "#d3dbd5" }}>{n.after}%</span> of the household{n.accounts.length > 1 ? " (both accounts)" : ""}</p>
           ))}
           <p style={{ color: res.breaches.length ? RED : GREEN }}>
             {res.breaches.length ? `Breaks: ${res.breaches.join("; ")}` : `No caps broken (sector ${CAPS.sector}%, name ${CAPS.name}%, both-accounts ${CAPS.dup}%, ETFs ${res.etf_pct}% of ${CAPS.etf}%)`}

@@ -46,13 +46,13 @@ export function TokenAlert() {
       role="alert"
       className="fixed top-2 left-1/2 -translate-x-1/2 z-50 max-w-[min(92vw,620px)]
                  rounded-lg border px-3 py-2 flex items-start gap-2 shadow-lg backdrop-blur"
-      style={{ borderColor: "#ef444488", background: "#2a0f0fee" }}
+      style={{ borderColor: "#f08a7688", background: "#2a0f0fee" }}
     >
-      <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#ef4444" }} />
+      <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#f08a76" }} />
       <p className="text-[12px] leading-relaxed text-[#e8dcdc]">
-        <span className="font-semibold" style={{ color: "#ef4444" }}>NO LIVE TOKEN</span>
+        <span className="font-semibold" style={{ color: "#f08a76" }}>NO LIVE TOKEN</span>
         {" — missing or set before today's ~04:34 IST flush, so no session can start. "}
-        <Link href="/connect" className="text-[#7fb4ff] underline underline-offset-2">
+        <Link href="/connect" className="text-[#8fc7e8] underline underline-offset-2">
           paste a fresh one →
         </Link>
       </p>

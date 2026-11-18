@@ -36,7 +36,7 @@ const INR = (n: number) => inr(Math.abs(n), { dp: 2, fixed: true });
 function Pnl({ value, showIcon = true }: { value: number; showIcon?: boolean }) {
   const pos = value >= 0;
   return (
-    <span className={`inline-flex items-center gap-1 font-medium ${pos ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+    <span className={`inline-flex items-center gap-1 font-medium ${pos ? "text-[#9be15d]" : "text-[#f08a76]"}`}>
       {showIcon && (pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />)}
       {pos ? "+" : "-"}{INR(value)}
     </span>
@@ -46,7 +46,7 @@ function Pnl({ value, showIcon = true }: { value: number; showIcon?: boolean }) 
 function PnlPct({ value }: { value: number }) {
   const pos = value >= 0;
   return (
-    <span className={`text-xs ${pos ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+    <span className={`text-xs ${pos ? "text-[#9be15d]" : "text-[#f08a76]"}`}>
       {pos ? "▲" : "▼"} {Math.abs(value).toFixed(2)}%
     </span>
   );
@@ -54,10 +54,10 @@ function PnlPct({ value }: { value: number }) {
 
 function SkeletonRow({ cols }: { cols: number }) {
   return (
-    <tr className="border-b border-[#1a1a1a]">
+    <tr className="border-b border-[#1a241e]">
       {Array.from({ length: cols }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-3 bg-[#1f1f1f] rounded animate-pulse w-3/4" />
+          <div className="h-3 bg-[#223027] rounded animate-pulse w-3/4" />
         </td>
       ))}
     </tr>
@@ -67,8 +67,8 @@ function SkeletonRow({ cols }: { cols: number }) {
 type SortDir = "asc" | "desc" | null;
 
 const CHART_COLORS = [
-  "#3b82f6","#22c55e","#f59e0b","#8b5cf6",
-  "#ef4444","#06b6d4","#ec4899","#84cc16","#f97316","#14b8a6",
+  "#b9ec8a","#9be15d","#d9b84a","#8b5cf6",
+  "#f08a76","#06b6d4","#ec4899","#84cc16","#e89a5b","#14b8a6",
 ];
 
 const REFRESH_INTERVAL = 30;
@@ -161,10 +161,10 @@ export default function PortfolioPage() {
   }
 
   function SortIcon({ col }: { col: keyof Holding }) {
-    if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 text-[#8a8a8a]" />;
+    if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 text-[#8b968e]" />;
     return sortDir === "asc"
-      ? <ChevronUp className="w-3 h-3 text-[#3b82f6]" />
-      : <ChevronDown className="w-3 h-3 text-[#3b82f6]" />;
+      ? <ChevronUp className="w-3 h-3 text-[#b9ec8a]" />
+      : <ChevronDown className="w-3 h-3 text-[#b9ec8a]" />;
   }
 
   const filteredHoldings = holdings
@@ -189,38 +189,38 @@ export default function PortfolioPage() {
     {
       label: "Portfolio Value",
       value: INR(totalCurrent),
-      icon: <BarChart3 className="w-4 h-4 text-[#3b82f6]" />,
-      color: "text-[#f5f5f5]",
+      icon: <BarChart3 className="w-4 h-4 text-[#b9ec8a]" />,
+      color: "text-[#eef2ee]",
       sub: null,
     },
     {
       label: "Invested",
       value: INR(totalInvested),
-      icon: <DollarSign className="w-4 h-4 text-[#8a8a8a]" />,
-      color: "text-[#f5f5f5]",
+      icon: <DollarSign className="w-4 h-4 text-[#8b968e]" />,
+      color: "text-[#eef2ee]",
       sub: null,
     },
     {
       label: "Total P&L",
       value: (totalPnl >= 0 ? "+" : "") + INR(totalPnl) ,
       icon: totalPnl >= 0
-        ? <TrendingUp className="w-4 h-4 text-[#22c55e]" />
-        : <TrendingDown className="w-4 h-4 text-[#ef4444]" />,
-      color: totalPnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]",
+        ? <TrendingUp className="w-4 h-4 text-[#9be15d]" />
+        : <TrendingDown className="w-4 h-4 text-[#f08a76]" />,
+      color: totalPnl >= 0 ? "text-[#9be15d]" : "text-[#f08a76]",
       sub: `${totalPnlPct >= 0 ? "+" : ""}${totalPnlPct.toFixed(2)}%`,
     },
     {
       label: "Day's P&L",
       value: (dayPnl >= 0 ? "+" : "") + INR(dayPnl),
-      icon: <Activity className="w-4 h-4 text-[#f59e0b]" />,
-      color: dayPnl >= 0 ? "text-[#22c55e]" : "text-[#ef4444]",
+      icon: <Activity className="w-4 h-4 text-[#d9b84a]" />,
+      color: dayPnl >= 0 ? "text-[#9be15d]" : "text-[#f08a76]",
       sub: null,
     },
     {
       label: "Available Cash",
       value: INR(availableCash),
-      icon: <Wallet className="w-4 h-4 text-[#22c55e]" />,
-      color: "text-[#f5f5f5]",
+      icon: <Wallet className="w-4 h-4 text-[#9be15d]" />,
+      color: "text-[#eef2ee]",
       sub: null,
     },
   ];
@@ -239,20 +239,20 @@ export default function PortfolioPage() {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh bg-[#0a0a0a] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className="min-h-14 border-b border-[#1f1f1f] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0">
-          <h1 className="text-sm font-semibold text-[#f5f5f5]">Portfolio</h1>
-          <div className="flex items-center gap-3 md:gap-5 text-xs text-[#8a8a8a] flex-wrap">
+        <div className="min-h-14 border-b border-[#223027] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0">
+          <h1 className="text-sm font-semibold text-[#eef2ee]">Portfolio</h1>
+          <div className="flex items-center gap-3 md:gap-5 text-xs text-[#8b968e] flex-wrap">
             {lastUpdated && <span>Updated {secsAgo}s ago</span>}
-            <span>Refresh in <span className="text-[#8a8a8a]">{countdown}s</span></span>
+            <span>Refresh in <span className="text-[#8b968e]">{countdown}s</span></span>
             <button
               onClick={() => fetchAll(true)}
               disabled={refreshing}
-              className="flex items-center gap-1.5 text-[#8a8a8a] hover:text-[#f5f5f5] transition-colors disabled:opacity-40"
+              className="flex items-center gap-1.5 text-[#8b968e] hover:text-[#eef2ee] transition-colors disabled:opacity-40"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
@@ -265,13 +265,13 @@ export default function PortfolioPage() {
           {/* Summary cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {summaryCards.map((c) => (
-              <div key={c.label} className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4">
+              <div key={c.label} className="glass rounded-3xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs uppercase tracking-wider text-[#8a8a8a]">{c.label}</p>
+                  <p className="text-xs text-[#8b968e]">{c.label}</p>
                   {c.icon}
                 </div>
                 {loading ? (
-                  <div className="h-5 w-24 bg-[#1f1f1f] rounded animate-pulse" />
+                  <div className="h-5 w-24 bg-[#223027] rounded animate-pulse" />
                 ) : (
                   <>
                     <p className={`text-base font-semibold ${c.color}`}>{c.value}</p>
@@ -283,23 +283,23 @@ export default function PortfolioPage() {
           </div>
 
           {/* Holdings table */}
-          <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f1f1f]">
-              <h2 className="text-sm font-semibold text-[#f5f5f5]">
+          <div className="glass rounded-3xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#223027]">
+              <h2 className="text-sm font-semibold text-[#eef2ee]">
                 Holdings
                 {!loading && (
-                  <span className="ml-2 text-xs font-normal text-[#8a8a8a]">
+                  <span className="ml-2 text-xs font-normal text-[#8b968e]">
                     {filteredHoldings.length} stocks
                   </span>
                 )}
               </h2>
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8a8a8a]" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8b968e]" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search symbol..."
-                  className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#f5f5f5] placeholder-[#333] focus:outline-none focus:border-[#3b82f6] w-44 transition-colors"
+                  className="bg-[#0a0e0c] border border-[#223027] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#eef2ee] placeholder-[#34443a] focus:outline-none focus:border-[#b9ec8a] w-44 transition-colors"
                 />
               </div>
             </div>
@@ -307,13 +307,13 @@ export default function PortfolioPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[#1a1a1a]">
+                  <tr className="border-b border-[#1a241e]">
                     {HOLDING_COLS.map((col) => (
                       <th
                         key={col.label}
                         onClick={() => col.sortable && toggleSort(col.key)}
-                        className={`text-left px-4 py-3 text-xs uppercase tracking-wider text-[#8a8a8a] font-medium whitespace-nowrap
-                          ${col.sortable ? "cursor-pointer hover:text-[#d5d5d5] select-none" : ""}`}
+                        className={`text-left px-4 py-3 text-xs text-[#8b968e] font-medium whitespace-nowrap
+                          ${col.sortable ? "cursor-pointer hover:text-[#d3dbd5] select-none" : ""}`}
                       >
                         <span className="inline-flex items-center gap-1">
                           {col.label}
@@ -332,19 +332,19 @@ export default function PortfolioPage() {
                           ? ((h.last_price - h.average_price) / h.average_price) * 100
                           : 0;
                         return (
-                          <tr key={h.tradingsymbol} className="border-b border-[#141414] hover:bg-[#151515] transition-colors">
+                          <tr key={h.tradingsymbol} className="border-b border-[#1a241e] hover:bg-[#16201a] transition-colors">
                             <td className="px-4 py-3">
-                              <p className="font-medium text-[#f5f5f5]">{h.tradingsymbol}</p>
-                              <p className="text-xs text-[#8a8a8a]">{h.exchange}</p>
+                              <p className="font-medium text-[#eef2ee]">{h.tradingsymbol}</p>
+                              <p className="text-xs text-[#8b968e]">{h.exchange}</p>
                             </td>
-                            <td className="px-4 py-3 text-[#888]">{h.quantity}</td>
-                            <td className="px-4 py-3 text-[#888]">{INR(h.average_price)}</td>
-                            <td className="px-4 py-3 text-[#f5f5f5] font-medium">{INR(h.last_price)}</td>
-                            <td className="px-4 py-3 text-[#888]">{INR(curValue)}</td>
+                            <td className="px-4 py-3 text-[#8b968e]">{h.quantity}</td>
+                            <td className="px-4 py-3 text-[#8b968e]">{INR(h.average_price)}</td>
+                            <td className="px-4 py-3 text-[#eef2ee] font-medium">{INR(h.last_price)}</td>
+                            <td className="px-4 py-3 text-[#8b968e]">{INR(curValue)}</td>
                             <td className="px-4 py-3"><Pnl value={h.pnl} /></td>
                             <td className="px-4 py-3"><PnlPct value={pnlPct} /></td>
                             <td className="px-4 py-3">
-                              <span className={`text-xs ${h.day_change_percentage >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                              <span className={`text-xs ${h.day_change_percentage >= 0 ? "text-[#9be15d]" : "text-[#f08a76]"}`}>
                                 {h.day_change_percentage >= 0 ? "▲" : "▼"}{" "}
                                 {Math.abs(h.day_change_percentage).toFixed(2)}%
                               </span>
@@ -355,7 +355,7 @@ export default function PortfolioPage() {
                   }
                   {!loading && filteredHoldings.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-[#8a8a8a] text-sm">
+                      <td colSpan={8} className="px-4 py-10 text-center text-[#8b968e] text-sm">
                         {search ? `No results for "${search}"` : "No holdings found"}
                       </td>
                     </tr>
@@ -369,12 +369,12 @@ export default function PortfolioPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
             {/* Positions */}
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#1f1f1f]">
-                <h2 className="text-sm font-semibold text-[#f5f5f5]">
+            <div className="glass rounded-3xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-[#223027]">
+                <h2 className="text-sm font-semibold text-[#eef2ee]">
                   Intraday Positions
                   {!loading && (
-                    <span className="ml-2 text-xs font-normal text-[#8a8a8a]">
+                    <span className="ml-2 text-xs font-normal text-[#8b968e]">
                       {openPositions.length} open
                     </span>
                   )}
@@ -383,9 +383,9 @@ export default function PortfolioPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#1a1a1a]">
+                    <tr className="border-b border-[#1a241e]">
                       {["Symbol", "Qty", "Avg", "LTP", "P&L", "M2M"].map((h) => (
-                        <th key={h} className="text-left px-4 py-2.5 text-xs uppercase tracking-wider text-[#8a8a8a] font-medium">
+                        <th key={h} className="text-left px-4 py-2.5 text-xs text-[#8b968e] font-medium">
                           {h}
                         </th>
                       ))}
@@ -395,16 +395,16 @@ export default function PortfolioPage() {
                     {loading
                       ? Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} cols={6} />)
                       : openPositions.map((p) => (
-                          <tr key={`${p.tradingsymbol}-${p.product}`} className="border-b border-[#141414] hover:bg-[#151515] transition-colors">
+                          <tr key={`${p.tradingsymbol}-${p.product}`} className="border-b border-[#1a241e] hover:bg-[#16201a] transition-colors">
                             <td className="px-4 py-3">
-                              <p className="font-medium text-[#f5f5f5]">{p.tradingsymbol}</p>
-                              <p className="text-xs text-[#8a8a8a]">{p.product}</p>
+                              <p className="font-medium text-[#eef2ee]">{p.tradingsymbol}</p>
+                              <p className="text-xs text-[#8b968e]">{p.product}</p>
                             </td>
-                            <td className={`px-4 py-3 font-medium text-sm ${p.quantity > 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                            <td className={`px-4 py-3 font-medium text-sm ${p.quantity > 0 ? "text-[#9be15d]" : "text-[#f08a76]"}`}>
                               {p.quantity > 0 ? "+" : ""}{p.quantity}
                             </td>
-                            <td className="px-4 py-3 text-[#888]">{INR(p.average_price)}</td>
-                            <td className="px-4 py-3 text-[#f5f5f5]">{INR(p.last_price)}</td>
+                            <td className="px-4 py-3 text-[#8b968e]">{INR(p.average_price)}</td>
+                            <td className="px-4 py-3 text-[#eef2ee]">{INR(p.last_price)}</td>
                             <td className="px-4 py-3"><Pnl value={p.pnl} /></td>
                             <td className="px-4 py-3"><Pnl value={p.m2m} showIcon={false} /></td>
                           </tr>
@@ -412,7 +412,7 @@ export default function PortfolioPage() {
                     }
                     {!loading && openPositions.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-[#8a8a8a] text-sm">
+                        <td colSpan={6} className="px-4 py-8 text-center text-[#8b968e] text-sm">
                           No open positions
                         </td>
                       </tr>
@@ -423,15 +423,15 @@ export default function PortfolioPage() {
             </div>
 
             {/* Donut */}
-            <div className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-[#f5f5f5] mb-1">Allocation</h2>
-              <p className="text-xs text-[#8a8a8a] mb-4">Top 10 holdings by value</p>
+            <div className="glass rounded-3xl p-5">
+              <h2 className="text-sm font-semibold text-[#eef2ee] mb-1">Allocation</h2>
+              <p className="text-xs text-[#8b968e] mb-4">Top 10 holdings by value</p>
               {loading ? (
                 <div className="h-56 flex items-center justify-center">
-                  <div className="w-36 h-36 rounded-full border-8 border-[#1f1f1f] animate-pulse" />
+                  <div className="w-36 h-36 rounded-full border-8 border-[#223027] animate-pulse" />
                 </div>
               ) : chartData.length === 0 ? (
-                <div className="h-56 flex items-center justify-center text-[#8a8a8a] text-sm">No data</div>
+                <div className="h-56 flex items-center justify-center text-[#8b968e] text-sm">No data</div>
               ) : (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
@@ -449,11 +449,11 @@ export default function PortfolioPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ background: "#111", border: "1px solid #1f1f1f", borderRadius: 8, fontSize: 12, color: "#f5f5f5" }}
+                      contentStyle={{ background: "#121a15", border: "1px solid #223027", borderRadius: 8, fontSize: 12, color: "#eef2ee" }}
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       formatter={(v: any) => [INR(Number(v)), "Value"]}
                     />
-                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, color: "#8a8a8a" }} />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, color: "#8b968e" }} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
