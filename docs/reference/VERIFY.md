@@ -345,6 +345,13 @@ select
 - `rp_rebalance_months` equals the number of distinct calendar months with an official run, counting the seed month.
 
 **FAIL** otherwise. The gate is read on 2027-03-31: PICKING_RP against MANAGEMENT and against `baseline_equity` (Nifty 500).
+_11-19 reading: **FAIL**. rp_snapshots = 0 and rp_rebalance_months = 0, yet `advisor_paper_seed_rp` and `advisor_paper_rp_last_rebalance` were both set to 11-18. Root cause: both paper tables had `CHECK (book IN ('MANAGEMENT','PICKING'))`. Every PICKING_RP write was rejected, `insert_paper_positions` swallowed the error, and `_rebalance_rp` wrote the month guard anyway, so no retry would happen until December. **Fixed 11-19:**_
+- _the CHECK was widened to MANAGEMENT/PICKING/PICKING_RP/S5 (migration `paper_book_check_2026_11_19`);_
+- _the guard is never written on a short insert (brain `feat/s5-paper`);_
+- _FakeSupabase now enforces the CHECK;_
+- _both RP keys were deleted, so the book reseeds and rebalances at the next official run (old values: capital 597,638.74, seed 11-18, nifty500 23,822.3)._
+
+_Re-read from that run on._
 
 ### V-43 · daily Kite fills don't duplicate Console imports — registered 2026-11-18
 After the next market day with real fills (brain c2ae646), the `kite_daily`
