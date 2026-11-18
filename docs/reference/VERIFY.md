@@ -29,6 +29,39 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-52 · household rebalance buys stay inside the caps — registered 2026-11-19 [P-75]
+After the next official advisor run:
+```sql
+with b as (select value::jsonb v from app_config where key='household_book_latest'),
+held as (select symbol from portfolio_advice where run_id=(select run_id from portfolio_advice where is_official order by created_at desc limit 1)
+         union select r->>'symbol' from app_config, jsonb_array_elements(value::jsonb->'rows') r where key='advisor_natwar_latest')
+select r->>'sector' as sector, r->'buy'->>'symbol' as buy, r->>'note' as note,
+  round((r->'buy'->>'inr')::numeric / (b.v->'net_worth'->>'total')::numeric * 100, 2) as pct_of_book,
+  (r->'buy'->>'symbol') in (select symbol from held) as already_held
+from b, jsonb_array_elements(b.v->'rebalance') r where r->>'kind'='underweight';
+```
+**PASS** = every row has `buy` or `note`; every `pct_of_book ≤ 3.0`; no `already_held = true`.
+**FAIL** otherwise. All rows `note` + no `buy` with SELL/TRIM calls open = check that the universe scan ran today (`stock_universe.advisor_score_updated_at`).
+
+### V-51 · S5 first rebalance lands — registered 2026-11-19 [P-71]
+**NOT-YET** before 2026-12-31. After 16:30 IST on 2026-12-31 (or the catch-up day):
+```sql
+select
+  (select count(*) from advisor_paper_positions where book='S5' and is_open) as open_n,
+  (select value from app_config where key='s5_last_rebalance') as last,
+  (select value from app_config where key='s5_seed') as seed,
+  (select count(*) from advisor_paper_equity where book='S5') as snapshots;
+```
+**PASS**:
+- `open_n = 10`, or 0 with `"risk_off": true` in `last`;
+- `last` has `"status": "run"` and `"date": "2026-12-31"`;
+- `seed.capital = 50000` and `seed.index_inception > 0` (a failed index read stores 0);
+- `snapshots` grows by one per trading day afterwards;
+- the Telegram "S5 momentum (paper)" message arrived.
+
+**FAIL** otherwise. Read the Railway `[s5]` lines first: "no Nifty 15:20 bar" means the calendar or the token; "insert failed" means the DB.
+**Before 2027-01-29:** `config.NSE_HOLIDAYS` must have the 2027 NSE list, or a month-end that falls on a holiday is skipped.
+
 ### V-50 · Home attention list matches the source pages — registered 2026-11-19 [P-74]
 Manual, next trading day. Open `/` and compare each "Needs your attention" row
 with its page: sell/trim counts = /advisor (both account tabs); skipped-call cost

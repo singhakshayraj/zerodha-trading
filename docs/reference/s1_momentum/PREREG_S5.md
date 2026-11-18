@@ -47,3 +47,28 @@ Read once on **2028-12-31** (24 months). Adopt S5 only if both hold over
 Otherwise the index fund wins: it needs no code. Live paper cannot prove an edge
 statistically (~60 trades a year). This read checks whether S5 is worth running
 instead of the fund, not whether the edge is real.
+
+## Addendum C (2026-11-19, from the pre-merge code review, before any S5 output)
+
+No S5 rebalance or snapshot exists yet, so these changes carry no look-ahead. They
+correct the live adaptations only; the strategy rules are unchanged.
+
+1. **Split band** (replaces the band in B5): [0.95, 1.05]. With no corporate
+   action, k ≈ 1 ± costs and the last-minutes drift. The 0.70/1.45 band came from
+   the kit's raw-gap detector, and it missed Kite-adjusted 1:3, 1:4, 1:5 and 1:10
+   bonuses (k = 1.33, 1.25, 1.2, 1.1). Those would have shown a fake loss.
+2. **Fetch window:** 500 calendar days of day bars (≈ 340 sessions), not 400
+   (≈ 271). This is so that halt days don't push a name under the 260-session
+   minimum. MIN_HIST is unchanged.
+3. **Data failures are retried, never traded on.** The rebalance aborts without
+   marking the month done, and catches up per B4, when any of these happens:
+   - a 5-minute or held-name day-bar fetch returns nothing;
+   - fewer than half the pin is eligible;
+   - a position read or write fails.
+
+   "Bars exist but none at 15:20 on the day" is a genuine halt. In that case B3
+   applies: a held name sells at its last close **whatever its rank** (this is the
+   kit's behaviour), and a buy candidate is skipped.
+4. **Names that leave the pin:** S5 stores the Kite token of every name it buys.
+   A held name dropped from the Nifty 500 (reconstitution or rename) is still
+   priced and sold at market. It is not sold at its entry price.

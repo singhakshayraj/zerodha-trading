@@ -1102,6 +1102,12 @@ explicitly lifted.
   · *blocked on operator:* `nse_results_2018_2025.csv` (NSE console script) and
   the S2 pre-registration file (not in the S1 kit). S2 becomes trial 264 when
   it is filed.
+  · **S5 built 2026-11-19:** trial 265, a ₹50k paper book `S5` (brain `s5_momentum.py`).
+    The first rebalance is on 2026-12-31 and the read is on 2028-12-31 vs Nifty200
+    Momentum 30. Design: `superpowers/specs/2026-11-19-s5-momentum-paper-design.md`.
+    Plan: `superpowers/plans/2026-11-19-s5-momentum-paper.md`. VERIFY: V-51.
+  · *open [me]:* add `NSE_HOLIDAYS_2027` to brain `config.py` when NSE publishes the
+    2027 list (needed before 2027-01-29). Without it, a holiday month-end is skipped.
 
 - **[P-47] Thesis engine — advisor v2 in SHADOW mode.** [me] · *done =* every
   official run attaches `indicators.thesis` (HOLD/ADD/TRIM/EXIT, target
@@ -1421,6 +1427,18 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+- ~~**[P-75] Household rebalance names the buys (both accounts).**~~ ✅ **DONE 2026-11-19**
+  — each of the 3 worst underweight sectors now carries a named buy: the best
+  unheld Nifty-500 name scoring ≥ 50 in today's scan that passes the household
+  caps, sized to at most 3% of the book, bought in the account with the most
+  unplaced cash. Cash = today's SELL/TRIM proceeds that rotation does not reuse
+  (TRIM = half, × 0.95) plus cap trims; today's rotation buys count toward the
+  gap first. Otherwise a note says why (gap covered / no name scores / needs new
+  money). Brain `household_book._fund_underweights`; dashboard
+  `components/RebalanceBuys.tsx` on /household and a "Rebalance both accounts"
+  section on /advisor. Dry run on 11-19 data: CHOLAFIN 21 sh ₹39.6k (Natwar),
+  SAILIFE 21 sh ₹36.8k (Natwar), ASAHIINDIA 7 sh ₹8.2k (Kanaklata). Advisory
+  only. VERIFY: V-52.
 - ~~**[P-74] Home: household widgets + "Needs your attention".**~~ ✅ **DONE 2026-11-19**
   — mockup D approved. Header value is now the household book (both accounts,
   as-of the brain's household_book date) with 1-month return vs Nifty; Kanaklata

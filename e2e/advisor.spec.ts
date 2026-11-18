@@ -81,8 +81,9 @@ test("accountability: PICKING_RP card, empty book graceful", async ({ page }) =>
     closedTrades: 0, wins: 0, losses: 0, winRatePct: null, realizedPnl: 0, avgReturnPct: null, byVerdict: {}, bySource: {}, bestTrade: null, worstTrade: null, openPositions: [] };
   const withCurve = { ...empty, curve: [{ date: "2026-11-17", equity: 100000, baseline: 100000, nifty: 1, openPositions: 8 }, { date: "2026-11-18", equity: 101000, baseline: 100500, nifty: 1, openPositions: 8 }] };
   await page.route(/\/api\/advisor\/accountability/, (r) => r.fulfill({ json: { hasData: true, updatedAt: "2026-11-18", real: null,
-    books: { MANAGEMENT: withCurve, PICKING: withCurve, PICKING_RP: empty } } }));
+    books: { MANAGEMENT: withCurve, PICKING: withCurve, PICKING_RP: empty, S5: empty } } }));
   await page.goto("/advisor/accountability");
   await expect(page.getByText("monthly rebalance to capped HRP weights vs the same money in Nifty 500")).toBeVisible();
-  await expect(page.getByText(/not yet seeded/i)).toBeVisible();
+  await expect(page.getByText(/not yet seeded/i).first()).toBeVisible();
+  await expect(page.getByText("S5 momentum (paper)")).toBeVisible();
 });

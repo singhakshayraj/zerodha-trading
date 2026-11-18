@@ -159,6 +159,8 @@ survivor-biased), 2019–23 in-sample, 2024–25 holdout.
 
 [s1_momentum/PREREG_S5.md](s1_momentum/PREREG_S5.md), sha256 `ba48a683…059ee2`,
 frozen 2026-11-18T23:10:26Z, before any S5 output (first rebalance 2026-12-31).
+Addendum C (code-review corrections to the live adaptations, still pre-output) re-hashed it
+`bf958988…aee7023` at 2026-11-18T23:56:00Z.
 S1-T rules plus Addendum B (live adaptations). ₹50k paper book `S5` in
 `advisor_paper_*` (brain `s5_momentum.py`). One read on **2028-12-31**: adopt only
 if net CAGR beats the Nifty200 Momentum 30 price index **and** max drawdown is

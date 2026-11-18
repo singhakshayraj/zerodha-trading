@@ -370,6 +370,11 @@ export default function AccountabilityPage() {
                 subtitle="Monthly rebalance to capped HRP weights vs the same money in Nifty 500 · shadow book"
                 book={books.PICKING_RP ?? EMPTY_BOOK}
               />
+              <BookCard
+                name="S5 momentum (paper)"
+                subtitle="₹50k · top-10 momentum, monthly at 15:25, cash below Nifty 200-DMA · baseline = Nifty200 Momentum 30 · trial 265, read 2028-12-31"
+                book={books.S5 ?? EMPTY_BOOK}
+              />
               <div className="lg:col-span-2"><RealExecutions real={real} /></div>
             </div>
           ) : null}
