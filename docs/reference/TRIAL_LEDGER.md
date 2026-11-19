@@ -29,7 +29,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | sector layer on top of v1 — exposure-weighted edge vs v1, registered 2026-11-11 before any grade | 1 |
 | S1 monthly momentum (CNC) + S1-T 200-DMA variant — pre-registered 2026-11-18, tested same day, failed | 2 |
 | S5 live paper (S1-T re-registered, judged 2028-12-31) — registered 2026-11-19 before any output | 1 |
-| **total** | **264** |
+| advisor v1 forward read — calls from 2026-11-20 only, FM t across ≥ 60 dates, registered 2026-11-20 before any such call is graded | 1 |
+| **total** | **265** |
 
 ## The threshold
 
@@ -39,7 +40,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **264 (this project)** | **3.73** |
+| **265 (this project)** | **3.73** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
@@ -168,3 +169,22 @@ smaller. Not a significance test: at ~60 trades a year, 24 months cannot clear
 3.73. The read decides fund vs code, not whether the edge is real. Number 264 is
 held for S2 (post-results drift), which is counted when its pre-registration file
 is filed.
+
+## Registered 2026-11-20 — advisor v1 forward read (trial 266)
+
+Written **before any call in the pool exists**. Context: the n = 400 read (V-20,
+2026-11-19) gave hit 0.5995 and Wilson [0.551, 0.646], but a Fama–MacBeth t of 1.98
+on only 22 dates. That is an anomaly, not a result. The binding limit is dates, not
+calls, so this read is judged only on new dates.
+
+- **Pool:** official `portfolio_advice` rows with `run_date >= 2026-11-20`. The V-20
+  pool (run_date ≤ 2026-11-19) is frozen and never pooled in.
+- **Label:** `outcome_correct_alpha` (10d MICRO / 30d MACRO, unchanged grader).
+- **Statistic:** the Fama–MacBeth across-date t of the per-date mean (hit − 0.5).
+- **Read once,** when **≥ 60 distinct run_dates** are graded (about April 2027),
+  against the then-current deflated threshold (3.73 today).
+- **Pass** → the advisor's verdicts count as an edge. **Miss** → grading shuts off
+  (POST_MORTEM §6), with no further reads.
+- **No interim peeking:** counts only, no hit rates, until the read.
+- Grader fixes that wait on V-20 (D3/D4, branch `fix/grader-d3-d4`) may merge now.
+  They apply before the first call in this pool matures.

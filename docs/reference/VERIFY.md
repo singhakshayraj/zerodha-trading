@@ -29,6 +29,16 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-54 · advisor forward read (trial 266) — registered 2026-11-20
+Counts only until the read, no hit rates:
+```sql
+select count(distinct run_date) graded_dates, count(*) graded
+from portfolio_advice where is_official and run_date >= '2026-11-20' and outcome_correct_alpha is not null;
+```
+**NOT-YET** while `graded_dates < 60`. At 60, run the read once per
+TRIAL_LEDGER "advisor v1 forward read". **PASS** = FM t ≥ the then-current
+threshold. **FAIL** = grading shuts off.
+
 ### V-53 · Home charts read right on a phone — registered 2026-11-19 [P-76]
 Manual: device screenshot. On `/`, tap a point on the Household vs Nifty line:
 **PASS** = a tooltip shows both values for that day, x-axis labels don't overlap,
@@ -159,7 +169,7 @@ _**Read 2026-11-19, n = 402** (official calls 2026-07-12 → 11-03, alpha label)
 - _hit rate 0.5995, Wilson 95% CI [0.551, 0.646], which excludes 0.50;_
 - _Fama–MacBeth across **22 dates**: t = **1.98**, below the deflated bar 3.73 (264 trials)._
 
-_Verdict per this pre-commitment: an **anomaly, not a discovery**. It does not count. It sits against the 164-date null of the out-of-sample replay. The decision on whether grading shuts off (POST_MORTEM §6) is the operator's._
+_Verdict per this pre-commitment: an **anomaly, not a discovery**. It does not count. It sits against the 164-date null of the out-of-sample replay. **Operator 2026-11-20:** keep grading under a new forward read on future dates only (trial 266, V-54). This pool is frozen._
 
 ### I-8 · whole-book coverage reconciles [item 5, rule-class]
 The sum of all valued holdings must reconcile to the brokerage-reported total
