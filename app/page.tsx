@@ -53,7 +53,7 @@ const VERDICT_META: Record<string, { color: string; label: string }> = {
 // Label-over-value pill used in the header status row.
 function Chip({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <span className="chip inline-flex flex-col gap-0.5 px-4 py-2">
+    <span className="chip inline-flex shrink-0 flex-col gap-0.5 px-4 py-2">
       <span className="text-xs text-[#8b968e]">{label}</span>
       <span className="text-sm text-[#eef2ee]">{children}</span>
     </span>
@@ -200,14 +200,14 @@ export default function CommandCenter() {
     <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
       <Sidebar />
       <main className="flex-1 min-h-0 overflow-y-auto px-4 py-6 md:px-8 md:py-9">
-        <div className="max-w-[1100px] w-full mx-auto flex flex-col gap-6">
+        <div className="max-w-[1100px] w-full mx-auto flex flex-col gap-4 md:gap-6">
           {/* header: title + status pills, real-portfolio value on the right */}
           <header className="flex flex-wrap justify-between items-end gap-6">
-            <div className="flex flex-col gap-4">
-              <h1 className="text-[34px] md:text-[44px] leading-[1.05] font-light tracking-[-0.02em] text-[#eef2ee]">Command<br />Center</h1>
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-4 min-w-0 max-w-full">
+              <h1 className="text-[28px] md:text-[44px] leading-[1.05] font-light tracking-[-0.02em] text-[#eef2ee]">Command <br className="hidden md:block" />Center</h1>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap md:overflow-visible">
                 <Chip label="Date">{today}</Chip>
-                <span className="chip rounded-2xl inline-flex items-center px-4 py-2 max-w-[300px] overflow-hidden"><BrainStatus /></span>
+                <span className="chip rounded-2xl inline-flex shrink-0 items-center px-4 py-2 max-w-[300px] overflow-hidden"><BrainStatus /></span>
                 <Chip label="Paper engine"><span style={{ color: sess?.active ? GREEN : undefined }}>{sess?.active ? "Active" : "Idle"}</span></Chip>
                 {advice !== null && advice.length > 0 && (
                   <Chip label="Advisor">{actionable.length} action{actionable.length === 1 ? "" : "s"}</Chip>
@@ -277,8 +277,8 @@ export default function CommandCenter() {
           {book && <VsNiftyChart book={book} />}
 
           {/* today: paper engine · advisor top move · whole-portfolio risk */}
-          <section aria-label="Today" className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]">
-            <Link href="/trading" className="glass rounded-3xl p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
+          <section aria-label="Today" className="card-row [--card-min:240px]">
+            <Link href="/trading" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
               <span className="flex justify-between items-center text-sm text-[#a9b3ab]">
                 Paper engine
                 <span className={`text-xs rounded-full px-2.5 py-0.5 ring-1 ring-inset ${sess?.active ? "text-[#9be15d] ring-[#9be15d]/40" : "text-[#a9b3ab] ring-white/[0.12]"}`}>
@@ -291,7 +291,7 @@ export default function CommandCenter() {
               <span className="text-sm text-[#8b968e]">today · {sess?.trades ?? 0} trade{sess?.trades === 1 ? "" : "s"}</span>
             </Link>
 
-            <Link href="/advisor" className="glass rounded-3xl p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
+            <Link href="/advisor" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
               <span className="flex justify-between items-center gap-2 text-sm text-[#a9b3ab]">
                 Advisor · top move
                 {changeCount > 0 && (
@@ -325,7 +325,7 @@ export default function CommandCenter() {
             </Link>
 
             {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
-              <Link href="/advisor" className="glass rounded-3xl p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
+              <Link href="/advisor" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
                 <span className="text-sm text-[#a9b3ab]">Whole-portfolio risk</span>
                 {risk.correlation && risk.correlation.effective_bets != null && (
                   <span className="flex items-baseline gap-2">
@@ -349,7 +349,7 @@ export default function CommandCenter() {
 
           {/* household book: split, asset mix, returns · sector mix vs index */}
           {book && (
-            <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+            <section className="card-row">
               <HouseholdCard book={book} />
               <MixCard book={book} />
             </section>
@@ -357,7 +357,7 @@ export default function CommandCenter() {
 
           {/* flagged value by advisor call · risk share vs value share */}
           {(advice !== null || book) && (
-            <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+            <section className="card-row">
               <FlaggedCard sum={flagged.sum} top={flagged.top} />
               {book && <RiskSourceCard book={book} />}
             </section>
@@ -365,16 +365,18 @@ export default function CommandCenter() {
 
           {/* this month vs Nifty (per account) · tax */}
           {(monthRows.length > 0 || book) && (
-            <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+            <section className="card-row">
               {monthRows.length > 0 && <MonthCard month={month} rows={monthRows} />}
               {book && <TaxCard book={book} today={todayIso} />}
             </section>
           )}
 
           {/* intraday lab PF vs the 1.3 target, daily (P-70) — beside the daily risk meter */}
-          <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))]">
+          {/* rendered only after load: inserting the lab card in front of an
+              already-shown RiskMeter makes the phone swipe row re-snap past it */}
+          {loaded && <section className="card-row [--card-min:320px]">
             {lab && lab.days.length > 0 && (
-              <Link href="/lab" className="glass rounded-3xl p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors"
+              <Link href="/lab" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors"
                     style={{ backgroundImage: "linear-gradient(160deg, rgba(155,225,93,0.07), rgba(255,255,255,0.02) 55%)" }}>
                 <span className="flex justify-between items-center gap-3">
                   <span className="text-[15px] font-medium text-[#eef2ee]">
@@ -412,10 +414,10 @@ export default function CommandCenter() {
               </Link>
             )}
             <RiskMeter pnl={sess?.pnl ?? 0} capital={capital} maxLossPct={maxLossPct} maxProfitPct={maxProfitPct} />
-          </section>
+          </section>}
 
           {/* jump links */}
-          <nav aria-label="Jump to" className="flex flex-wrap gap-2.5">
+          <nav aria-label="Jump to" className="flex gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
             {[
               { href: "/trading", label: "Auto Trade", desc: "run the paper engine" },
               { href: "/portfolio", label: "Portfolio", desc: "your real holdings" },
@@ -423,7 +425,7 @@ export default function CommandCenter() {
               { href: "/insights", label: "Insights", desc: "is the edge real?" },
             ].map((l) => (
               <Link key={l.href} href={l.href}
-                    className="chip inline-flex items-baseline gap-2 px-[18px] py-2.5 text-sm text-[#eef2ee] hover:bg-white/[0.08] transition-colors">
+                    className="chip inline-flex shrink-0 whitespace-nowrap items-baseline gap-2 px-[18px] py-2.5 text-sm text-[#eef2ee] hover:bg-white/[0.08] transition-colors">
                 {l.label} <span className="text-[13px] text-[#8b968e]">{l.desc}</span>
               </Link>
             ))}

@@ -129,7 +129,7 @@ function BucketTable({ title, data }: { title: string; data: Bucket }) {
 function BookCard({ name, subtitle, book }: { name: string; subtitle: string; book: Book }) {
   const hasCurve = book.curve.length > 0;
   return (
-    <div className="rounded-2xl bg-[#121a15] border border-[#223027] p-5">
+    <div className="min-w-0 rounded-2xl bg-[#121a15] border border-[#223027] p-5">
       <div className="flex items-baseline justify-between mb-1">
         <h2 className="text-base font-semibold text-[#eef2ee]">{name}</h2>
         <span className="text-sm font-semibold" style={{ color: sign(book.alphaVsBaselinePct) }}>
@@ -332,7 +332,7 @@ export default function AccountabilityPage() {
           </p>
 
           {loading ? (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {[0, 1].map((i) => (
                 <Skeleton key={i} className="h-[420px] w-full rounded-2xl bg-[#121a15]" />
               ))}
@@ -354,7 +354,7 @@ export default function AccountabilityPage() {
             </div>
             </>
           ) : books ? (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <BookCard
                 name="Management"
                 subtitle="Holdings mirror · applies HOLD/SELL/TRIM/rotation · baseline = holdings frozen"

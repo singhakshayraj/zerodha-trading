@@ -67,7 +67,7 @@ export function RiskMeter({
   const rib = (c: string) => `repeating-linear-gradient(90deg, ${c} 0 2px, transparent 2px 6px)`;
 
   return (
-    <div className="glass rounded-3xl p-5 flex flex-col gap-4">
+    <div className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className="text-[15px] font-medium text-[#eef2ee]">Daily risk</span>
         <span className="text-[13px] text-[#a9b3ab]">{headline}</span>
@@ -78,6 +78,10 @@ export function RiskMeter({
       </span>
 
       <div>
+        {/* 3R label sits above the track: below it, it collides with the floor label on narrow screens */}
+        <div className="relative h-4 mb-1.5 text-xs">
+          <span className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${stopPos}%`, color: RED }}>3R stop</span>
+        </div>
         <div className="relative h-[26px] rounded-full ring-1 ring-inset ring-white/[0.06]" style={{ background: rib("rgba(255,255,255,0.14)") }}>
           {/* danger zone: floor → 3R stop */}
           <div className="absolute inset-y-0 left-0 rounded-l-full" style={{ width: `${stopPos}%`, background: rib(`${RED}8c`) }} />
@@ -96,7 +100,6 @@ export function RiskMeter({
 
         <div className="relative h-4 mt-2 text-xs text-[#8b968e]">
           <span className="absolute left-0" style={{ color: RED }}>−{Math.abs(floorPct)}%</span>
-          <span className="absolute -translate-x-1/2" style={{ left: `${stopPos}%`, color: RED }}>3R</span>
           <span className="absolute -translate-x-1/2" style={{ left: `${zeroPos}%` }}>0</span>
           <span className="absolute right-0" style={{ color: GREEN }}>+{ceilPct}%</span>
         </div>

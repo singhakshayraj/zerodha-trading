@@ -16,7 +16,7 @@ function Metric({ label, value, sub, color }: { label: string; value: string; su
   return (
     <div className="flex flex-col gap-0.5 min-w-0">
       <span className="text-xs text-[#8b968e]">{label}</span>
-      <span className="text-[22px] font-light tabular-nums truncate" style={{ color: color ?? "#eef2ee" }}>{value}</span>
+      <span className="text-lg md:text-[22px] font-light tabular-nums truncate" style={{ color: color ?? "#eef2ee" }}>{value}</span>
       {sub && <span className="text-xs text-[#8b968e]">{sub}</span>}
     </div>
   );
@@ -24,21 +24,21 @@ function Metric({ label, value, sub, color }: { label: string; value: string; su
 
 export function AttentionList({ items }: { items: AttentionItem[] }) {
   return (
-    <section aria-labelledby="att-h" className="glass rounded-3xl px-5 pt-5 pb-2">
+    <section aria-labelledby="att-h" className="glass rounded-3xl px-4 pt-4 md:px-5 md:pt-5 pb-1.5">
       <div className="flex justify-between items-baseline pb-2.5">
         <h2 id="att-h" className="text-[15px] font-medium text-[#eef2ee]">
           Needs your attention <span className="text-[#8b968e] font-normal">· {items.length}</span>
         </h2>
-        {items.length > 0 && <span className="text-[13px] text-[#8b968e]">most urgent first</span>}
+        {items.length > 0 && <span className="hidden sm:inline text-[13px] text-[#8b968e]">most urgent first</span>}
       </div>
       {items.length === 0 ? (
         <p className="py-3 border-t border-white/[0.06] text-sm text-[#a9b3ab]">Nothing needs you today.</p>
       ) : items.map((it, i) => (
         <Link key={i} href={it.href}
-              className="grid grid-cols-[8px_1fr_auto] gap-3.5 items-baseline py-3 border-t border-white/[0.06] hover:bg-white/[0.02] transition-colors">
+              className="grid grid-cols-[8px_1fr] sm:grid-cols-[8px_1fr_auto] gap-3 sm:gap-3.5 items-baseline py-3 border-t border-white/[0.06] hover:bg-white/[0.02] transition-colors">
           <span aria-hidden className="w-2 h-2 rounded-full -translate-y-px" style={{ background: DOT[it.level] }} />
           <span className="text-sm leading-relaxed"><span className="text-[#eef2ee]">{it.text}</span> <span className="text-[#8b968e]">{it.detail}</span></span>
-          <span className="text-[13px] text-[#b9ec8a] whitespace-nowrap">{it.link}</span>
+          <span className="hidden sm:inline text-[13px] text-[#b9ec8a] whitespace-nowrap">{it.link}</span>
         </Link>
       ))}
     </section>
@@ -68,7 +68,7 @@ export function HouseholdCard({ book }: { book: HouseholdBook }) {
   const assets = Object.entries(book.net_worth.by_asset_class).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
   const r = book.returns.household;
   return (
-    <Link href="/household" aria-labelledby="hh-h" className="glass rounded-3xl p-5 flex flex-col gap-[18px] hover:bg-white/[0.02] transition-colors">
+    <Link href="/household" aria-labelledby="hh-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-[18px] hover:bg-white/[0.02] transition-colors">
       <h2 id="hh-h" className="text-[15px] font-medium text-[#eef2ee]">
         Household book {r?.start && <span className="text-[#8b968e] font-normal">· since {shortDate(r.start)}</span>}
       </h2>
@@ -106,15 +106,15 @@ export function MixCard({ book }: { book: HouseholdBook }) {
   const scale = Math.max(20, ...top.map((t) => Math.max(t.pct, t.index_pct)));
   const light = book.rebalance.filter((r) => r.kind === "underweight").slice(0, 3);
   return (
-    <Link href="/household" aria-labelledby="mix-h" className="glass rounded-3xl p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors">
+    <Link href="/household" aria-labelledby="mix-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors">
       <div className="flex flex-wrap justify-between items-baseline gap-x-3">
         <h2 id="mix-h" className="text-[15px] font-medium text-[#eef2ee]">Where the money sits</h2>
         <span className="text-xs text-[#8b968e]">yours / Nifty 500 · tick = index</span>
       </div>
       {top.map((t) => (
-        <div key={t.name} className="grid grid-cols-[110px_1fr_auto] sm:grid-cols-[150px_1fr_auto] gap-3 items-center text-[13px]">
+        <div key={t.name} className="grid grid-cols-[1fr_auto] sm:grid-cols-[150px_1fr_auto] gap-x-3 gap-y-1.5 items-center text-[13px]">
           <span className="text-[#a9b3ab] truncate" title={t.name}>{t.name}</span>
-          <span className="relative h-2.5 rounded-full bg-white/[0.06]">
+          <span className="relative h-2.5 rounded-full bg-white/[0.06] col-span-2 row-start-2 sm:col-span-1 sm:row-start-auto">
             <span className="absolute inset-y-0 left-0 rounded-full"
                   style={{ width: `${(t.pct / scale) * 100}%`, background: `repeating-linear-gradient(90deg, ${GOLD} 0 2px, ${GOLD}40 2px 5px)` }} />
             <span title="index weight" className="absolute -top-[3px] -bottom-[3px] w-0.5 bg-[#eef2ee]" style={{ left: `${(t.index_pct / scale) * 100}%` }} />
@@ -138,7 +138,7 @@ export type MonthVsNifty = { account: string; pnl: number; nifty: number };
 export function MonthCard({ month, rows }: { month: string; rows: MonthVsNifty[] }) {
   const label = new Date(month + "-01T00:00:00").toLocaleDateString("en-IN", { month: "long" });
   return (
-    <Link href="/pnl" aria-labelledby="mon-h" className="glass rounded-3xl p-5 flex flex-col gap-4 hover:bg-white/[0.02] transition-colors">
+    <Link href="/pnl" aria-labelledby="mon-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-4 hover:bg-white/[0.02] transition-colors">
       <h2 id="mon-h" className="text-[15px] font-medium text-[#eef2ee]">
         {label} vs Nifty <span className="text-[#8b968e] font-normal">· same money, same days</span>
       </h2>
@@ -172,7 +172,7 @@ export function TaxCard({ book, today }: { book: HouseholdBook; today: string })
   const next = [...t.ltcg_calendar].filter((l) => l.date >= today).sort((a, b) => a.date.localeCompare(b.date));
   const nextNames = next.filter((l, i) => next.findIndex((m) => m.symbol === l.symbol) === i).slice(0, 2);
   return (
-    <Link href="/household" aria-labelledby="tax-h" className="glass rounded-3xl p-5 flex flex-col gap-4 hover:bg-white/[0.02] transition-colors">
+    <Link href="/household" aria-labelledby="tax-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-4 hover:bg-white/[0.02] transition-colors">
       <h2 id="tax-h" className="text-[15px] font-medium text-[#eef2ee]">Tax · FY {fyStart}–{String(fyStart + 1).slice(2)}</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Metric label="Booked so far" value={booked.length ? inr(bookedSum) : "—"} color={booked.length ? signColor(bookedSum) : undefined}
@@ -223,7 +223,7 @@ export function VsNiftyChart({ book }: { book: HouseholdBook }) {
         : <g />;
     };
   return (
-    <section aria-labelledby="vs-h" className="glass rounded-3xl p-5 flex flex-col gap-3.5">
+    <section aria-labelledby="vs-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3.5">
       <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-2">
         <h2 id="vs-h" className="text-[15px] font-medium text-[#eef2ee]">
           Household vs Nifty <span className="text-[#8b968e] font-normal">· both indexed to 100, since {shortDate(r.start)}</span>
@@ -288,16 +288,16 @@ export function FlaggedCard({ sum, top }: { sum: Record<keyof typeof CALL, numbe
   if (total <= 0) return null;
   const parts = (Object.keys(CALL) as (keyof typeof CALL)[]).filter((k) => sum[k] > 0).map((k) => ({ k, v: sum[k], share: (sum[k] / total) * 100 }));
   return (
-    <Link href="/advisor" aria-labelledby="fl-h" className="glass rounded-3xl p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
+    <Link href="/advisor" aria-labelledby="fl-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
       <h2 id="fl-h" className="text-[15px] font-medium text-[#eef2ee]">
         How much of the book is flagged <span className="text-[#8b968e] font-normal">· by value, both accounts</span>
       </h2>
       <div className="flex gap-0.5" role="img" aria-label={parts.map((p) => `${CALL[p.k].label} ${Math.round(p.share)}%, ${lakh(p.v)}`).join("; ")}>
         {parts.map((p) => (
           <span key={p.k} title={`${CALL[p.k].label} · ${lakh(p.v)} · ${p.share.toFixed(1)}%`}
-                className="h-7 rounded flex items-center pl-2.5 text-[13px] font-medium whitespace-nowrap overflow-visible"
+                className="h-7 rounded flex items-center pl-2.5 text-[13px] font-medium whitespace-nowrap"
                 style={{ width: `${p.share}%`, background: CALL[p.k].fill, color: CALL[p.k].ink }}>
-            {p.share >= 9 ? `${Math.round(p.share)}%` : ""}
+            {p.share >= 15 ? `${Math.round(p.share)}%` : ""}
           </span>
         ))}
       </div>
@@ -305,7 +305,7 @@ export function FlaggedCard({ sum, top }: { sum: Record<keyof typeof CALL, numbe
         {parts.map((p) => (
           <span key={p.k} className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: CALL[p.k].fill, boxShadow: p.k === "hold" ? "inset 0 0 0 1px rgba(255,255,255,0.2)" : undefined }} />
-            {CALL[p.k].label} {lakh(p.v)}{p.share < 9 ? ` · ${Math.round(p.share)}%` : ""}
+            {CALL[p.k].label} {lakh(p.v)}{p.share < 15 ? ` · ${Math.round(p.share)}%` : ""}
           </span>
         ))}
       </div>
@@ -334,9 +334,8 @@ export function RiskSourceCard({ book }: { book: HouseholdBook }) {
   const dot = (v: number, color: string, label: string) => (
     <span title={label} className="absolute top-px w-2.5 h-2.5 -ml-[5px] rounded-full" style={{ left: at(v), background: color, boxShadow: `0 0 0 2px ${RING}` }} />
   );
-  const grid = "grid grid-cols-[84px_1fr_88px] sm:grid-cols-[96px_1fr_92px] gap-3";
   return (
-    <Link href="/household" aria-labelledby="rv-h" className="glass rounded-3xl p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors">
+    <Link href="/household" aria-labelledby="rv-h" className="glass rounded-3xl p-4 md:p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors">
       <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1.5">
         <h2 id="rv-h" className="text-[15px] font-medium text-[#eef2ee]">Where the risk comes from</h2>
         <span className="flex gap-3.5 text-[13px] text-[#a9b3ab]">
@@ -348,20 +347,23 @@ export function RiskSourceCard({ book }: { book: HouseholdBook }) {
       {rows.map((r) => {
         const [a, b] = [Math.min(r.value_pct, r.risk_pct), Math.max(r.value_pct, r.risk_pct)];
         return (
-          <div key={r.symbol} className={`${grid} items-center h-[30px] text-[13px]`}>
-            <span className="text-[#eef2ee] truncate">{r.symbol}</span>
+          <div key={r.symbol} className="flex flex-col gap-1.5 text-[13px]">
+            <span className="flex justify-between gap-3">
+              <span className="text-[#eef2ee] truncate">{r.symbol}</span>
+              <span className="tabular-nums text-[#eef2ee]">{r.risk_pct}% <span className="text-[#8b968e]">of risk · {r.value_pct}% of value</span></span>
+            </span>
             <span className="relative h-3">
+              <span className="absolute inset-x-0 top-[5px] h-0.5 bg-white/[0.06]" />
               <span className="absolute top-[5px] h-0.5 bg-[#eef2ee]/25" style={{ left: at(a), width: `${((b - a) / mx) * 100}%` }} />
               {dot(r.value_pct, MARK_GREY, `${r.symbol}: ${r.value_pct}% of value`)}
               {dot(r.risk_pct, GOLD, `${r.symbol}: ${r.risk_pct}% of risk`)}
             </span>
-            <span className="text-right tabular-nums text-[#eef2ee]">{r.risk_pct}% <span className="text-[#8b968e]">of {r.value_pct}%</span></span>
           </div>
         );
       })}
-      <div className={`${grid} text-xs text-[#8b968e]`}>
-        <span /><span className="relative h-3.5">{ticks.map((t) => <span key={t} className="absolute -translate-x-1/2 tabular-nums" style={{ left: at(t) }}>{t}%</span>)}</span><span />
-      </div>
+      <span className="relative h-3.5 text-xs text-[#8b968e]">
+        {ticks.map((t) => <span key={t} className={`absolute tabular-nums ${t === 0 ? "" : t === mx ? "-translate-x-full" : "-translate-x-1/2"}`} style={{ left: at(t) }}>{t}%</span>)}
+      </span>
     </Link>
   );
 }

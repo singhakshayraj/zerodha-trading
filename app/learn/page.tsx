@@ -565,7 +565,7 @@ export default function LearnPage() {
             {/* ── 7. Machinery ───────────────────────────────────────── */}
             <Section id="machinery" icon={Server} title="The machinery"
               lede="Four moving parts, and how they talk to each other.">
-              <div className="grid sm:grid-cols-2 gap-2.5 my-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-3">
                 {[
                   { n: "The brain", d: "Python, running 24/7 on Railway. Makes every decision: what to watch, what to trade, when to exit. Runs the advisor too." },
                   { n: "The database", d: "Supabase (Postgres). Every decision, trade, price bar and verdict is written here. It is the shared memory and the entire evidence base." },

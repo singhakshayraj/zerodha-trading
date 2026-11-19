@@ -726,7 +726,7 @@ export default function AdvisorPage() {
               {moves.length > 0 && (
                 <div>
                   <p className="text-xs text-[#8b968e] mb-2">Moves today · tap for why</p>
-                  <div className="grid gap-2.5 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
                     {moves.map((r) => <MoveCard key={r.symbol} r={r} note={changeNote(r.symbol)} onOpen={() => setSelected(r.symbol)} />)}
                   </div>
                   {account === "primary" && heroPicks && heroPicks.picks.length > 0 && (
@@ -771,7 +771,7 @@ export default function AdvisorPage() {
                     <p className="text-xs text-[#8b968e] mb-2 flex items-center gap-1.5">
                       <PieChart className="w-3 h-3" /> Sectors · you vs Nifty-500 · {sectorView.scan_date ? `scan ${sectorView.scan_date}` : "holdings only"}
                     </p>
-                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                       {shownGroups.map((g) => (
                         <SectorCard key={g.group} g={g} onOpen={(sym) => { if (order.some((r) => r.symbol === sym)) setSelected(sym); }} />
                       ))}
@@ -901,7 +901,7 @@ export default function AdvisorPage() {
                     <p className="text-xs text-[#8b968e] mt-1">
                       {riskTargets.regime?.drifted ? "correlations drifted: 25%" : "calm: close 50% of the gap"}
                     </p>
-                    <div className="grid sm:grid-cols-2 gap-4 mt-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                       <div><p className="text-xs text-[#8b968e] mb-1">Over target</p>{over.map(row)}</div>
                       <div><p className="text-xs text-[#8b968e] mb-1">Under target</p>{under.map(row)}</div>
                     </div>
