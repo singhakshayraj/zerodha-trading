@@ -27,6 +27,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (error) => {
+    // Dashboard sign-in expired (middleware 401 marked `login`): go sign in
+    // again WITHOUT clearing the Zerodha session below.
+    if (error.response?.status === 401 && error.response?.data?.login) {
+      if (typeof window !== "undefined") window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401 || error.response?.status === 403) {
       useAppStore.getState().clearSession();
       if (typeof window !== "undefined") window.location.href = "/connect";

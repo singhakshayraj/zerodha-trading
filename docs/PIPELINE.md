@@ -1427,6 +1427,32 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+- ~~**[P-78] In-app sign-in page replaces the browser's username/password popup.**~~ ✅ **DONE 2026-11-20**
+  — user: the Basic-auth popup "not looking nice". `/login` (glass card, password
+  only) POSTs to `/api/login`, which sets an HttpOnly, SameSite=Lax, Secure (prod)
+  `dash_session` cookie = HMAC-SHA256(DASHBOARD_PASSWORD, "dashboard-session-v1"),
+  30 days; changing the password signs every device out. `middleware.ts` now
+  redirects signed-out pages to `/login?next=` (same-site paths only) and returns
+  401 `{login:true}` to signed-out API calls, never a `WWW-Authenticate` header, so
+  no popup. HTTP Basic is still accepted for scripts/e2e (playwright sends it
+  up front: `send: "always"`). `lib/api.ts` sends a `login` 401 to /login without
+  clearing the Zerodha token. Wrong password = 0.7s delay; no per-IP lockout.
+  `lib/basicAuth.ts` → `lib/auth.ts`; `e2e/auth-unit.spec.ts` rewritten (5 tests).
+  VERIFY: V-56.
+- ~~**[P-77] Phone layout fix: Home swipe rows, no sideways scroll anywhere.**~~ ✅ **DONE 2026-11-20**
+  — user: "layout on the phone is very bad". Measured at 360px: Home was ~7
+  screens of stacked desktop cards; /advisor/accountability scrolled sideways.
+  Root causes: (1) grids with only `lg:grid-cols-2` had an implicit `auto` column
+  that grows to its content's min width (6 grids got a base `grid-cols-1`);
+  (2) Home's paired-card rows stacked 1-up with desktop padding. Fix: `.card-row`
+  (globals.css) = auto-fit grid from md up, swipe strip with the next card
+  peeking on phones; header chips and jump links one scrollable line; tighter
+  padding; attention rows drop the link label on phones; Mix and Risk rows stack
+  name/figure over the bar; RiskMeter "3R stop" label moved above the track; the
+  lab+risk row renders after load (a card inserted in front of a snapped one made
+  the strip open on card 2). Home on a phone: 5,655px → 3,497px. Guard:
+  `e2e/mobile-layout.spec.ts` (14 pages at 360px + swipe rows open on card 1;
+  needs a local server with .env.local). VERIFY: V-55.
 - ~~**[P-76] Home charts: household vs Nifty, flagged value, risk vs weight.**~~ ✅ **DONE 2026-11-19**
   — mockup E approved. (1) Line chart of the household book vs Nifty, both
   indexed to 100 (`returns.household.series`/`bench_series`), crosshair tooltip,

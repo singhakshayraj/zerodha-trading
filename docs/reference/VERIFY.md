@@ -29,6 +29,20 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-56 · sign-in page on the live site, no popup — registered 2026-11-20 [P-78]
+Manual. In a private window on the phone, open the dashboard URL. **PASS** = the
+green "Sign in" page shows (no browser username/password popup); a wrong password
+says it didn't match; the right one lands on the page you asked for, and the
+Zerodha token is still connected. **FAIL** = a browser popup, a 503, or landing
+on /connect after sign-in.
+
+### V-55 · phone layout reads well on a real Android — registered 2026-11-20 [P-77]
+Manual: device check. On the user's phone open `/`, `/advisor/accountability`,
+`/pnl`. **PASS** = no page scrolls sideways; on Home each card row swipes with
+the next card peeking and opens on its first card; header chips sit on one line;
+no number is cut off. **FAIL** = any sideways page scroll, a row opening mid-way,
+or clipped figures.
+
 ### V-54 · advisor cumulative read (trial 266) — registered 2026-11-20
 Counts only until the read, no hit rates:
 ```sql

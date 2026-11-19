@@ -22,8 +22,10 @@ export default defineConfig({
     // browser (no `npx playwright install` needed on a dev laptop).
     ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
     // The deployment sits behind the dashboard password gate (middleware.ts).
+    // The gate never sends a Basic challenge (no browser popup), so send the
+    // credentials up front instead of waiting for a 401.
     ...(process.env.DASHBOARD_PASSWORD
-      ? { httpCredentials: { username: "e2e", password: process.env.DASHBOARD_PASSWORD } }
+      ? { httpCredentials: { username: "e2e", password: process.env.DASHBOARD_PASSWORD, send: "always" as const } }
       : {}),
   },
   webServer: isLocal
