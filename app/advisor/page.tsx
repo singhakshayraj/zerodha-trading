@@ -13,6 +13,7 @@ import { RefreshCw, Compass, ShieldAlert, TrendingDown, TrendingUp, Scissors, Ho
 
 import { inr } from "@/lib/format";
 import { StatTile } from "@/components/ui/stat-tile";
+import { RebalanceBuys, type Underweight } from "@/components/RebalanceBuys";
 type Advice = {
   symbol: string;
   quantity: number;
@@ -526,8 +527,15 @@ export default function AdvisorPage() {
   const [diff, setDiff] = useState<{ priorRunDate: string | null; changes: { symbol: string; from: Advice["verdict"]; to: Advice["verdict"] }[]; newNames: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Household rebalance (both accounts as one book) — same for either account tab.
+  const [hhBuys, setHhBuys] = useState<Underweight[] | null>(null);
 
   useEffect(() => { hydrateFromStorage(); }, [hydrateFromStorage]);
+  useEffect(() => {
+    if (!isConnected) return;
+    api.get("/household").then((r) => setHhBuys(((r.data?.book?.rebalance ?? []) as Underweight[]).filter((m) => m.kind === "underweight")))
+      .catch(() => { /* additive — never blocks the page */ });
+  }, [isConnected]);
   useEffect(() => { if (hydrated && !isConnected) router.push("/connect"); }, [hydrated, isConnected, router]);
 
   // Drop out-of-order responses (fast account toggling) and never show one
@@ -900,6 +908,12 @@ export default function AdvisorPage() {
                   </div>
                 );
               })()}
+              {hhBuys && hhBuys.length > 0 && (
+                <Section icon={PieChart} title="Rebalance both accounts" note="underweight sectors, funded by today's sells" defaultOpen>
+                  <RebalanceBuys rows={hhBuys} />
+                  <a href="/household#rebalance" className="inline-block mt-3 text-xs text-[#8b968e] underline">Full household rebalance →</a>
+                </Section>
+              )}
               {risk && (risk.concentration_flags.length > 0 || risk.tax_loss_harvest.length > 0 || risk.correlation) && (
                 <Section icon={Layers} title="Portfolio-level risk" note="the whole book, not one name at a time">
                   {risk.concentration_flags.length > 0 && (

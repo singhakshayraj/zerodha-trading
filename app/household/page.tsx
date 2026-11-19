@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Landmark, RefreshCw } from "lucide-react";
 
 import { inr } from "@/lib/format";
+import { RebalanceBuys, type Underweight } from "@/components/RebalanceBuys";
 // Household book (both accounts), published daily by the brain. Read-only.
 
 type Pt = { date: string; index: number };
@@ -17,7 +18,7 @@ type Ret = { "1m": number | null; "3m": number | null; since: number | null; sta
   bench_1m: number | null; bench_3m: number | null; bench_since: number | null; bench_series: Pt[];
   max_drawdown: { pct: number; peak: string | null; trough: string | null }; xirr: number | null; xirr_since: string | null };
 type Move = { kind: "trim"; symbol: string; account: string; qty: number; freed_inr: number; tax_inr: number; cost_inr: number; reason: string; tax_known?: boolean; unmatched_qty?: number }
-  | { kind: "underweight"; sector: string; gap_pp: number };
+  | Underweight;
 type Book = {
   asof: string;
   net_worth: { total: number; by_account: Record<string, number>; by_asset_class: Record<string, number>; unpriced: string[] };
@@ -47,7 +48,7 @@ const days = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / 864e5;
 
 function Section({ id, title, asof, children }: { id: string; title: string; asof?: string | null; children: React.ReactNode }) {
   return (
-    <section data-testid={id} className="glass rounded-3xl p-4 min-w-0">
+    <section id={id} data-testid={id} className="glass rounded-3xl p-4 min-w-0">
       <div className="flex items-baseline justify-between gap-2 mb-3">
         <h2 className="text-sm font-semibold">{title}</h2>
         {asof && <span className="text-xs text-[#8b968e]">as of {asof}</span>}
@@ -215,8 +216,8 @@ export default function HouseholdPage() {
                 <tbody>{trims.map((m, i) => <tr key={i}><Td>{m.symbol}</Td><Td>{NAME[m.account] ?? m.account}</Td><Td>{m.qty}</Td><Td>{INR(m.freed_inr)}</Td><Td>{m.tax_known === false ? "tax unknown (undated lots)" : INR(m.tax_inr + m.cost_inr)}</Td><td className="py-1 whitespace-normal min-w-[180px]">{m.reason}</td></tr>)}</tbody>
               </Table> : <p className="text-[12px] text-[#8b968e]">No trims proposed — no name or sector is over its cap.{b.xray.sizes.some((z) => z.breach) && " Size mix drifts from the index; that is shown above, not traded here."}</p>}
               {unders.length > 0 && <>
-                <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Underweight sectors</h3>
-                {unders.map((u) => <p key={u.sector} className="text-[12px]">{u.sector} <span className="text-[#8b968e]">{u.gap_pp.toFixed(1)}pp under index weight</span></p>)}
+                <h3 className="text-xs text-[#8b968e] mt-4 mb-1">Underweight sectors — buys from today&apos;s sell proceeds</h3>
+                <RebalanceBuys rows={unders} />
               </>}
             </Section>
 

@@ -96,3 +96,17 @@ test("household page: older book without the new fields renders", async ({ page 
   await expect(page.getByTestId("rebalance")).toContainText("₹110");
   await expect(page.getByTestId("net")).not.toContainText("Natwar as of");
 });
+
+test("household page: underweight sector names a funded buy, or says why not", async ({ page }) => {
+  await mock(page, { ...BOOK, rebalance: [
+    { kind: "underweight", sector: "Healthcare", gap_pp: 6.4, gap_inr: 37000,
+      buy: { symbol: "SAILIFE", score: 94, account: "natwar", qty: 21, price: 1751.5, inr: 36781.5 },
+      note: null, ideas: ["SAILIFE", "PPLPHARMA"] },
+    { kind: "underweight", sector: "Auto", gap_pp: 6.2, gap_inr: 84000, buy: null,
+      note: "no sell proceeds left today — needs new money", ideas: ["ASAHIINDIA"] }] });
+  await page.goto("/household");
+  const r = page.getByTestId("rebalance-buys");
+  await expect(r).toContainText("Buy 21 SAILIFE in Natwar");
+  await expect(r).toContainText("Also scoring well: PPLPHARMA");
+  await expect(r).toContainText("no sell proceeds left today — needs new money");
+});
