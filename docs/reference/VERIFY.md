@@ -155,6 +155,12 @@ against a 164-date OOS null is the exact shape of this project's recorded
 failure (entry filter: t = +3.0 on nine correlated days → −0.003R on the
 tenth). Recorded 2026-09-10.
 
+_**Read 2026-11-19, n = 402** (official calls 2026-07-12 → 11-03, alpha label):_
+- _hit rate 0.5995, Wilson 95% CI [0.551, 0.646], which excludes 0.50;_
+- _Fama–MacBeth across **22 dates**: t = **1.98**, below the deflated bar 3.73 (264 trials)._
+
+_Verdict per this pre-commitment: an **anomaly, not a discovery**. It does not count. It sits against the 164-date null of the out-of-sample replay. The decision on whether grading shuts off (POST_MORTEM §6) is the operator's._
+
 ### I-8 · whole-book coverage reconciles [item 5, rule-class]
 The sum of all valued holdings must reconcile to the brokerage-reported total
 portfolio value within **0.5%**. This is the check that proves whole-book
@@ -392,6 +398,7 @@ _11-19 reading: **FAIL**. rp_snapshots = 0 and rp_rebalance_months = 0, yet `adv
 - _both RP keys were deleted, so the book reseeds and rebalances at the next official run (old values: capital 597,638.74, seed 11-18, nifty500 23,822.3)._
 
 _Re-read from that run on._
+_11-19 re-read: **PASS** so far. PICKING_RP has 24 open rows, a snapshot on 11-19, and was reseeded on 11-19 (capital 601,485.94)._
 
 ### V-43 · daily Kite fills don't duplicate Console imports — registered 2026-11-18
 After the next market day with real fills (brain c2ae646), the `kite_daily`
