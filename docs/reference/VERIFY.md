@@ -62,6 +62,13 @@ select
 **FAIL** otherwise. Read the Railway `[s5]` lines first: "no Nifty 15:20 bar" means the calendar or the token; "insert failed" means the DB.
 **Before 2027-01-29:** `config.NSE_HOLIDAYS` must have the 2027 NSE list, or a month-end that falls on a holiday is skipped.
 
+### V-51 · Home charts read right on a phone — registered 2026-11-19 [P-75]
+Manual: device screenshot. On `/`, tap a point on the Household vs Nifty line:
+**PASS** = a tooltip shows both values for that day, x-axis labels don't overlap,
+the flagged bar's Sell + Trim + Hold amounts add up to the /advisor holdings of
+both accounts (±1%), and the risk dots match /household's top contributors.
+**FAIL** = overlapping labels, no tooltip on tap, or any mismatch.
+
 ### V-50 · Home attention list matches the source pages — registered 2026-11-19 [P-74]
 Manual, next trading day. Open `/` and compare each "Needs your attention" row
 with its page: sell/trim counts = /advisor (both account tabs); skipped-call cost

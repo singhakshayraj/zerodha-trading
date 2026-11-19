@@ -12,12 +12,17 @@ export type HouseholdBook = {
     "1m": number | null; since: number | null; start: string;
     bench_1m: number | null; bench_since: number | null;
     max_drawdown?: { pct: number; peak: string; trough: string } | null;
+    series?: { date: string; index: number }[];
+    bench_series?: { date: string; index: number }[];
   }>;
   xray: {
     sectors: { name: string; pct: number; index_pct: number }[];
     sizes: { size: string; pct: number; index_pct: number; drift_pp: number; breach: boolean }[];
   };
-  risk: { effective_bets: number | null; n_used: number; clusters: { symbols: string[]; weight_pct: number }[] };
+  risk: {
+    effective_bets: number | null; n_used: number; clusters: { symbols: string[]; weight_pct: number }[];
+    top_contributors?: { symbol: string; risk_pct: number; value_pct: number }[];
+  };
   tax: {
     fy_realised: Record<string, number | null>;
     unrealised_stcg: number; unrealised_ltcg: number;
@@ -139,4 +144,17 @@ export function attentionItems(x: AttentionInput): AttentionItem[] {
   }
 
   return out.sort((p, q) => RANK[p.level] - RANK[q.level]);
+}
+
+// Value of holdings by advisor call, both accounts: how much of the book is flagged.
+export type Flagged = { symbol: string; account: string; verdict: string; value: number };
+type AdviceRow = { symbol: string; verdict: string; quantity: number; last_price: number };
+export function flaggedSplit(advice: Record<string, AdviceRow[] | null | undefined>) {
+  const bucket = (v: string) => (v === "SELL" || v === "SELL_ON_BOUNCE" ? "sell" : v === "TRIM" ? "trim" : "hold");
+  const all: Flagged[] = Object.entries(advice).flatMap(([account, rows]) =>
+    (rows ?? []).map((r) => ({ symbol: r.symbol, account, verdict: r.verdict, value: r.quantity * r.last_price })));
+  const sum = { sell: 0, trim: 0, hold: 0 };
+  for (const f of all) sum[bucket(f.verdict)] += f.value;
+  const top = all.filter((f) => bucket(f.verdict) !== "hold").sort((a, b) => b.value - a.value).slice(0, 5);
+  return { sum, top };
 }

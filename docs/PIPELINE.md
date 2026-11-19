@@ -1439,6 +1439,16 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
   section on /advisor. Dry run on 11-19 data: CHOLAFIN 21 sh ₹39.6k (Natwar),
   SAILIFE 21 sh ₹36.8k (Natwar), ASAHIINDIA 7 sh ₹8.2k (Kanaklata). Advisory
   only. VERIFY: V-52.
+- ~~**[P-75] Home charts: household vs Nifty, flagged value, risk vs weight.**~~ ✅ **DONE 2026-11-19**
+  — mockup E approved. (1) Line chart of the household book vs Nifty, both
+  indexed to 100 (`returns.household.series`/`bench_series`), crosshair tooltip,
+  end labels only when the line-ends sit apart. (2) Tall segmented bar of holding
+  value by advisor call, both accounts (`flaggedSplit` in `lib/attention.ts`,
+  unit-tested) + 5 biggest flagged holdings. (3) Dumbbell of share of value vs
+  share of risk for `risk.top_contributors`. Colours run through the dataviz
+  validator: red-vs-green failed colour-blind separation, so verdicts use one
+  coral ramp (sell bright, trim dark; ordinal PASS) + neutral grey for hold.
+  VERIFY: V-51.
 - ~~**[P-74] Home: household widgets + "Needs your attention".**~~ ✅ **DONE 2026-11-19**
   — mockup D approved. Header value is now the household book (both accounts,
   as-of the brain's household_book date) with 1-month return vs Nifty; Kanaklata

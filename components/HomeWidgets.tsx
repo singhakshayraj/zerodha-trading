@@ -4,7 +4,8 @@
 // these only render.
 import Link from "next/link";
 import { inr } from "@/lib/format";
-import { ACCOUNT_NAME, shortDate, type AttentionItem, type HouseholdBook, type Level } from "@/lib/attention";
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ACCOUNT_NAME, shortDate, type AttentionItem, type Flagged, type HouseholdBook, type Level } from "@/lib/attention";
 
 const GREEN = "#9be15d", RED = "#f08a76", GOLD = "#d9b84a", SKY = "#8fc7e8";
 const DOT: Record<Level, string> = { act: RED, watch: GOLD, data: "#a9b3ab", info: GREEN };
@@ -189,6 +190,178 @@ export function TaxCard({ book, today }: { book: HouseholdBook; today: string })
           Next to turn long-term: {nextNames.map((l) => `${l.symbol} ${shortDate(l.date)}`).join(" · ")}
         </p>
       )}
+    </Link>
+  );
+}
+
+// ─── charts (mockup E) ─────────────────────────────────────────────────────
+// Palette checked with the dataviz validator on the card surface: lime vs grey is
+// the emphasis pair (you vs context); verdicts use ONE coral ramp (sell bright,
+// trim dark, PASS ordinal) + neutral grey for hold — red/green fails colour-blind checks.
+const MARK_GREY = "#7c877f", RING = "#141b16";
+const lakh = (n: number) => `₹${(n / 1e5).toFixed(2)}L`;
+
+export function VsNiftyChart({ book }: { book: HouseholdBook }) {
+  const r = book.returns.household;
+  if (!r?.series?.length || !r.bench_series?.length) return null;
+  const bench = new Map(r.bench_series.map((p) => [p.date, p.index]));
+  const data = r.series.map((p) => ({ date: p.date, you: p.index, nifty: bench.get(p.date) ?? null }));
+  const vals = data.flatMap((d) => (d.nifty == null ? [d.you] : [d.you, d.nifty]));
+  const lo = Math.floor(Math.min(...vals) / 5) * 5, hi = Math.ceil(Math.max(...vals) / 5) * 5;
+  const ticks = Array.from({ length: (hi - lo) / 5 + 1 }, (_, i) => lo + i * 5);
+  // first day + each month start, minus month starts too close to the first label to fit beside it
+  const monthTicks = data.filter((d, i) => i === 0 || (d.date.slice(5, 7) !== data[i - 1].date.slice(5, 7) && i >= data.length * 0.12)).map((d) => d.date);
+  const last = data[data.length - 1];
+  const gaps = data.filter((d) => d.nifty != null).map((d) => (d.nifty as number) - d.you);
+  const gapNow = last.nifty == null ? null : last.nifty - last.you;
+  // end labels only when the two line-ends sit apart (never stacked/nudged)
+  const apart = gapNow != null && (Math.abs(gapNow) / (hi - lo)) * 200 >= 16;
+  const end = (text: string, ink: string) =>
+    function EndLabel(p: { x?: number | string; y?: number | string; index?: number }) {
+      return p.index === data.length - 1 && apart
+        ? <text x={Number(p.x) + 10} y={Number(p.y) + 4} fontSize={13} fill={ink}>{text}</text>
+        : <g />;
+    };
+  return (
+    <section aria-labelledby="vs-h" className="glass rounded-3xl p-5 flex flex-col gap-3.5">
+      <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-2">
+        <h2 id="vs-h" className="text-[15px] font-medium text-[#eef2ee]">
+          Household vs Nifty <span className="text-[#8b968e] font-normal">· both indexed to 100, since {shortDate(r.start)}</span>
+        </h2>
+        <span className="flex gap-4 text-[13px] text-[#a9b3ab]">
+          <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 rounded-full" style={{ background: GREEN }} />Household</span>
+          <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 rounded-full" style={{ background: MARK_GREY }} />Nifty</span>
+        </span>
+      </div>
+      <div className="h-[240px] -ml-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: apart ? 92 : 12, bottom: 0, left: 0 }}>
+            <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.06)" />
+            <ReferenceLine y={100} stroke="rgba(255,255,255,0.18)" />
+            <XAxis dataKey="date" ticks={monthTicks} interval={0} axisLine={false} tickLine={false}
+                   tick={{ fill: "#8b968e", fontSize: 12 }}
+                   tickFormatter={(d: string) => (d === data[0].date ? shortDate(d) : new Date(d + "T00:00:00").toLocaleDateString("en-IN", { month: "short" }))} />
+            <YAxis domain={[lo, hi]} ticks={ticks} width={34} axisLine={false} tickLine={false} tick={{ fill: "#8b968e", fontSize: 12 }} />
+            <Tooltip
+              cursor={{ stroke: "rgba(238,242,238,0.35)", strokeWidth: 1 }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+                const v = (k: string) => payload.find((p) => p.dataKey === k)?.value as number | undefined;
+                return (
+                  <div className="rounded-2xl bg-[#1a241e] px-3 py-2.5 text-xs text-[#8b968e] shadow-xl ring-1 ring-white/[0.08] flex flex-col gap-1 min-w-[150px]">
+                    <span>{shortDate(String(label))}</span>
+                    {([["you", "Household", GREEN], ["nifty", "Nifty", MARK_GREY]] as const).map(([k, name, c]) => v(k) != null && (
+                      <span key={k} className="flex justify-between gap-4">
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded-full" style={{ background: c }} />{name}</span>
+                        <span className="text-[13px] text-[#eef2ee] tabular-nums">{(v(k) as number).toFixed(1)}</span>
+                      </span>
+                    ))}
+                  </div>
+                );
+              }} />
+            <Line dataKey="nifty" stroke={MARK_GREY} strokeWidth={2} dot={false} isAnimationActive={false}
+                  activeDot={{ r: 4, stroke: RING, strokeWidth: 2 }} label={end(`Nifty ${pct(r.bench_since, 1)}`, "#a9b3ab")} />
+            <Line dataKey="you" stroke={GREEN} strokeWidth={2} dot={false} isAnimationActive={false}
+                  activeDot={{ r: 4, stroke: RING, strokeWidth: 2 }} label={end(`You ${pct(r.since, 1)}`, "#eef2ee")} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      {gapNow != null && (
+        <p className="text-[13px] text-[#8b968e]">
+          Today the household is {Math.abs(gapNow).toFixed(1)} points {gapNow > 0 ? "behind" : "ahead of"} the index
+          {gapNow > 0 && gapNow >= Math.max(...gaps) ? ", its widest gap so far." : "."} Hover any day for both values.
+        </p>
+      )}
+    </section>
+  );
+}
+
+const CALL = {
+  sell: { label: "Sell", fill: "#f39a87", ink: "#0f1a12" },
+  trim: { label: "Trim", fill: "#a65a4b", ink: "#ffffff" },
+  hold: { label: "Hold", fill: "#3a433d", ink: "#eef2ee" },
+} as const;
+const VERDICT_LABEL: Record<string, string> = { SELL: "Sell", SELL_ON_BOUNCE: "Sell on bounce", TRIM: "Trim" };
+
+export function FlaggedCard({ sum, top }: { sum: Record<keyof typeof CALL, number>; top: Flagged[] }) {
+  const total = sum.sell + sum.trim + sum.hold;
+  if (total <= 0) return null;
+  const parts = (Object.keys(CALL) as (keyof typeof CALL)[]).filter((k) => sum[k] > 0).map((k) => ({ k, v: sum[k], share: (sum[k] / total) * 100 }));
+  return (
+    <Link href="/advisor" aria-labelledby="fl-h" className="glass rounded-3xl p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
+      <h2 id="fl-h" className="text-[15px] font-medium text-[#eef2ee]">
+        How much of the book is flagged <span className="text-[#8b968e] font-normal">· by value, both accounts</span>
+      </h2>
+      <div className="flex gap-0.5" role="img" aria-label={parts.map((p) => `${CALL[p.k].label} ${Math.round(p.share)}%, ${lakh(p.v)}`).join("; ")}>
+        {parts.map((p) => (
+          <span key={p.k} title={`${CALL[p.k].label} · ${lakh(p.v)} · ${p.share.toFixed(1)}%`}
+                className="h-7 rounded flex items-center pl-2.5 text-[13px] font-medium whitespace-nowrap overflow-visible"
+                style={{ width: `${p.share}%`, background: CALL[p.k].fill, color: CALL[p.k].ink }}>
+            {p.share >= 9 ? `${Math.round(p.share)}%` : ""}
+          </span>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-[#a9b3ab]">
+        {parts.map((p) => (
+          <span key={p.k} className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: CALL[p.k].fill, boxShadow: p.k === "hold" ? "inset 0 0 0 1px rgba(255,255,255,0.2)" : undefined }} />
+            {CALL[p.k].label} {lakh(p.v)}{p.share < 9 ? ` · ${Math.round(p.share)}%` : ""}
+          </span>
+        ))}
+      </div>
+      {top.length > 0 && (
+        <div className="flex flex-col">
+          <span className="text-xs text-[#8b968e] pb-1">Biggest flagged holdings</span>
+          {top.map((f) => (
+            <div key={f.account + f.symbol} className="grid grid-cols-[10px_1fr_auto] gap-2.5 items-baseline text-[13px] py-[7px] border-t border-white/[0.06]">
+              <span aria-hidden className="w-2 h-2 rounded-sm" style={{ background: f.verdict === "TRIM" ? CALL.trim.fill : CALL.sell.fill }} />
+              <span className="min-w-0 truncate"><span className="text-[#eef2ee]">{f.symbol}</span> <span className="text-[#8b968e]">{ACCOUNT_NAME[f.account] ?? f.account} · {VERDICT_LABEL[f.verdict] ?? f.verdict}</span></span>
+              <span className="text-[#eef2ee] tabular-nums">{inr(f.value)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Link>
+  );
+}
+
+export function RiskSourceCard({ book }: { book: HouseholdBook }) {
+  const rows = book.risk.top_contributors ?? [];
+  if (!rows.length) return null;
+  const mx = Math.max(4, Math.ceil(Math.max(...rows.flatMap((r) => [r.risk_pct, r.value_pct])) / 2) * 2);
+  const ticks = Array.from({ length: mx / 2 + 1 }, (_, i) => i * 2);
+  const at = (v: number) => `${(v / mx) * 100}%`;
+  const dot = (v: number, color: string, label: string) => (
+    <span title={label} className="absolute top-px w-2.5 h-2.5 -ml-[5px] rounded-full" style={{ left: at(v), background: color, boxShadow: `0 0 0 2px ${RING}` }} />
+  );
+  const grid = "grid grid-cols-[84px_1fr_88px] sm:grid-cols-[96px_1fr_92px] gap-3";
+  return (
+    <Link href="/household" aria-labelledby="rv-h" className="glass rounded-3xl p-5 flex flex-col gap-3 hover:bg-white/[0.02] transition-colors">
+      <div className="flex flex-wrap justify-between items-baseline gap-x-4 gap-y-1.5">
+        <h2 id="rv-h" className="text-[15px] font-medium text-[#eef2ee]">Where the risk comes from</h2>
+        <span className="flex gap-3.5 text-[13px] text-[#a9b3ab]">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: MARK_GREY }} />share of value</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: GOLD }} />share of risk</span>
+        </span>
+      </div>
+      <p className="text-[13px] leading-relaxed text-[#8b968e]">Top {rows.length} names by risk. When gold sits right of grey, the name swings the book more than its size suggests.</p>
+      {rows.map((r) => {
+        const [a, b] = [Math.min(r.value_pct, r.risk_pct), Math.max(r.value_pct, r.risk_pct)];
+        return (
+          <div key={r.symbol} className={`${grid} items-center h-[30px] text-[13px]`}>
+            <span className="text-[#eef2ee] truncate">{r.symbol}</span>
+            <span className="relative h-3">
+              <span className="absolute top-[5px] h-0.5 bg-[#eef2ee]/25" style={{ left: at(a), width: `${((b - a) / mx) * 100}%` }} />
+              {dot(r.value_pct, MARK_GREY, `${r.symbol}: ${r.value_pct}% of value`)}
+              {dot(r.risk_pct, GOLD, `${r.symbol}: ${r.risk_pct}% of risk`)}
+            </span>
+            <span className="text-right tabular-nums text-[#eef2ee]">{r.risk_pct}% <span className="text-[#8b968e]">of {r.value_pct}%</span></span>
+          </div>
+        );
+      })}
+      <div className={`${grid} text-xs text-[#8b968e]`}>
+        <span /><span className="relative h-3.5">{ticks.map((t) => <span key={t} className="absolute -translate-x-1/2 tabular-nums" style={{ left: at(t) }}>{t}%</span>)}</span><span />
+      </div>
     </Link>
   );
 }

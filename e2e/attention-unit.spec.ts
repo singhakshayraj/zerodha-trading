@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { attentionItems, type HouseholdBook } from "../lib/attention";
+import { attentionItems, flaggedSplit, type HouseholdBook } from "../lib/attention";
 
 // Home "Needs your attention" rules — pure, no server.
 const book = {
@@ -63,4 +63,17 @@ test("ranks and words every rule from real-shaped data", () => {
 test("skipped calls that paid off are not flagged", () => {
   const items = attentionItems({ today: "2026-11-19", ledgers: { primary: [{ kind: "ignored_call", impact_inr: 300 }] } });
   expect(items).toEqual([]);
+});
+
+test("flagged split sums value by call across accounts, biggest flagged first", () => {
+  const { sum, top } = flaggedSplit({
+    primary: [
+      { symbol: "ATGL", verdict: "SELL", quantity: 10, last_price: 100 },
+      { symbol: "SILVERBEES", verdict: "SELL_ON_BOUNCE", quantity: 1, last_price: 50 },
+      { symbol: "IREDA", verdict: "HOLD", quantity: 5, last_price: 100 },
+    ],
+    natwar: [{ symbol: "TATASTEEL", verdict: "TRIM", quantity: 2, last_price: 1000 }],
+  });
+  expect(sum).toEqual({ sell: 1050, trim: 2000, hold: 500 });
+  expect(top.map((f) => `${f.symbol}:${f.account}`)).toEqual(["TATASTEEL:natwar", "ATGL:primary", "SILVERBEES:primary"]);
 });

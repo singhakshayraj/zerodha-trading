@@ -17,8 +17,8 @@ import { BrainStatus } from "@/components/BrainStatus";
 import { RiskMeter } from "@/components/RiskMeter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldAlert, History } from "lucide-react";
-import { AttentionList, HouseholdCard, MixCard, MonthCard, TaxCard, type MonthVsNifty } from "@/components/HomeWidgets";
-import { attentionItems, shortDate, type HouseholdBook } from "@/lib/attention";
+import { AttentionList, FlaggedCard, HouseholdCard, MixCard, MonthCard, RiskSourceCard, TaxCard, VsNiftyChart, type MonthVsNifty } from "@/components/HomeWidgets";
+import { attentionItems, flaggedSplit, shortDate, type HouseholdBook } from "@/lib/attention";
 
 import { inr } from "@/lib/format";
 import { labPf, PF_START, PF_TARGET, MIN_TRADES, type LabPf } from "@/lib/labPf";
@@ -29,6 +29,7 @@ type Trade = { status: string; pnl: number | null };
 type Holding = { quantity: number; average_price: number; last_price: number; day_change: number };
 type Advice = {
   symbol: string; verdict: string; trend_score: number; pnl_percent: number | null;
+  quantity: number; last_price: number;
   rotation_target_symbol?: string | null;
 };
 type PnlData = {
@@ -193,6 +194,7 @@ export default function CommandCenter() {
     return rows.length ? [{ account, pnl: rows.reduce((a, r) => a + r.pnl, 0), nifty: rows.reduce((a, r) => a + (r.nifty_pnl ?? 0), 0) }] : [];
   }) : [];
   const hhRet = book?.returns.household;
+  const flagged = flaggedSplit({ primary: advice, natwar: natwarAdvice });
 
   return (
     <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
@@ -271,6 +273,9 @@ export default function CommandCenter() {
           {/* what needs a decision or a look, both accounts, most urgent first */}
           {loaded && <AttentionList items={attention} />}
 
+          {/* household vs Nifty, indexed to 100 */}
+          {book && <VsNiftyChart book={book} />}
+
           {/* today: paper engine · advisor top move · whole-portfolio risk */}
           <section aria-label="Today" className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]">
             <Link href="/trading" className="glass rounded-3xl p-5 flex flex-col gap-3.5 hover:bg-white/[0.02] transition-colors">
@@ -347,6 +352,14 @@ export default function CommandCenter() {
             <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
               <HouseholdCard book={book} />
               <MixCard book={book} />
+            </section>
+          )}
+
+          {/* flagged value by advisor call · risk share vs value share */}
+          {(advice !== null || book) && (
+            <section className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))]">
+              <FlaggedCard sum={flagged.sum} top={flagged.top} />
+              {book && <RiskSourceCard book={book} />}
             </section>
           )}
 
