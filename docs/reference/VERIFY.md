@@ -29,6 +29,13 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-57 · iPhone Safari scrolls, both bars visible — registered 2026-11-20 [P-79]
+Manual: on the iPhone (iOS 27 Safari) open `/`, `/advisor`, `/learn`. **PASS** =
+the page scrolls with a finger swipe; the top bar stays at the top and the bottom
+nav (Home…More) stays visible above Safari's toolbar the whole time; tapping
+More opens the sheet. **FAIL** = can't scroll, nav hidden or cut off by the
+toolbar, or a bar jumps/flickers while scrolling.
+
 ### V-56 · sign-in page on the live site, no popup — registered 2026-11-20 [P-78]
 Manual. In a private window on the phone, open the dashboard URL. **PASS** = the
 green "Sign in" page shows (no browser username/password popup); a wrong password

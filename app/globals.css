@@ -102,8 +102,10 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
+  /* clip, not hidden: hidden makes <body> a scroll container, which silently
+     breaks the sticky mobile top bar / bottom nav now that phones scroll the page. */
   html, body {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
     width: 100%;
   }
@@ -114,9 +116,8 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
-  /* The app shell scrolls inside <main>, not the body. Contain the scroll so it
-     doesn't chain to the (non-scrolling) body — no rubber-band / pull-through on
-     Android when you fling past the top or bottom. */
+  /* From md up the app shell scrolls inside <main>; contain it so it doesn't
+     chain to the body. Phones scroll the page itself (main doesn't scroll there). */
   main {
     overscroll-behavior: contain;
   }
@@ -168,6 +169,9 @@
   .pt-safe {
     padding-top: max(1rem, env(safe-area-inset-top));
   }
+  /* In-page sticky bars on phones sit under the sticky top bar (h-12 + pt-safe + 1px border). */
+  .top-below-bar { top: calc(3rem + 1px + max(1rem, env(safe-area-inset-top))); }
+  @media (min-width: 768px) { .top-below-bar { top: 0; } }
   .pl-safe { padding-left: env(safe-area-inset-left); }
   .pr-safe { padding-right: env(safe-area-inset-right); }
 }

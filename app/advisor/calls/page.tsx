@@ -74,9 +74,9 @@ export default function CallsPage() {
   const pops = lessons ? Object.entries(lessons.populations) : [];
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh text-[#eef2ee] md:overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 md:p-8">
+      <main className="flex-1 md:min-h-0 md:overflow-y-auto p-4 sm:p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto space-y-5">
           <div>
             <h1 className="text-xl font-semibold flex items-center gap-2"><ListChecks className="w-5 h-5 text-[#8b968e]" /> How the calls are doing</h1>

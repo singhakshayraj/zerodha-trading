@@ -32,3 +32,28 @@ test("swipe rows open on their first card", async ({ page }) => {
   expect(lefts.length).toBeGreaterThan(0);
   expect(lefts.every((l) => l === 0), `scrollLeft per row: ${lefts}`).toBe(true);
 });
+
+// iPhone Safari (iOS 26+) hides the bottom of a viewport-height inner-scroll
+// frame under its floating toolbar. So on phones the page itself scrolls, and
+// the top bar + bottom nav stay pinned (sticky) on screen.
+for (const url of ["/advisor", "/learn"]) { // long even without live data
+  test(`phone: page scrolls, both bars stay on screen: ${url}`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("enc_token", "layout-check"));
+    await page.goto(url, { waitUntil: "networkidle" });
+    await page.waitForTimeout(2500);
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(500);
+    const r = await page.evaluate(() => ({
+      y: window.scrollY,
+      top: document.querySelector("header")!.getBoundingClientRect().top,
+      headerBottom: document.querySelector("header")!.getBoundingClientRect().bottom,
+      sectionsTop: document.querySelector('nav[aria-label="Sections"]')?.getBoundingClientRect().top ?? null,
+      navBottom: document.querySelector('nav[aria-label="Pages"]')!.getBoundingClientRect().bottom,
+      h: window.innerHeight,
+    }));
+    expect(r.y, "the page itself should scroll").toBeGreaterThan(0);
+    expect(r.top, "top bar pinned to the top").toBe(0);
+    expect(Math.abs(r.navBottom - r.h), "bottom nav pinned to the bottom").toBeLessThanOrEqual(1);
+    if (r.sectionsTop !== null) expect(Math.abs(r.sectionsTop - r.headerBottom), "Learn section bar sits under the top bar").toBeLessThanOrEqual(1);
+  });
+}

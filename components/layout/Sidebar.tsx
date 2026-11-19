@@ -78,12 +78,13 @@ export function Sidebar() {
   }
 
   // Tapping the tab you're already on scrolls the content back to top (the
-  // native-app pattern) instead of a no-op navigation. main is the app-shell
-  // scroll container; if it's already at the top, let the link behave normally.
+  // native-app pattern) instead of a no-op navigation. main scrolls on desktop,
+  // the page itself on phones; if already at the top, let the link behave normally.
   function handleNavClick(e: React.MouseEvent, href: string) {
     if (pathname !== href) return;
-    const scroller = document.querySelector("main");
-    if (scroller && scroller.scrollTop > 0) {
+    const main = document.querySelector("main");
+    const scroller = main && main.scrollTop > 0 ? main : window.scrollY > 0 ? window : null;
+    if (scroller) {
       e.preventDefault();
       scroller.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -150,11 +151,12 @@ export function Sidebar() {
       </aside>
 
       {/* ─── Mobile top bar ───────────────────────────────────────────── */}
-      {/* In normal flow (order-first) inside the page's h-dvh flex column — NOT
-          position:fixed. Fixed bars over a scrolling body jank on Android Chrome
-          as the URL bar hides; here the body never scrolls (main does), so the
-          URL bar stays put and the bar never overlaps content. */}
-      <header className="md:hidden order-first shrink-0 bg-[#0d130f] border-b border-[#223027] pt-safe">
+      {/* Phones scroll the page itself (iOS Safari hides the bottom of a
+          viewport-height inner-scroll frame under its toolbar), so the top bar
+          and the Advisor strip are sticky, not fixed: in flow, never overlapping
+          content. */}
+      <div className="md:hidden order-first sticky top-0 z-30">
+      <header className="bg-[#0d130f] border-b border-[#223027] pt-safe">
         <div className="h-12 flex items-center justify-between px-4">
           <div className="flex items-center gap-2 min-w-0">
             <Zap className="w-4 h-4 text-[#b9ec8a] shrink-0" fill="#b9ec8a" />
@@ -172,9 +174,9 @@ export function Sidebar() {
 
       {/* ─── Mobile Advisor sub-tabs ──────────────────────────────────── */}
       {/* The four Advisor pages share one bottom tab; this strip switches
-          between them. order-first keeps it directly under the header. */}
+          between them, directly under the header. */}
       {isAdvisor(pathname) && (
-        <div className="md:hidden order-first shrink-0 bg-[#121a15] border-b border-[#223027] flex overflow-x-auto">
+        <div className="bg-[#121a15] border-b border-[#223027] flex overflow-x-auto">
           {ADVISOR_TABS.map(({ href, label }) => (
             <Link
               key={href}
@@ -191,11 +193,12 @@ export function Sidebar() {
           ))}
         </div>
       )}
+      </div>
 
       {/* ─── Mobile bottom nav ────────────────────────────────────────── */}
-      {/* order-last → sits below the scrollable main in the flex column (flow,
-          not fixed) so no content is ever hidden behind it. */}
-      <nav className="md:hidden order-last shrink-0 bg-[#0d130f] border-t border-[#223027] pb-safe">
+      {/* order-last + sticky bottom-0 → pinned to the screen bottom while the
+          page scrolls, and in flow at the end so no content hides behind it. */}
+      <nav aria-label="Pages" className="md:hidden order-last sticky bottom-0 z-30 shrink-0 bg-[#0d130f] border-t border-[#223027] pb-safe">
         <div className="grid grid-cols-5">
           {MOBILE_TABS.map((href) => {
             const { label, short, icon: Icon } = navItems.find((i) => i.href === href)!;

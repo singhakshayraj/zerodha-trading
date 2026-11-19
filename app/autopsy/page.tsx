@@ -185,24 +185,24 @@ export default function AutopsyPage() {
 
   if (err)
     return (
-      <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
+      <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh text-[#eef2ee] md:overflow-hidden">
         <Sidebar />
-        <main className="flex-1 min-h-0 overflow-y-auto p-6"><p className="text-[#f08a76]">Failed to load: {err}</p></main>
+        <main className="flex-1 md:min-h-0 md:overflow-y-auto p-6"><p className="text-[#f08a76]">Failed to load: {err}</p></main>
       </div>
     );
 
   return (
-    // The app shell scrolls inside <main>, never the body (see globals.css).
+    // From md up the app shell scrolls inside <main> (phones scroll the page).
     // That needs BOTH halves of the contract, and this page had neither:
-    //   h-dvh + overflow-hidden — pins the shell to the viewport. With
+    //   md:h-dvh + md:overflow-hidden — pins the shell to the viewport. With
     //     min-h-dvh the container just grew with the content instead.
-    //   min-h-0 on <main> — a flex item defaults to min-height:auto, so it
+    //   md:min-h-0 on <main> — a flex item defaults to min-height:auto, so it
     //     refuses to shrink below its content and overflow-y-auto never
     //     activates. The page then ran past the viewport with nothing able to
     //     scroll it, so the bottom was unreachable.
-    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh text-[#eef2ee] md:overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-5">
+      <main className="flex-1 md:min-h-0 md:overflow-y-auto p-4 md:p-6 space-y-5">
 
         {/* ── Header ─────────────────────────────────────────────────── */}
         <header className="space-y-1.5">

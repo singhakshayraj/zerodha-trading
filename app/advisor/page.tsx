@@ -612,9 +612,9 @@ export default function AdvisorPage() {
   const fundAgeDays = thesisAsof ? Math.floor((Date.now() - new Date(thesisAsof).getTime()) / 86_400_000) : null;
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh text-[#eef2ee] md:overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 md:p-8">
+      <main className="flex-1 md:min-h-0 md:overflow-y-auto p-4 sm:p-5 md:p-8">
         <div className="max-w-[1100px] w-full mx-auto">
 
           {/* ── header ─────────────────────────────────────────────── */}

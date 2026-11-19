@@ -152,7 +152,7 @@ export default function LearnPage() {
       .then((d) => { if (d.stats) setS(d.stats); }).catch(() => {});
   }, []);
 
-  // Highlight the section currently in view. main is the scroll container.
+  // Highlight the section currently in view (viewport root: main scrolls on desktop, the page on phones).
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => {
@@ -160,7 +160,7 @@ export default function LearnPage() {
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
         if (vis[0]) setActive(vis[0].target.id);
       },
-      { root: document.querySelector("main"), rootMargin: "0px 0px -70% 0px", threshold: 0 }
+      { root: null, rootMargin: "0px 0px -70% 0px", threshold: 0 }
     );
     SECTIONS.forEach((x) => { const el = document.getElementById(x.id); if (el) io.observe(el); });
     return () => io.disconnect();
@@ -174,9 +174,9 @@ export default function LearnPage() {
   ]), [s]);
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh text-[#eef2ee] overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh text-[#eef2ee] md:overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto">
+      <main className="flex-1 md:min-h-0 md:overflow-y-auto">
         <div className="max-w-5xl mx-auto p-4 md:p-8">
 
           {/* ── Header ───────────────────────────────────────────────── */}
@@ -197,7 +197,7 @@ export default function LearnPage() {
 
           {/* ── Section nav ──────────────────────────────────────────── */}
           <nav aria-label="Sections"
-               className="sticky top-0 z-10 -mx-4 md:mx-0 px-4 md:px-0 py-2 mb-6 bg-[#0a0e0c]/95 backdrop-blur border-b border-[#1a241e]">
+               className="sticky top-below-bar z-10 -mx-4 md:mx-0 px-4 md:px-0 py-2 mb-6 bg-[#0a0e0c]/95 backdrop-blur border-b border-[#1a241e]">
             <ul className="flex gap-1.5 overflow-x-auto no-scrollbar">
               {SECTIONS.map((x) => (
                 <li key={x.id} className="shrink-0">

@@ -197,9 +197,9 @@ export default function CommandCenter() {
   const flagged = flaggedSplit({ primary: advice, natwar: natwarAdvice });
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh md:overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto px-4 py-6 md:px-8 md:py-9">
+      <main className="flex-1 md:min-h-0 md:overflow-y-auto px-4 py-6 md:px-8 md:py-9">
         <div className="max-w-[1100px] w-full mx-auto flex flex-col gap-4 md:gap-6">
           {/* header: title + status pills, real-portfolio value on the right */}
           <header className="flex flex-wrap justify-between items-end gap-6">

@@ -360,10 +360,10 @@ export default function TradingPage() {
 
   // ── render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh md:overflow-hidden">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 md:min-h-0 md:overflow-y-auto">
         {/* Header */}
         <div className="min-h-14 border-b border-[#223027] flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2 md:py-0 shrink-0 md:sticky md:top-0 bg-[#0a0e0c] z-10">
           <div className="flex items-center gap-3">

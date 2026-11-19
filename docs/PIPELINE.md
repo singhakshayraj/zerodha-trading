@@ -1427,6 +1427,17 @@ changes. Suggested order: P-61 → P-63 → P-64 → P-62 → rest.
 
 ## ✅ DONE (recent — for burn-down + verify)
 
+- ~~**[P-79] iPhone Safari: page scrolls, top bar + bottom nav stay on screen.**~~ ✅ **DONE 2026-11-20**
+  — user (iOS 27 Safari): scroll not working, bottom nav not showing. Cause:
+  every page was an `h-dvh overflow-hidden` frame scrolling inside `<main>`;
+  iOS 26+ Safari hides the bottom of such a frame under its floating toolbar.
+  Phones (<768px) now scroll the page itself: shell `min-h-dvh md:h-dvh
+  md:overflow-hidden`, main `md:min-h-0 md:overflow-y-auto`; top bar + Advisor
+  strip `sticky top-0`, bottom nav `sticky bottom-0`. `html, body` use
+  `overflow-x: clip` (hidden made body a scroll container → sticky broke).
+  Learn section bar uses `.top-below-bar`; its scroll-spy root is the viewport.
+  Desktop unchanged. Guard: `e2e/mobile-layout.spec.ts` "phone: page scrolls".
+  Verify: V-57.
 - ~~**[P-78] In-app sign-in page replaces the browser's username/password popup.**~~ ✅ **DONE 2026-11-20**
   — user: the Basic-auth popup "not looking nice". `/login` (glass card, password
   only) POSTs to `/api/login`, which sets an HttpOnly, SameSite=Lax, Secure (prod)

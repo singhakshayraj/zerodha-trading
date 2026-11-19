@@ -150,9 +150,9 @@ export default function InsightsPage() {
   const verdictTone: Finding["tone"] = !v ? "info" : v.expectancyR > 0.05 ? "good" : v.expectancyR >= -0.05 ? "warn" : "bad";
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh md:overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto p-5 md:p-8">
+      <main className="flex-1 md:min-h-0 md:overflow-y-auto p-5 md:p-8">
         <div className="max-w-[1200px] w-full mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">

@@ -239,7 +239,7 @@ export default function PortfolioPage() {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-dvh md:h-dvh md:overflow-hidden">
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -260,7 +260,7 @@ export default function PortfolioPage() {
           </div>
         </div>
 
-        <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-5">
+        <main className="flex-1 md:min-h-0 md:overflow-y-auto p-4 md:p-6 space-y-5">
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
