@@ -29,7 +29,7 @@ ever tested is counted here, and the significance bar is raised for the count.
 | sector layer on top of v1 — exposure-weighted edge vs v1, registered 2026-11-11 before any grade | 1 |
 | S1 monthly momentum (CNC) + S1-T 200-DMA variant — pre-registered 2026-11-18, tested same day, failed | 2 |
 | S5 live paper (S1-T re-registered, judged 2028-12-31) — registered 2026-11-19 before any output | 1 |
-| advisor v1 forward read — calls from 2026-11-20 only, FM t across ≥ 60 dates, registered 2026-11-20 before any such call is graded | 1 |
+| advisor v1 cumulative read — all calls since 07-12, FM t ≥ 3.90 (2-look) at ≥ 60 dates, registered 2026-11-20 | 1 |
 | P-70 intraday lab — 54 frozen variants (live paper + 2018–25 replay; all failed 2026-11-19) | 54 |
 | P-70 lab experiments — [LAB_EXPERIMENTS.md](LAB_EXPERIMENTS.md) (X01, X02 registered 2026-11-20 before running) | 2 |
 | **total** | **321** |
@@ -173,21 +173,20 @@ smaller. Not a significance test: at ~60 trades a year, 24 months cannot clear
 held for S2 (post-results drift), which is counted when its pre-registration file
 is filed.
 
-## Registered 2026-11-20 — advisor v1 forward read (trial 266)
+## Registered 2026-11-20 — advisor v1 cumulative read (trial 266)
 
-Written **before any call in the pool exists**. Context: the n = 400 read (V-20,
-2026-11-19) gave hit 0.5995 and Wilson [0.551, 0.646], but a Fama–MacBeth t of 1.98
-on only 22 dates. That is an anomaly, not a result. The binding limit is dates, not
-calls, so this read is judged only on new dates.
+Context: the n = 400 read (V-20, 2026-11-19) gave hit 0.5995, Wilson [0.551, 0.646],
+but a Fama–MacBeth t of only 1.98 over 22 dates. That is an anomaly, not a result.
+**Operator 2026-11-20:** continue on the existing pool rather than fresh-only.
 
-- **Pool:** official `portfolio_advice` rows with `run_date >= 2026-11-20`. The V-20
-  pool (run_date ≤ 2026-11-19) is frozen and never pooled in.
-- **Label:** `outcome_correct_alpha` (10d MICRO / 30d MACRO, unchanged grader).
+- **Pool:** all official `portfolio_advice` rows from 2026-07-12 on, including the
+  402 already read.
+- **Label:** `outcome_correct_alpha` (10d MICRO / 30d MACRO).
 - **Statistic:** the Fama–MacBeth across-date t of the per-date mean (hit − 0.5).
-- **Read once,** when **≥ 60 distinct run_dates** are graded (about April 2027),
-  against the then-current deflated threshold (3.73 today).
+- **One more read only,** at **≥ 60 distinct graded run_dates** (about Feb 2027). It is
+  a two-look sequential test, because 11-19 was look 1, so the bar is the deflated
+  threshold at α/2: **z ≥ 3.90** (265 trials). This bar is fixed now.
 - **Pass** → the advisor's verdicts count as an edge. **Miss** → grading shuts off
-  (POST_MORTEM §6), with no further reads.
-- **No interim peeking:** counts only, no hit rates, until the read.
-- Grader fixes that wait on V-20 (D3/D4, branch `fix/grader-d3-d4`) may merge now.
-  They apply before the first call in this pool matures.
+  (POST_MORTEM §6).
+- **No interim peeking:** counts only until the read.
+- Grader fixes waiting on V-20 (branch `fix/grader-d3-d4`) may merge now.
