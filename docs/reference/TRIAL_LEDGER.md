@@ -30,7 +30,9 @@ ever tested is counted here, and the significance bar is raised for the count.
 | S1 monthly momentum (CNC) + S1-T 200-DMA variant — pre-registered 2026-11-18, tested same day, failed | 2 |
 | S5 live paper (S1-T re-registered, judged 2028-12-31) — registered 2026-11-19 before any output | 1 |
 | advisor v1 forward read — calls from 2026-11-20 only, FM t across ≥ 60 dates, registered 2026-11-20 before any such call is graded | 1 |
-| **total** | **265** |
+| P-70 intraday lab — 54 frozen variants (live paper + 2018–25 replay; all failed 2026-11-19) | 54 |
+| P-70 lab experiments — [LAB_EXPERIMENTS.md](LAB_EXPERIMENTS.md) (X01, X02 registered 2026-11-20 before running) | 2 |
+| **total** | **321** |
 
 ## The threshold
 
@@ -40,7 +42,8 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 |---|---|
 | 1 | 1.96 |
 | 50 | 3.29 |
-| **265 (this project)** | **3.73** |
+| 265 | 3.73 |
+| **321 (this project, 2026-11-20)** | **3.78** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
