@@ -52,8 +52,13 @@ in order, with what it taught us._
 
 | id | parent | one change | why | registered | result (explore, net) | verdict | lesson |
 |---|---|---|---|---|---|---|---|
-| X01 | GAPFADE_s0.5_strict_v1 | only the top-100 names by ADV | slippage is modelled at 5 bps for the top 100 and 15 bps for the rest | 2026-11-20 00:10 IST | — | — | — |
-| X02 | GAPFADE_s0.5_strict_v1 | gap ≥ 3.5% (was 2.5%) | a bigger gap means a bigger move to the target (prior close) for the same cost | 2026-11-20 00:10 IST | — | — | — |
+| X01 | GAPFADE_s0.5_strict_v1 | only the top-100 names by ADV | slippage is modelled at 5 bps for the top 100 and 15 bps for the rest | 2026-11-20 00:10 IST | net PF **1.04** (parent 0.93), ₹5.7/day, 2,069 trades; blocks ₹+24,253 / −9,132 / −5,306 | **killed**: only 1 of 3 blocks > 0 | Liquid names cut cost per trade from ₹56 to ₹42 with the gross edge unchanged (gross PF 1.54 vs 1.56), so the filter itself works. But the gross edge per trade halves after 2020 (₹68 → ₹26–32) while costs stay ₹42: **from 2021 on, one trade's edge is smaller than its cost.** |
+| X02 | GAPFADE_s0.5_strict_v1 | gap ≥ 3.5% (was 2.5%) | a bigger gap means a bigger move to the target (prior close) for the same cost | 2026-11-20 00:10 IST | net PF **0.99** (parent 0.93), −₹1.1/day, 1,918 trades; blocks ₹+17,997 / −9,859 / −9,996 | **killed**: only 1 of 3 blocks > 0 | A bigger gap barely raises the edge per trade (₹66/39/28 → ₹74/35/36 by block) and costs stay ₹56. Gap size is not what drives the edge: **2018–20 works and 2021–24 does not, whatever the filter.** Both levers (X01, X02) hit the same wall, so the next idea has to explain that regime split. |
+| X03 | GAPFADE_s0.5_strict_v1 | SHORT side only (fade gap-ups; drop gap-down longs) | parent's own trades split by side: shorts gross PF 1.92 / 1.93 / 1.53 by block, longs 1.61 / 0.91 / 1.03 — the long side is what dies after 2020 | 2026-11-20 06:50 IST | — | — | — |
+
+**Caveat on X03:** it was chosen by looking at the parent's own 2018–24 trades,
+so a good explore result is expected and proves little. Only the locked 2025
+holdout can test it.
 
 **Caveat on X01:** it gains only if the slippage model is right. Real fills at
 09:30 on a gapping stock may be worse than 5 bps, so a "kept" X01 needs live
