@@ -29,6 +29,17 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-59 · grader D3/D4 fix live — registered 2026-11-21 [P-46]
+Brain 9e3414d (merged fix/grader-d3-d4). Two reads:
+- **D4, any pass:** the Railway `[backtest] pass:` line counts `not_due` rows
+  without fetching them. A dead-token day's `grading_incident` names only rows
+  that are really due (it no longer counts all queued rows).
+- **D3, on or after ~2026-12-14** (MAHLIFE 11-02 MACRO, 30 trading days): the log shows
+  `[backtest] public instrument master: N symbols` and the MAHLIFE 11-02 row gets
+  `evaluated_at`. **FAIL** = it is still queued after its maturity date.
+Note: newly gradable rows (sold non-Nifty-500 names) now enter the trial 266
+cumulative pool. That is the bias fix, not a protocol change.
+
 ### V-58 · advice snapshot retention runs — registered 2026-11-20 [P-38]
 Brain 6556d93. Railway log after 17:00 IST shows
 `[SCHEDULER] advice snapshot retention: removed N rows` once that day, and:
