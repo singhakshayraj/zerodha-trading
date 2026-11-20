@@ -13,6 +13,13 @@ below.
 
 ## Parked — needs a decision or a design
 
+### K9. Lab finish_day crashed every day after the first — RESOLVED 2026-11-20 (brain `dc5c32c`, `21bf0f7`, [P-70])
+Where: `lab.py` `finish_day`. Since 11-19 every 15:20 run raised ValueError
+(`float('CONF_n1_loose_v1')`), so the day wrote no `lab_daily`, no `lab_refusals`
+and no SPRT status. The crash was swallowed as `[LAB] crashed (non-fatal)`.
+Fixed with a day-2 test; 11-19/11-20 backfilled from `lab_trades`. Lesson: the
+11-18 test covered day 1 only, so add a history row to tests of cumulative code.
+
 ### K7. Full-day sessions starve the advisor intraday refresh + timeline capture — RESOLVED 2026-08-04 (brain `9bd59ad`, [P-20])
 Fix: `_maybe_run_advisor` + `_maybe_capture_timeline` now also fire once per cycle
 inside the inner trading loop (`scheduler.py`), not only the outer idle loop.

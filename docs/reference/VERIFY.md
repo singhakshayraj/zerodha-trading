@@ -411,6 +411,8 @@ from lab_trades t group by trade_date order by trade_date desc limit 5;
 
 _11-18 reading (partial day, lab live from 12:12 IST): registered 54, left_open 0, daily_rows 18 = variants 18, trades 264 — **NOT-YET** on the ≥1000 bar; first full token day is 11-19._
 
+_11-20 reading: registered 54, left_open 0, variants 54, trades 802 — **FAIL** on daily_rows (0 on 11-19 and 11-20). Cause: `finish_day` crashed from day 2 on (float-cast of text history columns, then float `cum_n` into an integer column). Fixed in brain dc5c32c + 21bf0f7; lab_daily backfilled for 11-19 (18 rows) and 11-20 (54 rows). Refusal counts for 11-19/11-20 were in-memory and are lost. Backfill killed 3 variants by SPRT: VWAPREV_s0.5 loose/base/strict. Trades 802 < 1000 with no refusal data, so re-read on 11-23._
+
 **Storage trigger (deferred archive):** when `pg_database_size` passes ~350 MB, or on 2027-01-17, archive `lab_trades` rows older than 60 days to Parquet (spec §4).
 
 ### V-44 · risk targets publish and the PICKING_RP book runs — registered 2026-11-18
