@@ -31,8 +31,8 @@ ever tested is counted here, and the significance bar is raised for the count.
 | S5 live paper (S1-T re-registered, judged 2028-12-31) — registered 2026-11-19 before any output | 1 |
 | advisor v1 cumulative read — all calls since 07-12, FM t ≥ 3.90 (2-look) at ≥ 60 dates, registered 2026-11-20 | 1 |
 | P-70 intraday lab — 54 frozen variants (live paper + 2018–25 replay; all failed 2026-11-19) | 54 |
-| P-70 lab experiments — [LAB_EXPERIMENTS.md](LAB_EXPERIMENTS.md) (X01–X04 registered 2026-11-20 before running) | 4 |
-| **total** | **323** |
+| P-70 lab experiments — [LAB_EXPERIMENTS.md](LAB_EXPERIMENTS.md) (X01–X05 registered 2026-11-20 before running) | 5 |
+| **total** | **324** |
 
 ## The threshold
 
@@ -43,7 +43,7 @@ Harvey–Liu–Zhu style haircut (Bonferroni control across the count):
 | 1 | 1.96 |
 | 50 | 3.29 |
 | 265 | 3.73 |
-| **323 (this project, 2026-11-20)** | **3.78** |
+| **324 (this project, 2026-11-20)** | **3.78** |
 
 `advisor_eval.deflated_threshold(n_trials)` computes it. **Any new experiment
 adds to the count and raises the bar; register it here before it runs.**
