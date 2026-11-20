@@ -29,6 +29,19 @@ the book.
 
 ## 🔵 OPEN — run these next session
 
+### V-58 · advice snapshot retention runs — registered 2026-11-20 [P-38]
+Brain 6556d93. Railway log after 17:00 IST shows
+`[SCHEDULER] advice snapshot retention: removed N rows` once that day, and:
+```sql
+select count(*) from portfolio_advice
+where not is_official and run_date < (now() at time zone 'Asia/Kolkata')::date - 7
+  and id not in (select advice_id from user_executions where advice_id is not null)
+  and id not in (select source_advice_id from advisor_paper_positions where source_advice_id is not null);
+```
+**PASS** = 0, and the official row count did not drop. Context: the DB was
+trimmed from 318 MB to 133 MB on 11-20 (amfi_nav, brain_decisions,
+brain_activity, old snapshots). Exports are in `~/Desktop/zerodha-decommission-2026-09-09/`.
+
 ### V-57 · iPhone Safari scrolls, both bars visible — registered 2026-11-20 [P-79]
 Manual: on the iPhone (iOS 27 Safari) open `/`, `/advisor`, `/learn`. **PASS** =
 the page scrolls with a finger swipe; the top bar stays at the top and the bottom
